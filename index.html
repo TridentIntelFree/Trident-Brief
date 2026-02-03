@@ -3,63 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="The Trident Brief - Daily intelligence digest">
-    <title>The Trident Brief 🔱</title>
+    <title>The Trident Brief 🔱 - Daily Intelligence Assessment</title>
     <style>
         body {
-            font-family: Georgia, serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            max-width: 800px;
+            font-family: Arial, sans-serif;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
-            line-height: 1.7;
+            line-height: 1.6;
+            background-color: #f9f9f9;
+            color: #333;
         }
-        header {
+        h1, h2 {
+            color: #1a3c6d;
+        }
+        h1 {
             text-align: center;
-            padding: 40px 0;
-            border-bottom: 2px solid #333;
+            border-bottom: 2px solid #1a3c6d;
+            padding-bottom: 10px;
         }
-        h1 { color: #fff; font-size: 2.5em; }
-        .tagline { color: #888; font-style: italic; }
-        .about { background: #111; padding: 30px; margin: 40px 0; border-left: 3px solid #444; }
-        #brief-content { margin-top: 40px; }
-        #brief-content h2 { color: #ccc; margin-top: 30px; text-transform: uppercase; }
-        footer { margin-top: 80px; padding-top: 40px; border-top: 1px solid #333; text-align: center; color: #666; }
+        .date {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            color: #555;
+        }
+        .section {
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        ul {
+            padding-left: 20px;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #777;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>THE TRIDENT BRIEF 🔱</h1>
-        <p class="tagline">Daily Intelligence Assessment</p>
-    </header>
 
-    <div class="about">
-        <h2>What This Is</h2>
-        <p>Daily intelligence digest covering geopolitics, technology, UAP developments, and parapsychology research. All held to the same standard of evidence.</p>
+    <h1>THE TRIDENT BRIEF 🔱</h1>
+    <p class="date">Daily Intelligence Assessment – February 3, 2026</p>
+
+    <div class="section">
+        <h2>Geopolitics</h2>
+        <p>[Paste your geopolitics summary here. Example: Rising tensions in [region] following [event]. Key development: ...]</p>
+        <ul>
+            <li>Point 1: [brief note]</li>
+            <li>Point 2: [brief note with <a href="https://example.com">source link</a> if available]</li>
+        </ul>
     </div>
 
-    <div id="brief-content">
-        <p>Loading today's brief...</p>
+    <div class="section">
+        <h2>Technology & Cyber</h2>
+        <p>[Your tech/cyber intel here. Example: New vulnerability disclosed in ...]</p>
+    </div>
+
+    <div class="section">
+        <h2>UAP Developments</h2>
+        <p>[Any new sightings, reports, or analysis. Example: Pentagon acknowledgment of ...]</p>
+    </div>
+
+    <div class="section">
+        <h2>Parapsychology Research</h2>
+        <p>[Latest studies, claims, or debunkings in this area.]</p>
     </div>
 
     <footer>
-        <p><strong>The Trident Brief</strong></p>
-        <p>Powered by Claude AI</p>
+        <p>Curated daily by Horton • Follow updates on X: <a href="https://x.com/jh80257482">@jh80257482</a></p>
+        <p>Site hosted free on GitHub Pages • Last updated: February 3, 2026</p>
     </footer>
 
-    <script>
-        fetch('latest-brief.json')
-            .then(r => r.json())
-            .then(data => {
-                document.getElementById('brief-content').innerHTML = 
-                    '<p><strong>' + data.date + '</strong></p>' +
-                    data.content.replace(/\n/g, '<br>');
-            })
-            .catch(e => {
-                document.getElementById('brief-content').innerHTML = 
-                    '<p>Brief will appear here once automation is set up.</p>';
-            });
-    </script>
 </body>
 </html>
