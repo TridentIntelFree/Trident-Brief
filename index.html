@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Trident Brief - Daily intelligence digest">
+    <title>The Trident Brief 🔱</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.7;
+        }
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 2px solid #333;
+        }
+        h1 { color: #fff; font-size: 2.5em; }
+        .tagline { color: #888; font-style: italic; }
+        .about { background: #111; padding: 30px; margin: 40px 0; border-left: 3px solid #444; }
+        #brief-content { margin-top: 40px; }
+        #brief-content h2 { color: #ccc; margin-top: 30px; text-transform: uppercase; }
+        footer { margin-top: 80px; padding-top: 40px; border-top: 1px solid #333; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>THE TRIDENT BRIEF 🔱</h1>
+        <p class="tagline">Daily Intelligence Assessment</p>
+    </header>
+
+    <div class="about">
+        <h2>What This Is</h2>
+        <p>Daily intelligence digest covering geopolitics, technology, UAP developments, and parapsychology research. All held to the same standard of evidence.</p>
+    </div>
+
+    <div id="brief-content">
+        <p>Loading today's brief...</p>
+    </div>
+
+    <footer>
+        <p><strong>The Trident Brief</strong></p>
+        <p>Powered by Claude AI</p>
+    </footer>
+
+    <script>
+        fetch('latest-brief.json')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('brief-content').innerHTML = 
+                    '<p><strong>' + data.date + '</strong></p>' +
+                    data.content.replace(/\n/g, '<br>');
+            })
+            .catch(e => {
+                document.getElementById('brief-content').innerHTML = 
+                    '<p>Brief will appear here once automation is set up.</p>';
+            });
+    </script>
+</body>
+</html>
