@@ -1,0 +1,32 @@
+name: Daily Trident Brief AI Update
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # Every day at 00:00 UTC
+
+  workflow_dispatch:      # Lets you test manually too
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install google-generativeai
+
+      - name: Generate and update brief
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python daily_generate.py
+
+      - name: Commit changes
+        run: |
+          git config user.name "Trident Bot"
+          git config user.email "bot@trident.example"
+          git add index.html
+          git commit -m "Daily AI-generated brief update $(date +'%Y-%m-%d')" || echo "No changes"
+          git push
