@@ -1,0 +1,90 @@
+name: Trident Brief - AI Refresh Every 3 Hours
+
+on:
+  schedule:
+    - cron: '0 */3 * * *'   # Every 3 hours (00:00, 03:00, 06:00, ..., UTC)
+  workflow_dispatch:         # Allows manual run from Actions tab
+
+jobs:
+  generate-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Needed for commit history
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Google Generative AI library
+        run: pip install google-generativeai
+
+      - name: Generate daily brief with Gemini and update index.html
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}   # Change to your secret name if different (e.g. GROQ_API_KEY)
+        run: |
+          python - << 'EOF'
+          import google.generativeai as genai
+          import os
+          import datetime
+
+          genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+          model = genai.GenerativeModel('gemini-1.5-flash')
+
+          today = datetime.datetime.now().strftime("%B %d, %Y at %H:%M UTC")
+
+          prompt = f"""
+          Generate a concise, neutral, evidence-based intelligence brief called "The Trident Brief" for {today}.
+          Cover exactly these four sections:
+          - Geopolitics
+          - Technology & Cyber
+          - UAP Developments
+          - Parapsychology Research
+
+          Keep total under 800 words. Use factual tone, cite general sources if relevant.
+          Output ONLY valid HTML starting from <p class="date">... and ending before </body>, with:
+          - <p class="date">Daily Intelligence Assessment – {today}</p>
+          - Four <div class="section"><h2>...</h2><p>...</p></div> blocks
+          - No extra text, no markdown, pure HTML.
+          """
+
+          response = model.generate_content(prompt)
+          content = response.text.strip()
+
+          # Read current index.html
+          with open('index.html', 'r', encoding='utf-8') as f:
+              html = f.read()
+
+          # Keep head + title + style, replace everything after <body> with new content + footer
+          if '<body>' not in html:
+              print("Error: No <body> tag found")
+              exit(1)
+
+          head_part = html.split('<body>', 1)[0] + '<body>\n'
+          footer = """
+          <footer style="text-align:center; margin-top:40px; color:#777; font-size:0.9em;">
+              <p>Curated daily by Horton • <a href="https://x.com/jh80257482">@jh80257482</a></p>
+              <p>Auto-refreshed every 3 hours • Hosted free on GitHub Pages</p>
+          </footer>
+          </body></html>
+          """
+
+          new_html = head_part + content + footer
+
+          with open('index.html', 'w', encoding='utf-8') as f:
+              f.write(new_html)
+
+          print("Generated and wrote new content to index.html")
+          EOF
+
+      - name: Commit and push the updated index.html
+        run: |
+          git config --global user.name "Trident Auto Bot"
+          git config --global user.email "bot@noreply.github.com"
+          git add index.html
+          git commit -m "Auto AI refresh: $(date +'%Y-%m-%d %H:%M UTC')" || echo "No changes to commit"
+          git push
