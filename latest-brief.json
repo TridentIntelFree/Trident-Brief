@@ -1,5 +1,5 @@
 {
-  "date": "February 3, 2026 - Manual Test",
-  "content": "THE TRIDENT BRIEF 🔱\n\nThis is a test brief. The automation will replace this with real content every 3 hours.\n\nIf you're seeing this, the site is working! The next automated brief will generate soon.\n\nSections that will appear:\n- Geopolitical Flashpoints\n- Technology & Power Consolidation  \n- UAP/UFO Developments\n- Psi/Parapsychology Research\n\nCheck back in a few hours for the real brief!",
-  "generated_at": "2026-02-03T00:00:00Z"
+  "date": "February 04, 2026",
+  "content": "Error generating brief: 404 models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
+  "generated_at": "2026-02-04T14:31:38.744886"
 }
