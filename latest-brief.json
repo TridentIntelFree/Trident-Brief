@@ -1,5 +1,5 @@
 {
   "date": "February 04, 2026",
-  "content": "Error generating brief: 404 models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
-  "generated_at": "2026-02-04T14:31:38.744886"
+  "content": "Error generating brief: 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.",
+  "generated_at": "2026-02-04T17:34:24.061871"
 }
