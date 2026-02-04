@@ -1,5 +1,4 @@
 # Updated 2026-02-04
-
 import os
 import json
 from datetime import datetime
@@ -45,7 +44,7 @@ def generate_brief():
     print(f"Generating brief for {today}...")
     
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-pro')
         response = model.generate_content(PROMPT.format(date=today))
         
         brief_text = response.text
@@ -79,4 +78,5 @@ def generate_brief():
 
 if __name__ == "__main__":
     generate_brief()
+
 
