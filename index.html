@@ -3,89 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Trident Brief 🔱 - Daily Intelligence Assessment</title>
+    <title>The Trident Brief 🔱</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 900px;
+            font-family: Georgia, serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            line-height: 1.6;
-            background-color: #f9f9f9;
-            color: #333;
+            line-height: 1.8;
         }
-        h1, h2 {
-            color: #1a3c6d;
-        }
-        h1 {
+        header {
             text-align: center;
-            border-bottom: 2px solid #1a3c6d;
-            padding-bottom: 10px;
-        }
-        .date {
-            text-align: center;
-            font-size: 1.2em;
-            margin-bottom: 30px;
-            color: #555;
-        }
-        .section {
+            padding: 40px 0;
+            border-bottom: 2px solid #333;
             margin-bottom: 40px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        ul {
-            padding-left: 20px;
+        h1 { 
+            color: #fff; 
+            font-size: 2.5em; 
+            margin-bottom: 10px;
         }
-        a {
-            color: #0066cc;
-            text-decoration: none;
+        .tagline { 
+            color: #888; 
+            font-style: italic; 
+            margin: 5px 0;
         }
-        a:hover {
-            text-decoration: underline;
+        .about { 
+            background: #111; 
+            padding: 25px; 
+            margin: 30px 0; 
+            border-left: 3px solid #444; 
         }
-        footer {
+        .about h2 { 
+            color: #fff; 
+            margin-bottom: 15px; 
+        }
+        .about p { 
+            color: #aaa; 
+        }
+        #brief-meta {
             text-align: center;
-            margin-top: 50px;
+            color: #666;
+            margin: 30px 0;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #222;
+        }
+        #brief-content { 
+            margin-top: 30px; 
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+        #brief-content h2 { 
+            color: #ccc; 
+            margin: 30px 0 15px 0; 
+            text-transform: uppercase; 
+            font-size: 1.3em;
+        }
+        #brief-content h3 { 
+            color: #aaa; 
+            margin: 20px 0 10px 0; 
+        }
+        #brief-content strong {
+            color: #fff;
+        }
+        footer { 
+            margin-top: 80px; 
+            padding-top: 40px; 
+            border-top: 1px solid #333; 
+            text-align: center; 
+            color: #666; 
             font-size: 0.9em;
-            color: #777;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
         }
     </style>
 </head>
 <body>
+    <header>
+        <h1>THE TRIDENT BRIEF 🔱</h1>
+        <p class="tagline">Expert-Level Intelligence Assessment</p>
+        <p class="tagline">Geopolitics • Technology • The Fringe</p>
+    </header>
 
-    <h1>THE TRIDENT BRIEF 🔱</h1>
-    <p class="date">Daily Intelligence Assessment – February 3, 2026</p>
-
-    <div class="section">
-        <h2>Geopolitics</h2>
-        <p>[Paste your geopolitics summary here. Example: Rising tensions in [region] following [event]. Key development: ...]</p>
-        <ul>
-            <li>Point 1: [brief note]</li>
-            <li>Point 2: [brief note with <a href="https://example.com">source link</a> if available]</li>
-        </ul>
+    <div class="about">
+        <h2>What This Is</h2>
+        <p>
+            Daily intelligence digest covering geopolitical flashpoints, technology shifts, 
+            UAP/UFO developments, and parapsychology research. All held to the same standard of evidence.
+        </p>
+        <p style="margin-top: 10px;">
+            Updates automatically every 3 hours. No ads. No tracking. Just signal.
+        </p>
     </div>
 
-    <div class="section">
-        <h2>Technology & Cyber</h2>
-        <p>[Your tech/cyber intel here. Example: New vulnerability disclosed in ...]</p>
-    </div>
-
-    <div class="section">
-        <h2>UAP Developments</h2>
-        <p>[Any new sightings, reports, or analysis. Example: Pentagon acknowledgment of ...]</p>
-    </div>
-
-    <div class="section">
-        <h2>Parapsychology Research</h2>
-        <p>[Latest studies, claims, or debunkings in this area.]</p>
-    </div>
+    <div id="brief-meta"></div>
+    <div id="brief-content" class="loading">Loading latest brief...</div>
 
     <footer>
-        <p>Curated daily by Horton • Follow updates on X: <a href="https://x.com/jh80257482">@jh80257482</a></p>
-        <p>Site hosted free on GitHub Pages • Last updated: February 3, 2026</p>
+        <p><strong>The Trident Brief</strong></p>
+        <p>Powered by Google Gemini AI</p>
+        <p style="margin-top: 10px; font-size: 0.85em;">
+            Updated every 3 hours • All claims cited • Multiple perspectives
+        </p>
     </footer>
 
+    <script>
+        fetch('latest-brief.json')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('brief-meta').innerHTML = 
+                    '<strong>' + data.date + '</strong>';
+                
+                let content = data.content;
+                
+                // Convert markdown headers
+                content = content.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+                content = content.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+                
+                // Convert **bold**
+                content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                // Convert *italic*
+                content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                
+                document.getElementById('brief-content').innerHTML = content;
+            })
+            .catch(e => {
+                document.getElementById('brief-content').innerHTML = 
+                    '<p>Brief will appear soon. Automation starting...</p>';
+            });
+    </script>
 </body>
 </html>
+
