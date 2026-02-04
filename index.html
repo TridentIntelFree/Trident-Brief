@@ -1,143 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Trident Brief 🔱</title>
+    <title>The Trident Brief</title>
     <style>
         body {
-            font-family: Georgia, serif;
             background: #0a0a0a;
             color: #e0e0e0;
+            font-family: Georgia, serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.8;
         }
-        header {
-            text-align: center;
-            padding: 40px 0;
-            border-bottom: 2px solid #333;
-            margin-bottom: 40px;
-        }
-        h1 { 
-            color: #fff; 
-            font-size: 2.5em; 
-            margin-bottom: 10px;
-        }
-        .tagline { 
-            color: #888; 
-            font-style: italic; 
-            margin: 5px 0;
-        }
-        .about { 
-            background: #111; 
-            padding: 25px; 
-            margin: 30px 0; 
-            border-left: 3px solid #444; 
-        }
-        .about h2 { 
-            color: #fff; 
-            margin-bottom: 15px; 
-        }
-        .about p { 
-            color: #aaa; 
-        }
-        #brief-meta {
-            text-align: center;
-            color: #666;
-            margin: 30px 0;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #222;
-        }
-        #brief-content { 
-            margin-top: 30px; 
-            white-space: pre-wrap;
-            line-height: 1.8;
-        }
-        #brief-content h2 { 
-            color: #ccc; 
-            margin: 30px 0 15px 0; 
-            text-transform: uppercase; 
-            font-size: 1.3em;
-        }
-        #brief-content h3 { 
-            color: #aaa; 
-            margin: 20px 0 10px 0; 
-        }
-        #brief-content strong {
-            color: #fff;
-        }
-        footer { 
-            margin-top: 80px; 
-            padding-top: 40px; 
-            border-top: 1px solid #333; 
-            text-align: center; 
-            color: #666; 
-            font-size: 0.9em;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
+        h1 { color: #fff; text-align: center; }
+        .date { text-align: center; color: #888; margin: 20px 0; }
+        #content { margin-top: 40px; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>THE TRIDENT BRIEF 🔱</h1>
-        <p class="tagline">Expert-Level Intelligence Assessment</p>
-        <p class="tagline">Geopolitics • Technology • The Fringe</p>
-    </header>
-
-    <div class="about">
-        <h2>What This Is</h2>
-        <p>
-            Daily intelligence digest covering geopolitical flashpoints, technology shifts, 
-            UAP/UFO developments, and parapsychology research. All held to the same standard of evidence.
-        </p>
-        <p style="margin-top: 10px;">
-            Updates automatically every 3 hours. No ads. No tracking. Just signal.
-        </p>
+    <h1>THE TRIDENT BRIEF 🔱</h1>
+    <div class="date" id="date">Loading...</div>
+    <div id="content">
+        <p>If you see this, the automation is working but hasn't generated a brief yet.</p>
+        <p>Check back in a few hours, or the automation might need the Gemini API key configured.</p>
     </div>
-
-    <div id="brief-meta"></div>
-    <div id="brief-content" class="loading">Loading latest brief...</div>
-
-    <footer>
-        <p><strong>The Trident Brief</strong></p>
-        <p>Powered by Google Gemini AI</p>
-        <p style="margin-top: 10px; font-size: 0.85em;">
-            Updated every 3 hours • All claims cited • Multiple perspectives
-        </p>
-    </footer>
-
+    
     <script>
+        // Try to load the brief
         fetch('latest-brief.json')
-            .then(r => r.json())
+            .then(response => response.json())
             .then(data => {
-                document.getElementById('brief-meta').innerHTML = 
-                    '<strong>' + data.date + '</strong>';
-                
-                let content = data.content;
-                
-                // Convert markdown headers
-                content = content.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-                content = content.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-                
-                // Convert **bold**
-                content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                
-                // Convert *italic*
-                content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
-                
-                document.getElementById('brief-content').innerHTML = content;
+                document.getElementById('date').textContent = data.date;
+                document.getElementById('content').innerHTML = '<pre>' + data.content + '</pre>';
             })
-            .catch(e => {
-                document.getElementById('brief-content').innerHTML = 
-                    '<p>Brief will appear soon. Automation starting...</p>';
+            .catch(error => {
+                document.getElementById('content').innerHTML = 
+                    '<p>Waiting for first brief to generate...</p>' +
+                    '<p>The automation runs every 3 hours.</p>';
             });
     </script>
 </body>
 </html>
+>
 
