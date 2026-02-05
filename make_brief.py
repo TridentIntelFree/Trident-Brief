@@ -1,9 +1,10 @@
 import os
 import json
 from datetime import datetime
-import google.generativeai as genai
+from google import genai
 
-genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
+# New SDK - gets key from environment
+client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
 
 PROMPT = """Generate THE TRIDENT BRIEF for {date}.
 
@@ -21,12 +22,16 @@ def generate_brief():
     print(f"Generating brief for {today}...")
     
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(PROMPT.format(date=today))
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-exp",
+            contents=PROMPT.format(date=today)
+        )
+        
+        brief_text = response.text
         
         brief_data = {
             "date": today,
-            "content": response.text,
+            "content": brief_text,
             "generated_at": datetime.now().isoformat()
         }
         
@@ -35,7 +40,7 @@ def generate_brief():
         
         os.makedirs('archive', exist_ok=True)
         with open(f"archive/{datetime.now().strftime('%Y-%m-%d')}.md", 'w') as f:
-            f.write(response.text)
+            f.write(brief_text)
         
         print("✅ Brief generated!")
         
@@ -46,4 +51,5 @@ def generate_brief():
 
 if __name__ == "__main__":
     generate_brief()
+
 
