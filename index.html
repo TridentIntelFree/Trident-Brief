@@ -1,46 +1,186 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>The Trident Brief</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Trident Brief 🔱</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #0a0a0a;
             color: #e0e0e0;
-            font-family: Georgia, serif;
+            line-height: 1.8;
+            font-size: 18px;
+        }
+        
+        header {
+            background: #111;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 3px solid #00ff00;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        h1 {
+            font-size: 2em;
+            color: #00ff00;
+            text-shadow: 0 0 20px #00ff00;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            color: #0a0;
+            font-size: 0.9em;
+        }
+        
+        .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
-            line-height: 1.8;
+            padding: 30px 20px;
         }
-        h1 { color: #fff; text-align: center; }
-        .date { text-align: center; color: #888; margin: 20px 0; }
-        #content { margin-top: 40px; }
+        
+        .brief-date {
+            color: #0a0;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .brief-content {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .brief-content h2 {
+            color: #00ff00;
+            font-size: 1.5em;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .brief-content h2:first-child {
+            margin-top: 0;
+        }
+        
+        .brief-content p {
+            margin-bottom: 20px;
+            line-height: 1.9;
+        }
+        
+        .brief-content strong {
+            color: #00ff00;
+        }
+        
+        .brief-content ul, .brief-content ol {
+            margin: 20px 0 20px 30px;
+        }
+        
+        .brief-content li {
+            margin-bottom: 15px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #0a0;
+            font-size: 1.2em;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .brief-content {
+                padding: 20px;
+            }
+            
+            .brief-content h2 {
+                font-size: 1.3em;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>THE TRIDENT BRIEF 🔱</h1>
-    <div class="date" id="date">Loading...</div>
-    <div id="content">
-        <p>If you see this, the automation is working but hasn't generated a brief yet.</p>
-        <p>Check back in a few hours, or the automation might need the Gemini API key configured.</p>
+    <header>
+        <h1>THE TRIDENT BRIEF 🔱</h1>
+        <p class="tagline">Daily Intelligence Digest | Auto-Updated Every 3 Hours</p>
+    </header>
+
+    <div class="container">
+        <div class="brief-date" id="briefDate">Loading...</div>
+        <div class="brief-content" id="briefContent">
+            <div class="loading">Loading latest brief...</div>
+        </div>
     </div>
-    
+
+    <footer>
+        <p>Automated intelligence briefing powered by AI</p>
+        <p>Updates every 3 hours | Built by TridentIntelFree 🔱</p>
+    </footer>
+
     <script>
-        // Try to load the brief
-        fetch('latest-brief.json')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('date').textContent = data.date;
-                document.getElementById('content').innerHTML = '<pre>' + data.content + '</pre>';
-            })
-            .catch(error => {
-                document.getElementById('content').innerHTML = 
-                    '<p>Waiting for first brief to generate...</p>' +
-                    '<p>The automation runs every 3 hours.</p>';
-            });
+        async function loadBrief() {
+            try {
+                const response = await fetch('latest-brief.json');
+                const data = await response.json();
+                
+                document.getElementById('briefDate').textContent = data.date;
+                
+                let content = data.content;
+                
+                // Convert markdown-style headers to HTML
+                content = content.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+                content = content.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+                content = content.replace(/^# (.+)$/gm, '<h2>$1</h2>');
+                
+                // Convert **bold** to <strong>
+                content = content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                
+                // Convert line breaks to paragraphs
+                content = content.split('\n\n').map(para => {
+                    if (para.trim() && !para.startsWith('<h')) {
+                        return '<p>' + para.replace(/\n/g, '<br>') + '</p>';
+                    }
+                    return para;
+                }).join('\n');
+                
+                document.getElementById('briefContent').innerHTML = content;
+                
+            } catch (error) {
+                console.error('Error loading brief:', error);
+                document.getElementById('briefContent').innerHTML = 
+                    '<p style="color: #ff0000;">Error loading brief. Please refresh the page.</p>';
+            }
+        }
+
+        loadBrief();
     </script>
 </body>
 </html>
->
-
