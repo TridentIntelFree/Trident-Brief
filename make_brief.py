@@ -21,7 +21,7 @@ def generate_brief():
     print(f"Generating brief for {today}...")
     
     try:
-        model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(PROMPT.format(date=today))
         
         brief_data = {
@@ -46,3 +46,4 @@ def generate_brief():
 
 if __name__ == "__main__":
     generate_brief()
+
