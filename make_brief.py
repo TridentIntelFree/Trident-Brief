@@ -23,7 +23,7 @@ def generate_brief():
     
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="gemini-3-flash-preview",
             contents=PROMPT.format(date=today)
         )
         
@@ -51,5 +51,3 @@ def generate_brief():
 
 if __name__ == "__main__":
     generate_brief()
-
-
