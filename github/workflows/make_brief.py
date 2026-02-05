@@ -1,34 +1,49 @@
-name: Generate Trident Brief
+import os
+import json
+from datetime import datetime
+import google.generativeai as genai
 
-on:
-  schedule:
-    - cron: '0 */3 * * *'  # Every 3 hours
-  workflow_dispatch:  # Manual trigger
+genai.configure(api_key=os.environ.get('GEMINI_API_KEY'))
 
-jobs:
-  generate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Set up Python
-        uses go: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      
-      - name: Install dependencies
-        run: pip install google-generativeai
-      
-      - name: Generate brief
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python make_brief.py
+PROMPT = """Generate THE TRIDENT BRIEF for {date}.
 
-      
-      - name: Commit changes
-        run: |
-          git config --global user.name 'Trident Bot'
-          git config --global user.email 'bot@trident.com'
-          git add -A
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update brief $(date +'%Y-%m-%d %H:%M')"
-          git push
+Include:
+I. Geopolitical Flashpoints
+II. Technology & Power
+III. UAP/UFO Developments  
+IV. Psi Research
+V. Assessment
+
+1500 words, cite sources."""
+
+def generate_brief():
+    today = datetime.now().strftime("%B %d, %Y")
+    print(f"Generating brief for {today}...")
+    
+    try:
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content(PROMPT.format(date=today))
+        
+        brief_data = {
+            "date": today,
+            "content": response.text,
+            "generated_at": datetime.now().isoformat()
+        }
+        
+        with open('latest-brief.json', 'w') as f:
+            json.dump(brief_data, f, indent=2)
+        
+        os.makedirs('archive', exist_ok=True)
+        with open(f"archive/{datetime.now().strftime('%Y-%m-%d')}.md", 'w') as f:
+            f.write(response.text)
+        
+        print("✅ Brief generated!")
+        
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        with open('latest-brief.json', 'w') as f:
+            json.dump({"date": today, "content": f"Error: {e}", "generated_at": datetime.now().isoformat()}, f)
+
+if __name__ == "__main__":
+    generate_brief()
+
