@@ -6,62 +6,99 @@ from google.genai import types
 
 client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
 
-PROMPT = """You are generating THE TRIDENT BRIEF - a rigorously fact-checked intelligence digest for {date}.
+PROMPT = """Generate THE TRIDENT BRIEF - a rigorously fact-checked intelligence digest for {date}.
 
-USE GOOGLE SEARCH to find current information. Search extensively before making claims.
+YOU HAVE GOOGLE SEARCH ACCESS. Use it extensively to find current, verified information.
 
-CRITICAL REQUIREMENTS:
-1. SEARCH for recent developments in each category
-2. CITE specific sources with dates and URLs when available
-3. Cross-reference claims across multiple sources
-4. Flag VERIFIED vs REPORTED information
-5. Include skeptical perspectives for fringe topics
-6. Note when sources conflict
+MANDATORY SOURCING REQUIREMENTS:
 
-SOURCING PRIORITY:
-- Tier 1: Reuters, AP, Bloomberg, WSJ, FT, NYT, WaPo, BBC, official govt sites
-- Tier 2: Reputable regional outlets, defense publications
-- For UAP/Psi: Only institutional sources, peer-reviewed research, official statements
+1. SEARCH THE WEB before making ANY factual claim
+2. For EVERY major point, provide:
+   - The claim
+   - Source name (Reuters, AP, Bloomberg, etc.)
+   - Publication date
+   - If possible, include article title or URL reference
+3. When multiple sources confirm: State "Verified by [Source 1], [Source 2]"
+4. When single source: State "Reported by [Source]"
+5. When sources conflict: "NOTE: [Source A] reports X while [Source B] reports Y"
+
+SOURCE HIERARCHY (use in this order):
+TIER 1: Reuters, Associated Press, Bloomberg, Wall Street Journal, Financial Times, New York Times, Washington Post, BBC News, official government websites
+TIER 2: The Guardian, The Economist, Defense News, Jane's Defence, regional papers of record
+TIER 3 (UAP/Psi ONLY): Peer-reviewed journals, university research, official Congressional records
+
+SECTION REQUIREMENTS:
 
 ## I. GEOPOLITICAL FLASHPOINTS
-Search for and report current international conflicts, diplomatic moves, security developments.
-Cite sources with dates. Note verification status.
+Search for: International conflicts, diplomatic developments, security threats, major political events
+Format each point as:
+- [Development]
+- Source: [Publication], [Date]
+- Verification: [Verified/Reported/Conflicting]
 
-## II. TECHNOLOGY & POWER CONSOLIDATION
-Search for major tech moves, AI developments, regulatory actions, infrastructure.
-Cite sources with dates.
+## II. TECHNOLOGY & POWER CONSOLIDATION  
+Search for: Tech industry moves, AI developments, regulatory actions, antitrust, infrastructure, cybersecurity
+Format same as above with sources and dates.
 
 ## III. UAP/UFO DEVELOPMENTS
-Search ONLY for: official govt statements, Congressional activity, peer-reviewed research, credible journalism.
-Include skeptical counterpoints. NO social media rumors or unverified claims.
+Search STRICTLY for:
+- Official US government statements (DOD, NASA, ODNI)
+- Congressional hearings or legislative activity
+- Peer-reviewed scientific research
+- Major investigative journalism from Tier 1 sources
+
+For EACH item include:
+- What was officially stated/reported
+- By whom (agency, official name, publication)
+- Date
+- Skeptical scientific perspective or counterpoint
+- Verification status
+
+EXCLUDE: Social media claims, unverified sightings, conspiracy theories, anonymous sources
 
 ## IV. PSI/PARAPSYCHOLOGY RESEARCH
-Search for: peer-reviewed studies, university research, meta-analyses.
-Include mainstream scientific consensus. NO anecdotal claims.
+Search STRICTLY for:
+- Peer-reviewed studies in recognized scientific journals
+- Research from accredited universities
+- Meta-analyses or systematic reviews
+
+For EACH item include:
+- Research finding
+- Journal/institution, publication date
+- Study methodology and sample size if available
+- Mainstream scientific consensus or criticism
+- Verification status
+
+EXCLUDE: Anecdotal reports, non-peer-reviewed claims, pop psychology
 
 ## ASSESSMENT
-Synthesize verified developments. Note pending verification or conflicting sources.
+Synthesize the most significant VERIFIED developments across all sections.
+Note any major developing stories where verification is still pending.
+Flag any areas where sources significantly conflict.
 
-FORMAT:
-- Cite source and date for every claim
-- 1800-2200 words
-- Professional intelligence tone
-- NO speculation or fiction
+CRITICAL FORMAT RULES:
+- Minimum 1800 words, maximum 2200 words
+- Every factual claim must cite a source with date
+- Use "According to [Source], [Date]..." construction
+- When possible, reference specific article titles
+- Professional intelligence analyst tone
+- Zero speculation, zero fiction
+- If you cannot verify a claim, do not include it
 
-Search and generate factual brief for {date}."""
+Begin search and generation now for {date}."""
 
 def generate_brief():
     today = datetime.now().strftime("%B %d, %Y")
-    print(f"Generating grounded brief for {today} with Google Search...")
+    print(f"Generating fact-checked brief for {today} with Google Search grounding...")
     
     try:
-        # Use Gemini with Google Search grounding
+        # Generate with Google Search grounding
         response = client.models.generate_content(
             model="gemini-3-flash-preview",
             contents=PROMPT.format(date=today),
             config=types.GenerateContentConfig(
-                temperature=0.4,
-                top_p=0.95,
+                temperature=0.3,  # Lower for more factual output
+                top_p=0.9,
                 top_k=40,
                 max_output_tokens=8192,
                 tools=[types.Tool(google_search=types.GoogleSearch())]
@@ -70,27 +107,49 @@ def generate_brief():
         
         brief_text = response.text
         
-        # Check if grounding metadata exists
+        # Extract grounding metadata if available
+        grounding_info = "Grounding metadata not available"
         if hasattr(response, 'grounding_metadata'):
-            print(f"✅ Brief generated with Google Search grounding!")
+            grounding_info = "Generated with Google Search grounding"
+            print(f"✅ {grounding_info}")
         else:
-            print(f"✅ Brief generated (grounding status unknown)")
+            print(f"✅ Brief generated")
+        
+        # Count source citations
+        source_count = brief_text.count("Source:") + brief_text.count("According to")
+        verified_count = brief_text.count("Verified")
+        reported_count = brief_text.count("Reported")
+        
+        print(f"   Citations: {source_count}")
+        print(f"   Verified claims: {verified_count}")
+        print(f"   Reported claims: {reported_count}")
         
         brief_data = {
             "date": today,
             "content": brief_text,
             "generated_at": datetime.now().isoformat(),
-            "grounded": True
+            "grounding": grounding_info,
+            "stats": {
+                "citations": source_count,
+                "verified": verified_count,
+                "reported": reported_count
+            }
         }
         
         with open('latest-brief.json', 'w') as f:
             json.dump(brief_data, f, indent=2)
         
         os.makedirs('archive', exist_ok=True)
-        with open(f"archive/{datetime.now().strftime('%Y-%m-%d')}.md", 'w') as f:
+        archive_file = f"archive/{datetime.now().strftime('%Y-%m-%d')}.md"
+        with open(archive_file, 'w') as f:
+            f.write(f"# THE TRIDENT BRIEF\n")
+            f.write(f"## {today}\n\n")
+            f.write(f"*{grounding_info}*\n")
+            f.write(f"*Citations: {source_count} | Verified: {verified_count} | Reported: {reported_count}*\n\n")
+            f.write("---\n\n")
             f.write(brief_text)
         
-        print("✅ Grounded brief saved!")
+        print(f"✅ Fact-checked brief saved to {archive_file}")
         
     except Exception as e:
         print(f"❌ Error: {e}")
