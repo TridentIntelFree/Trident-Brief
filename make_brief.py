@@ -55,16 +55,15 @@ def generate_brief():
     print(f"Generating grounded brief for {today} with Google Search...")
     
     try:
-        # Use Gemini 2.0 Flash with Google Search grounding
+        # Use Gemini with Google Search grounding
         response = client.models.generate_content(
-            model="models/gemini-2.0-flash-exp",
+            model="gemini-3-flash-preview",
             contents=PROMPT.format(date=today),
             config=types.GenerateContentConfig(
                 temperature=0.4,
                 top_p=0.95,
                 top_k=40,
                 max_output_tokens=8192,
-                # Enable Google Search grounding
                 tools=[types.Tool(google_search=types.GoogleSearch())]
             )
         )
@@ -74,9 +73,8 @@ def generate_brief():
         # Check if grounding metadata exists
         if hasattr(response, 'grounding_metadata'):
             print(f"✅ Brief generated with Google Search grounding!")
-            print(f"   Search queries used: {len(response.grounding_metadata.search_entry_point.rendered_content) if hasattr(response.grounding_metadata, 'search_entry_point') else 'N/A'}")
         else:
-            print(f"✅ Brief generated")
+            print(f"✅ Brief generated (grounding status unknown)")
         
         brief_data = {
             "date": today,
