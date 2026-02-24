@@ -2,77 +2,87 @@ import os
 import json
 from datetime import datetime
 from google import genai
+from google.genai import types
 
 client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
 
 PROMPT = """You are generating THE TRIDENT BRIEF - a rigorously fact-checked intelligence digest for {date}.
 
-CRITICAL REQUIREMENTS FOR FACTUAL ACCURACY:
+USE GOOGLE SEARCH to find current information. Search extensively before making claims.
 
-1. SEARCH THE WEB extensively before making ANY claim
-2. EVERY factual claim must cite a specific source with date
-3. CROSS-REFERENCE major claims across multiple sources when possible
-4. CLEARLY DISTINGUISH between verified and unverified information
-5. Include SKEPTICAL perspectives especially for fringe topics
-6. When sources conflict NOTE THE CONFLICT explicitly
+CRITICAL REQUIREMENTS:
+1. SEARCH for recent developments in each category
+2. CITE specific sources with dates and URLs when available
+3. Cross-reference claims across multiple sources
+4. Flag VERIFIED vs REPORTED information
+5. Include skeptical perspectives for fringe topics
+6. Note when sources conflict
 
-SOURCING STANDARDS:
-- Tier 1 sources: Reuters AP Bloomberg WSJ FT NYT WaPo BBC official govt statements
-- Tier 2 sources: Reputable regional outlets established defense publications
-- Always prefer original sources over aggregators
-- For UAP/Psi topics: Only cite institutional sources peer-reviewed research or official statements
-
-CREATE THESE SECTIONS:
+SOURCING PRIORITY:
+- Tier 1: Reuters, AP, Bloomberg, WSJ, FT, NYT, WaPo, BBC, official govt sites
+- Tier 2: Reputable regional outlets, defense publications
+- For UAP/Psi: Only institutional sources, peer-reviewed research, official statements
 
 ## I. GEOPOLITICAL FLASHPOINTS
-Search for and report on current international conflicts diplomatic developments and security issues.
-For EACH major point cite source with publication and date.
+Search for and report current international conflicts, diplomatic moves, security developments.
+Cite sources with dates. Note verification status.
 
 ## II. TECHNOLOGY & POWER CONSOLIDATION
-Search for and report on major tech industry moves AI developments regulatory actions infrastructure projects.
-For EACH major point cite specific source with date.
+Search for major tech moves, AI developments, regulatory actions, infrastructure.
+Cite sources with dates.
 
 ## III. UAP/UFO DEVELOPMENTS
-Search ONLY for official government statements or hearings peer-reviewed research from credible institutions and credible investigative journalism from Tier 1/2 sources.
-Include skeptical counterpoint or mainstream scientific view for each item.
-DO NOT include social media rumors unverified sightings or speculative claims.
+Search ONLY for: official govt statements, Congressional activity, peer-reviewed research, credible journalism.
+Include skeptical counterpoints. NO social media rumors or unverified claims.
 
 ## IV. PSI/PARAPSYCHOLOGY RESEARCH
-Search ONLY for peer-reviewed studies in recognized journals research from accredited universities/institutions and meta-analyses.
-Include mainstream scientific consensus on the topic for each item.
-DO NOT include anecdotal claims or non-peer-reviewed sources.
+Search for: peer-reviewed studies, university research, meta-analyses.
+Include mainstream scientific consensus. NO anecdotal claims.
 
 ## ASSESSMENT
-Synthesize the most significant verified developments.
-Note any major stories where verification is pending or sources conflict.
+Synthesize verified developments. Note pending verification or conflicting sources.
 
-FORMATTING:
-- Every claim must cite source and date
-- Total length 1800-2200 words
-- Measured professional intelligence analyst tone
-- NO speculation fiction or hypotheticals
+FORMAT:
+- Cite source and date for every claim
+- 1800-2200 words
+- Professional intelligence tone
+- NO speculation or fiction
 
-Search extensively and generate factual brief for {date}."""
+Search and generate factual brief for {date}."""
 
 def generate_brief():
     today = datetime.now().strftime("%B %d, %Y")
-    print(f"Generating fact-checked brief for {today}...")
+    print(f"Generating grounded brief for {today} with Google Search...")
     
     try:
+        # Use Gemini 2.0 Flash with Google Search grounding
         response = client.models.generate_content(
-            model="gemini-3-flash-preview",
-
-            contents=PROMPT.format(date=today)
+            model="gemini-2.0-flash-exp",
+            contents=PROMPT.format(date=today),
+            config=types.GenerateContentConfig(
+                temperature=0.4,
+                top_p=0.95,
+                top_k=40,
+                max_output_tokens=8192,
+                # Enable Google Search grounding
+                tools=[types.Tool(google_search=types.GoogleSearch())]
+            )
         )
         
         brief_text = response.text
         
-        print(f"Brief generated successfully")
+        # Check if grounding metadata exists
+        if hasattr(response, 'grounding_metadata'):
+            print(f"✅ Brief generated with Google Search grounding!")
+            print(f"   Search queries used: {len(response.grounding_metadata.search_entry_point.rendered_content) if hasattr(response.grounding_metadata, 'search_entry_point') else 'N/A'}")
+        else:
+            print(f"✅ Brief generated")
         
         brief_data = {
             "date": today,
             "content": brief_text,
-            "generated_at": datetime.now().isoformat()
+            "generated_at": datetime.now().isoformat(),
+            "grounded": True
         }
         
         with open('latest-brief.json', 'w') as f:
@@ -82,12 +92,17 @@ def generate_brief():
         with open(f"archive/{datetime.now().strftime('%Y-%m-%d')}.md", 'w') as f:
             f.write(brief_text)
         
-        print("Brief saved successfully")
+        print("✅ Grounded brief saved!")
         
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ Error: {e}")
+        error_data = {
+            "date": today,
+            "content": f"Error generating brief: {e}",
+            "generated_at": datetime.now().isoformat()
+        }
         with open('latest-brief.json', 'w') as f:
-            json.dump({"date": today, "content": f"Error: {e}", "generated_at": datetime.now().isoformat()}, f)
+            json.dump(error_data, f, indent=2)
 
 if __name__ == "__main__":
     generate_brief()
