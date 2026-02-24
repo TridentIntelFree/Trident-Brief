@@ -57,7 +57,7 @@ def generate_brief():
     try:
         # Use Gemini 2.0 Flash with Google Search grounding
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp",
+            model="models/gemini-2.0-flash-exp",
             contents=PROMPT.format(date=today),
             config=types.GenerateContentConfig(
                 temperature=0.4,
