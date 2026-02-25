@@ -1,36 +1,269 @@
-name: Generate Trident Brief
+name: Generate Intelligence Brief
 
 on:
   schedule:
-    - cron: '0 7 * * *'  # 7:00 AM UTC daily
-  workflow_dispatch:
-
-permissions:
-  contents: write
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:  # Manual trigger
 
 jobs:
-  generate:
+  generate-brief:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
       
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      
-      - name: Install dependencies
-        run: pip install google-genai
-      
-      - name: Generate brief
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python make_brief.py
-      
-      - name: Commit changes
-        run: |
-          git config --global user.name 'Trident Bot'
-          git config --global user.email 'bot@trident.com'
-          git add -A
-          git diff --quiet && git diff --staged --quiet || git commit -m "Daily brief $(date +'%Y-%m-%d')"
-          git push
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        pip install requests python-dateutil
+        
+    - name: Generate brief
+      env:
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        cat > generate_brief.py << 'PYTHON_SCRIPT'
+        import requests
+        import json
+        import os
+        from datetime import datetime
+        import time
+
+        def generate_with_groq(prompt):
+            """Try Groq first"""
+            api_key = os.environ.get('GROQ_API_KEY')
+            if not api_key:
+                return None, "No Groq API key"
+            
+            try:
+                headers = {
+                    'Authorization': f'Bearer {api_key}',
+                    'Content-Type': 'application/json'
+                }
+                
+                data = {
+                    'model': 'llama-3.3-70b-versatile',
+                    'messages': [
+                        {
+                            'role': 'user',
+                            'content': prompt
+                        }
+                    ],
+                    'temperature': 0.7,
+                    'max_tokens': 4000
+                }
+                
+                response = requests.post(
+                    'https://api.groq.com/openai/v1/chat/completions',
+                    headers=headers,
+                    json=data,
+                    timeout=60
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    return result['choices'][0]['message']['content'], None
+                else:
+                    return None, f"Groq error: {response.status_code} - {response.text}"
+                    
+            except Exception as e:
+                return None, f"Groq exception: {str(e)}"
+
+        def generate_with_gemini(prompt):
+            """Fallback to Gemini"""
+            api_key = os.environ.get('GEMINI_API_KEY')
+            if not api_key:
+                return None, "No Gemini API key"
+            
+            try:
+                url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}'
+                
+                headers = {'Content-Type': 'application/json'}
+                data = {
+                    'contents': [{
+                        'parts': [{
+                            'text': prompt
+                        }]
+                    }],
+                    'generationConfig': {
+                        'temperature': 0.7,
+                        'maxOutputTokens': 4000,
+                    }
+                }
+                
+                response = requests.post(url, headers=headers, json=data, timeout=60)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    return result['candidates'][0]['content']['parts'][0]['text'], None
+                else:
+                    return None, f"Gemini error: {response.status_code} - {response.text}"
+                    
+            except Exception as e:
+                return None, f"Gemini exception: {str(e)}"
+
+        def generate_brief():
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
+            
+            prompt = f"""Generate a comprehensive intelligence briefing for {timestamp}.
+
+        Create a detailed, factual report covering these sections:
+
+        1. GEOPOLITICAL INTELLIGENCE
+        - Major international developments and conflicts
+        - Diplomatic activities and treaties
+        - Political instability or transitions
+        - Economic sanctions or trade issues
+
+        2. TECHNOLOGY & CYBERSECURITY
+        - Emerging technologies and breakthroughs
+        - Cybersecurity threats and incidents
+        - AI developments and policy
+        - Space technology and programs
+
+        3. UAP/UFO PHENOMENA
+        - Recent sightings and official reports
+        - Government disclosures and hearings
+        - Scientific research and analysis
+        - Notable incidents or investigations
+
+        4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH
+        - Academic research and studies
+        - Breakthrough experiments
+        - Theoretical developments
+        - Institutional research programs
+
+        CRITICAL REQUIREMENTS:
+        - Use ONLY real, verifiable information
+        - NO fictional scenarios or speculative future events
+        - NO made-up reports or imaginary incidents
+        - Focus on actual news and documented events
+        - If information is limited in a section, say so rather than inventing content
+        - Include dates and sources where possible
+
+        Format as a professional intelligence briefing with clear sections and bullet points."""
+
+            # Try Groq first
+            print("Attempting to generate brief with Groq...")
+            content, error = generate_with_groq(prompt)
+            
+            if content:
+                print("✓ Successfully generated with Groq")
+                provider = "Groq (llama-3.3-70b-versatile)"
+            else:
+                print(f"✗ Groq failed: {error}")
+                print("Falling back to Gemini...")
+                
+                # Fallback to Gemini
+                content, error = generate_with_gemini(prompt)
+                
+                if content:
+                    print("✓ Successfully generated with Gemini")
+                    provider = "Gemini Pro"
+                else:
+                    raise Exception(f"Both providers failed. Gemini error: {error}")
+            
+            # Create HTML
+            html = f"""<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>The Trident Brief - {timestamp}</title>
+            <style>
+                body {{
+                    font-family: 'Courier New', monospace;
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background: #0a0a0a;
+                    color: #00ff00;
+                    line-height: 1.6;
+                }}
+                .header {{
+                    text-align: center;
+                    border-bottom: 2px solid #00ff00;
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }}
+                .header h1 {{
+                    margin: 0;
+                    font-size: 2.5em;
+                    text-shadow: 0 0 10px #00ff00;
+                }}
+                .timestamp {{
+                    color: #00aa00;
+                    font-size: 0.9em;
+                    margin-top: 10px;
+                }}
+                .provider {{
+                    color: #00aa00;
+                    font-size: 0.8em;
+                    font-style: italic;
+                }}
+                .content {{
+                    white-space: pre-wrap;
+                    background: #0f0f0f;
+                    padding: 20px;
+                    border: 1px solid #00ff00;
+                    border-radius: 5px;
+                }}
+                .footer {{
+                    text-align: center;
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid #00ff00;
+                    color: #00aa00;
+                    font-size: 0.8em;
+                }}
+                @media (max-width: 768px) {{
+                    body {{
+                        padding: 10px;
+                    }}
+                    .header h1 {{
+                        font-size: 1.8em;
+                    }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>⚔️ THE TRIDENT BRIEF ⚔️</h1>
+                <div class="timestamp">Generated: {timestamp}</div>
+                <div class="provider">Powered by {provider}</div>
+            </div>
+            <div class="content">{content}</div>
+            <div class="footer">
+                <p>Automated Intelligence Briefing System</p>
+                <p>Updated every 6 hours</p>
+            </div>
+        </body>
+        </html>"""
+            
+            with open('index.html', 'w', encoding='utf-8') as f:
+                f.write(html)
+            
+            print(f"Brief generated successfully at {timestamp}")
+
+        if __name__ == '__main__':
+            try:
+                generate_brief()
+            except Exception as e:
+                print(f"Error generating brief: {e}")
+                exit(1)
+        PYTHON_SCRIPT
+        
+        python generate_brief.py
+        
+    - name: Commit and push
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
+        git add index.html
+        git diff-index --quiet HEAD || git commit -m "Update intelligence brief - $(date -u +'%Y-%m-%d %H:%M UTC')"
+        git push
