@@ -28,7 +28,7 @@ jobs:
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        cat > generate_brief.py << 'EOF'
+        python3 << 'PYTHON_EOF'
         import requests
         import json
         import os
@@ -60,8 +60,8 @@ jobs:
                     ],
                     'model': model_name,
                     'stream': False,
-                    'temperature': 0.6,  # Slightly lower for focused output
-                    'max_tokens': 2500   # Economy limit while maintaining quality
+                    'temperature': 0.6,
+                    'max_tokens': 2500
                 }
                 
                 response = requests.post(
@@ -163,46 +163,44 @@ jobs:
         def generate_brief():
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
             
-            # Economical prompt - concise but comprehensive
             prompt = f"""Generate an intelligence briefing for {timestamp}.
 
-Create a professional report with these sections (be concise but substantive):
+        Create a professional report with these sections (be concise but substantive):
 
-1. GEOPOLITICAL INTELLIGENCE
-- Major conflicts and diplomatic developments
-- Political transitions and economic sanctions
-- Focus on Ukraine, Middle East, Asia-Pacific tensions
-- Include dates, locations, key actors
+        1. GEOPOLITICAL INTELLIGENCE
+        - Major conflicts and diplomatic developments
+        - Political transitions and economic sanctions
+        - Focus on Ukraine, Middle East, Asia-Pacific tensions
+        - Include dates, locations, key actors
 
-2. TECHNOLOGY & CYBERSECURITY
-- Significant breakthroughs and cybersecurity incidents
-- AI policy and space developments
-- Major corporate announcements
-- Include companies, technologies, impact
+        2. TECHNOLOGY & CYBERSECURITY
+        - Significant breakthroughs and cybersecurity incidents
+        - AI policy and space developments
+        - Major corporate announcements
+        - Include companies, technologies, impact
 
-3. UAP/UFO PHENOMENA
-- Official reports and government statements
-- Congressional actions and Pentagon releases
-- Credible sightings and scientific research
-- Include dates, locations, sources
+        3. UAP/UFO PHENOMENA
+        - Official reports and government statements
+        - Congressional actions and Pentagon releases
+        - Credible sightings and scientific research
+        - Include dates, locations, sources
 
-4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH
-- Peer-reviewed studies and academic research
-- University programs and breakthrough experiments
-- Include researchers, institutions, findings
+        4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH
+        - Peer-reviewed studies and academic research
+        - University programs and breakthrough experiments
+        - Include researchers, institutions, findings
 
-REQUIREMENTS:
-- Use ONLY real, verifiable current events
-- NO fictional content or speculation
-- Provide context and analysis
-- 4-6 detailed bullets per section
-- Focus on past 48 hours, max 1 week
-- Include specific dates and sources
-- If section lacks updates, note it briefly
+        REQUIREMENTS:
+        - Use ONLY real, verifiable current events
+        - NO fictional content or speculation
+        - Provide context and analysis
+        - 4-6 detailed bullets per section
+        - Focus on past 48 hours, max 1 week
+        - Include specific dates and sources
+        - If section lacks updates, note it briefly
 
-Be economical with words while maintaining substance."""
+        Be economical with words while maintaining substance."""
 
-            # Multi-model cascade with Grok 4 priority
             grok_models = [
                 ('grok-4-1-fast-reasoning', 'Grok 4.1 Fast (Reasoning) - Most Powerful'),
                 ('grok-4-fast-reasoning', 'Grok 4 Fast (Reasoning)'),
@@ -212,7 +210,6 @@ Be economical with words while maintaining substance."""
             content = None
             provider = None
             
-            # Try Grok models
             for model_name, display_name in grok_models:
                 print(f"Attempting to generate brief with {display_name}...")
                 content, error = generate_with_grok_model(prompt, model_name)
@@ -224,7 +221,6 @@ Be economical with words while maintaining substance."""
                 else:
                     print(f"{model_name} failed: {error}")
             
-            # Fallback to Groq if all Grok models fail
             if not content:
                 print("All Grok models failed. Falling back to Groq...")
                 content, error = generate_with_groq(prompt)
@@ -236,7 +232,6 @@ Be economical with words while maintaining substance."""
                     print(f"Groq failed: {error}")
                     print("Falling back to Gemini...")
                     
-                    # Final fallback to Gemini
                     content, error = generate_with_gemini(prompt)
                     
                     if content:
@@ -245,91 +240,91 @@ Be economical with words while maintaining substance."""
                     else:
                         raise Exception(f"All providers failed. Last error: {error}")
             
-            html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Trident Brief - {timestamp}</title>
-    <style>
-        body {{
-            font-family: 'Courier New', monospace;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #0a0a0a;
-            color: #00ff00;
-            line-height: 1.6;
-        }}
-        .header {{
-            text-align: center;
-            border-bottom: 2px solid #00ff00;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }}
-        .header h1 {{
-            margin: 0;
-            font-size: 2.5em;
-            text-shadow: 0 0 10px #00ff00;
-        }}
-        .timestamp {{
-            color: #00aa00;
-            font-size: 0.9em;
-            margin-top: 10px;
-        }}
-        .provider {{
-            color: #00aa00;
-            font-size: 0.8em;
-            font-style: italic;
-        }}
-        .economy {{
-            color: #008800;
-            font-size: 0.75em;
-            margin-top: 5px;
-        }}
-        .content {{
-            white-space: pre-wrap;
-            background: #0f0f0f;
-            padding: 20px;
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-        }}
-        .footer {{
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #00ff00;
-            color: #00aa00;
-            font-size: 0.8em;
-        }}
-        @media (max-width: 768px) {{
-            body {{
-                padding: 10px;
-            }}
-            .header h1 {{
-                font-size: 1.8em;
-            }}
-        }}
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>⚔️ THE TRIDENT BRIEF ⚔️</h1>
-        <div class="timestamp">Generated: {timestamp}</div>
-        <div class="provider">Powered by {provider}</div>
-        <div class="economy">Economy Mode: 2500 tokens max | Temp: 0.6</div>
-    </div>
-    <div class="content">{content}</div>
-    <div class="footer">
-        <p>Automated Intelligence Briefing System</p>
-        <p>Grok 4.1 → Grok 4 → Grok 3 Mini → Groq → Gemini</p>
-        <p>Updated every 6 hours | Token-optimized</p>
-    </div>
-</body>
-</html>"""
+            html_content = f"""<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>The Trident Brief - {timestamp}</title>
+            <style>
+                body {{
+                    font-family: 'Courier New', monospace;
+                    max-width: 900px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background: #0a0a0a;
+                    color: #00ff00;
+                    line-height: 1.6;
+                }}
+                .header {{
+                    text-align: center;
+                    border-bottom: 2px solid #00ff00;
+                    padding-bottom: 20px;
+                    margin-bottom: 30px;
+                }}
+                .header h1 {{
+                    margin: 0;
+                    font-size: 2.5em;
+                    text-shadow: 0 0 10px #00ff00;
+                }}
+                .timestamp {{
+                    color: #00aa00;
+                    font-size: 0.9em;
+                    margin-top: 10px;
+                }}
+                .provider {{
+                    color: #00aa00;
+                    font-size: 0.8em;
+                    font-style: italic;
+                }}
+                .economy {{
+                    color: #008800;
+                    font-size: 0.75em;
+                    margin-top: 5px;
+                }}
+                .content {{
+                    white-space: pre-wrap;
+                    background: #0f0f0f;
+                    padding: 20px;
+                    border: 1px solid #00ff00;
+                    border-radius: 5px;
+                }}
+                .footer {{
+                    text-align: center;
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid #00ff00;
+                    color: #00aa00;
+                    font-size: 0.8em;
+                }}
+                @media (max-width: 768px) {{
+                    body {{
+                        padding: 10px;
+                    }}
+                    .header h1 {{
+                        font-size: 1.8em;
+                    }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>⚔️ THE TRIDENT BRIEF ⚔️</h1>
+                <div class="timestamp">Generated: {timestamp}</div>
+                <div class="provider">Powered by {provider}</div>
+                <div class="economy">Economy Mode: 2500 tokens max | Temp: 0.6</div>
+            </div>
+            <div class="content">{content}</div>
+            <div class="footer">
+                <p>Automated Intelligence Briefing System</p>
+                <p>Grok 4.1 → Grok 4 → Grok 3 Mini → Groq → Gemini</p>
+                <p>Updated every 6 hours | Token-optimized</p>
+            </div>
+        </body>
+        </html>"""
             
             with open('index.html', 'w', encoding='utf-8') as f:
-                f.write(html)
+                f.write(html_content)
             
             print(f"Brief generated successfully at {timestamp}")
 
@@ -339,9 +334,7 @@ Be economical with words while maintaining substance."""
             except Exception as e:
                 print(f"Error generating brief: {e}")
                 exit(1)
-        EOF
-        
-        python generate_brief.py
+        PYTHON_EOF
         
     - name: Commit and push
       run: |
