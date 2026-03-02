@@ -24,6 +24,7 @@ jobs:
         
     - name: Generate brief
       env:
+        GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
@@ -34,8 +35,53 @@ jobs:
         from datetime import datetime
         import time
 
+        def generate_with_grok(prompt):
+            """Try Grok first - has real-time data access"""
+            api_key = os.environ.get('GROK_API_KEY')
+            if not api_key:
+                return None, "No Grok API key"
+            
+            try:
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {api_key}'
+                }
+                
+                data = {
+                    'messages': [
+                        {
+                            'role': 'system',
+                            'content': 'You are a concise intelligence analyst. Provide brief, factual briefings with no elaboration. Be economical with words.'
+                        },
+                        {
+                            'role': 'user',
+                            'content': prompt
+                        }
+                    ],
+                    'model': 'grok-beta',
+                    'stream': False,
+                    'temperature': 0.5,
+                    'max_tokens': 2000
+                }
+                
+                response = requests.post(
+                    'https://api.x.ai/v1/chat/completions',
+                    headers=headers,
+                    json=data,
+                    timeout=60
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    return result['choices'][0]['message']['content'], None
+                else:
+                    return None, f"Grok error: {response.status_code} - {response.text}"
+                    
+            except Exception as e:
+                return None, f"Grok exception: {str(e)}"
+
         def generate_with_groq(prompt):
-            """Try Groq first"""
+            """Try Groq second - fast and free"""
             api_key = os.environ.get('GROQ_API_KEY')
             if not api_key:
                 return None, "No Groq API key"
@@ -50,12 +96,16 @@ jobs:
                     'model': 'llama-3.3-70b-versatile',
                     'messages': [
                         {
+                            'role': 'system',
+                            'content': 'You are a concise intelligence analyst. Provide brief, factual briefings with no elaboration. Be economical with words.'
+                        },
+                        {
                             'role': 'user',
                             'content': prompt
                         }
                     ],
-                    'temperature': 0.7,
-                    'max_tokens': 4000
+                    'temperature': 0.5,
+                    'max_tokens': 2000
                 }
                 
                 response = requests.post(
@@ -75,13 +125,13 @@ jobs:
                 return None, f"Groq exception: {str(e)}"
 
         def generate_with_gemini(prompt):
-            """Fallback to Gemini"""
+            """Fallback to Gemini - stable backup"""
             api_key = os.environ.get('GEMINI_API_KEY')
             if not api_key:
                 return None, "No Gemini API key"
             
             try:
-                url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}'
+                url = f'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}'
                 
                 headers = {'Content-Type': 'application/json'}
                 data = {
@@ -91,8 +141,13 @@ jobs:
                         }]
                     }],
                     'generationConfig': {
-                        'temperature': 0.7,
-                        'maxOutputTokens': 4000,
+                        'temperature': 0.5,
+                        'maxOutputTokens': 2000,
+                    },
+                    'systemInstruction': {
+                        'parts': [{
+                            'text': 'You are a concise intelligence analyst. Provide brief, factual briefings with no elaboration. Be economical with words.'
+                        }]
                     }
                 }
                 
@@ -110,63 +165,64 @@ jobs:
         def generate_brief():
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
             
-            prompt = f"""Generate a comprehensive intelligence briefing for {timestamp}.
+            # Optimized prompt for token efficiency
+            prompt = f"""Generate a concise intelligence briefing for {timestamp}.
 
-        Create a detailed, factual report covering these sections:
+BRIEF factual report (500-800 words total):
 
-        1. GEOPOLITICAL INTELLIGENCE
-        - Major international developments and conflicts
-        - Diplomatic activities and treaties
-        - Political instability or transitions
-        - Economic sanctions or trade issues
+1. GEOPOLITICAL INTELLIGENCE
+- 2-3 major developments only
+- Focus on conflicts, diplomacy, sanctions
 
-        2. TECHNOLOGY & CYBERSECURITY
-        - Emerging technologies and breakthroughs
-        - Cybersecurity threats and incidents
-        - AI developments and policy
-        - Space technology and programs
+2. TECHNOLOGY & CYBERSECURITY  
+- 2-3 significant items only
+- Major breakthroughs, threats, AI policy
 
-        3. UAP/UFO PHENOMENA
-        - Recent sightings and official reports
-        - Government disclosures and hearings
-        - Scientific research and analysis
-        - Notable incidents or investigations
+3. UAP/UFO PHENOMENA
+- 1-2 updates if available
+- Official reports, hearings, investigations
 
-        4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH
-        - Academic research and studies
-        - Breakthrough experiments
-        - Theoretical developments
-        - Institutional research programs
+4. PARAPSYCHOLOGY & CONSCIOUSNESS
+- 1-2 notable studies if available
+- Academic research only
 
-        CRITICAL REQUIREMENTS:
-        - Use ONLY real, verifiable information
-        - NO fictional scenarios or speculative future events
-        - NO made-up reports or imaginary incidents
-        - Focus on actual news and documented events
-        - If information is limited in a section, say so rather than inventing content
-        - Include dates and sources where possible
+RULES:
+- Concise bullets only, no elaboration
+- ONLY real, verifiable information
+- NO fiction or speculation
+- If no updates: "No significant developments"
+- Max 3-4 bullets per section
+- Include dates/sources when possible
 
-        Format as a professional intelligence briefing with clear sections and bullet points."""
+Format: Section header + brief bullets. Be economical."""
 
-            # Try Groq first
-            print("Attempting to generate brief with Groq...")
-            content, error = generate_with_groq(prompt)
+            # Try providers in order: Grok -> Groq -> Gemini
+            print("Attempting to generate brief with Grok (real-time data)...")
+            content, error = generate_with_grok(prompt)
             
             if content:
-                print("✓ Successfully generated with Groq")
-                provider = "Groq (llama-3.3-70b-versatile)"
+                print("✓ Successfully generated with Grok")
+                provider = "Grok (grok-beta) - Real-time Intelligence"
             else:
-                print(f"✗ Groq failed: {error}")
-                print("Falling back to Gemini...")
+                print(f"✗ Grok failed: {error}")
+                print("Falling back to Groq...")
                 
-                # Fallback to Gemini
-                content, error = generate_with_gemini(prompt)
+                content, error = generate_with_groq(prompt)
                 
                 if content:
-                    print("✓ Successfully generated with Gemini")
-                    provider = "Gemini Pro"
+                    print("✓ Successfully generated with Groq")
+                    provider = "Groq (llama-3.3-70b-versatile)"
                 else:
-                    raise Exception(f"Both providers failed. Gemini error: {error}")
+                    print(f"✗ Groq failed: {error}")
+                    print("Falling back to Gemini...")
+                    
+                    content, error = generate_with_gemini(prompt)
+                    
+                    if content:
+                        print("✓ Successfully generated with Gemini")
+                        provider = "Gemini (gemini-1.5-flash)"
+                    else:
+                        raise Exception(f"All providers failed. Last error: {error}")
             
             # Create HTML
             html = f"""<!DOCTYPE html>
@@ -221,6 +277,11 @@ jobs:
                     color: #00aa00;
                     font-size: 0.8em;
                 }}
+                .efficiency {{
+                    color: #008800;
+                    font-size: 0.75em;
+                    margin-top: 5px;
+                }}
                 @media (max-width: 768px) {{
                     body {{
                         padding: 10px;
@@ -236,11 +297,13 @@ jobs:
                 <h1>⚔️ THE TRIDENT BRIEF ⚔️</h1>
                 <div class="timestamp">Generated: {timestamp}</div>
                 <div class="provider">Powered by {provider}</div>
+                <div class="efficiency">Token-optimized: ~1000 tokens/brief</div>
             </div>
             <div class="content">{content}</div>
             <div class="footer">
                 <p>Automated Intelligence Briefing System</p>
-                <p>Updated every 6 hours</p>
+                <p>Triple-redundant AI: Grok → Groq → Gemini</p>
+                <p>Updated every 6 hours | Economical token usage</p>
             </div>
         </body>
         </html>"""
@@ -249,6 +312,7 @@ jobs:
                 f.write(html)
             
             print(f"Brief generated successfully at {timestamp}")
+            print(f"Estimated tokens used: ~800-1200")
 
         if __name__ == '__main__':
             try:
