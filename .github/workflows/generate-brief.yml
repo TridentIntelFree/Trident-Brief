@@ -34,7 +34,8 @@ jobs:
         import os
         from datetime import datetime
 
-        def generate_with_grok(prompt):
+        def generate_with_grok_model(prompt, model_name):
+            """Generic Grok function that works with any model"""
             api_key = os.environ.get('GROK_API_KEY')
             if not api_key:
                 return None, "No Grok API key"
@@ -45,21 +46,22 @@ jobs:
                     'Authorization': f'Bearer {api_key}'
                 }
                 
+                # Economy settings for token efficiency
                 data = {
                     'messages': [
                         {
                             'role': 'system',
-                            'content': 'You are a concise intelligence analyst. Provide brief, factual briefings with no elaboration. Be economical with words.'
+                            'content': 'You are a concise intelligence analyst. Provide factual briefings with substantive detail but economical wording.'
                         },
                         {
                             'role': 'user',
                             'content': prompt
                         }
                     ],
-                    'model': 'grok-2-latest',
+                    'model': model_name,
                     'stream': False,
-                    'temperature': 0.5,
-                    'max_tokens': 2000
+                    'temperature': 0.6,  # Slightly lower for focused output
+                    'max_tokens': 2500   # Economy limit while maintaining quality
                 }
                 
                 response = requests.post(
@@ -73,10 +75,10 @@ jobs:
                     result = response.json()
                     return result['choices'][0]['message']['content'], None
                 else:
-                    return None, f"Grok error: {response.status_code} - {response.text}"
+                    return None, f"Error: {response.status_code} - {response.text}"
                     
             except Exception as e:
-                return None, f"Grok exception: {str(e)}"
+                return None, f"Exception: {str(e)}"
 
         def generate_with_groq(prompt):
             api_key = os.environ.get('GROQ_API_KEY')
@@ -94,15 +96,15 @@ jobs:
                     'messages': [
                         {
                             'role': 'system',
-                            'content': 'You are a concise intelligence analyst. Provide brief, factual briefings with no elaboration. Be economical with words.'
+                            'content': 'You are a concise intelligence analyst. Provide factual briefings with substantive detail but economical wording.'
                         },
                         {
                             'role': 'user',
                             'content': prompt
                         }
                     ],
-                    'temperature': 0.5,
-                    'max_tokens': 2000
+                    'temperature': 0.6,
+                    'max_tokens': 2500
                 }
                 
                 response = requests.post(
@@ -137,12 +139,12 @@ jobs:
                         }]
                     }],
                     'generationConfig': {
-                        'temperature': 0.5,
-                        'maxOutputTokens': 2000,
+                        'temperature': 0.6,
+                        'maxOutputTokens': 2500,
                     },
                     'systemInstruction': {
                         'parts': [{
-                            'text': 'You are a concise intelligence analyst. Provide brief, factual briefings with no elaboration. Be economical with words.'
+                            'text': 'You are a concise intelligence analyst. Provide factual briefings with substantive detail but economical wording.'
                         }]
                     }
                 }
@@ -161,46 +163,70 @@ jobs:
         def generate_brief():
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
             
-            prompt = f"""Generate a concise intelligence briefing for {timestamp}.
+            # Economical prompt - concise but comprehensive
+            prompt = f"""Generate an intelligence briefing for {timestamp}.
 
-        BRIEF factual report (500-800 words total):
+Create a professional report with these sections (be concise but substantive):
 
-        1. GEOPOLITICAL INTELLIGENCE
-        - 2-3 major developments only
-        - Focus on conflicts, diplomacy, sanctions
+1. GEOPOLITICAL INTELLIGENCE
+- Major conflicts and diplomatic developments
+- Political transitions and economic sanctions
+- Focus on Ukraine, Middle East, Asia-Pacific tensions
+- Include dates, locations, key actors
 
-        2. TECHNOLOGY & CYBERSECURITY  
-        - 2-3 significant items only
-        - Major breakthroughs, threats, AI policy
+2. TECHNOLOGY & CYBERSECURITY
+- Significant breakthroughs and cybersecurity incidents
+- AI policy and space developments
+- Major corporate announcements
+- Include companies, technologies, impact
 
-        3. UAP/UFO PHENOMENA
-        - 1-2 updates if available
-        - Official reports, hearings, investigations
+3. UAP/UFO PHENOMENA
+- Official reports and government statements
+- Congressional actions and Pentagon releases
+- Credible sightings and scientific research
+- Include dates, locations, sources
 
-        4. PARAPSYCHOLOGY & CONSCIOUSNESS
-        - 1-2 notable studies if available
-        - Academic research only
+4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH
+- Peer-reviewed studies and academic research
+- University programs and breakthrough experiments
+- Include researchers, institutions, findings
 
-        RULES:
-        - Concise bullets only, no elaboration
-        - ONLY real, verifiable information
-        - NO fiction or speculation
-        - If no updates: "No significant developments"
-        - Max 3-4 bullets per section
-        - Include dates/sources when possible
+REQUIREMENTS:
+- Use ONLY real, verifiable current events
+- NO fictional content or speculation
+- Provide context and analysis
+- 4-6 detailed bullets per section
+- Focus on past 48 hours, max 1 week
+- Include specific dates and sources
+- If section lacks updates, note it briefly
 
-        Format: Section header + brief bullets. Be economical."""
+Be economical with words while maintaining substance."""
 
-            print("Attempting to generate brief with Grok (real-time data)...")
-            content, error = generate_with_grok(prompt)
+            # Multi-model cascade with Grok 4 priority
+            grok_models = [
+                ('grok-4-1-fast-reasoning', 'Grok 4.1 Fast (Reasoning) - Most Powerful'),
+                ('grok-4-fast-reasoning', 'Grok 4 Fast (Reasoning)'),
+                ('grok-3-mini', 'Grok 3 Mini - Economy Fallback')
+            ]
             
-            if content:
-                print("Successfully generated with Grok")
-                provider = "Grok (grok-2-latest) - Real-time Intelligence"
-            else:
-                print(f"Grok failed: {error}")
-                print("Falling back to Groq...")
+            content = None
+            provider = None
+            
+            # Try Grok models
+            for model_name, display_name in grok_models:
+                print(f"Attempting to generate brief with {display_name}...")
+                content, error = generate_with_grok_model(prompt, model_name)
                 
+                if content:
+                    print(f"Successfully generated with {display_name}")
+                    provider = display_name
+                    break
+                else:
+                    print(f"{model_name} failed: {error}")
+            
+            # Fallback to Groq if all Grok models fail
+            if not content:
+                print("All Grok models failed. Falling back to Groq...")
                 content, error = generate_with_groq(prompt)
                 
                 if content:
@@ -210,6 +236,7 @@ jobs:
                     print(f"Groq failed: {error}")
                     print("Falling back to Gemini...")
                     
+                    # Final fallback to Gemini
                     content, error = generate_with_gemini(prompt)
                     
                     if content:
@@ -219,87 +246,87 @@ jobs:
                         raise Exception(f"All providers failed. Last error: {error}")
             
             html = f"""<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>The Trident Brief - {timestamp}</title>
-            <style>
-                body {{
-                    font-family: 'Courier New', monospace;
-                    max-width: 900px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    background: #0a0a0a;
-                    color: #00ff00;
-                    line-height: 1.6;
-                }}
-                .header {{
-                    text-align: center;
-                    border-bottom: 2px solid #00ff00;
-                    padding-bottom: 20px;
-                    margin-bottom: 30px;
-                }}
-                .header h1 {{
-                    margin: 0;
-                    font-size: 2.5em;
-                    text-shadow: 0 0 10px #00ff00;
-                }}
-                .timestamp {{
-                    color: #00aa00;
-                    font-size: 0.9em;
-                    margin-top: 10px;
-                }}
-                .provider {{
-                    color: #00aa00;
-                    font-size: 0.8em;
-                    font-style: italic;
-                }}
-                .content {{
-                    white-space: pre-wrap;
-                    background: #0f0f0f;
-                    padding: 20px;
-                    border: 1px solid #00ff00;
-                    border-radius: 5px;
-                }}
-                .footer {{
-                    text-align: center;
-                    margin-top: 30px;
-                    padding-top: 20px;
-                    border-top: 1px solid #00ff00;
-                    color: #00aa00;
-                    font-size: 0.8em;
-                }}
-                .efficiency {{
-                    color: #008800;
-                    font-size: 0.75em;
-                    margin-top: 5px;
-                }}
-                @media (max-width: 768px) {{
-                    body {{
-                        padding: 10px;
-                    }}
-                    .header h1 {{
-                        font-size: 1.8em;
-                    }}
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>⚔️ THE TRIDENT BRIEF ⚔️</h1>
-                <div class="timestamp">Generated: {timestamp}</div>
-                <div class="provider">Powered by {provider}</div>
-                <div class="efficiency">Token-optimized: ~1000 tokens/brief</div>
-            </div>
-            <div class="content">{content}</div>
-            <div class="footer">
-                <p>Automated Intelligence Briefing System</p>
-                <p>Triple-redundant AI: Grok → Groq → Gemini</p>
-                <p>Updated every 6 hours | Economical token usage</p>
-            </div>
-        </body>
-        </html>"""
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Trident Brief - {timestamp}</title>
+    <style>
+        body {{
+            font-family: 'Courier New', monospace;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #00ff00;
+            line-height: 1.6;
+        }}
+        .header {{
+            text-align: center;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }}
+        .header h1 {{
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00;
+        }}
+        .timestamp {{
+            color: #00aa00;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }}
+        .provider {{
+            color: #00aa00;
+            font-size: 0.8em;
+            font-style: italic;
+        }}
+        .economy {{
+            color: #008800;
+            font-size: 0.75em;
+            margin-top: 5px;
+        }}
+        .content {{
+            white-space: pre-wrap;
+            background: #0f0f0f;
+            padding: 20px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+        }}
+        .footer {{
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #00ff00;
+            color: #00aa00;
+            font-size: 0.8em;
+        }}
+        @media (max-width: 768px) {{
+            body {{
+                padding: 10px;
+            }}
+            .header h1 {{
+                font-size: 1.8em;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚔️ THE TRIDENT BRIEF ⚔️</h1>
+        <div class="timestamp">Generated: {timestamp}</div>
+        <div class="provider">Powered by {provider}</div>
+        <div class="economy">Economy Mode: 2500 tokens max | Temp: 0.6</div>
+    </div>
+    <div class="content">{content}</div>
+    <div class="footer">
+        <p>Automated Intelligence Briefing System</p>
+        <p>Grok 4.1 → Grok 4 → Grok 3 Mini → Groq → Gemini</p>
+        <p>Updated every 6 hours | Token-optimized</p>
+    </div>
+</body>
+</html>"""
             
             with open('index.html', 'w', encoding='utf-8') as f:
                 f.write(html)
