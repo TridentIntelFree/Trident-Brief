@@ -34,7 +34,7 @@ jobs:
                 return None, "No Grok API key"
             
             try:
-                system_msg = "You are an elite intelligence analyst with LIVE REAL-TIME access to X/Twitter and current news RIGHT NOW. CRITICAL: You must ACCESS and REPORT on events happening TODAY. Do not rely on training data. Search X/Twitter for breaking news and official statements. Monitor verified government and news accounts. You MUST report on major ongoing events: Ukraine-Russia war current status, Middle East conflicts Gaza and Iran, any active military operations, major diplomatic developments from past 24 hours, recent tech announcements, current political crises. If you report no significant developments in geopolitics while major wars are ongoing you have FAILED. Use your real-time X/Twitter access NOW."
+                system_msg = "You are a SIGINT analyst with real-time access to X/Twitter. Your mission: Monitor specific high-value accounts for intelligence indicators. Treat X posts as SIGNALS - raw intercepts requiring analysis and correlation. Cross-reference multiple sources to verify. Identify patterns and strategic implications. Report using intelligence terminology: OSINT sources, SIGINT collection, pattern analysis, strategic assessment. You have direct access to X RIGHT NOW - actively search and monitor the accounts specified in the briefing request."
                 
                 data = {
                     'messages': [
@@ -44,7 +44,7 @@ jobs:
                     'model': 'grok-4-1-fast-reasoning',
                     'stream': False,
                     'temperature': 0.6,
-                    'max_tokens': 4000
+                    'max_tokens': 4500
                 }
                 
                 response = requests.post(
@@ -95,29 +95,150 @@ jobs:
         readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
         year = str(datetime.now().year)
 
-        prompt_text = "REAL-TIME INTELLIGENCE BRIEFING REQUEST. Current Date: " + readable_date + " Current Year: " + year + "\n\nUSE YOUR REAL-TIME X/TWITTER ACCESS NOW. Search and report ACTUAL current events from past 24 hours.\n\nMANDATORY COVERAGE:\n\n1. GEOPOLITICAL INTELLIGENCE\nSearch X/Twitter NOW for updates on:\n- Ukraine-Russia War: What happened in past 24 hours?\n- Middle East: Gaza situation, Iran tensions, regional developments\n- China-Taiwan: Recent military activity or statements?\n- North Korea: Recent tests or provocations?\n\nSearch @NATO @DefenceHQ @StateDept @POTUS @Reuters @AP @AFP\nReport ACTUAL events from TODAY. Include times, locations. Cite sources.\n\n2. TECHNOLOGY & CYBERSECURITY\nSearch for major announcements, breaches, AI policy, space missions\nSearch @elonmusk @OpenAI @Google @Microsoft\n\n3. UAP/UFO PHENOMENA\nCheck @DeptofDefense @AARO_DOD_Info for statements or hearings\n\n4. PARAPSYCHOLOGY RESEARCH\nCheck academic journals if any developments\n\nVALIDATION CHECK:\n- Did I mention Ukraine war? If no FAILED\n- Did I mention Middle East conflicts? If no FAILED\n- Are examples from 2024-" + year + "? If no FAILED\n\nFORMAT: Professional intel brief with sections, bullets, dates, sources"
+        prompt_text = """SIGINT COLLECTION TASKING - REAL-TIME X/TWITTER MONITORING
+Collection Period: Past 24 hours ending """ + readable_date + """
+Current Year: """ + year + """
 
-        print("Starting Grok 4.1 with forced real-time...")
+MISSION: Monitor high-value X accounts for intelligence indicators. Analyze signals, correlate data, assess strategic implications.
+
+PRIORITY INTELLIGENCE REQUIREMENTS (PIRs):
+
+1. GEOPOLITICAL & MILITARY INTELLIGENCE
+
+PRIMARY COLLECTION TARGETS (Government/Military):
+@POTUS @VP @StateDept @SecDef @DeptofDefense @NATO @EUCOM @CENTCOM @INDOPACOM
+@Europarl_EN @EU_Commission @BorisJohnson @EmmanuelMacron @Bundeskanzler
+@ZelenskyyUa @Ukrainian_Army @DefenceU @KremlinRussia_E
+@IDF @Israel_MOD @IsraeliPM @IRGC_Bismillah
+@Taiwan_SEC @MFA_China @XHNews
+@StateDeptSpox @PentagonPresSec
+
+SECONDARY SOURCES (Journalists/Analysts):
+@christogrozev @RALee85 @Conflicts @WarMonitors @Osinttechnical
+@JackDetsch @laraseligman @NatashaBertrand @helenenecostier
+
+Collection Focus:
+- Troop movements and military deployments
+- Diplomatic statements and policy shifts
+- Alliance developments and joint operations
+- Sanctions announcements and economic warfare
+- Arms transfers and defense aid packages
+- Strategic messaging and information operations
+
+2. TECHNOLOGY & CYBERSECURITY INTELLIGENCE
+
+PRIMARY TARGETS (Tech Leaders/Companies):
+@elonmusk @sama @satyanadella @sundarpichai @tim_cook
+@OpenAI @Google @Microsoft @Apple @Meta @Tesla @SpaceX @xAI
+@USCYBERCOM @CISAgov @NSACyber @FBI
+
+SECONDARY SOURCES (Security Researchers):
+@mattblaze @evacide @thegrugq @SwiftOnSecurity @malwareunicorn
+@troyhunt @briankrebs @nicoleperlroth
+
+Collection Focus:
+- Product launches and technology breakthroughs
+- Cybersecurity incidents and vulnerability disclosures
+- AI model releases and policy announcements
+- Acquisitions and strategic partnerships
+- Regulatory actions and antitrust developments
+- Critical infrastructure threats
+
+3. UAP/UFO INTELLIGENCE
+
+PRIMARY TARGETS:
+@DeptofDefense @AARO_DOD_Info @SenGillibrand @RepTimBurchett
+@SenRubioPress @RepJaredMoskowitz
+
+SECONDARY SOURCES:
+@ChrisKMellon @LueElizondo @rosscoulthart @JeremyCorbell
+@GadiNBC @TheUfoJoe
+
+Collection Focus:
+- Official Pentagon statements and AARO releases
+- Congressional hearing announcements
+- Legislation and oversight activities
+- Credible incident reports with documentation
+- Scientific research and sensor data
+
+4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH
+
+PRIMARY TARGETS:
+@Stanford @Harvard @Princeton @MIT @Yale
+@NaturePortfolio @ScienceMagazine @PLOSONE
+
+SECONDARY SOURCES:
+Academic researchers and institutions with active programs
+
+Collection Focus:
+- Peer-reviewed publications
+- Research program announcements
+- Conference proceedings
+- Institutional funding and grants
+
+INTELLIGENCE METHODOLOGY:
+
+1. SIGNAL COLLECTION:
+- Monitor each target account for posts in collection period
+- Flag high-priority indicators (FLASH/PRIORITY/ROUTINE)
+- Note post timestamps for timeline correlation
+
+2. SIGNAL ANALYSIS:
+- Cross-reference multiple sources for verification
+- Identify patterns and anomalies
+- Distinguish official statements from speculation
+- Assess source credibility and potential bias
+
+3. INTELLIGENCE PRODUCTION:
+- Synthesize signals into coherent intelligence picture
+- Provide strategic context and implications
+- Highlight information gaps and collection needs
+- Recommend follow-up collection priorities
+
+REPORTING FORMAT:
+
+For each PIR section:
+- Lead with BLUF (Bottom Line Up Front)
+- Cite specific X accounts and timestamps
+- Include direct quotes from key signals when relevant
+- Provide analytic assessment (high/medium/low confidence)
+- Note strategic implications
+
+Use professional intelligence language:
+- "OSINT indicates..." / "Open source reporting suggests..."
+- "Multiple sources confirm..." / "Unconfirmed reports from..."
+- "Strategic assessment:" / "Operational implications:"
+- "Collection gaps:" / "Recommend monitoring..."
+
+VALIDATION REQUIREMENTS:
+- Ukraine-Russia conflict MUST be addressed (ongoing war)
+- Middle East situation MUST be covered (active conflicts)
+- All examples from """ + year + """ (current operational period)
+- Minimum 3 specific X account citations per section
+
+Execute collection now."""
+
+        print("Initiating SIGINT collection with Grok 4.1...")
         content, error = generate_with_grok(prompt_text)
 
         if content:
-            provider = "Grok 4.1 Fast Reasoning - Real-time X/Twitter"
-            badge = "GROK-4.1-REALTIME"
+            provider = "Grok 4.1 Fast Reasoning - SIGINT Collection"
+            badge = "GROK-4.1-SIGINT"
         else:
-            print("Grok failed: " + str(error))
+            print("Primary collection failed: " + str(error))
             content, error = generate_with_groq(prompt_text)
             if content:
-                provider = "Groq Llama 3.3 Fallback"
-                badge = "GROQ-FALLBACK"
+                provider = "Groq Llama 3.3 (Backup Collection)"
+                badge = "GROQ-BACKUP"
             else:
-                raise Exception("All failed: " + str(error))
+                raise Exception("All collection sources failed: " + str(error))
 
-        html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trident Brief</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:linear-gradient(135deg,#0a0e27,#1a1f3a);color:#e0e6ed;padding:20px;line-height:1.6}.container{max-width:1100px;margin:0 auto;background:rgba(15,23,42,0.9);border:1px solid rgba(59,130,246,0.3);border-radius:12px;overflow:hidden}.header{background:linear-gradient(135deg,#1e293b,#0f172a);border-bottom:2px solid #3b82f6;padding:40px}.badge{background:#dc2626;color:white;padding:4px 12px;font-size:11px;font-weight:700;border-radius:3px;display:inline-block;margin-bottom:15px}h1{font-size:2.5em;color:#3b82f6;text-transform:uppercase;margin-bottom:10px}.meta{color:#94a3b8;font-size:0.9em}.content{padding:40px}pre{white-space:pre-wrap;font-family:inherit;line-height:1.7}.footer{background:#0f172a;border-top:1px solid rgba(59,130,246,0.3);padding:25px;text-align:center;color:#64748b;font-size:0.85em}</style></head><body><div class="container"><div class="header"><div class="badge">DAILY INTELLIGENCE BRIEF - REAL-TIME</div><h1>⚔️ THE TRIDENT BRIEF</h1><div class="meta">Generated: ' + timestamp + ' | Source: ' + badge + ' | Live X/Twitter Intelligence</div></div><div class="content"><pre>' + content + '</pre></div><div class="footer">REAL-TIME INTELLIGENCE SYSTEM | ' + provider + ' | UPDATED DAILY 07:00 UTC</div></div></body></html>'
+        html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trident SIGINT Brief</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:linear-gradient(135deg,#0a0e27,#1a1f3a);color:#e0e6ed;padding:20px;line-height:1.6}.container{max-width:1200px;margin:0 auto;background:rgba(15,23,42,0.9);border:1px solid rgba(59,130,246,0.3);border-radius:12px;overflow:hidden}.header{background:linear-gradient(135deg,#1e293b,#0f172a);border-bottom:2px solid #3b82f6;padding:40px}.badge{background:#dc2626;color:white;padding:4px 12px;font-size:11px;font-weight:700;border-radius:3px;display:inline-block;margin-bottom:15px}h1{font-size:2.5em;color:#3b82f6;text-transform:uppercase;margin-bottom:10px}.meta{color:#94a3b8;font-size:0.9em;margin-top:10px}.sigint{color:#fbbf24;font-size:0.8em;font-weight:600;margin-top:5px}.content{padding:40px}pre{white-space:pre-wrap;font-family:inherit;line-height:1.7}.footer{background:#0f172a;border-top:1px solid rgba(59,130,246,0.3);padding:25px;text-align:center;color:#64748b;font-size:0.85em}</style></head><body><div class="container"><div class="header"><div class="badge">CLASSIFIED: SIGINT COLLECTION BRIEF</div><h1>⚔️ THE TRIDENT BRIEF</h1><div class="meta">Collection Period: ' + timestamp + ' | Source: ' + badge + '</div><div class="sigint">SIGNALS INTELLIGENCE | X/TWITTER MONITORING | HIGH-VALUE TARGETS</div></div><div class="content"><pre>' + content + '</pre></div><div class="footer">AUTOMATED SIGINT COLLECTION SYSTEM | ' + provider + ' | DAILY 07:00 UTC<br>MONITORING 100+ HIGH-VALUE X ACCOUNTS</div></div></body></html>'
 
         with open('index.html', 'w') as f:
             f.write(html)
 
-        print("Brief generated!")
+        print("SIGINT brief generated and published!")
         ENDOFFILE
         
     - name: Generate brief
@@ -128,8 +249,8 @@ jobs:
         
     - name: Commit and push
       run: |
-        git config user.name "Trident Bot"
-        git config user.email "intel@trident.ai"
+        git config user.name "Trident SIGINT"
+        git config user.email "sigint@trident.ai"
         git add index.html
-        git diff-index --quiet HEAD || git commit -m "📊 Daily Brief - $(date -u +'%Y-%m-%d')"
+        git diff-index --quiet HEAD || git commit -m "🎯 SIGINT Collection Brief - $(date -u +'%Y-%m-%d')"
         git push
