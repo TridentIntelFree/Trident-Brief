@@ -58,7 +58,8 @@ jobs:
                             'content': prompt
                         }
                     ],
-                    'model': 'grok-beta',
+                        'model': 'grok-2-latest',  # ← UPDATED
+
                     'stream': False,
                     'temperature': 0.5,
                     'max_tokens': 2000
