@@ -22,13 +22,9 @@ jobs:
       run: |
         pip install requests python-dateutil
         
-    - name: Generate brief
-      env:
-        GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
-        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    - name: Create script
       run: |
-        python3 << 'PYEND'
+        cat > generate.py << 'EOF'
         import requests
         import json
         import os
@@ -75,7 +71,7 @@ jobs:
                     result = response.json()
                     return result['choices'][0]['message']['content'], None
                 else:
-                    return None, "Grok error: " + str(response.status_code) + " - " + response.text
+                    return None, "Grok error: " + str(response.status_code)
                     
             except Exception as e:
                 return None, "Grok exception: " + str(e)
@@ -93,12 +89,7 @@ jobs:
                 
                 data = {
                     'model': 'llama-3.3-70b-versatile',
-                    'messages': [
-                        {
-                            'role': 'user',
-                            'content': prompt
-                        }
-                    ],
+                    'messages': [{'role': 'user', 'content': prompt}],
                     'temperature': 0.6,
                     'max_tokens': 4000
                 }
@@ -114,331 +105,137 @@ jobs:
                     result = response.json()
                     return result['choices'][0]['message']['content'], None
                 else:
-                    return None, "Groq error: " + str(response.status_code)
+                    return None, "Groq error"
                     
             except Exception as e:
-                return None, "Groq exception: " + str(e)
-
-        def generate_with_gemini(prompt):
-            api_key = os.environ.get('GEMINI_API_KEY')
-            if not api_key:
-                return None, "No Gemini API key"
-            
-            try:
-                url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + api_key
-                
-                headers = {'Content-Type': 'application/json'}
-                data = {
-                    'contents': [{
-                        'parts': [{
-                            'text': prompt
-                        }]
-                    }],
-                    'generationConfig': {
-                        'temperature': 0.6,
-                        'maxOutputTokens': 4000,
-                    }
-                }
-                
-                response = requests.post(url, headers=headers, json=data, timeout=60)
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    return result['candidates'][0]['content']['parts'][0]['text'], None
-                else:
-                    return None, "Gemini error: " + str(response.status_code)
-                    
-            except Exception as e:
-                return None, "Gemini exception: " + str(e)
+                return None, str(e)
 
         def generate_brief():
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
             readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
             
-            prompt = """INTELLIGENCE BRIEFING REQUEST
-Date/Time: """ + readable_date + """
+            prompt = "INTELLIGENCE BRIEFING REQUEST - Date: " + readable_date + "\n\nYou have real-time access to X/Twitter and global news. Generate a professional intelligence briefing on developments in the past 24 hours.\n\n1. GEOPOLITICAL INTELLIGENCE\n- Active conflicts and diplomatic developments\n- Political crises and policy announcements\n- Sanctions and trade disputes\nInclude: timestamps, locations, key actors, official sources\n\n2. TECHNOLOGY & CYBERSECURITY\n- Major breakthroughs and product launches\n- Cybersecurity incidents and vulnerabilities\n- AI policy and space programs\nInclude: companies, technologies, impact assessments\n\n3. UAP/UFO PHENOMENA\n- Official government statements\n- Congressional actions\n- Credible sightings with documentation\nIf no developments, state clearly\n\n4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH\n- Peer-reviewed studies\n- University research programs\n- Breakthrough experiments\nIf no developments, acknowledge gap\n\nUSE INTELLIGENCE TRADECRAFT:\n- Verify with multiple sources\n- Distinguish facts from speculation\n- Note uncertainties\n- Provide strategic context\n- Include dates, times, locations, sources"
 
-You have real-time access to X/Twitter and global news sources. Conduct a comprehensive intelligence sweep and generate a professional briefing covering significant developments in the past 24 hours.
-
-MISSION OBJECTIVES:
-
-1. GEOPOLITICAL INTELLIGENCE
-Scan X/Twitter and news for:
-- Active military conflicts and significant tactical developments
-- High-level diplomatic engagements and statements
-- Political crises, transitions, or major policy announcements
-- Economic warfare: sanctions, trade disputes, currency movements
-- Strategic alliances and international agreements
-
-Requirements:
-- Prioritize developments with strategic implications
-- Include specific timestamps, locations, key actors
-- Cite official sources (government accounts, verified news outlets)
-- Assess potential second-order effects
-
-2. TECHNOLOGY & CYBERSECURITY INTELLIGENCE
-Monitor for:
-- Major technology breakthroughs or product launches
-- Significant cybersecurity incidents (breaches, attacks, vulnerabilities)
-- AI policy developments and regulatory actions
-- Space program milestones and satellite deployments
-- Critical infrastructure developments
-- Tech sector strategic moves (acquisitions, partnerships)
-
-Requirements:
-- Focus on developments with national security or economic implications
-- Include company names, specific technologies, attack vectors
-- Note potential dual-use applications
-
-3. UAP/UFO PHENOMENA
-Track:
-- Official government statements, releases, or hearings
-- Military or civilian pilot reports through official channels
-- Congressional actions, legislation, or oversight activities
-- Scientific research publications or institutional announcements
-- Credible sensor data or documentation releases
-
-Requirements:
-- Distinguish between official disclosures and speculation
-- Focus on verifiable events with documentation
-- If no significant developments: state this clearly
-- Include dates, locations, official sources
-
-4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH
-Survey:
-- Peer-reviewed research publications
-- Major university or institutional research programs
-- Breakthrough experimental results
-- Scientific conferences or symposia
-- Government or military research disclosures
-
-Requirements:
-- Academic and institutional sources only
-- Include researcher names, institutions, publication details
-- Focus on methodologically sound research
-- If no significant developments: acknowledge gap
-
-INTELLIGENCE TRADECRAFT:
-- Cross-reference multiple sources for verification
-- Distinguish facts from analysis from speculation
-- Note information gaps and uncertainties
-- Assess credibility of sources
-- Provide strategic context and implications
-- Use professional intelligence language
-- Include specific dates, times, locations, and named sources
-
-OUTPUT FORMAT:
-Professional intelligence briefing with clear section headers, concise but comprehensive reporting, bullet points for key developments, strategic assessment where appropriate, and source attribution.
-
-Remember: You are gathering intelligence from real-time sources. Quality over quantity. Strategic relevance over noise."""
-
-            print("Initiating intelligence collection with Grok 4.1 (Reasoning)...")
+            print("Starting Grok 4.1...")
             content, error = generate_with_grok(prompt)
             
             if content:
-                print("Intelligence brief generated successfully with Grok 4.1")
-                provider = "Grok 4.1 Fast Reasoning - Real-time Intelligence"
-                model_badge = "GROK-4.1-REASONING"
+                provider = "Grok 4.1 Fast Reasoning"
+                badge = "GROK-4.1"
             else:
-                print("Grok 4.1 failed: " + str(error))
-                print("Falling back to Groq...")
-                
+                print("Grok failed, trying Groq...")
                 content, error = generate_with_groq(prompt)
-                
                 if content:
-                    print("Generated with Groq fallback")
-                    provider = "Groq (llama-3.3-70b-versatile)"
-                    model_badge = "GROQ-FALLBACK"
+                    provider = "Groq Llama 3.3"
+                    badge = "GROQ"
                 else:
-                    print("Groq failed: " + str(error))
-                    print("Final fallback to Gemini...")
-                    
-                    content, error = generate_with_gemini(prompt)
-                    
-                    if content:
-                        print("Generated with Gemini fallback")
-                        provider = "Gemini (gemini-1.5-flash)"
-                        model_badge = "GEMINI-FALLBACK"
-                    else:
-                        raise Exception("All providers failed. Last error: " + str(error))
+                    raise Exception("All failed: " + str(error))
             
-            html_content = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Trident Brief - """ + timestamp + """</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-            color: #e0e6ed;
-            line-height: 1.7;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-bottom: 2px solid #3b82f6;
-            padding: 40px;
-            position: relative;
-        }
-        .classification {
-            display: inline-block;
-            background: #dc2626;
-            color: white;
-            padding: 4px 12px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            border-radius: 3px;
-            margin-bottom: 15px;
-        }
-        h1 {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 2.8em;
-            font-weight: 700;
-            color: #3b82f6;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-        }
-        .subtitle {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9em;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-        }
-        .meta {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85em;
-        }
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #94a3b8;
-        }
-        .meta-label {
-            color: #64748b;
-            text-transform: uppercase;
-            font-size: 0.75em;
-            letter-spacing: 1px;
-        }
-        .meta-value {
-            color: #3b82f6;
-            font-weight: 600;
-        }
-        .model-badge {
-            display: inline-block;
-            background: rgba(59, 130, 246, 0.2);
-            border: 1px solid #3b82f6;
-            color: #3b82f6;
-            padding: 4px 10px;
-            font-size: 0.7em;
-            font-weight: 700;
-            letter-spacing: 1px;
-            border-radius: 4px;
-        }
-        .content {
-            padding: 40px;
-        }
-        .content pre {
-            white-space: pre-wrap;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95em;
-            line-height: 1.7;
-            color: #e0e6ed;
-        }
-        .footer {
-            background: #0f172a;
-            border-top: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 25px 40px;
-            text-align: center;
-        }
-        .footer-text {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75em;
-            color: #64748b;
-            letter-spacing: 1px;
-        }
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .header { padding: 25px; }
-            h1 { font-size: 2em; }
-            .content { padding: 25px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="classification">DAILY INTELLIGENCE BRIEF</div>
-            <h1>⚔️ THE TRIDENT BRIEF</h1>
-            <div class="subtitle">AUTOMATED INTELLIGENCE COLLECTION & ANALYSIS</div>
-            <div class="meta">
-                <div class="meta-item">
-                    <span class="meta-label">Generated:</span>
-                    <span class="meta-value">""" + timestamp + """</span>
+            html = """<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>The Trident Brief</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: system-ui, -apple-system, sans-serif;
+                    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+                    color: #e0e6ed;
+                    padding: 20px;
+                    line-height: 1.6;
+                }
+                .container {
+                    max-width: 1100px;
+                    margin: 0 auto;
+                    background: rgba(15, 23, 42, 0.9);
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 12px;
+                    overflow: hidden;
+                }
+                .header {
+                    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                    border-bottom: 2px solid #3b82f6;
+                    padding: 40px;
+                }
+                .badge {
+                    background: #dc2626;
+                    color: white;
+                    padding: 4px 12px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    border-radius: 3px;
+                    display: inline-block;
+                    margin-bottom: 15px;
+                }
+                h1 {
+                    font-size: 2.5em;
+                    color: #3b82f6;
+                    text-transform: uppercase;
+                    margin-bottom: 10px;
+                }
+                .meta {
+                    color: #94a3b8;
+                    font-size: 0.9em;
+                }
+                .content {
+                    padding: 40px;
+                }
+                pre {
+                    white-space: pre-wrap;
+                    font-family: inherit;
+                    line-height: 1.7;
+                }
+                .footer {
+                    background: #0f172a;
+                    border-top: 1px solid rgba(59, 130, 246, 0.3);
+                    padding: 25px;
+                    text-align: center;
+                    color: #64748b;
+                    font-size: 0.85em;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="badge">DAILY INTELLIGENCE BRIEF</div>
+                    <h1>⚔️ THE TRIDENT BRIEF</h1>
+                    <div class="meta">
+                        Generated: """ + timestamp + """ | Source: """ + badge + """
+                    </div>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">Source:</span>
-                    <span class="model-badge">""" + model_badge + """</span>
+                <div class="content">
+                    <pre>""" + content + """</pre>
                 </div>
-                <div class="meta-item">
-                    <span class="meta-label">Collection:</span>
-                    <span class="meta-value">Real-time X/Twitter + Global News</span>
+                <div class="footer">
+                    AUTOMATED INTELLIGENCE SYSTEM | """ + provider + """ | DAILY 07:00 UTC
                 </div>
             </div>
-        </div>
-        <div class="content">
-            <pre>""" + content + """</pre>
-        </div>
-        <div class="footer">
-            <div class="footer-text">
-                AUTOMATED INTELLIGENCE BRIEFING SYSTEM<br>
-                POWERED BY """ + provider + """<br>
-                UPDATED DAILY AT 07:00 UTC
-            </div>
-        </div>
-    </div>
-</body>
-</html>"""
+        </body>
+        </html>"""
             
-            with open('index.html', 'w', encoding='utf-8') as f:
-                f.write(html_content)
+            with open('index.html', 'w') as f:
+                f.write(html)
             
-            print("Brief successfully published at " + timestamp)
+            print("Done!")
 
         if __name__ == '__main__':
-            try:
-                generate_brief()
-            except Exception as e:
-                print("Error generating brief: " + str(e))
-                exit(1)
-        PYEND
+            generate_brief()
+        EOF
+        
+    - name: Generate brief
+      env:
+        GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: python3 generate.py
         
     - name: Commit and push
       run: |
-        git config user.name "Trident Intelligence Bot"
+        git config user.name "Trident Bot"
         git config user.email "intel@trident.ai"
         git add index.html
-        git diff-index --quiet HEAD || git commit -m "📊 Daily Intelligence Brief - $(date -u +'%Y-%m-%d %H:%M UTC')"
+        git diff-index --quiet HEAD || git commit -m "📊 Daily Brief - $(date -u +'%Y-%m-%d')"
         git push
