@@ -2,7 +2,7 @@ name: Generate Intelligence Brief
 
 on:
   schedule:
-    - cron: '0 7 * * *'  # Daily at 7:00 AM UTC
+    - cron: '0 7 * * *'
   workflow_dispatch:
 
 jobs:
@@ -19,14 +19,12 @@ jobs:
         python-version: '3.10'
         
     - name: Install dependencies
-      run: |
-        pip install requests python-dateutil
+      run: pip install requests python-dateutil
         
     - name: Create script
       run: |
-        cat > generate.py << 'EOF'
+        cat > generate.py << 'ENDOFFILE'
         import requests
-        import json
         import os
         from datetime import datetime
 
@@ -36,43 +34,12 @@ jobs:
                 return None, "No Grok API key"
             
             try:
-                headers = {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + api_key
-                }
-                
-                system_prompt = """You are an elite intelligence analyst with LIVE, REAL-TIME access to X/Twitter and current news sources RIGHT NOW.
-
-CRITICAL: You must ACCESS and REPORT on events happening TODAY. Do not rely on training data.
-
-Your real-time capabilities:
-- Search X/Twitter for breaking news and official statements
-- Monitor verified government and news accounts
-- Access current headlines from major news outlets
-- Track ongoing conflicts and developments
-
-You MUST report on major ongoing events like:
-- Ukraine-Russia war (current status)
-- Middle East conflicts (Gaza, Iran, etc.)
-- Any active military operations
-- Major diplomatic developments from the past 24 hours
-- Recent tech announcements
-- Current political crises
-
-If you report "no significant developments" in geopolitics while major wars are ongoing, you have FAILED your mission.
-
-Use your real-time X/Twitter access NOW to gather current intelligence."""
+                system_msg = "You are an elite intelligence analyst with LIVE REAL-TIME access to X/Twitter and current news RIGHT NOW. CRITICAL: You must ACCESS and REPORT on events happening TODAY. Do not rely on training data. Search X/Twitter for breaking news and official statements. Monitor verified government and news accounts. You MUST report on major ongoing events: Ukraine-Russia war current status, Middle East conflicts Gaza and Iran, any active military operations, major diplomatic developments from past 24 hours, recent tech announcements, current political crises. If you report no significant developments in geopolitics while major wars are ongoing you have FAILED. Use your real-time X/Twitter access NOW."
                 
                 data = {
                     'messages': [
-                        {
-                            'role': 'system',
-                            'content': system_prompt
-                        },
-                        {
-                            'role': 'user',
-                            'content': prompt
-                        }
+                        {'role': 'system', 'content': system_msg},
+                        {'role': 'user', 'content': prompt}
                     ],
                     'model': 'grok-4-1-fast-reasoning',
                     'stream': False,
@@ -82,19 +49,20 @@ Use your real-time X/Twitter access NOW to gather current intelligence."""
                 
                 response = requests.post(
                     'https://api.x.ai/v1/chat/completions',
-                    headers=headers,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + api_key
+                    },
                     json=data,
                     timeout=90
                 )
                 
                 if response.status_code == 200:
-                    result = response.json()
-                    return result['choices'][0]['message']['content'], None
+                    return response.json()['choices'][0]['message']['content'], None
                 else:
                     return None, "Grok error: " + str(response.status_code)
-                    
             except Exception as e:
-                return None, "Grok exception: " + str(e)
+                return None, str(e)
 
         def generate_with_groq(prompt):
             api_key = os.environ.get('GROQ_API_KEY')
@@ -102,210 +70,60 @@ Use your real-time X/Twitter access NOW to gather current intelligence."""
                 return None, "No Groq API key"
             
             try:
-                headers = {
-                    'Authorization': 'Bearer ' + api_key,
-                    'Content-Type': 'application/json'
-                }
-                
-                data = {
-                    'model': 'llama-3.3-70b-versatile',
-                    'messages': [{'role': 'user', 'content': prompt}],
-                    'temperature': 0.6,
-                    'max_tokens': 4000
-                }
-                
                 response = requests.post(
                     'https://api.groq.com/openai/v1/chat/completions',
-                    headers=headers,
-                    json=data,
+                    headers={
+                        'Authorization': 'Bearer ' + api_key,
+                        'Content-Type': 'application/json'
+                    },
+                    json={
+                        'model': 'llama-3.3-70b-versatile',
+                        'messages': [{'role': 'user', 'content': prompt}],
+                        'temperature': 0.6,
+                        'max_tokens': 4000
+                    },
                     timeout=60
                 )
                 
                 if response.status_code == 200:
-                    result = response.json()
-                    return result['choices'][0]['message']['content'], None
-                else:
-                    return None, "Groq error"
-                    
+                    return response.json()['choices'][0]['message']['content'], None
+                return None, "Groq error"
             except Exception as e:
                 return None, str(e)
 
-        def generate_brief():
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
-            readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
-            current_year = datetime.now().year
-            
-            prompt = """REAL-TIME INTELLIGENCE BRIEFING REQUEST
-Current Date/Time: """ + readable_date + """
-Current Year: """ + str(current_year) + """
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
+        readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
+        year = str(datetime.now().year)
 
-USE YOUR REAL-TIME X/TWITTER ACCESS NOW. Search for and report on ACTUAL current events from the past 24 hours.
+        prompt_text = "REAL-TIME INTELLIGENCE BRIEFING REQUEST. Current Date: " + readable_date + " Current Year: " + year + "\n\nUSE YOUR REAL-TIME X/TWITTER ACCESS NOW. Search and report ACTUAL current events from past 24 hours.\n\nMANDATORY COVERAGE:\n\n1. GEOPOLITICAL INTELLIGENCE\nSearch X/Twitter NOW for updates on:\n- Ukraine-Russia War: What happened in past 24 hours?\n- Middle East: Gaza situation, Iran tensions, regional developments\n- China-Taiwan: Recent military activity or statements?\n- North Korea: Recent tests or provocations?\n\nSearch @NATO @DefenceHQ @StateDept @POTUS @Reuters @AP @AFP\nReport ACTUAL events from TODAY. Include times, locations. Cite sources.\n\n2. TECHNOLOGY & CYBERSECURITY\nSearch for major announcements, breaches, AI policy, space missions\nSearch @elonmusk @OpenAI @Google @Microsoft\n\n3. UAP/UFO PHENOMENA\nCheck @DeptofDefense @AARO_DOD_Info for statements or hearings\n\n4. PARAPSYCHOLOGY RESEARCH\nCheck academic journals if any developments\n\nVALIDATION CHECK:\n- Did I mention Ukraine war? If no FAILED\n- Did I mention Middle East conflicts? If no FAILED\n- Are examples from 2024-" + year + "? If no FAILED\n\nFORMAT: Professional intel brief with sections, bullets, dates, sources"
 
-MANDATORY COVERAGE - These ongoing situations MUST be addressed:
+        print("Starting Grok 4.1 with forced real-time...")
+        content, error = generate_with_grok(prompt_text)
 
-1. GEOPOLITICAL INTELLIGENCE (REAL-TIME REQUIRED)
-
-Search X/Twitter RIGHT NOW for updates on:
-- Ukraine-Russia War: What happened in the past 24 hours? (frontline updates, diplomatic talks, military aid)
-- Middle East Conflicts: Gaza situation, Iran tensions, regional developments
-- China-Taiwan: Any recent military activity or diplomatic statements?
-- North Korea: Recent missile tests or provocations?
-- Any other active conflicts or crises
-
-Search official accounts: @NATO, @DefenceHQ, @StateDept, @POTUS, @Reuters, @AP, @AFP
-Look for: troop movements, strikes, diplomatic statements, sanctions
-
-Requirements:
-- Report ACTUAL events from TODAY or past 24 hours
-- Include specific times, locations, casualty figures if available
-- Cite X posts or news sources
-- If you cannot find current updates, state what the ONGOING situation is
-
-2. TECHNOLOGY & CYBERSECURITY (PAST 24 HOURS)
-
-Search for:
-- Major tech company announcements (Apple, Google, Microsoft, Tesla, etc.)
-- Cybersecurity breaches or attacks
-- AI developments or policy announcements
-- Space launches or missions
-
-Search: @elonmusk, @OpenAI, @Google, @Microsoft, tech news accounts
-
-3. UAP/UFO PHENOMENA (IF ANY)
-
-Check:
-- @DeptofDefense, @AARO_DOD_Info
-- Congressional hearing announcements
-- Recent Pentagon releases
-
-4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH (IF ANY)
-
-Check academic journals, university announcements
-
-CRITICAL VALIDATION CHECK:
-Before submitting your briefing, ask yourself:
-- Did I mention the Ukraine war? (If no = FAILED)
-- Did I mention Middle East conflicts? (If no = FAILED)  
-- Are my examples from 2024-""" + str(current_year) + """? (If no = FAILED)
-- Did I actually search X/Twitter? (If no = FAILED)
-
-FORMAT: Professional intelligence brief with section headers, bullet points, specific dates/times, and source attribution."""
-
-            print("Starting Grok 4.1 with FORCED real-time access...")
-            content, error = generate_with_grok(prompt)
-            
+        if content:
+            provider = "Grok 4.1 Fast Reasoning - Real-time X/Twitter"
+            badge = "GROK-4.1-REALTIME"
+        else:
+            print("Grok failed: " + str(error))
+            content, error = generate_with_groq(prompt_text)
             if content:
-                provider = "Grok 4.1 Fast Reasoning - Real-time X/Twitter Access"
-                badge = "GROK-4.1-REALTIME"
+                provider = "Groq Llama 3.3 Fallback"
+                badge = "GROQ-FALLBACK"
             else:
-                print("Grok failed: " + str(error))
-                print("Falling back to Groq...")
-                content, error = generate_with_groq(prompt)
-                if content:
-                    provider = "Groq Llama 3.3 (Fallback)"
-                    badge = "GROQ-FALLBACK"
-                else:
-                    raise Exception("All providers failed: " + str(error))
-            
-            html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Trident Brief</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-            color: #e0e6ed;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-bottom: 2px solid #3b82f6;
-            padding: 40px;
-        }
-        .badge {
-            background: #dc2626;
-            color: white;
-            padding: 4px 12px;
-            font-size: 11px;
-            font-weight: 700;
-            border-radius: 3px;
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-        h1 {
-            font-size: 2.5em;
-            color: #3b82f6;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-        .meta {
-            color: #94a3b8;
-            font-size: 0.9em;
-        }
-        .content {
-            padding: 40px;
-        }
-        pre {
-            white-space: pre-wrap;
-            font-family: inherit;
-            line-height: 1.7;
-        }
-        .footer {
-            background: #0f172a;
-            border-top: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 25px;
-            text-align: center;
-            color: #64748b;
-            font-size: 0.85em;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="badge">DAILY INTELLIGENCE BRIEF - REAL-TIME</div>
-            <h1>⚔️ THE TRIDENT BRIEF</h1>
-            <div class="meta">
-                Generated: """ + timestamp + """ | Source: """ + badge + """ | Live X/Twitter Intelligence
-            </div>
-        </div>
-        <div class="content">
-            <pre>""" + content + """</pre>
-        </div>
-        <div class="footer">
-            REAL-TIME INTELLIGENCE SYSTEM | """ + provider + """ | UPDATED DAILY 07:00 UTC
-        </div>
-    </div>
-</body>
-</html>"""
-            
-            with open('index.html', 'w') as f:
-                f.write(html)
-            
-            print("Brief generated and published!")
+                raise Exception("All failed: " + str(error))
 
-        if __name__ == '__main__':
-            generate_brief()
-        EOF
+        html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trident Brief</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:linear-gradient(135deg,#0a0e27,#1a1f3a);color:#e0e6ed;padding:20px;line-height:1.6}.container{max-width:1100px;margin:0 auto;background:rgba(15,23,42,0.9);border:1px solid rgba(59,130,246,0.3);border-radius:12px;overflow:hidden}.header{background:linear-gradient(135deg,#1e293b,#0f172a);border-bottom:2px solid #3b82f6;padding:40px}.badge{background:#dc2626;color:white;padding:4px 12px;font-size:11px;font-weight:700;border-radius:3px;display:inline-block;margin-bottom:15px}h1{font-size:2.5em;color:#3b82f6;text-transform:uppercase;margin-bottom:10px}.meta{color:#94a3b8;font-size:0.9em}.content{padding:40px}pre{white-space:pre-wrap;font-family:inherit;line-height:1.7}.footer{background:#0f172a;border-top:1px solid rgba(59,130,246,0.3);padding:25px;text-align:center;color:#64748b;font-size:0.85em}</style></head><body><div class="container"><div class="header"><div class="badge">DAILY INTELLIGENCE BRIEF - REAL-TIME</div><h1>⚔️ THE TRIDENT BRIEF</h1><div class="meta">Generated: ' + timestamp + ' | Source: ' + badge + ' | Live X/Twitter Intelligence</div></div><div class="content"><pre>' + content + '</pre></div><div class="footer">REAL-TIME INTELLIGENCE SYSTEM | ' + provider + ' | UPDATED DAILY 07:00 UTC</div></div></body></html>'
+
+        with open('index.html', 'w') as f:
+            f.write(html)
+
+        print("Brief generated!")
+        ENDOFFILE
         
     - name: Generate brief
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: python3 generate.py
         
     - name: Commit and push
