@@ -42,7 +42,7 @@ jobs:
             try:
                 headers = {
                     'Content-Type': 'application/json',
-                    'Authorization': f'Bearer {api_key}'
+                    'Authorization': 'Bearer ' + api_key
                 }
                 
                 system_prompt = "You are an elite intelligence analyst with direct access to real-time information from X/Twitter and global news sources. Your mission is to gather, analyze, and synthesize significant intelligence developments. Be methodical and thorough in gathering information. Be skeptical of unverified claims but alert to emerging patterns. Focus on actionable intelligence and strategic implications. Distinguish clearly between confirmed facts, credible reports, and speculation. Think like an intelligence professional: what matters strategically? Leverage your real-time X/Twitter access to monitor breaking developments and official announcements, track statements from government officials, military leaders, and key institutions, identify emerging patterns in geopolitical, technological, and scientific domains, and cross-reference multiple sources for verification. Provide professional intelligence assessments with context, analysis, and strategic implications."
@@ -75,10 +75,10 @@ jobs:
                     result = response.json()
                     return result['choices'][0]['message']['content'], None
                 else:
-                    return None, f"Grok error: {response.status_code} - {response.text}"
+                    return None, "Grok error: " + str(response.status_code) + " - " + response.text
                     
             except Exception as e:
-                return None, f"Grok exception: {str(e)}"
+                return None, "Grok exception: " + str(e)
 
         def generate_with_groq(prompt):
             api_key = os.environ.get('GROQ_API_KEY')
@@ -87,7 +87,7 @@ jobs:
             
             try:
                 headers = {
-                    'Authorization': f'Bearer {api_key}',
+                    'Authorization': 'Bearer ' + api_key,
                     'Content-Type': 'application/json'
                 }
                 
@@ -114,10 +114,10 @@ jobs:
                     result = response.json()
                     return result['choices'][0]['message']['content'], None
                 else:
-                    return None, f"Groq error: {response.status_code}"
+                    return None, "Groq error: " + str(response.status_code)
                     
             except Exception as e:
-                return None, f"Groq exception: {str(e)}"
+                return None, "Groq exception: " + str(e)
 
         def generate_with_gemini(prompt):
             api_key = os.environ.get('GEMINI_API_KEY')
@@ -125,7 +125,7 @@ jobs:
                 return None, "No Gemini API key"
             
             try:
-                url = f'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}'
+                url = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=' + api_key
                 
                 headers = {'Content-Type': 'application/json'}
                 data = {
@@ -146,17 +146,17 @@ jobs:
                     result = response.json()
                     return result['candidates'][0]['content']['parts'][0]['text'], None
                 else:
-                    return None, f"Gemini error: {response.status_code}"
+                    return None, "Gemini error: " + str(response.status_code)
                     
             except Exception as e:
-                return None, f"Gemini exception: {str(e)}"
+                return None, "Gemini exception: " + str(e)
 
         def generate_brief():
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
             readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
             
-            prompt = f"""INTELLIGENCE BRIEFING REQUEST
-Date/Time: {readable_date}
+            prompt = """INTELLIGENCE BRIEFING REQUEST
+Date/Time: """ + readable_date + """
 
 You have real-time access to X/Twitter and global news sources. Conduct a comprehensive intelligence sweep and generate a professional briefing covering significant developments in the past 24 hours.
 
@@ -240,7 +240,7 @@ Remember: You are gathering intelligence from real-time sources. Quality over qu
                 provider = "Grok 4.1 Fast Reasoning - Real-time Intelligence"
                 model_badge = "GROK-4.1-REASONING"
             else:
-                print(f"Grok 4.1 failed: {error}")
+                print("Grok 4.1 failed: " + str(error))
                 print("Falling back to Groq...")
                 
                 content, error = generate_with_groq(prompt)
@@ -250,7 +250,7 @@ Remember: You are gathering intelligence from real-time sources. Quality over qu
                     provider = "Groq (llama-3.3-70b-versatile)"
                     model_badge = "GROQ-FALLBACK"
                 else:
-                    print(f"Groq failed: {error}")
+                    print("Groq failed: " + str(error))
                     print("Final fallback to Gemini...")
                     
                     content, error = generate_with_gemini(prompt)
@@ -260,7 +260,7 @@ Remember: You are gathering intelligence from real-time sources. Quality over qu
                         provider = "Gemini (gemini-1.5-flash)"
                         model_badge = "GEMINI-FALLBACK"
                     else:
-                        raise Exception(f"All providers failed. Last error: {error}")
+                        raise Exception("All providers failed. Last error: " + str(error))
             
             html_content = """<!DOCTYPE html>
 <html lang="en">
@@ -425,13 +425,13 @@ Remember: You are gathering intelligence from real-time sources. Quality over qu
             with open('index.html', 'w', encoding='utf-8') as f:
                 f.write(html_content)
             
-            print(f"Brief successfully published at {timestamp}")
+            print("Brief successfully published at " + timestamp)
 
         if __name__ == '__main__':
             try:
                 generate_brief()
             except Exception as e:
-                print(f"Error generating brief: {e}")
+                print("Error generating brief: " + str(e))
                 exit(1)
         PYEND
         
