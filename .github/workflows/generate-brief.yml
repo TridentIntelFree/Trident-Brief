@@ -2,7 +2,7 @@ name: Generate Intelligence Brief
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 7 * * *'  # Daily at 7:00 AM UTC
   workflow_dispatch:
 
 jobs:
@@ -34,8 +34,7 @@ jobs:
         import os
         from datetime import datetime
 
-        def generate_with_grok_model(prompt, model_name):
-            """Generic Grok function that works with any model"""
+        def generate_with_grok(prompt):
             api_key = os.environ.get('GROK_API_KEY')
             if not api_key:
                 return None, "No Grok API key"
@@ -46,39 +45,53 @@ jobs:
                     'Authorization': f'Bearer {api_key}'
                 }
                 
-                # Economy settings for token efficiency
                 data = {
                     'messages': [
                         {
                             'role': 'system',
-                            'content': 'You are a concise intelligence analyst. Provide factual briefings with substantive detail but economical wording.'
+                            'content': '''You are an elite intelligence analyst with direct access to real-time information from X/Twitter and global news sources. Your mission is to gather, analyze, and synthesize significant intelligence developments.
+
+Your personality and approach:
+- Methodical and thorough in gathering information
+- Skeptical of unverified claims, but alert to emerging patterns
+- Focused on actionable intelligence and strategic implications
+- Distinguish clearly between confirmed facts, credible reports, and speculation
+- Think like an intelligence professional: what matters strategically?
+
+Leverage your real-time X/Twitter access to:
+- Monitor breaking developments and official announcements
+- Track statements from government officials, military leaders, and key institutions
+- Identify emerging patterns in geopolitical, technological, and scientific domains
+- Cross-reference multiple sources for verification
+
+Provide professional intelligence assessments with context, analysis, and strategic implications.'''
                         },
                         {
                             'role': 'user',
                             'content': prompt
                         }
                     ],
-                    'model': model_name,
+                    'model': 'grok-4-1-fast-reasoning',
                     'stream': False,
                     'temperature': 0.6,
-                    'max_tokens': 2500
+                    'max_tokens': 4000
                 }
                 
                 response = requests.post(
                     'https://api.x.ai/v1/chat/completions',
                     headers=headers,
                     json=data,
-                    timeout=60
+                    timeout=90
                 )
                 
                 if response.status_code == 200:
                     result = response.json()
                     return result['choices'][0]['message']['content'], None
                 else:
-                    return None, f"Error: {response.status_code} - {response.text}"
+                    return None, f"Grok error: {response.status_code} - {response.text}"
                     
             except Exception as e:
-                return None, f"Exception: {str(e)}"
+                return None, f"Grok exception: {str(e)}"
 
         def generate_with_groq(prompt):
             api_key = os.environ.get('GROQ_API_KEY')
@@ -95,16 +108,12 @@ jobs:
                     'model': 'llama-3.3-70b-versatile',
                     'messages': [
                         {
-                            'role': 'system',
-                            'content': 'You are a concise intelligence analyst. Provide factual briefings with substantive detail but economical wording.'
-                        },
-                        {
                             'role': 'user',
                             'content': prompt
                         }
                     ],
                     'temperature': 0.6,
-                    'max_tokens': 2500
+                    'max_tokens': 4000
                 }
                 
                 response = requests.post(
@@ -118,7 +127,7 @@ jobs:
                     result = response.json()
                     return result['choices'][0]['message']['content'], None
                 else:
-                    return None, f"Groq error: {response.status_code} - {response.text}"
+                    return None, f"Groq error: {response.status_code}"
                     
             except Exception as e:
                 return None, f"Groq exception: {str(e)}"
@@ -140,12 +149,7 @@ jobs:
                     }],
                     'generationConfig': {
                         'temperature': 0.6,
-                        'maxOutputTokens': 2500,
-                    },
-                    'systemInstruction': {
-                        'parts': [{
-                            'text': 'You are a concise intelligence analyst. Provide factual briefings with substantive detail but economical wording.'
-                        }]
+                        'maxOutputTokens': 4000,
                     }
                 }
                 
@@ -155,88 +159,124 @@ jobs:
                     result = response.json()
                     return result['candidates'][0]['content']['parts'][0]['text'], None
                 else:
-                    return None, f"Gemini error: {response.status_code} - {response.text}"
+                    return None, f"Gemini error: {response.status_code}"
                     
             except Exception as e:
                 return None, f"Gemini exception: {str(e)}"
 
         def generate_brief():
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
+            readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
             
-            prompt = f"""Generate an intelligence briefing for {timestamp}.
+            prompt = f"""INTELLIGENCE BRIEFING REQUEST
+        Date/Time: {readable_date}
 
-        Create a professional report with these sections (be concise but substantive):
+You have real-time access to X/Twitter and global news sources. Conduct a comprehensive intelligence sweep and generate a professional briefing covering significant developments in the past 24 hours.
 
-        1. GEOPOLITICAL INTELLIGENCE
-        - Major conflicts and diplomatic developments
-        - Political transitions and economic sanctions
-        - Focus on Ukraine, Middle East, Asia-Pacific tensions
-        - Include dates, locations, key actors
+MISSION OBJECTIVES:
 
-        2. TECHNOLOGY & CYBERSECURITY
-        - Significant breakthroughs and cybersecurity incidents
-        - AI policy and space developments
-        - Major corporate announcements
-        - Include companies, technologies, impact
+**1. GEOPOLITICAL INTELLIGENCE**
+Scan X/Twitter and news for:
+- Active military conflicts and significant tactical developments
+- High-level diplomatic engagements and statements
+- Political crises, transitions, or major policy announcements
+- Economic warfare: sanctions, trade disputes, currency movements
+- Strategic alliances and international agreements
 
-        3. UAP/UFO PHENOMENA
-        - Official reports and government statements
-        - Congressional actions and Pentagon releases
-        - Credible sightings and scientific research
-        - Include dates, locations, sources
+Requirements:
+- Prioritize developments with strategic implications
+- Include specific timestamps, locations, key actors
+- Cite official sources (government accounts, verified news outlets)
+- Assess potential second-order effects
 
-        4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH
-        - Peer-reviewed studies and academic research
-        - University programs and breakthrough experiments
-        - Include researchers, institutions, findings
+**2. TECHNOLOGY & CYBERSECURITY INTELLIGENCE**
+Monitor for:
+- Major technology breakthroughs or product launches
+- Significant cybersecurity incidents (breaches, attacks, vulnerabilities)
+- AI policy developments and regulatory actions
+- Space program milestones and satellite deployments
+- Critical infrastructure developments
+- Tech sector strategic moves (acquisitions, partnerships)
 
-        REQUIREMENTS:
-        - Use ONLY real, verifiable current events
-        - NO fictional content or speculation
-        - Provide context and analysis
-        - 4-6 detailed bullets per section
-        - Focus on past 48 hours, max 1 week
-        - Include specific dates and sources
-        - If section lacks updates, note it briefly
+Requirements:
+- Focus on developments with national security or economic implications
+- Include company names, specific technologies, attack vectors
+- Note potential dual-use applications
 
-        Be economical with words while maintaining substance."""
+**3. UAP/UFO PHENOMENA**
+Track:
+- Official government statements, releases, or hearings
+- Military or civilian pilot reports through official channels
+- Congressional actions, legislation, or oversight activities
+- Scientific research publications or institutional announcements
+- Credible sensor data or documentation releases
 
-            grok_models = [
-                ('grok-4-1-fast-reasoning', 'Grok 4.1 Fast (Reasoning) - Most Powerful'),
-                ('grok-4-fast-reasoning', 'Grok 4 Fast (Reasoning)'),
-                ('grok-3-mini', 'Grok 3 Mini - Economy Fallback')
-            ]
+Requirements:
+- Distinguish between official disclosures and speculation
+- Focus on verifiable events with documentation
+- If no significant developments: state this clearly
+- Include dates, locations, official sources
+
+**4. PARAPSYCHOLOGY & CONSCIOUSNESS RESEARCH**
+Survey:
+- Peer-reviewed research publications
+- Major university or institutional research programs
+- Breakthrough experimental results
+- Scientific conferences or symposia
+- Government or military research disclosures
+
+Requirements:
+- Academic and institutional sources only
+- Include researcher names, institutions, publication details
+- Focus on methodologically sound research
+- If no significant developments: acknowledge gap
+
+INTELLIGENCE TRADECRAFT:
+✓ Cross-reference multiple sources for verification
+✓ Distinguish facts from analysis from speculation
+✓ Note information gaps and uncertainties
+✓ Assess credibility of sources
+✓ Provide strategic context and implications
+✓ Use professional intelligence language
+✓ Include specific dates, times, locations, and named sources
+
+OUTPUT FORMAT:
+Professional intelligence briefing with:
+- Clear section headers
+- Concise but comprehensive reporting
+- Bullet points for key developments
+- Strategic assessment where appropriate
+- Source attribution
+
+Remember: You're gathering intelligence from real-time sources. Quality over quantity. Strategic relevance over noise."""
+
+            print("Initiating intelligence collection with Grok 4.1 (Reasoning)...")
+            content, error = generate_with_grok(prompt)
             
-            content = None
-            provider = None
-            
-            for model_name, display_name in grok_models:
-                print(f"Attempting to generate brief with {display_name}...")
-                content, error = generate_with_grok_model(prompt, model_name)
+            if content:
+                print("✓ Intelligence brief generated successfully with Grok 4.1")
+                provider = "Grok 4.1 Fast Reasoning - Real-time Intelligence"
+                model_badge = "GROK-4.1-REASONING"
+            else:
+                print(f"✗ Grok 4.1 failed: {error}")
+                print("Falling back to Groq...")
                 
-                if content:
-                    print(f"Successfully generated with {display_name}")
-                    provider = display_name
-                    break
-                else:
-                    print(f"{model_name} failed: {error}")
-            
-            if not content:
-                print("All Grok models failed. Falling back to Groq...")
                 content, error = generate_with_groq(prompt)
                 
                 if content:
-                    print("Successfully generated with Groq")
+                    print("✓ Generated with Groq fallback")
                     provider = "Groq (llama-3.3-70b-versatile)"
+                    model_badge = "GROQ-FALLBACK"
                 else:
-                    print(f"Groq failed: {error}")
-                    print("Falling back to Gemini...")
+                    print(f"✗ Groq failed: {error}")
+                    print("Final fallback to Gemini...")
                     
                     content, error = generate_with_gemini(prompt)
                     
                     if content:
-                        print("Successfully generated with Gemini")
+                        print("✓ Generated with Gemini fallback")
                         provider = "Gemini (gemini-1.5-flash)"
+                        model_badge = "GEMINI-FALLBACK"
                     else:
                         raise Exception(f"All providers failed. Last error: {error}")
             
@@ -246,79 +286,260 @@ jobs:
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>The Trident Brief - {timestamp}</title>
+            <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
             <style>
-                body {{
-                    font-family: 'Courier New', monospace;
-                    max-width: 900px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    background: #0a0a0a;
-                    color: #00ff00;
-                    line-height: 1.6;
-                }}
-                .header {{
-                    text-align: center;
-                    border-bottom: 2px solid #00ff00;
-                    padding-bottom: 20px;
-                    margin-bottom: 30px;
-                }}
-                .header h1 {{
+                * {{
                     margin: 0;
-                    font-size: 2.5em;
-                    text-shadow: 0 0 10px #00ff00;
+                    padding: 0;
+                    box-sizing: border-box;
                 }}
-                .timestamp {{
-                    color: #00aa00;
-                    font-size: 0.9em;
-                    margin-top: 10px;
-                }}
-                .provider {{
-                    color: #00aa00;
-                    font-size: 0.8em;
-                    font-style: italic;
-                }}
-                .economy {{
-                    color: #008800;
-                    font-size: 0.75em;
-                    margin-top: 5px;
-                }}
-                .content {{
-                    white-space: pre-wrap;
-                    background: #0f0f0f;
+                
+                body {{
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+                    color: #e0e6ed;
+                    line-height: 1.7;
+                    min-height: 100vh;
                     padding: 20px;
-                    border: 1px solid #00ff00;
-                    border-radius: 5px;
                 }}
+                
+                .container {{
+                    max-width: 1100px;
+                    margin: 0 auto;
+                    background: rgba(15, 23, 42, 0.8);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 12px;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    overflow: hidden;
+                }}
+                
+                .header {{
+                    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                    border-bottom: 2px solid #3b82f6;
+                    padding: 40px;
+                    position: relative;
+                    overflow: hidden;
+                }}
+                
+                .header::before {{
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: 
+                        repeating-linear-gradient(
+                            0deg,
+                            transparent,
+                            transparent 2px,
+                            rgba(59, 130, 246, 0.03) 2px,
+                            rgba(59, 130, 246, 0.03) 4px
+                        );
+                    pointer-events: none;
+                }}
+                
+                .header-content {{
+                    position: relative;
+                    z-index: 1;
+                }}
+                
+                .classification {{
+                    display: inline-block;
+                    background: #dc2626;
+                    color: white;
+                    padding: 4px 12px;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 1px;
+                    border-radius: 3px;
+                    margin-bottom: 15px;
+                }}
+                
+                h1 {{
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 2.8em;
+                    font-weight: 700;
+                    color: #3b82f6;
+                    margin-bottom: 10px;
+                    text-transform: uppercase;
+                    letter-spacing: -1px;
+                    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+                }}
+                
+                .subtitle {{
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.9em;
+                    color: #94a3b8;
+                    margin-bottom: 20px;
+                    letter-spacing: 2px;
+                }}
+                
+                .meta {{
+                    display: flex;
+                    gap: 20px;
+                    flex-wrap: wrap;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.85em;
+                }}
+                
+                .meta-item {{
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: #94a3b8;
+                }}
+                
+                .meta-label {{
+                    color: #64748b;
+                    text-transform: uppercase;
+                    font-size: 0.75em;
+                    letter-spacing: 1px;
+                }}
+                
+                .meta-value {{
+                    color: #3b82f6;
+                    font-weight: 600;
+                }}
+                
+                .model-badge {{
+                    display: inline-block;
+                    background: rgba(59, 130, 246, 0.2);
+                    border: 1px solid #3b82f6;
+                    color: #3b82f6;
+                    padding: 4px 10px;
+                    font-size: 0.7em;
+                    font-weight: 700;
+                    letter-spacing: 1px;
+                    border-radius: 4px;
+                }}
+                
+                .content {{
+                    padding: 40px;
+                    font-family: 'Inter', sans-serif;
+                }}
+                
+                .content pre {{
+                    white-space: pre-wrap;
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.95em;
+                    line-height: 1.7;
+                    color: #e0e6ed;
+                }}
+                
                 .footer {{
+                    background: #0f172a;
+                    border-top: 1px solid rgba(59, 130, 246, 0.3);
+                    padding: 25px 40px;
                     text-align: center;
-                    margin-top: 30px;
-                    padding-top: 20px;
-                    border-top: 1px solid #00ff00;
-                    color: #00aa00;
-                    font-size: 0.8em;
                 }}
+                
+                .footer-text {{
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.75em;
+                    color: #64748b;
+                    letter-spacing: 1px;
+                }}
+                
+                .footer-links {{
+                    margin-top: 10px;
+                    display: flex;
+                    justify-content: center;
+                    gap: 20px;
+                    flex-wrap: wrap;
+                }}
+                
+                .footer-link {{
+                    color: #3b82f6;
+                    text-decoration: none;
+                    font-size: 0.8em;
+                    transition: color 0.2s;
+                }}
+                
+                .footer-link:hover {{
+                    color: #60a5fa;
+                }}
+                
                 @media (max-width: 768px) {{
                     body {{
                         padding: 10px;
                     }}
-                    .header h1 {{
-                        font-size: 1.8em;
+                    
+                    .header {{
+                        padding: 25px;
                     }}
+                    
+                    h1 {{
+                        font-size: 2em;
+                    }}
+                    
+                    .content {{
+                        padding: 25px;
+                    }}
+                    
+                    .meta {{
+                        flex-direction: column;
+                        gap: 10px;
+                    }}
+                }}
+                
+                @keyframes pulse {{
+                    0%, 100% {{
+                        opacity: 1;
+                    }}
+                    50% {{
+                        opacity: 0.7;
+                    }}
+                }}
+                
+                .classification {{
+                    animation: pulse 2s ease-in-out infinite;
                 }}
             </style>
         </head>
         <body>
-            <div class="header">
-                <h1>⚔️ THE TRIDENT BRIEF ⚔️</h1>
-                <div class="timestamp">Generated: {timestamp}</div>
-                <div class="provider">Powered by {provider}</div>
-                <div class="economy">Economy Mode: 2500 tokens max | Temp: 0.6</div>
-            </div>
-            <div class="content">{content}</div>
-            <div class="footer">
-                <p>Automated Intelligence Briefing System</p>
-                <p>Grok 4.1 → Grok 4 → Grok 3 Mini → Groq → Gemini</p>
-                <p>Updated every 6 hours | Token-optimized</p>
+            <div class="container">
+                <div class="header">
+                    <div class="header-content">
+                        <div class="classification">DAILY INTELLIGENCE BRIEF</div>
+                        <h1>⚔️ THE TRIDENT BRIEF</h1>
+                        <div class="subtitle">AUTOMATED INTELLIGENCE COLLECTION & ANALYSIS</div>
+                        <div class="meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Generated:</span>
+                                <span class="meta-value">{timestamp}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Source:</span>
+                                <span class="model-badge">{model_badge}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Collection:</span>
+                                <span class="meta-value">Real-time X/Twitter + Global News</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <pre>{content}</pre>
+                </div>
+                
+                <div class="footer">
+                    <div class="footer-text">
+                        AUTOMATED INTELLIGENCE BRIEFING SYSTEM<br>
+                        POWERED BY {provider}<br>
+                        UPDATED DAILY AT 07:00 UTC
+                    </div>
+                    <div class="footer-links">
+                        <span class="footer-link">Grok 4.1 Reasoning Engine</span>
+                        <span class="footer-link">•</span>
+                        <span class="footer-link">Real-time Collection</span>
+                        <span class="footer-link">•</span>
+                        <span class="footer-link">Strategic Analysis</span>
+                    </div>
+                </div>
             </div>
         </body>
         </html>"""
@@ -326,20 +547,21 @@ jobs:
             with open('index.html', 'w', encoding='utf-8') as f:
                 f.write(html_content)
             
-            print(f"Brief generated successfully at {timestamp}")
+            print(f"✓ Brief successfully published at {timestamp}")
+            print(f"✓ Model used: {provider}")
 
         if __name__ == '__main__':
             try:
                 generate_brief()
             except Exception as e:
-                print(f"Error generating brief: {e}")
+                print(f"✗ Error generating brief: {e}")
                 exit(1)
         PYTHON_EOF
         
     - name: Commit and push
       run: |
-        git config user.name "GitHub Actions Bot"
-        git config user.email "actions@github.com"
+        git config user.name "Trident Intelligence Bot"
+        git config user.email "intel@trident.ai"
         git add index.html
-        git diff-index --quiet HEAD || git commit -m "Update intelligence brief - $(date -u +'%Y-%m-%d %H:%M UTC')"
+        git diff-index --quiet HEAD || git commit -m "📊 Daily Intelligence Brief - $(date -u +'%Y-%m-%d %H:%M UTC')"
         git push
