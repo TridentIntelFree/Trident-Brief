@@ -2,8 +2,8 @@ name: Generate Intelligence Brief
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
-  workflow_dispatch:  # Manual trigger
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   generate-brief:
@@ -28,15 +28,13 @@ jobs:
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        cat > generate_brief.py << 'PYTHON_SCRIPT'
+        cat > generate_brief.py << 'EOF'
         import requests
         import json
         import os
         from datetime import datetime
-        import time
 
         def generate_with_grok(prompt):
-            """Try Grok first - has real-time data access"""
             api_key = os.environ.get('GROK_API_KEY')
             if not api_key:
                 return None, "No Grok API key"
@@ -58,8 +56,7 @@ jobs:
                             'content': prompt
                         }
                     ],
-                        'model': 'grok-2-latest',  # ← UPDATED
-
+                    'model': 'grok-2-latest',
                     'stream': False,
                     'temperature': 0.5,
                     'max_tokens': 2000
@@ -82,7 +79,6 @@ jobs:
                 return None, f"Grok exception: {str(e)}"
 
         def generate_with_groq(prompt):
-            """Try Groq second - fast and free"""
             api_key = os.environ.get('GROQ_API_KEY')
             if not api_key:
                 return None, "No Groq API key"
@@ -126,7 +122,6 @@ jobs:
                 return None, f"Groq exception: {str(e)}"
 
         def generate_with_gemini(prompt):
-            """Fallback to Gemini - stable backup"""
             api_key = os.environ.get('GEMINI_API_KEY')
             if not api_key:
                 return None, "No Gemini API key"
@@ -166,66 +161,63 @@ jobs:
         def generate_brief():
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
             
-            # Optimized prompt for token efficiency
             prompt = f"""Generate a concise intelligence briefing for {timestamp}.
 
-BRIEF factual report (500-800 words total):
+        BRIEF factual report (500-800 words total):
 
-1. GEOPOLITICAL INTELLIGENCE
-- 2-3 major developments only
-- Focus on conflicts, diplomacy, sanctions
+        1. GEOPOLITICAL INTELLIGENCE
+        - 2-3 major developments only
+        - Focus on conflicts, diplomacy, sanctions
 
-2. TECHNOLOGY & CYBERSECURITY  
-- 2-3 significant items only
-- Major breakthroughs, threats, AI policy
+        2. TECHNOLOGY & CYBERSECURITY  
+        - 2-3 significant items only
+        - Major breakthroughs, threats, AI policy
 
-3. UAP/UFO PHENOMENA
-- 1-2 updates if available
-- Official reports, hearings, investigations
+        3. UAP/UFO PHENOMENA
+        - 1-2 updates if available
+        - Official reports, hearings, investigations
 
-4. PARAPSYCHOLOGY & CONSCIOUSNESS
-- 1-2 notable studies if available
-- Academic research only
+        4. PARAPSYCHOLOGY & CONSCIOUSNESS
+        - 1-2 notable studies if available
+        - Academic research only
 
-RULES:
-- Concise bullets only, no elaboration
-- ONLY real, verifiable information
-- NO fiction or speculation
-- If no updates: "No significant developments"
-- Max 3-4 bullets per section
-- Include dates/sources when possible
+        RULES:
+        - Concise bullets only, no elaboration
+        - ONLY real, verifiable information
+        - NO fiction or speculation
+        - If no updates: "No significant developments"
+        - Max 3-4 bullets per section
+        - Include dates/sources when possible
 
-Format: Section header + brief bullets. Be economical."""
+        Format: Section header + brief bullets. Be economical."""
 
-            # Try providers in order: Grok -> Groq -> Gemini
             print("Attempting to generate brief with Grok (real-time data)...")
             content, error = generate_with_grok(prompt)
             
             if content:
-                print("✓ Successfully generated with Grok")
-                provider = "Grok (grok-beta) - Real-time Intelligence"
+                print("Successfully generated with Grok")
+                provider = "Grok (grok-2-latest) - Real-time Intelligence"
             else:
-                print(f"✗ Grok failed: {error}")
+                print(f"Grok failed: {error}")
                 print("Falling back to Groq...")
                 
                 content, error = generate_with_groq(prompt)
                 
                 if content:
-                    print("✓ Successfully generated with Groq")
+                    print("Successfully generated with Groq")
                     provider = "Groq (llama-3.3-70b-versatile)"
                 else:
-                    print(f"✗ Groq failed: {error}")
+                    print(f"Groq failed: {error}")
                     print("Falling back to Gemini...")
                     
                     content, error = generate_with_gemini(prompt)
                     
                     if content:
-                        print("✓ Successfully generated with Gemini")
+                        print("Successfully generated with Gemini")
                         provider = "Gemini (gemini-1.5-flash)"
                     else:
                         raise Exception(f"All providers failed. Last error: {error}")
             
-            # Create HTML
             html = f"""<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -313,7 +305,6 @@ Format: Section header + brief bullets. Be economical."""
                 f.write(html)
             
             print(f"Brief generated successfully at {timestamp}")
-            print(f"Estimated tokens used: ~800-1200")
 
         if __name__ == '__main__':
             try:
@@ -321,7 +312,7 @@ Format: Section header + brief bullets. Be economical."""
             except Exception as e:
                 print(f"Error generating brief: {e}")
                 exit(1)
-        PYTHON_SCRIPT
+        EOF
         
         python generate_brief.py
         
