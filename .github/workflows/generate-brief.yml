@@ -147,10 +147,13 @@ with open('index.html', 'w') as f:
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: python3 gen.py
         
+    - name: Disable Jekyll
+      run: touch .nojekyll
+        
     - name: Commit and push
       run: |
         git config user.name "Trident"
         git config user.email "intel@trident.ai"
-        git add index.html
+        git add index.html .nojekyll
         git commit -m "Brief $(date -u +'%Y-%m-%d')" || echo "No changes"
         git push
