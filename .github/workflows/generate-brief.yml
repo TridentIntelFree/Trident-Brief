@@ -2,7 +2,7 @@ name: Generate Intelligence Brief
 
 on:
   schedule:
-    - cron: '0 7 * * *'
+    - cron: '0 11 * * *'  # Daily at 6:00 AM EST (11:00 AM UTC)
   workflow_dispatch:
 
 jobs:
@@ -95,4 +95,69 @@ jobs:
         readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
         year = str(datetime.now().year)
 
-        prompt_text = "SIGINT COLLECTION TASKING - REAL-TIME X/TWITTER MONITORING\nCollection Period: Past 24 hours ending " + readable_date + "\nCurrent Year: " + year + "\n\nMISSION: Monitor high-value X accounts for intelligence indicators. Analyze signals, correlate data, assess strategic implications.\n\nPRIORITY INTELLIGENCE REQUIREMENTS:\n\n1. GEOPOLITICAL AND MILITARY INTELLIGENCE\n\nPRIMARY COLLECTION TARGETS (Government/Military):\n@POTUS @VP @StateDept @SecDef @DeptofDefense @NATO @EUCOM @CENTCOM @INDOPACOM @Europarl_EN @EU_Commission @BorisJohnson @EmmanuelMacron @Bundeskanzler @ZelenskyyUa @Ukrainian_Army @DefenceU @KremlinRussia_E @IDF @Israel_MOD @IsraeliPM @IRGC_Bismillah @Taiwan_SEC @MFA_China @XHNews @StateDeptSpox @PentagonPresSec\n\nSECONDARY SOURCES (Journalists/Analysts):\n@christogrozev @RALee85 @Conflicts @WarMonitors @Osinttechnical @JackDetsch @laraseligman @NatashaBertrand @helenenecostier\n\nCollection Focus:\n- Troop movements and military deployments\n- Diplomatic statements and policy shifts\n- Alliance developments and joint operations\n- Sanctions announcements and economic warfare\n- Arms transfers and defense aid packages\n- Strategic messaging and information operations\n\n2. TECHNOLOGY AND CYBERSECURITY INTELLIGENCE\n\nPRIMARY TARGETS (Tech Leaders/Companies):\n@elonmusk @sama @satyanadella @sundarpichai @tim_cook @OpenAI @Google @Microsoft @Apple @Meta @Tesla @SpaceX @xAI @USCYBERCOM @CISAgov @NSACyber @FBI\n\nSECONDARY SOURCES (Security​​​​​​​​​​​​​​​​
+        prompt_text = "SIGINT COLLECTION TASKING - REAL-TIME X/TWITTER MONITORING\nCollection Period: Past 24 hours ending " + readable_date + "\nCurrent Year: " + year + "\n\nMISSION: Monitor high-value X accounts for intelligence indicators. Analyze signals, correlate data, assess strategic implications.\n\nPRIORITY INTELLIGENCE REQUIREMENTS:\n\n1. GEOPOLITICAL AND MILITARY INTELLIGENCE\n\nPRIMARY COLLECTION TARGETS (Government/Military):\n@POTUS @VP @StateDept @SecDef @DeptofDefense @NATO @EUCOM @CENTCOM @INDOPACOM @Europarl_EN @EU_Commission @BorisJohnson @EmmanuelMacron @Bundeskanzler @ZelenskyyUa @Ukrainian_Army @DefenceU @KremlinRussia_E @IDF @Israel_MOD @IsraeliPM @IRGC_Bismillah @Taiwan_SEC @MFA_China @XHNews @StateDeptSpox @PentagonPresSec\n\nSECONDARY SOURCES (Journalists/Analysts):\n@christogrozev @RALee85 @Conflicts @WarMonitors @Osinttechnical @JackDetsch @laraseligman @NatashaBertrand @helenenecostier\n\nCollection Focus:\n- Troop movements and military deployments\n- Diplomatic statements and policy shifts\n- Alliance developments and joint operations\n- Sanctions announcements and economic warfare\n- Arms transfers and defense aid packages\n- Strategic messaging and information operations\n\n2. TECHNOLOGY AND CYBERSECURITY INTELLIGENCE\n\nPRIMARY TARGETS (Tech Leaders/Companies):\n@elonmusk @sama @satyanadella @sundarpichai @tim_cook @OpenAI @Google @Microsoft @Apple @Meta @Tesla @SpaceX @xAI @USCYBERCOM @CISAgov @NSACyber @FBI\n\nSECONDARY SOURCES (Security Researchers):\n@mattblaze @evacide @thegrugq @SwiftOnSecurity @malwareunicorn @troyhunt @briankrebs @nicoleperlroth\n\nCollection Focus:\n- Product launches and technology breakthroughs\n- Cybersecurity incidents and vulnerability disclosures\n- AI model releases and policy announcements\n- Acquisitions and strategic partnerships\n- Regulatory actions and antitrust developments\n- Critical infrastructure threats\n\n3. UAP/UFO INTELLIGENCE\n\nPRIMARY TARGETS:\n@DeptofDefense @AARO_DOD_Info @SenGillibrand @RepTimBurchett @SenRubioPress @RepJaredMoskowitz\n\nSECONDARY SOURCES:\n@ChrisKMellon @LueElizondo @rosscoulthart @JeremyCorbell @GadiNBC @TheUfoJoe\n\nCollection Focus:\n- Official Pentagon statements and AARO releases\n- Congressional hearing announcements\n- Legislation and oversight activities\n- Credible incident reports with documentation\n- Scientific research and sensor data\n\n4. PARAPSYCHOLOGY AND CONSCIOUSNESS RESEARCH\n\nPRIMARY TARGETS:\n@Stanford @Harvard @Princeton @MIT @Yale @NaturePortfolio @ScienceMagazine @PLOSONE\n\nCollection Focus:\n- Peer-reviewed publications\n- Research program announcements\n- Conference proceedings\n- Institutional funding and grants\n\nINTELLIGENCE METHODOLOGY:\n\n1. SIGNAL COLLECTION:\n- Monitor each target account for posts in collection period\n- Flag high-priority indicators\n- Note post timestamps for timeline correlation\n\n2. SIGNAL ANALYSIS:\n- Cross-reference multiple sources for verification\n- Identify patterns and anomalies\n- Distinguish official statements from speculation\n- Assess source credibility and potential bias\n\n3. INTELLIGENCE PRODUCTION:\n- Synthesize signals into coherent intelligence picture\n- Provide strategic context and implications\n- Highlight information gaps and collection needs\n- Recommend follow-up collection priorities\n\nREPORTING FORMAT:\n\nFor each section:\n- Lead with BLUF (Bottom Line Up Front)\n- Cite specific X accounts and timestamps\n- Include direct quotes from key signals when relevant\n- Provide analytic assessment (high/medium/low confidence)\n- Note strategic implications\n\nUse professional intelligence language:\n- OSINT indicates / Open source reporting suggests\n- Multiple sources confirm / Unconfirmed reports from\n- Strategic assessment / Operational implications\n- Collection gaps / Recommend monitoring\n\nVALIDATION REQUIREMENTS:\n- Ukraine-Russia conflict MUST be addressed (ongoing war)\n- Middle East situation MUST be covered (active conflicts)\n- All examples from " + year + " (current operational period)\n- Minimum 3 specific X account citations per section\n\nExecute collection now."
+
+        print("Initiating SIGINT collection with Grok 4.1...")
+        content, error = generate_with_grok(prompt_text)
+
+        if content:
+            provider = "Grok 4.1 Fast Reasoning - SIGINT Collection"
+            badge = "GROK-4.1-SIGINT"
+            print("SUCCESS: Generated with Grok")
+        else:
+            print("Primary collection failed: " + str(error))
+            content, error = generate_with_groq(prompt_text)
+            if content:
+                provider = "Groq Llama 3.3 (Backup Collection)"
+                badge = "GROQ-BACKUP"
+                print("SUCCESS: Generated with Groq")
+            else:
+                raise Exception("All collection sources failed: " + str(error))
+
+        html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trident SIGINT Brief</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui;background:linear-gradient(135deg,#0a0e27,#1a1f3a);color:#e0e6ed;padding:20px;line-height:1.6}.container{max-width:1200px;margin:0 auto;background:rgba(15,23,42,0.9);border:1px solid rgba(59,130,246,0.3);border-radius:12px;overflow:hidden}.header{background:linear-gradient(135deg,#1e293b,#0f172a);border-bottom:2px solid #3b82f6;padding:40px}.badge{background:#dc2626;color:white;padding:4px 12px;font-size:11px;font-weight:700;border-radius:3px;display:inline-block;margin-bottom:15px}h1{font-size:2.5em;color:#3b82f6;text-transform:uppercase;margin-bottom:10px}.meta{color:#94a3b8;font-size:0.9em;margin-top:10px}.sigint{color:#fbbf24;font-size:0.8em;font-weight:600;margin-top:5px}.content{padding:40px}pre{white-space:pre-wrap;font-family:inherit;line-height:1.7}.footer{background:#0f172a;border-top:1px solid rgba(59,130,246,0.3);padding:25px;text-align:center;color:#64748b;font-size:0.85em}</style></head><body><div class="container"><div class="header"><div class="badge">CLASSIFIED: SIGINT COLLECTION BRIEF</div><h1>⚔️ THE TRIDENT BRIEF</h1><div class="meta">Collection Period: ' + timestamp + ' | Source: ' + badge + '</div><div class="sigint">SIGNALS INTELLIGENCE | X/TWITTER MONITORING | HIGH-VALUE TARGETS</div></div><div class="content"><pre>' + content + '</pre></div><div class="footer">AUTOMATED SIGINT COLLECTION SYSTEM | ' + provider + ' | DAILY 06:00 EST (11:00 UTC)<br>MONITORING 100+ HIGH-VALUE X ACCOUNTS</div></div></body></html>'
+
+        with open('index.html', 'w') as f:
+            f.write(html)
+
+        print("File written successfully!")
+        print("Timestamp in file: " + timestamp)
+        ENDOFFILE
+        
+    - name: Debug - Check file
+      run: |
+        echo "=== Checking if index.html exists ==="
+        ls -lah index.html
+        echo "=== First 100 chars of file ==="
+        head -c 100 index.html
+        echo ""
+        echo "=== Checking timestamp in file ==="
+        grep "Collection Period:" index.html || echo "Timestamp not found!"
+        
+    - name: Generate brief
+      env:
+        GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      run: python3 generate.py
+      
+    - name: Debug - Check file again
+      run: |
+        echo "=== After generation ==="
+        ls -lah index.html
+        echo "=== Timestamp in file ==="
+        grep "Collection Period:" index.html
+        
+    - name: Commit and push
+      run: |
+        git config user.name "Trident SIGINT"
+        git config user.email "sigint@trident.ai"
+        echo "=== Git status before add ==="
+        git status
+        git add index.html
+        echo "=== Git status after add ==="
+        git status
+        echo "=== Git diff ==="
+        git diff HEAD
+        echo "=== Attempting commit ==="
+        git commit -m "🎯 SIGINT Brief - $(date -u +'%Y-%m-%d %H:%M')" || echo "Nothing to commit"
+        echo "=== Pushing ==="
+        git push
