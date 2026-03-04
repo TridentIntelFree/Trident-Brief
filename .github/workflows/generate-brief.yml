@@ -103,14 +103,12 @@ jobs:
         if content:
             provider = "Grok 4.1 Fast Reasoning - SIGINT Collection"
             badge = "GROK-4.1-SIGINT"
-            print("SUCCESS: Generated with Grok")
         else:
             print("Primary collection failed: " + str(error))
             content, error = generate_with_groq(prompt_text)
             if content:
                 provider = "Groq Llama 3.3 (Backup Collection)"
                 badge = "GROQ-BACKUP"
-                print("SUCCESS: Generated with Groq")
             else:
                 raise Exception("All collection sources failed: " + str(error))
 
@@ -119,45 +117,19 @@ jobs:
         with open('index.html', 'w') as f:
             f.write(html)
 
-        print("File written successfully!")
-        print("Timestamp in file: " + timestamp)
+        print("SIGINT brief generated!")
         ENDOFFILE
-        
-    - name: Debug - Check file
-      run: |
-        echo "=== Checking if index.html exists ==="
-        ls -lah index.html
-        echo "=== First 100 chars of file ==="
-        head -c 100 index.html
-        echo ""
-        echo "=== Checking timestamp in file ==="
-        grep "Collection Period:" index.html || echo "Timestamp not found!"
         
     - name: Generate brief
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: python3 generate.py
-      
-    - name: Debug - Check file again
-      run: |
-        echo "=== After generation ==="
-        ls -lah index.html
-        echo "=== Timestamp in file ==="
-        grep "Collection Period:" index.html
         
     - name: Commit and push
       run: |
         git config user.name "Trident SIGINT"
         git config user.email "sigint@trident.ai"
-        echo "=== Git status before add ==="
-        git status
         git add index.html
-        echo "=== Git status after add ==="
-        git status
-        echo "=== Git diff ==="
-        git diff HEAD
-        echo "=== Attempting commit ==="
-        git commit -m "🎯 SIGINT Brief - $(date -u +'%Y-%m-%d %H:%M')" || echo "Nothing to commit"
-        echo "=== Pushing ==="
+        git diff-index --quiet HEAD || git commit -m "🎯 SIGINT Brief - $(date -u +'%Y-%m-%d %H:%M')"
         git push
