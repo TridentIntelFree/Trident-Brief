@@ -11,36 +11,31 @@ permissions:
   id-token: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
       
-    - name: Setup Python
-      uses: actions/setup-python@v4
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
         
-    - name: Install deps
-      run: pip install requests
+    - run: pip install requests
         
-    - name: Generate
+    - name: Generate brief
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: python3 generate_brief_final.py
         
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
+    - uses: actions/configure-pages@v4
         
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
+    - uses: actions/upload-pages-artifact@v3
       with:
         path: .
         
-    - name: Deploy
+    - name: Deploy to Pages
       uses: actions/deploy-pages@v4
