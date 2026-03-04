@@ -2,17 +2,22 @@ name: Generate Intelligence Brief
 
 on:
   schedule:
-    - cron: '0 11 * * *'  # Daily at 6:00 AM EST (11:00 AM UTC)
+    - cron: '0 11 * * *'
   workflow_dispatch:
 
 jobs:
   generate-brief:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -21,7 +26,16 @@ jobs:
     - name: Install dependencies
       run: pip install requests python-dateutil
         
-    - name: Create script
+    - name: Check before generation
+      run: |
+        echo "=== BEFORE generation ==="
+        ls -la index.html
+        head -20 index.html
+        
+    - name: Create and run script
+      env:
+        GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: |
         cat > generate.py << 'ENDOFFILE'
         import requests
@@ -64,35 +78,215 @@ jobs:
             except Exception as e:
                 return None, str(e)
 
-        def generate_with_groq(prompt):
-            api_key = os.environ.get('GROQ_API_KEY')
-            if not api_key:
-                return None, "No Groq API key"
-            
-            try:
-                response = requests.post(
-                    'https://api.groq.com/openai/v1/chat/completions',
-                    headers={
-                        'Authorization': 'Bearer ' + api_key,
-                        'Content-Type': 'application/json'
-                    },
-                    json={
-                        'model': 'llama-3.3-70b-versatile',
-                        'messages': [{'role': 'user', 'content': prompt}],
-                        'temperature': 0.6,
-                        'max_tokens': 4000
-                    },
-                    timeout=60
-                )
-                
-                if response.status_code == 200:
-                    return response.json()['choices'][0]['message']['content'], None
-                return None, "Groq error"
-            except Exception as e:
-                return None, str(e)
-
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
         readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
         year = str(datetime.now().year)
 
-        prompt_text = "SIGINT/HUMINT COLLECTION TASKING - REAL-TIME X/TWITTER MONITORING\nCollection Period: Past 24 hours ending " + readable_date + "\nCurrent Year: " + year + "\n\nMISSION: Conduct multi-INT collection using both verified official sources (SIGINT) and open chatter from local/unverified accounts (HUMINT). Clearly distinguish intelligence grades.\n\nINTELLIGENCE CLASSIFICATION SYSTEM:\n\n[SIGINT - VERIFIED]: Official government, military, institutional accounts (blue checkmark verified)\n[HUMINT - CHATTER]: Unverified local sources, citizen reports, rumors requiring corroboration\n[OSINT - CONFIRMED]: Cross-verified by multiple independent sources\n\nPRIORITY INTELLIGENCE REQUIREMENTS:\n\n1. GEOPOLITICAL AND MILITARY INTELLIGENCE\n\nSIGINT COLLECTION TARGETS (Verified Official):\n@POTUS @VP @StateDept @SecDef @DeptofDefense @NATO @EUCOM @CENTCOM @INDOPACOM @Europarl_EN @EU_Commission @BorisJohnson @EmmanuelMacron @Bundeskanzler @ZelenskyyUa @Ukrainian_Army @DefenceU @KremlinRussia_E @IDF @Israel_MOD @IsraeliPM @IRGC_Bismillah @Taiwan_SEC @MFA_China @XHNews @StateDeptSpox @PentagonPresSec\n\nHUMINT SOURCES (Journalists/Analysts - Assess credibility):\n@christogrozev @RALee85 @Conflicts @WarMonitors @Osinttechnical @JackDetsch @laraseligman @NatashaBertrand @helenenecostier\n\nCollection Focus:\n- Troop movements and military deployments\n- Diplomatic statements and policy shifts\n- Alliance developments and joint operations\n- Sanctions announcements and economic warfare\n- Arms transfers and defense aid packages\n- Strategic messaging and information operations\n\n2. TECHNOLOGY AND CYBERSECURITY INTELLIGENCE\n\nSIGINT TARGETS (Verified Official/Corporate):\n@elonmusk @sama @satyanadella @sundarpichai @tim_cook @OpenAI @Google @Microsoft @Apple @Meta @Tesla @SpaceX @xAI @USCYBERCOM @CISAgov @NSACyber @FBI\n\nHUMINT SOURCES (Security Researchers - Assess reliability):\n@mattblaze @evacide @thegrugq @SwiftOnSecurity @malwareunicorn @troyhunt @briankrebs @nicoleperlroth\n\nCollection Focus:\n- Product launches and technology breakthroughs\n- Cybersecurity incidents and vulnerability disclosures\n- AI model releases and policy announcements\n- Acquisitions and strategic partnerships\n- Regulatory actions and antitrust developments\n- Critical infrastructure threats\n\n3. UAP/UFO INTELLIGENCE\n\nSIGINT TARGETS (Official Government):\n@DeptofDefense @AARO_DOD_Info @SenGillibrand @RepTimBurchett @SenRubioPress @RepJaredMoskowitz\n\nHUMINT SOURCES (Researchers/Journalists):\n@ChrisKMellon @LueElizondo @rosscoulthart @JeremyCorbell @GadiNBC @TheUfoJoe\n\nCHATTER MONITORING: Search X for recent UAP sighting reports, eyewitness accounts, unverified incidents\n\nCollection Focus:\n- Official Pentagon statements and AARO releases\n- Congressional hearing announcements\n- Credible incident reports with documentation\n- Civilian sighting reports (mark as CHATTER)\n\n4. PARAPSYCHOLOGY AND CONSCIOUSNESS RESEARCH\n\nSIGINT TARGETS (Academic Institutions):\n@Stanford @Harvard @Princeton @MIT @Yale @NaturePortfolio @ScienceMagazine @PLOSONE\n\nCollection Focus:\n- Peer-reviewed publications\n- Research program announcements\n- Conference proceedings\n\nINTELLIGENCE METHODOLOGY:\n\n1. SIGINT COLLECTION (Verified Sources):\n- Monitor official accounts for authoritative statements\n- Flag as [SIGINT - VERIFIED]\n- High confidence intelligence\n\n2. HUMINT COLLECTION (Unverified Sources):\n- Monitor credible journalists and analysts\n- Assess source reliability and track record\n- Flag as [HUMINT - SOURCE ASSESSED]\n\n3. CHATTER MONITORING (Open Social Media):\n- Search X for trending topics, local reports, eyewitness accounts\n- Flag as [HUMINT - CHATTER - UNVERIFIED]\n- Note: Requires corroboration\n\n4. INTELLIGENCE FUSION:\n- Cross-reference SIGINT, HUMINT, and CHATTER\n- Upgrade confidence when multiple sources align\n- Highlight contradictions and information gaps\n\nREPORTING FORMAT:\n\nFor each intelligence item, use classification tags:\n\n[SIGINT - VERIFIED] Official statement from @StateDept at 1400Z confirms...\n[HUMINT - ASSESSED CREDIBLE] @journalist with strong track record reports...\n[HUMINT - CHATTER] Unverified reports on X suggest... (REQUIRES CORROBORATION)\n[OSINT - CONFIRMED] Multiple independent sources confirm...\n\nInclude:\n- Source classification and confidence level\n- Specific X accounts and timestamps\n- Direct quotes when relevant\n- Corroboration status\n- Strategic implications\n\nDISCLAIMER SECTION:\nInclude this at the end:\n\nINTELLIGENCE DISCLAIMER:\n- SIGINT (Verified): High confidence, official sources\n- HUMINT (Assessed): Medium-high confidence, credible analysts\n- CHATTER (Unverified): Low confidence, requires corroboration\n- All CHATTER items should be treated as RUMINT (rumor intelligence) until verified\n\nVALIDATION REQUIREMENTS:\n- Ukraine-
+        prompt_text = "SIGINT/HUMINT COLLECTION TASKING\nCollection Period: " + readable_date + "\n\nGenerate intelligence brief with SIGINT/HUMINT fusion methodology. Monitor verified and unverified X sources. Tag all intelligence appropriately. Include Ukraine, Middle East conflicts. Cite specific X accounts."
+
+        print("Generating with Grok...")
+        content, error = generate_with_grok(prompt_text)
+
+        if content:
+            provider = "Grok 4.1 - SIGINT/HUMINT Fusion"
+            badge = "GROK-4.1-MULTI-INT"
+        else:
+            provider = "Generation Failed"
+            badge = "ERROR"
+            content = "Brief generation failed: " + str(error)
+
+        grok_key_escaped = os.environ.get('GROK_API_KEY', '').replace("'", "\\'")
+
+        html = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Trident Brief</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui;
+            background: linear-gradient(135deg, #0a0e27, #1a1f3a);
+            color: #e0e6ed;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border-bottom: 2px solid #3b82f6;
+            padding: 40px;
+        }
+        .badge {
+            background: #dc2626;
+            color: white;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #3b82f6;
+            text-transform: uppercase;
+        }
+        .meta { color: #94a3b8; margin-top: 10px; }
+        .content { padding: 40px; }
+        pre { white-space: pre-wrap; line-height: 1.7; }
+        .local-intel {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 40px;
+        }
+        .local-intel h2 { color: #3b82f6; margin-bottom: 15px; }
+        .access-form { display: flex; gap: 10px; margin-top: 15px; }
+        .access-form input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            color: #e0e6ed;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+        .access-form button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .access-form button:hover { background: #2563eb; }
+        .error-msg { color: #ef4444; margin-top: 10px; }
+        .success-msg { color: #10b981; margin-top: 10px; }
+        #localBriefContent {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 4px;
+            display: none;
+        }
+        .footer {
+            background: #0f172a;
+            border-top: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 25px;
+            text-align: center;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="badge">CLASSIFIED: SIGINT/HUMINT BRIEF</div>
+            <h1>⚔️ THE TRIDENT BRIEF</h1>
+            <div class="meta">Generated: """ + timestamp + """ | Source: """ + badge + """</div>
+        </div>
+        
+        <div class="content">
+            <pre>""" + content + """</pre>
+        </div>
+        
+        <div class="local-intel">
+            <h2>🎯 LOCAL INTELLIGENCE BRIEF</h2>
+            <p style="color: #94a3b8; margin-bottom: 15px;">
+                Generate localized intelligence for your area (200-mile radius).
+            </p>
+            <div class="access-form">
+                <input type="password" id="accessCode" placeholder="4-digit code" maxlength="4">
+                <input type="text" id="zipCode" placeholder="ZIP code" maxlength="5">
+                <button onclick="generateLocal()">Generate</button>
+            </div>
+            <div id="msg"></div>
+            <div id="localBriefContent"></div>
+        </div>
+        
+        <div class="footer">
+            AUTOMATED MULTI-INT SYSTEM | """ + provider + """ | DAILY 06:00 EST
+        </div>
+    </div>
+    
+    <script>
+        async function generateLocal() {
+            const code = document.getElementById('accessCode').value;
+            const zip = document.getElementById('zipCode').value;
+            const msg = document.getElementById('msg');
+            const content = document.getElementById('localBriefContent');
+            
+            msg.innerHTML = '';
+            content.style.display = 'none';
+            
+            if (code !== '0330') {
+                msg.innerHTML = '<p class="error-msg">Invalid code</p>';
+                return;
+            }
+            
+            if (!/^\\d{5}$/.test(zip)) {
+                msg.innerHTML = '<p class="error-msg">Invalid ZIP</p>';
+                return;
+            }
+            
+            msg.innerHTML = '<p class="success-msg">Generating for ZIP ' + zip + '...</p>';
+            
+            try {
+                const response = await fetch('https://api.x.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer """ + grok_key_escaped + """'
+                    },
+                    body: JSON.stringify({
+                        messages: [{
+                            role: 'user',
+                            content: 'Generate local intelligence brief for ZIP ' + zip + ' (200-mile radius). Include: crime, law enforcement, politics, business, threats. Search X for local accounts and news. Tag as SIGINT/HUMINT/CHATTER.'
+                        }],
+                        model: 'grok-4-1-fast-reasoning',
+                        temperature: 0.6,
+                        max_tokens: 3000
+                    })
+                });
+                
+                const data = await response.json();
+                content.innerHTML = '<pre>' + data.choices[0].message.content + '</pre>';
+                content.style.display = 'block';
+                msg.innerHTML = '<p class="success-msg">✅ Brief generated</p>';
+                
+            } catch (error) {
+                msg.innerHTML = '<p class="error-msg">Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>"""
+
+        with open('index.html', 'w', encoding='utf-8') as f:
+            f.write(html)
+
+        print("File written! Timestamp:", timestamp)
+        ENDOFFILE
+        
+        python3 generate.py
+        
+    - name: Check after generation
+      run: |
+        echo "=== AFTER generation ==="
+        ls -la index.html
+        echo "=== New timestamp ==="
+        grep "Generated:" index.html || echo "No timestamp"
+        
+    - name: Force commit and push
+      run: |
+        git config user.name "Trident SIGINT"
+        git config user.email "sigint@trident.ai"
+        git add -A
+        git status
+        git commit -m "🎯 SIGINT Brief - $(date -u +'%Y-%m-%d %H:%M')" || echo "No changes"
+        git push origin main
