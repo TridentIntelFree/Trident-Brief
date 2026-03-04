@@ -7,153 +7,48 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   generate-brief:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
       
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
         
-    - name: Install dependencies
-      run: pip install requests python-dateutil
+    - run: pip install requests
         
-    - name: Create Python script
-      run: |
-        python3 -c "
-        import os
-        
-        script = '''import requests
-import os
-from datetime import datetime
-
-GROK_API_KEY = os.environ.get(\"GROK_API_KEY\")
-GROQ_API_KEY = os.environ.get(\"GROQ_API_KEY\")
-
-timestamp = datetime.now().strftime(\"%Y-%m-%d %H:%M UTC\")
-
-prompt = \"SIGINT/HUMINT COLLECTION - \" + timestamp + \"\\\\n\\\\nMonitor X/Twitter for past 24h. Tag all intel as SIGINT (verified), HUMINT (credible sources), or CHATTER (unverified). Cover: Ukraine war, Middle East conflicts, tech/cyber, UAP, consciousness research. Cite specific X accounts.\"
-
-try:
-    response = requests.post(
-        \"https://api.x.ai/v1/chat/completions\",
-        headers={\"Content-Type\": \"application/json\", \"Authorization\": \"Bearer \" + GROK_API_KEY},
-        json={\"messages\": [{\"role\": \"user\", \"content\": prompt}], \"model\": \"grok-4-1-fast-reasoning\", \"max_tokens\": 4000},
-        timeout=90
-    )
-    content = response.json()[\"choices\"][0][\"message\"][\"content\"]
-    provider = \"Grok 4.1 SIGINT/HUMINT\"
-except:
-    response = requests.post(
-        \"https://api.groq.com/openai/v1/chat/completions\",
-        headers={\"Authorization\": \"Bearer \" + GROQ_API_KEY, \"Content-Type\": \"application/json\"},
-        json={\"model\": \"llama-3.3-70b-versatile\", \"messages\": [{\"role\": \"user\", \"content\": prompt}], \"max_tokens\": 4000},
-        timeout=60
-    )
-    content = response.json()[\"choices\"][0][\"message\"][\"content\"]
-    provider = \"Groq Fallback\"
-
-html = f\"\"\"<!DOCTYPE html>
-<html>
-<head>
-<meta charset=UTF-8>
-<title>Trident Brief</title>
-<style>
-*{{margin:0;padding:0;box-sizing:border-box}}
-body{{font-family:system-ui;background:linear-gradient(135deg,#0a0e27,#1a1f3a);color:#e0e6ed;padding:20px;line-height:1.6}}
-.container{{max-width:1200px;margin:0 auto;background:rgba(15,23,42,0.9);border:1px solid rgba(59,130,246,0.3);border-radius:12px}}
-.header{{background:linear-gradient(135deg,#1e293b,#0f172a);border-bottom:2px solid #3b82f6;padding:40px}}
-.badge{{background:#dc2626;color:white;padding:4px 12px;font-size:11px;font-weight:700;border-radius:3px;display:inline-block;margin-bottom:15px}}
-h1{{font-size:2.5em;color:#3b82f6;text-transform:uppercase;margin-bottom:10px}}
-.meta{{color:#94a3b8;margin-top:10px}}
-.content{{padding:40px}}
-pre{{white-space:pre-wrap;line-height:1.7}}
-.local{{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:30px;margin:20px 40px}}
-.local h2{{color:#3b82f6;margin-bottom:15px}}
-.form{{display:flex;gap:10px;margin-top:15px}}
-.form input{{background:rgba(15,23,42,0.8);border:1px solid rgba(59,130,246,0.5);color:#e0e6ed;padding:10px 15px;border-radius:4px}}
-.form button{{background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;font-weight:600}}
-.form button:hover{{background:#2563eb}}
-.error{{color:#ef4444;margin-top:10px}}
-.success{{color:#10b981;margin-top:10px}}
-#result{{margin-top:20px;padding:20px;background:rgba(15,23,42,0.6);border-radius:4px;display:none}}
-.footer{{background:#0f172a;border-top:1px solid rgba(59,130,246,0.3);padding:25px;text-align:center;color:#64748b}}
-</style>
-</head>
-<body>
-<div class=container>
-<div class=header>
-<div class=badge>SIGINT/HUMINT BRIEF</div>
-<h1>⚔️ THE TRIDENT BRIEF</h1>
-<div class=meta>Generated: {timestamp} | {provider}</div>
-</div>
-<div class=content><pre>{content}</pre></div>
-<div class=local>
-<h2>🎯 LOCAL INTEL (CODE REQUIRED)</h2>
-<p style=color:#94a3b8;margin-bottom:15px>Generate local intelligence for your area (200-mile radius)</p>
-<div class=form>
-<input type=password id=code placeholder="4-digit code" maxlength=4>
-<input type=text id=zip placeholder="ZIP code" maxlength=5>
-<button onclick=gen()>Generate</button>
-</div>
-<div id=msg></div>
-<div id=result></div>
-</div>
-<div class=footer>MULTI-INT SYSTEM | {provider} | DAILY 06:00 EST</div>
-</div>
-<script>
-async function gen(){{
-const c=document.getElementById('code').value;
-const z=document.getElementById('zip').value;
-const m=document.getElementById('msg');
-const r=document.getElementById('result');
-m.innerHTML='';r.style.display='none';
-if(c!=='0330'){{m.innerHTML='<p class=error>Invalid code</p>';return}}
-if(!/^\\\\d{{5}}$/.test(z)){{m.innerHTML='<p class=error>Invalid ZIP</p>';return}}
-m.innerHTML='<p class=success>Generating...</p>';
-try{{
-const res=await fetch('https://api.x.ai/v1/chat/completions',{{
-method:'POST',
-headers:{{'Content-Type':'application/json','Authorization':'Bearer {GROK_API_KEY}'}},
-body:JSON.stringify({{messages:[{{role:'user',content:'Local intel brief for ZIP '+z+' (200mi radius). Include: crime, law enforcement, politics, business, threats. Tag as SIGINT/HUMINT/CHATTER.'}}],model:'grok-4-1-fast-reasoning',max_tokens:3000}})
-}});
-const d=await res.json();
-r.innerHTML='<pre>'+d.choices[0].message.content+'</pre>';
-r.style.display='block';
-m.innerHTML='<p class=success>✅ Generated</p>';
-}}catch(e){{m.innerHTML='<p class=error>Error: '+e.message+'</p>'}}
-}}
-</script>
-</body>
-</html>\"\"\"
-
-with open('index.html', 'w') as f:
-    f.write(html)
-'''
-        
-        with open('gen.py', 'w') as f:
-            f.write(script)
-        "
-        
-    - name: Run script
+    - name: Generate brief
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-      run: python3 gen.py
+      run: python3 generate_brief_final.py
         
-    - name: Disable Jekyll
-      run: touch .nojekyll
+    - run: touch .nojekyll
         
-    - name: Commit and push
-      run: |
-        git config user.name "Trident"
-        git config user.email "intel@trident.ai"
-        git add index.html .nojekyll
-        git commit -m "Brief $(date -u +'%Y-%m-%d')" || echo "No changes"
-        git push
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: .
+        
+  deploy:
+    needs: generate-brief
+    runs-on: ubuntu-latest
+    
+    permissions:
+      pages: write
+      id-token: write
+      
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
