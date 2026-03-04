@@ -1,9 +1,9 @@
 name: Generate Intelligence Brief
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 11 * * *'
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,35 +11,36 @@ permissions:
   id-token: write
 
 jobs:
-  generate-and-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v3
       
-    - uses: actions/setup-python@v4
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.10'
         
-    - run: pip install requests
+    - name: Install deps
+      run: pip install requests
         
-    - name: Generate brief
+    - name: Generate
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: python3 generate_brief_final.py
         
-    - run: touch .nojekyll
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
         
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: '.'
+        path: .
         
-    - name: Deploy to GitHub Pages
-      id: deployment
+    - name: Deploy
       uses: actions/deploy-pages@v4
