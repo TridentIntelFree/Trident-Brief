@@ -38,25 +38,18 @@ try:
     
     if response.status_code == 200:
         data = response.json()
-        # Responses API: extract text from output array
         text_parts = []
         for item in data.get('output', []):
-            # Direct text content in message items
             if item.get('type') == 'message':
                 for block in item.get('content', []):
-                    if block.get('type') == 'output_text':
+                    if block.get('type') in ('output_text', 'text'):
                         text_parts.append(block.get('text', ''))
-                    elif block.get('type') == 'text':
-                        text_parts.append(block.get('text', ''))
-        
-        # Fallback: check output_text shorthand
         if not text_parts and data.get('output_text'):
             text_parts.append(data['output_text'])
-        
         if text_parts:
             return '\n'.join(text_parts), None
         else:
-            return None, f"Grok returned no text content. Keys: {list(data.keys())}"
+            return None, f"Grok returned no text. Keys: {list(data.keys())}"
     else:
         return None, f"Grok error: {response.status_code} - {response.text[:200]}"
 except Exception as e:
@@ -376,7 +369,7 @@ html = f'''<!DOCTYPE html>
     <div class="container">
         <div class="header">
             <div class="badge">CLASSIFIED: SIGINT/HUMINT COLLECTION BRIEF</div>
-            <h1>⚔️ THE TRIDENT BRIEF</h1>
+            <h1>&#9876;&#65039; THE TRIDENT BRIEF &#9876;&#65039;</h1>
             <div class="meta">Collection Period: {timestamp} | Source: {badge}</div>
             <div class="sigint">MULTI-INT FUSION | SIGINT + HUMINT + OSINT-WEB + CHATTER MONITORING</div>
         </div>
@@ -387,7 +380,7 @@ html = f'''<!DOCTYPE html>
     </div>
     
     <div class="local-intel">
-        <h2>🎯 LOCAL INTELLIGENCE BRIEF (RESTRICTED ACCESS)</h2>
+        <h2>&#127919; LOCAL INTELLIGENCE BRIEF (RESTRICTED ACCESS)</h2>
         <p style="color: #94a3b8; font-size: 0.9em; margin-bottom: 15px;">
             Generate a localized intelligence brief for your area (200-mile radius). 
             Includes: local law enforcement activity, crime trends, political developments, 
@@ -419,62 +412,45 @@ html = f'''<!DOCTYPE html>
         contentDiv.style.display = 'none';
         
         if (code !== '0330') {{
-            msgDiv.innerHTML = '<p class="error-msg">❌ Invalid access code</p>';
+            msgDiv.innerHTML = '<p class="error-msg">Invalid access code</p>';
             return;
         }}
         
         if (!/^\\d{{5}}$/.test(zip)) {{
-            msgDiv.innerHTML = '<p class="error-msg">❌ Invalid ZIP code format</p>';
+            msgDiv.innerHTML = '<p class="error-msg">Invalid ZIP code format</p>';
             return;
         }}
         
-        msgDiv.innerHTML = '<p class="success-msg">⏳ Generating multi-source local brief for ZIP ' + zip + '... (60-90 seconds)</p>';
+        msgDiv.innerHTML = '<p class="success-msg">Generating multi-source local brief for ZIP ' + zip + '... (60-90 seconds)</p>';
         
         try {{
-            const prompt = `LOCALIZED INTELLIGENCE BRIEF - ZIP CODE ${{zip}}
-```
-
-Collection Period: Past 24 hours
-Search Radius: 200 miles from ZIP ${{zip}}
-
-MISSION: Generate tactical intelligence brief for local area using BOTH X/Twitter search AND web search. Pull from local news sites, police department websites, government portals, AND social media.
-
-PRIORITY LOCAL INTELLIGENCE REQUIREMENTS:
-
-1. LAW ENFORCEMENT & PUBLIC SAFETY
-
-- Search X for local police, sheriff, fire/EMS accounts and incidents
-- Search web for local news crime reports, police blotters, court records
-
-1. CRIME & SECURITY THREATS
-
-- Monitor X for crime reports, trends, gang activity, security concerns
-- Search web for local newspaper crime sections, FBI field office alerts
-
-1. LOCAL POLITICS & GOVERNMENT
-
-- Track X for city council, county decisions, local elections, policy changes
-- Search web for local government meeting minutes, press releases
-
-1. BUSINESS & ECONOMIC INTELLIGENCE
-
-- Monitor X for business openings/closings, corporate announcements
-- Search web for local business journals, economic development news
-
-1. REGIONAL THREATS & HAZARDS
-
-- Search X for weather, disasters, infrastructure failures, health concerns
-- Search web for NWS alerts, FEMA updates, state emergency management
-
-INTELLIGENCE CLASSIFICATION:
-[SIGINT - VERIFIED]: Official law enforcement, government accounts
-[HUMINT - LOCAL CHATTER]: Community reports, citizen observations
-[OSINT - NEWS]: Local news outlet reporting
-[OSINT - WEB]: Government websites, official databases, verified web sources
-
-Search X AND the web NOW for location-specific intelligence within 200 miles of ZIP ${{zip}}.`;
-
-```
+            const prompt = 'LOCALIZED INTELLIGENCE BRIEF - ZIP CODE ' + zip + '\\n' +
+                'Collection Period: Past 24 hours\\n' +
+                'Search Radius: 200 miles from ZIP ' + zip + '\\n\\n' +
+                'MISSION: Generate tactical intelligence brief for local area using BOTH X/Twitter search AND web search. Pull from local news sites, police department websites, government portals, AND social media.\\n\\n' +
+                'PRIORITY LOCAL INTELLIGENCE REQUIREMENTS:\\n\\n' +
+                '1. LAW ENFORCEMENT & PUBLIC SAFETY\\n' +
+                '- Search X for local police, sheriff, fire/EMS accounts and incidents\\n' +
+                '- Search web for local news crime reports, police blotters, court records\\n\\n' +
+                '2. CRIME & SECURITY THREATS\\n' +
+                '- Monitor X for crime reports, trends, gang activity, security concerns\\n' +
+                '- Search web for local newspaper crime sections, FBI field office alerts\\n\\n' +
+                '3. LOCAL POLITICS & GOVERNMENT\\n' +
+                '- Track X for city council, county decisions, local elections, policy changes\\n' +
+                '- Search web for local government meeting minutes, press releases\\n\\n' +
+                '4. BUSINESS & ECONOMIC INTELLIGENCE\\n' +
+                '- Monitor X for business openings/closings, corporate announcements\\n' +
+                '- Search web for local business journals, economic development news\\n\\n' +
+                '5. REGIONAL THREATS & HAZARDS\\n' +
+                '- Search X for weather, disasters, infrastructure failures, health concerns\\n' +
+                '- Search web for NWS alerts, FEMA updates, state emergency management\\n\\n' +
+                'INTELLIGENCE CLASSIFICATION:\\n' +
+                '[SIGINT - VERIFIED]: Official law enforcement, government accounts\\n' +
+                '[HUMINT - LOCAL CHATTER]: Community reports, citizen observations\\n' +
+                '[OSINT - NEWS]: Local news outlet reporting\\n' +
+                '[OSINT - WEB]: Government websites, official databases, verified web sources\\n\\n' +
+                'Search X AND the web NOW for location-specific intelligence within 200 miles of ZIP ' + zip + '.';
+            
             const response = await fetch('https://api.x.ai/v1/responses', {{
                 method: 'POST',
                 headers: {{
@@ -508,7 +484,6 @@ Search X AND the web NOW for location-specific intelligence within 200 miles of 
             
             const data = await response.json();
             
-            // Responses API: extract text from output array
             let briefContent = '';
             if (data.output_text) {{
                 briefContent = data.output_text;
@@ -524,7 +499,6 @@ Search X AND the web NOW for location-specific intelligence within 200 miles of 
                 }}
             }}
             
-            // Fallback: try old chat completions format just in case
             if (!briefContent && data.choices) {{
                 briefContent = data.choices[0].message.content;
             }}
@@ -535,10 +509,10 @@ Search X AND the web NOW for location-specific intelligence within 200 miles of 
             
             contentDiv.innerHTML = '<pre>' + briefContent + '</pre>';
             contentDiv.style.display = 'block';
-            msgDiv.innerHTML = '<p class="success-msg">✅ Multi-source local brief generated successfully</p>';
+            msgDiv.innerHTML = '<p class="success-msg">Multi-source local brief generated successfully</p>';
             
         }} catch (error) {{
-            msgDiv.innerHTML = '<p class="error-msg">❌ Error generating brief: ' + error.message + '</p>';
+            msgDiv.innerHTML = '<p class="error-msg">Error generating brief: ' + error.message + '</p>';
         }}
     }}
 </script>
@@ -551,7 +525,7 @@ Search X AND the web NOW for location-specific intelligence within 200 miles of 
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(html)
 
-print(f"✓ Brief generated successfully at {timestamp}")
+print(f"Brief generated successfully at {timestamp}")
 ```
 
 if **name** == ‘**main**’:
