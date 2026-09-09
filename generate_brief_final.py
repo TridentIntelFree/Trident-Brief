@@ -480,6 +480,98 @@ def fetch_aircraft():
     return len(out), None
 
 
+# AIS ship-and-cargo type codes worth calling out by name.
+SHIP_TYPES = {
+    30: 'Fishing', 31: 'Towing', 32: 'Towing (large)', 33: 'Dredging', 34: 'Diving ops',
+    35: 'MILITARY OPS', 36: 'Sailing', 37: 'Pleasure craft',
+    50: 'Pilot vessel', 51: 'Search and rescue', 52: 'Tug', 53: 'Port tender',
+    54: 'Anti-pollution', 55: 'LAW ENFORCEMENT', 58: 'Medical transport',
+}
+
+
+def _ship_kind(code):
+    try:
+        c = int(code)
+    except (TypeError, ValueError):
+        return ''
+    if c in SHIP_TYPES:
+        return SHIP_TYPES[c]
+    if 60 <= c <= 69: return 'Passenger'
+    if 70 <= c <= 79: return 'Cargo'
+    if 80 <= c <= 89: return 'Tanker'
+    if 40 <= c <= 49: return 'High-speed craft'
+    return ''
+
+
+def fetch_vessels():
+    """Live AIS vessel positions.
+
+    Free keyless AIS is scarce: the global providers (MarineTraffic,
+    VesselFinder, AISStream) all want an account. Digitraffic publishes Finnish
+    and Baltic AIS as open data with no key, which is real live shipping but
+    regionally bounded -- the tile says so rather than implying global coverage.
+    """
+    hdr_note = 'Digitraffic-User'
+    try:
+        r = requests.get('https://meri.digitraffic.fi/api/ais/v1/locations', timeout=30,
+                         headers={'Accept': 'application/json',
+                                  hdr_note: 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'})
+        if r.status_code != 200:
+            return None, f'HTTP {r.status_code}: {r.text[:100]}'
+        loc = r.json()
+    except Exception as e:
+        return None, str(e)[:160]
+
+    # Names and ship types live on a separate endpoint; positions still stand
+    # without them, so a failure here is not fatal.
+    meta = {}
+    try:
+        r2 = requests.get('https://meri.digitraffic.fi/api/ais/v1/vessels', timeout=30,
+                          headers={'Accept': 'application/json',
+                                   hdr_note: 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'})
+        if r2.status_code == 200:
+            rows = r2.json()
+            rows = rows.get('vessels', rows) if isinstance(rows, dict) else rows
+            for v in rows or []:
+                m = v.get('mmsi')
+                if m is not None:
+                    meta[int(m)] = ((v.get('name') or '').strip()[:28], v.get('shipType'))
+    except Exception as e:
+        print(f"    vessel metadata unavailable: {str(e)[:80]}")
+
+    feats = loc.get('features') if isinstance(loc, dict) else None
+    if not feats:
+        return None, 'no features in AIS response'
+
+    out = []
+    for f in feats:
+        g, p = f.get('geometry') or {}, f.get('properties') or {}
+        c = g.get('coordinates') or []
+        if len(c) < 2:
+            continue
+        mmsi = f.get('mmsi') or p.get('mmsi')
+        name, stype = meta.get(int(mmsi), ('', None)) if mmsi is not None else ('', None)
+        rec = {'mmsi': mmsi, 'lat': round(c[1], 4), 'lon': round(c[0], 4)}
+        if name:
+            rec['name'] = name
+        kind = _ship_kind(stype)
+        if kind:
+            rec['kind'] = kind
+            if kind in ('MILITARY OPS', 'LAW ENFORCEMENT', 'Search and rescue'):
+                rec['_mil'] = True
+        if p.get('sog') is not None:
+            try: rec['sog'] = round(float(p['sog']), 1)
+            except (TypeError, ValueError): pass
+        if p.get('heading') is not None:
+            rec['hdg'] = p['heading']
+        out.append(rec)
+
+    out = out[:4000]
+    mil = sum(1 for v in out if v.get('_mil'))
+    print(f"  vessels: {len(out)} ({mil} military/enforcement) - Baltic/Finnish AIS")
+    return out, None
+
+
 def fetch_skywatch():
     """Satellite catalogue from the user's own Skywatch project.
 
@@ -577,6 +669,13 @@ def fetch_server_feeds():
         feeds['alerts'] = [_alert(f) for f in d.get('features', [])
                            if ((f.get('properties') or {}).get('severity') in ('Severe', 'Extreme'))]
         print(f"  alerts: {len(feeds['alerts'])}")
+
+    ves, err = fetch_vessels()
+    if ves is None:
+        errors['vessels'] = err
+        print(f"  vessels failed: {err}")
+    else:
+        feeds['vessels'] = ves
 
     ac, err = fetch_aircraft()
     if ac is None:
