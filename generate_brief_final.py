@@ -288,6 +288,137 @@ def _try(urls, timeout=20):
     return None, last
 
 
+def _centroid(geom):
+    """Mean position of a GeoJSON Polygon/MultiPolygon exterior ring."""
+    if not geom:
+        return None
+    t, c = geom.get('type'), geom.get('coordinates')
+    try:
+        if t == 'Point':
+            return float(c[1]), float(c[0])
+        ring = c[0] if t == 'Polygon' else c[0][0] if t == 'MultiPolygon' else None
+        if not ring:
+            return None
+        pts = [(float(y), float(x)) for x, y in ring if -90 <= float(y) <= 90]
+        if not pts:
+            return None
+        return sum(p[0] for p in pts)/len(pts), sum(p[1] for p in pts)/len(pts)
+    except Exception:
+        return None
+
+
+def _alert(f):
+    p = f.get('properties') or {}
+    a = {'event': (p.get('event') or '')[:80], 'area': (p.get('areaDesc') or '')[:120],
+         'severity': p.get('severity') or '', 'expires': p.get('expires')}
+    ll = _centroid(f.get('geometry'))
+    if ll:
+        a['lat'], a['lon'] = round(ll[0], 3), round(ll[1], 3)
+    return a
+
+
+def _launch(l):
+    pad = l.get('pad') or {}
+    out = {'name': (l.get('name') or '')[:120], 'net': l.get('net'),
+           'status': ((l.get('status') or {}).get('abbrev') or ''),
+           'pad': ((pad.get('location') or {}).get('name') or pad.get('name') or '')[:120]}
+    try:
+        lat, lon = float(pad.get('latitude')), float(pad.get('longitude'))
+        if -90 <= lat <= 90 and -180 <= lon <= 180:
+            out['lat'], out['lon'] = lat, lon
+    except (TypeError, ValueError):
+        pass
+    return out
+
+
+def fetch_disasters():
+    """GDACS global disaster alerts -- floods, cyclones, volcanoes, wildfires.
+
+    No key, worldwide, and already geolocated. Best effort: if the shape is not
+    what we expect the layer is simply absent.
+    """
+    d, err = _try([
+        'https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?alertlevel=Green;Orange;Red',
+        'https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP',
+    ], timeout=25)
+    if d is None:
+        return None, err
+    out = []
+    for f in (d.get('features') or []):
+        p = f.get('properties') or {}
+        ll = _centroid(f.get('geometry'))
+        if not ll:
+            continue
+        out.append({
+            'lat': round(ll[0], 3), 'lon': round(ll[1], 3),
+            'kind': (p.get('eventtype') or '')[:8],
+            'name': (p.get('eventname') or p.get('htmldescription') or p.get('name') or '')[:120],
+            'level': (p.get('alertlevel') or '')[:10],
+            'from': p.get('fromdate'),
+            'url': (p.get('url') or {}).get('report', '') if isinstance(p.get('url'), dict) else '',
+        })
+    return out[:200], None
+
+
+SKYWATCH_CATALOG = os.environ.get(
+    'SKYWATCH_CATALOG',
+    'https://raw.githubusercontent.com/TridentIntelFree/skywatch-unified/main/catalog.json')
+
+# Notable objects always kept regardless of the sampling stride.
+NOTABLE_SATS = {25544, 20580, 48274, 25994, 27424, 36411, 43013, 41866, 33591, 28654, 29155, 37849}
+SAT_TARGET = 1600
+
+
+def _tle_elements(entry):
+    """[name, norad, category, tle1, tle2] -> compact mean elements, or None.
+
+    Stored as numbers rather than raw TLE strings: the page only needs the mean
+    elements to propagate, and this is roughly a third of the bytes.
+    """
+    try:
+        name, nid, _cat, l1, l2 = entry[0], entry[1], entry[2], entry[3], entry[4]
+        yy, dd = int(l1[18:20]), float(l1[20:32])
+        epoch = datetime(yy + (2000 if yy < 57 else 1900), 1, 1, tzinfo=timezone.utc) \
+            + timedelta(days=dd - 1)
+        inc, raan = float(l2[8:16]), float(l2[17:25])
+        ecc = float('0.' + l2[26:33].strip())
+        argp, ma, mm = float(l2[34:42]), float(l2[43:51]), float(l2[52:63])
+        if not (0 < mm < 20) or not (0 <= ecc < 1) or not (0 <= inc <= 180):
+            return None
+        return [str(name).strip()[:28], int(nid), round(epoch.timestamp()),
+                round(inc, 4), round(raan, 4), round(ecc, 7),
+                round(argp, 4), round(ma, 4), round(mm, 8)]
+    except Exception:
+        return None
+
+
+def fetch_skywatch():
+    """Satellite catalogue from the user's own Skywatch project.
+
+    Payloads only, evenly strided down to a size the page can propagate every
+    frame. Even striding over the NORAD-ordered catalogue keeps a spread of
+    orbital regimes rather than clustering on one constellation.
+    """
+    try:
+        r = requests.get(SKYWATCH_CATALOG, timeout=60)
+        if r.status_code != 200:
+            return None, f'HTTP {r.status_code}'
+        cat = r.json()
+    except Exception as e:
+        return None, str(e)[:160]
+
+    raw = cat.get('sats') or []
+    pay = [x for x in (_tle_elements(e) for e in raw if len(e) >= 5 and e[2] == 'P') if x]
+    if not pay:
+        return None, 'no payloads parsed'
+    step = max(1, len(pay) // SAT_TARGET)
+    sub = pay[::step]
+    have = {p[1] for p in sub}
+    sub += [p for p in pay if p[1] in NOTABLE_SATS and p[1] not in have]
+    print(f"  skywatch: {len(sub)} of {len(pay)} payloads (catalogue generated {cat.get('generated')})")
+    return sub, None
+
+
 def fetch_server_feeds():
     """Fetch the rate-limited / CORS-awkward feeds here instead of in the browser.
 
@@ -298,7 +429,10 @@ def fetch_server_feeds():
 
     errors = {}
 
-    d, err = _try(['https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson'])
+    # all_day carries every recorded event (~250-400/day) rather than the ~30
+    # that clear M2.5. Magnitude drives point size on the globe.
+    d, err = _try(['https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson',
+                   'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson'])
     if d is None:
         errors['quakes'] = err
     else:
@@ -311,23 +445,19 @@ def fetch_server_feeds():
                                'mag': p['mag'], 'place': p.get('place', ''),
                                'time': p.get('time'), 'url': p.get('url', '')})
         quakes.sort(key=lambda q: q['mag'], reverse=True)
-        feeds['quakes'] = quakes[:60]
+        feeds['quakes'] = quakes[:400]
         print(f"  quakes: {len(feeds['quakes'])}")
 
     d, err = _try([
-        'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=6&mode=list',
-        'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=6&mode=list',
-        'https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=6&mode=list',
+        'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=10',
+        'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=10',
+        'https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=10',
+        'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=10&mode=list',
     ], timeout=25)
     if d is None:
         errors['launches'] = err
     else:
-        feeds['launches'] = [{
-            'name': (l.get('name') or '')[:120],
-            'net': l.get('net'),
-            'status': ((l.get('status') or {}).get('abbrev') or ''),
-            'pad': (((l.get('pad') or {}).get('location') or {}).get('name') or '')[:120],
-        } for l in d.get('results', [])]
+        feeds['launches'] = [_launch(l) for l in d.get('results', [])]
         print(f"  launches: {len(feeds['launches'])}")
 
     d, err = _try([
@@ -338,14 +468,23 @@ def fetch_server_feeds():
     if d is None:
         errors['alerts'] = err
     else:
-        feeds['alerts'] = [{
-            'event': ((f.get('properties') or {}).get('event') or '')[:80],
-            'area': ((f.get('properties') or {}).get('areaDesc') or '')[:120],
-            'severity': ((f.get('properties') or {}).get('severity') or ''),
-            'expires': (f.get('properties') or {}).get('expires'),
-        } for f in d.get('features', [])
-          if ((f.get('properties') or {}).get('severity') in ('Severe', 'Extreme'))]
+        feeds['alerts'] = [_alert(f) for f in d.get('features', [])
+                           if ((f.get('properties') or {}).get('severity') in ('Severe', 'Extreme'))]
         print(f"  alerts: {len(feeds['alerts'])}")
+
+    sats, err = fetch_skywatch()
+    if sats is None:
+        errors['sats'] = err
+        print(f"  skywatch failed: {err}")
+    else:
+        feeds['sats'] = sats
+
+    dis, err = fetch_disasters()
+    if dis is None:
+        errors['disasters'] = err
+    else:
+        feeds['disasters'] = dis
+        print(f"  disasters: {len(dis)}")
 
     # Recorded so the page can name the real reason, and retry that feed from the
     # visitor's own browser -- a residential IP is often not rate-limited or
