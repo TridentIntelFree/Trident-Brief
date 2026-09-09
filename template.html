@@ -70,6 +70,38 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .mag{color:var(--amber);font-weight:700}
 .sev{color:var(--red);font-weight:700}
 
+
+/* ---------- globe ---------- */
+.ge-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-bottom:16px;align-items:start}
+.globe-col{min-width:0}
+#globe{width:100%;max-width:520px;aspect-ratio:1;display:block;margin:0 auto;cursor:grab;touch-action:none}
+#globe.drag{cursor:grabbing}
+.globe-ctl{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.lyr{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink-faint);
+  padding:5px 10px;border-radius:6px;font-size:.68em;font-family:var(--mono);cursor:pointer;letter-spacing:.05em;transition:.15s}
+.lyr i{width:7px;height:7px;border-radius:50%;display:inline-block;opacity:.35}
+.lyr.on{color:var(--ink);border-color:var(--line)}
+.lyr.on i{opacity:1;box-shadow:0 0 6px currentColor}
+.lyr b{color:var(--cyan);font-weight:700}
+.lyr:hover{border-color:var(--blue)}
+.globe-hint{text-align:center;color:var(--ink-faint);font-size:.68em;font-family:var(--mono);margin-top:8px;letter-spacing:.05em}
+.detail-col{min-width:0}
+#detailPanel{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));border:1px solid var(--line2);
+  border-radius:10px;padding:18px;min-height:220px}
+.detail-empty{color:var(--ink-faint);font-size:.82em;font-family:var(--mono);text-align:center;padding:48px 10px;line-height:1.9}
+.detail-empty span{font-size:.9em;opacity:.7}
+.d-kind{font-size:.64em;letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.d-title{font-size:1.05em;color:#fff;font-weight:700;line-height:1.4;margin-bottom:10px}
+.d-place{color:var(--cyan);font-family:var(--mono);font-size:.8em;margin-bottom:12px}
+.d-rows{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.d-row{display:flex;gap:10px;font-size:.78em;border-bottom:1px solid var(--line2);padding-bottom:6px}
+.d-row span:first-child{color:var(--ink-faint);font-family:var(--mono);min-width:92px;letter-spacing:.05em;font-size:.9em}
+.d-row span:last-child{color:var(--ink);flex:1;word-break:break-word}
+.d-link{display:inline-block;background:rgba(59,130,246,.16);border:1px solid var(--line);color:var(--cyan);
+  padding:7px 14px;border-radius:6px;font-size:.76em;font-family:var(--mono);text-decoration:none;letter-spacing:.05em}
+.d-link:hover{background:rgba(59,130,246,.3);color:#fff}
+@media (max-width:860px){ .ge-wrap{grid-template-columns:1fr} }
+
 /* ---------- toolbar ---------- */
 .toolbar{position:sticky;top:0;z-index:30;background:rgba(8,13,30,.94);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);padding:11px clamp(16px,3.5vw,40px);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -199,45 +231,62 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
     <div class="band-head">
       <h2>&#128301; God's Eye &mdash; Live Signal Layer</h2>
       <div class="sub">
-        Real-time public feeds &middot; auto-refresh 90s &middot; target:
-        <b id="geTarget" style="color:#22d3ee">GLOBAL / WASHINGTON DC</b> &middot;
+        target: <b id="geTarget" style="color:#22d3ee">GLOBAL</b> &middot;
         method adapted from <a href="https://github.com/bilawalsidhu/gods-eye-view" target="_blank" rel="noopener">bilawalsidhu/gods-eye-view</a> (MIT)
       </div>
     </div>
+
+    <div class="ge-wrap">
+      <div class="globe-col">
+        <canvas id="globe"></canvas>
+        <div class="globe-ctl">
+          <button class="lyr on" data-layer="events"><i style="background:#ef4444"></i>BRIEF <b id="nEvents">0</b></button>
+          <button class="lyr on" data-layer="quake"><i style="background:#fbbf24"></i>SEISMIC <b id="nQuake">0</b></button>
+          <button class="lyr on" data-layer="air"><i style="background:#22d3ee"></i>AIR <b id="nAir">0</b></button>
+          <button class="lyr on" data-layer="iss"><i style="background:#a78bfa"></i>ISS</button>
+          <button class="lyr on" id="spinBtn">&#8635; SPIN</button>
+        </div>
+        <div class="globe-hint">Drag to rotate &middot; click any contact to expand it</div>
+      </div>
+      <div class="detail-col">
+        <div id="detailPanel"><div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div></div>
+      </div>
+    </div>
+
     <div class="ge-grid">
       <div class="tile" id="tileQuake">
         <div class="t-label"><span class="dot" id="dQuake"></span>Seismic &mdash; USGS</div>
         <div class="t-val" id="qCount">&middot;&middot;&middot;</div>
-        <div class="t-sub" id="qSub">Loading M2.5+ / 24h&hellip;</div>
+        <div class="t-sub" id="qSub">Loading&hellip;</div>
         <div class="t-list" id="qList"></div>
-        <div class="t-src"><a href="https://earthquake.usgs.gov/earthquakes/feed/" target="_blank" rel="noopener">earthquake.usgs.gov</a></div>
+        <div class="t-src">collected server-side &middot; earthquake.usgs.gov</div>
       </div>
       <div class="tile" id="tileAir">
         <div class="t-label"><span class="dot" id="dAir"></span>Air Picture &mdash; ADS-B</div>
         <div class="t-val" id="aCount">&middot;&middot;&middot;</div>
         <div class="t-sub" id="aSub">Loading contacts&hellip;</div>
         <div class="t-list" id="aList"></div>
-        <div class="t-src"><a href="https://api.adsb.lol" target="_blank" rel="noopener">adsb.lol</a> &middot; unfiltered public ADS-B</div>
+        <div class="t-src">live &middot; <a href="https://api.adsb.lol" target="_blank" rel="noopener">adsb.lol</a></div>
       </div>
       <div class="tile" id="tileAlert">
         <div class="t-label"><span class="dot" id="dAlert"></span>Hazard &mdash; NWS</div>
         <div class="t-val" id="wCount">&middot;&middot;&middot;</div>
-        <div class="t-sub" id="wSub">Loading severe/extreme&hellip;</div>
+        <div class="t-sub" id="wSub">Loading&hellip;</div>
         <div class="t-list" id="wList"></div>
-        <div class="t-src"><a href="https://www.weather.gov/documentation/services-web-api" target="_blank" rel="noopener">api.weather.gov</a></div>
+        <div class="t-src">collected server-side &middot; api.weather.gov</div>
       </div>
       <div class="tile" id="tileIss">
         <div class="t-label"><span class="dot" id="dIss"></span>Orbital &mdash; ISS (25544)</div>
         <div class="t-val sm" id="iPos">&middot;&middot;&middot;</div>
         <div class="t-sub" id="iSub">Acquiring track&hellip;</div>
-        <div class="t-src"><a href="https://wheretheiss.at/w/developer" target="_blank" rel="noopener">wheretheiss.at</a></div>
+        <div class="t-src">live &middot; <a href="https://wheretheiss.at/w/developer" target="_blank" rel="noopener">wheretheiss.at</a></div>
       </div>
       <div class="tile" id="tileLaunch">
         <div class="t-label"><span class="dot" id="dLaunch"></span>Space Launch &mdash; T-minus</div>
         <div class="t-val sm" id="lNext">&middot;&middot;&middot;</div>
         <div class="t-sub" id="lSub">Loading manifest&hellip;</div>
         <div class="t-list" id="lList"></div>
-        <div class="t-src"><a href="https://thespacedevs.com" target="_blank" rel="noopener">Launch Library 2</a></div>
+        <div class="t-src">collected server-side &middot; Launch Library 2</div>
       </div>
     </div>
   </div>
@@ -312,6 +361,9 @@ const BRIEF_MD   = __BRIEF_JSON__;
 const BUILT_AT   = __BUILT_AT_JSON__;
 const IS_STALE   = __IS_STALE_JSON__;
 const ARCHIVE    = __ARCHIVE_JSON__;
+const EVENTS     = __EVENTS_JSON__;
+const FEEDS      = __FEEDS_JSON__;
+const COASTLINE  = __COASTLINE_JSON__;
 const GROK_KEY   = __GROK_KEY_JSON__;
 const ACCESS_CODE= "0330";
 
@@ -501,147 +553,341 @@ addEventListener('scroll', function(){
 }, {passive:true});
 
 /* =====================================================================
-   GOD'S EYE  --  live public feeds, each degrades independently
+   GOD'S EYE  --  orthographic globe + live feeds
+   Feeds that are rate-limited or CORS-awkward are collected server-side in
+   the Action and baked in as FEEDS; only aircraft and ISS are fetched live.
    ===================================================================== */
-var GE = { lat:38.8977, lon:-77.0365, state:'DC', label:'GLOBAL / WASHINGTON DC' };
+var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 
+var G = {
+  rot:[20,-15], R:0, cx:0, cy:0, spin:true, sel:null, drag:null,
+  layers:{events:true, quake:true, air:true, iss:true},
+  air:[], iss:null
+};
+
+var KIND = {
+  events:{color:'#ef4444', label:'BRIEF EVENT'},
+  quake: {color:'#fbbf24', label:'SEISMIC'},
+  air:   {color:'#22d3ee', label:'AIR CONTACT'},
+  iss:   {color:'#a78bfa', label:'ORBITAL'}
+};
+var SECTION_COLOR = {geopolitical:'#ef4444', technology:'#a78bfa', uap:'#22d3ee', research:'#22c55e'};
+
+var cv = document.getElementById('globe'), ctx = cv.getContext('2d');
+var D = Math.PI/180;
+
+function sizeGlobe(){
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var w = cv.clientWidth || 480, h = cv.clientHeight || w;
+  cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  G.cx = w/2; G.cy = h/2; G.R = Math.min(w,h)/2 - 12;
+}
+
+/* orthographic projection: lon/lat -> screen, with back-hemisphere culling */
+function project(lon, lat){
+  var l = (lon + G.rot[0])*D, p = lat*D, p0 = G.rot[1]*D;
+  var cp = Math.cos(p), sp = Math.sin(p), cl = Math.cos(l), sl = Math.sin(l);
+  var cp0 = Math.cos(p0), sp0 = Math.sin(p0);
+  var x = cp*sl;
+  var y = cp0*sp - sp0*cp*cl;
+  var z = sp0*sp + cp0*cp*cl;
+  return {x:G.cx + G.R*x, y:G.cy - G.R*y, z:z};
+}
+
+function contacts(){
+  var out=[];
+  if(G.layers.events) EVENTS.forEach(function(e,i){
+    out.push({k:'events', lat:e.lat, lon:e.lon, r:5.5, d:e, id:'e'+i,
+              color:SECTION_COLOR[e.section] || KIND.events.color});
+  });
+  if(G.layers.quake) (FEEDS.quakes||[]).forEach(function(q,i){
+    out.push({k:'quake', lat:q.lat, lon:q.lon, r:Math.max(2, Math.min(7,(q.mag-1.5)*1.4)), d:q, id:'q'+i, color:KIND.quake.color});
+  });
+  if(G.layers.air) G.air.forEach(function(x,i){
+    if(x.lat!=null && x.lon!=null) out.push({k:'air', lat:x.lat, lon:x.lon, r:2, d:x, id:'a'+i, color:KIND.air.color});
+  });
+  if(G.layers.iss && G.iss) out.push({k:'iss', lat:G.iss.lat, lon:G.iss.lon, r:5, d:G.iss, id:'iss', color:KIND.iss.color});
+  return out;
+}
+
+function draw(){
+  var w = cv.clientWidth, h = cv.clientHeight;
+  ctx.clearRect(0,0,w,h);
+
+  /* ocean disc */
+  var grd = ctx.createRadialGradient(G.cx-G.R*0.35, G.cy-G.R*0.4, G.R*0.1, G.cx, G.cy, G.R);
+  grd.addColorStop(0,'#16305c'); grd.addColorStop(1,'#070d20');
+  ctx.beginPath(); ctx.arc(G.cx,G.cy,G.R,0,7); ctx.fillStyle=grd; ctx.fill();
+  ctx.strokeStyle='rgba(59,130,246,.45)'; ctx.lineWidth=1; ctx.stroke();
+
+  /* graticule every 30 degrees */
+  ctx.strokeStyle='rgba(59,130,246,.13)'; ctx.lineWidth=1;
+  for(var lat=-60; lat<=60; lat+=30){
+    ctx.beginPath(); var on=false;
+    for(var lo=-180; lo<=180; lo+=4){ var q=project(lo,lat);
+      if(q.z>0){ on ? ctx.lineTo(q.x,q.y) : ctx.moveTo(q.x,q.y); on=true; } else on=false; }
+    ctx.stroke();
+  }
+  for(var lon=-180; lon<180; lon+=30){
+    ctx.beginPath(); var on2=false;
+    for(var la=-90; la<=90; la+=4){ var q2=project(lon,la);
+      if(q2.z>0){ on2 ? ctx.lineTo(q2.x,q2.y) : ctx.moveTo(q2.x,q2.y); on2=true; } else on2=false; }
+    ctx.stroke();
+  }
+
+  /* coastlines: stroke only the visible half of each ring */
+  ctx.strokeStyle='rgba(125,211,252,.62)'; ctx.lineWidth=1;
+  for(var i=0;i<COASTLINE.length;i++){
+    var ring=COASTLINE[i]; ctx.beginPath(); var pen=false;
+    for(var j=0;j<ring.length;j++){
+      var pt=project(ring[j][0], ring[j][1]);
+      if(pt.z>0){ pen ? ctx.lineTo(pt.x,pt.y) : ctx.moveTo(pt.x,pt.y); pen=true; }
+      else pen=false;
+    }
+    ctx.stroke();
+  }
+
+  /* contacts, far side first so near side draws on top */
+  var pts = contacts().map(function(c){ var q=project(c.lon,c.lat); c.sx=q.x; c.sy=q.y; c.z=q.z; return c; })
+                      .filter(function(c){ return c.z>0; })
+                      .sort(function(m,n){ return m.z-n.z; });
+  G._hit = pts;
+  pts.forEach(function(c){
+    var isSel = G.sel && G.sel.id===c.id;
+    ctx.beginPath(); ctx.arc(c.sx,c.sy,c.r,0,7);
+    ctx.fillStyle=c.color; ctx.globalAlpha = 0.45 + 0.55*c.z; ctx.fill();
+    ctx.globalAlpha=1;
+    if(c.k==='events' || isSel){
+      ctx.beginPath(); ctx.arc(c.sx,c.sy,c.r+(isSel?7:4),0,7);
+      ctx.strokeStyle=c.color; ctx.lineWidth=isSel?2:1; ctx.globalAlpha=isSel?1:.5; ctx.stroke(); ctx.globalAlpha=1;
+    }
+  });
+}
+
+var last=0;
+function loop(t){
+  if(G.spin && !G.drag){ var dt=(t-last)||16; G.rot[0] -= dt*0.006; }
+  last=t; draw(); requestAnimationFrame(loop);
+}
+
+/* ---- interaction ---- */
+function evtPos(e){
+  var r = cv.getBoundingClientRect();
+  var src = (e.touches && e.touches[0]) ? e.touches[0] : e;
+  return {x:src.clientX-r.left, y:src.clientY-r.top};
+}
+function onDown(e){ G.drag = {p:evtPos(e), rot:G.rot.slice(), moved:false}; cv.classList.add('drag'); }
+function onMove(e){
+  if(!G.drag) return;
+  var p=evtPos(e), dx=p.x-G.drag.p.x, dy=p.y-G.drag.p.y;
+  if(Math.abs(dx)+Math.abs(dy) > 3) G.drag.moved=true;
+  G.rot[0] = G.drag.rot[0] + dx*0.35;
+  G.rot[1] = Math.max(-85, Math.min(85, G.drag.rot[1] - dy*0.35));
+  if(e.cancelable) e.preventDefault();
+}
+function onUp(e){
+  if(G.drag && !G.drag.moved) pick(evtPos(e.changedTouches ? {touches:e.changedTouches} : e));
+  G.drag=null; cv.classList.remove('drag');
+}
+cv.addEventListener('mousedown',onDown); cv.addEventListener('touchstart',onDown,{passive:true});
+addEventListener('mousemove',onMove);   cv.addEventListener('touchmove',onMove,{passive:false});
+addEventListener('mouseup',onUp);       cv.addEventListener('touchend',onUp);
+
+function pick(p){
+  var best=null, bd=16*16;
+  (G._hit||[]).forEach(function(c){
+    var d=(c.sx-p.x)*(c.sx-p.x)+(c.sy-p.y)*(c.sy-p.y);
+    if(d<bd){ bd=d; best=c; }
+  });
+  G.sel = best; renderDetail(best);
+}
+
+function fmtTime(ts){ try{ return new Date(ts).toISOString().replace('T',' ').slice(0,16)+'Z'; }catch(_){ return ''; } }
+
+function renderDetail(c){
+  var el = document.getElementById('detailPanel');
+  if(!c){ el.innerHTML = '<div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div>'; return; }
+  var d=c.d, rows=[], title='', place='', link='';
+
+  if(c.k==='events'){
+    title = d.headline || 'Reported event';
+    place = d.place || '';
+    if(d.classification) rows.push(['CLASS', d.classification]);
+    if(d.confidence)     rows.push(['CONFIDENCE', d.confidence.toUpperCase()]);
+    if(d.section)        rows.push(['SECTION', d.section.toUpperCase()]);
+    link = d.url || '';
+  } else if(c.k==='quake'){
+    title = 'M' + Number(d.mag).toFixed(1) + ' earthquake';
+    place = d.place || '';
+    rows.push(['MAGNITUDE','M'+Number(d.mag).toFixed(1)]);
+    if(d.depth!=null) rows.push(['DEPTH', Math.round(d.depth)+' km']);
+    if(d.time) rows.push(['TIME', fmtTime(d.time)]);
+    link = d.url || '';
+  } else if(c.k==='air'){
+    title = (String(d.flight||d.r||d.hex||'unknown').trim()) + ' &mdash; ' + (d.t||'unknown type');
+    place = 'ADS-B contact';
+    if(d.alt_baro!=null) rows.push(['ALTITUDE', d.alt_baro==='ground' ? 'ON GROUND' : Math.round(d.alt_baro).toLocaleString()+' ft']);
+    if(d.gs!=null) rows.push(['GROUND SPD', Math.round(d.gs)+' kt']);
+    if(d.squawk) rows.push(['SQUAWK', d.squawk + (['7500','7600','7700'].indexOf(String(d.squawk))>-1 ? '  EMERGENCY' : '')]);
+    if(d.r) rows.push(['REGISTRATION', d.r]);
+  } else if(c.k==='iss'){
+    title = 'International Space Station';
+    place = 'NORAD 25544';
+    rows.push(['ALTITUDE', Math.round(d.altitude)+' km']);
+    rows.push(['VELOCITY', Math.round(d.velocity).toLocaleString()+' km/h']);
+    if(d.visibility) rows.push(['VISIBILITY', d.visibility]);
+  }
+  rows.push(['POSITION', Math.abs(c.lat).toFixed(2)+'°'+(c.lat>=0?'N':'S')+'  '+Math.abs(c.lon).toFixed(2)+'°'+(c.lon>=0?'E':'W')]);
+
+  el.innerHTML =
+    '<div class="d-kind" style="color:'+c.color+'"><span class="dot" style="background:'+c.color+'"></span>'+(KIND[c.k]||{}).label+'</div>' +
+    '<div class="d-title">'+title+'</div>' +
+    (place ? '<div class="d-place">'+esc(place)+'</div>' : '') +
+    '<div class="d-rows">'+rows.map(function(r){ return '<div class="d-row"><span>'+r[0]+'</span><span>'+esc(String(r[1]))+'</span></div>'; }).join('')+'</div>' +
+    (link ? '<a class="d-link" href="'+esc(link)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '');
+}
+
+/* ---- layer buttons ---- */
+document.querySelectorAll('.lyr[data-layer]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var k=b.dataset.layer; G.layers[k]=!G.layers[k];
+    b.classList.toggle('on', G.layers[k]);
+    if(G.sel && G.sel.k===k && !G.layers[k]){ G.sel=null; renderDetail(null); }
+  });
+});
+document.getElementById('spinBtn').addEventListener('click', function(){
+  G.spin=!G.spin; this.classList.toggle('on', G.spin);
+});
+
+/* =====================  tiles  ===================== */
 function jget(url, ms){
   var ctl = new AbortController();
   var to = setTimeout(function(){ ctl.abort(); }, ms || 12000);
   return fetch(url, {signal: ctl.signal, headers:{'Accept':'application/json'}})
-    .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(function(r){ if(!r.ok){ var e=new Error('HTTP '+r.status); e.status=r.status; throw e; } return r.json(); })
     .finally(function(){ clearTimeout(to); });
 }
-function down(tileId, dotId, valId, subId, why){
-  var t = document.getElementById(tileId);
-  if(t) t.classList.add('offline');
-  var d = document.getElementById(dotId); if(d) d.className = 'dot dead';
-  var v = document.getElementById(valId); if(v) v.textContent = '--';
-  var s = document.getElementById(subId); if(s) s.textContent = 'FEED UNAVAILABLE' + (why ? ' (' + why + ')' : '');
+function why(e){
+  if(e && e.name === 'AbortError') return 'timeout';
+  if(e && e.status === 429) return 'rate limited';
+  if(e && e.status) return 'HTTP ' + e.status;
+  return 'network or CORS';
+}
+function down(tileId, dotId, valId, subId, reason){
+  var t=document.getElementById(tileId); if(t) t.classList.add('offline');
+  var d=document.getElementById(dotId); if(d) d.className='dot dead';
+  var v=document.getElementById(valId); if(v) v.textContent='--';
+  var s=document.getElementById(subId); if(s) s.textContent='FEED UNAVAILABLE ('+reason+')';
 }
 function up(tileId, dotId){
-  var t = document.getElementById(tileId); if(t) t.classList.remove('offline');
-  var d = document.getElementById(dotId); if(d) d.className = 'dot live';
+  var t=document.getElementById(tileId); if(t) t.classList.remove('offline');
+  var d=document.getElementById(dotId); if(d) d.className='dot live';
 }
 function km(aLat,aLon,bLat,bLon){
   var R=6371,p=Math.PI/180,dLat=(bLat-aLat)*p,dLon=(bLon-aLon)*p;
   var x=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(aLat*p)*Math.cos(bLat*p)*Math.sin(dLon/2)*Math.sin(dLon/2);
   return Math.round(2*R*Math.asin(Math.sqrt(x)));
 }
-function ago(ts){
-  var m = Math.floor((Date.now()-ts)/60000);
-  if(m < 1) return 'just now'; if(m < 60) return m+'m ago';
-  var h = Math.floor(m/60); return h < 24 ? h+'h ago' : Math.floor(h/24)+'d ago';
-}
 
-/* --- seismic --- */
-function feedQuake(){
-  jget('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson').then(function(d){
-    var f = (d.features||[]).slice().sort(function(a,b){ return (b.properties.mag||0)-(a.properties.mag||0); });
-    document.getElementById('qCount').textContent = f.length;
-    var big = f[0];
-    document.getElementById('qSub').textContent = f.length
-      ? 'M2.5+ worldwide / 24h · strongest M'+(big.properties.mag||0).toFixed(1)
-      : 'No M2.5+ events in 24h';
-    document.getElementById('qList').innerHTML = f.slice(0,3).map(function(q){
-      var c = q.geometry && q.geometry.coordinates || [0,0];
-      var dist = km(GE.lat, GE.lon, c[1], c[0]);
-      return '<span><span class="mag">M'+(q.properties.mag||0).toFixed(1)+'</span> '+
-             esc(String(q.properties.place||'unknown').slice(0,30))+' · '+dist.toLocaleString()+'km</span>';
+/* --- baked feeds (collected server-side) --- */
+function paintBaked(){
+  var q = FEEDS.quakes || [];
+  if(q.length){
+    document.getElementById('qCount').textContent = q.length;
+    document.getElementById('qSub').textContent = 'M2.5+ worldwide / 24h · strongest M'+Number(q[0].mag).toFixed(1);
+    document.getElementById('qList').innerHTML = q.slice(0,3).map(function(x){
+      return '<span><span class="mag">M'+Number(x.mag).toFixed(1)+'</span> '+esc(String(x.place||'').slice(0,32))+'</span>';
     }).join('');
-    document.getElementById('tileQuake').classList.toggle('alert', !!(big && big.properties.mag >= 6));
+    document.getElementById('tileQuake').classList.toggle('alert', q[0].mag>=6);
     up('tileQuake','dQuake');
-  }).catch(function(e){ down('tileQuake','dQuake','qCount','qSub', e.name==='AbortError'?'timeout':'blocked'); });
+  } else down('tileQuake','dQuake','qCount','qSub','not collected this run');
+  document.getElementById('nQuake').textContent = q.length;
+
+  var a = FEEDS.alerts || [];
+  if(a.length){
+    document.getElementById('wCount').textContent = a.length;
+    document.getElementById('wSub').textContent = 'severe/extreme, nationwide';
+    document.getElementById('wList').innerHTML = a.slice(0,3).map(function(x){
+      return '<span><span class="sev">●</span> '+esc(String(x.event||'').slice(0,26))+' · '+esc(String(x.area||'').split(';')[0].slice(0,20))+'</span>';
+    }).join('');
+    document.getElementById('tileAlert').classList.add('alert');
+    up('tileAlert','dAlert');
+  } else {
+    document.getElementById('wCount').textContent = '0';
+    document.getElementById('wSub').textContent = 'no severe/extreme alerts active';
+    up('tileAlert','dAlert');
+  }
+
+  var l = FEEDS.launches || [];
+  if(l.length){
+    var t=new Date(l[0].net), hrs=(t-Date.now())/3600000;
+    document.getElementById('lNext').textContent = hrs<0 ? 'IN PROGRESS'
+      : (hrs<48 ? 'T-'+Math.floor(hrs)+'h '+Math.floor((hrs%1)*60)+'m' : 'T-'+Math.floor(hrs/24)+'d');
+    document.getElementById('lSub').textContent = String(l[0].name||'').slice(0,44);
+    document.getElementById('lList').innerHTML = l.slice(1,4).map(function(x){
+      return '<span>'+esc(fmtTime(x.net).slice(5))+' · '+esc(String(x.name||'').split('|')[0].slice(0,22))+'</span>';
+    }).join('');
+    up('tileLaunch','dLaunch');
+  } else down('tileLaunch','dLaunch','lNext','lSub','not collected this run');
+
+  document.getElementById('nEvents').textContent = EVENTS.length;
 }
 
-/* --- air picture --- */
+/* --- live: air picture --- */
 function feedAir(){
-  var nm = 100;
+  var nm = 250;
   jget('https://api.adsb.lol/v2/lat/'+GE.lat.toFixed(4)+'/lon/'+GE.lon.toFixed(4)+'/dist/'+nm).then(function(d){
     var ac = d.ac || [];
+    G.air = ac;
     document.getElementById('aCount').textContent = ac.length;
-    var emerg = ac.filter(function(a){ return ['7500','7600','7700'].indexOf(String(a.squawk||'')) > -1; });
-    var mil   = ac.filter(function(a){ return a.dbFlags && (a.dbFlags & 1); });
+    document.getElementById('nAir').textContent = ac.length;
+    var emerg = ac.filter(function(a){ return ['7500','7600','7700'].indexOf(String(a.squawk||''))>-1; });
+    var mil = ac.filter(function(a){ return a.dbFlags && (a.dbFlags & 1); });
     document.getElementById('aSub').textContent =
-      'contacts within '+nm+'nm · '+mil.length+' mil-flagged'+(emerg.length ? ' · '+emerg.length+' SQUAWK ALERT' : '');
-    var show = (emerg.concat(mil).concat(ac)).filter(function(v,i,s){ return s.indexOf(v)===i; }).slice(0,3);
-    document.getElementById('aList').innerHTML = show.map(function(a){
-      var sq = String(a.squawk||''), hot = ['7500','7600','7700'].indexOf(sq) > -1;
-      return '<span>'+(hot?'<span class="sev">⚠ '+sq+'</span> ':'')+
-             esc(String(a.flight||a.r||a.hex||'?').trim().slice(0,10))+
-             ' · '+esc(String(a.t||'---'))+' · '+(a.alt_baro==='ground'?'GND':(Math.round((a.alt_baro||0)/100)*100).toLocaleString()+'ft')+'</span>';
-    }).join('');
-    document.getElementById('tileAir').classList.toggle('alert', emerg.length > 0);
+      'within '+nm+'nm · '+mil.length+' mil-flagged'+(emerg.length?' · '+emerg.length+' SQUAWK ALERT':'');
+    document.getElementById('aList').innerHTML = emerg.concat(mil).concat(ac).filter(function(v,i,s){return s.indexOf(v)===i;})
+      .slice(0,3).map(function(a){
+        var sq=String(a.squawk||''), hot=['7500','7600','7700'].indexOf(sq)>-1;
+        return '<span>'+(hot?'<span class="sev">⚠ '+sq+'</span> ':'')+esc(String(a.flight||a.r||a.hex||'?').trim().slice(0,10))+
+               ' · '+esc(String(a.t||'---'))+'</span>';
+      }).join('');
+    document.getElementById('tileAir').classList.toggle('alert', emerg.length>0);
     up('tileAir','dAir');
-  }).catch(function(e){ down('tileAir','dAir','aCount','aSub', e.name==='AbortError'?'timeout':'blocked'); });
+  }).catch(function(e){ G.air=[]; document.getElementById('nAir').textContent='0'; down('tileAir','dAir','aCount','aSub',why(e)); });
 }
 
-/* --- hazard --- */
-function feedAlert(){
-  var url = GE.state
-    ? 'https://api.weather.gov/alerts/active?area='+GE.state+'&limit=50'
-    : 'https://api.weather.gov/alerts/active?severity=Severe,Extreme&limit=50';
-  jget(url).then(function(d){
-    var f = d.features || [];
-    var sev = f.filter(function(a){ return ['Severe','Extreme'].indexOf((a.properties||{}).severity) > -1; });
-    document.getElementById('wCount').textContent = f.length;
-    document.getElementById('wSub').textContent =
-      (GE.state ? 'active alerts in '+GE.state : 'severe/extreme, nationwide')+' · '+sev.length+' severe+';
-    document.getElementById('wList').innerHTML = (sev.length?sev:f).slice(0,3).map(function(a){
-      var p = a.properties || {};
-      var hot = ['Severe','Extreme'].indexOf(p.severity) > -1;
-      return '<span>'+(hot?'<span class="sev">●</span> ':'')+esc(String(p.event||'Alert').slice(0,26))+
-             ' · '+esc(String(p.areaDesc||'').split(';')[0].slice(0,22))+'</span>';
-    }).join('') || '<span>no active alerts</span>';
-    document.getElementById('tileAlert').classList.toggle('alert', sev.length > 0);
-    up('tileAlert','dAlert');
-  }).catch(function(e){ down('tileAlert','dAlert','wCount','wSub', e.name==='AbortError'?'timeout':'blocked'); });
-}
-
-/* --- orbital --- */
+/* --- live: ISS --- */
 function feedIss(){
   jget('https://api.wheretheiss.at/v1/satellites/25544').then(function(d){
-    var la = d.latitude, lo = d.longitude;
+    G.iss = d;
+    var la=d.latitude, lo=d.longitude;
     document.getElementById('iPos').textContent =
       Math.abs(la).toFixed(2)+'°'+(la>=0?'N':'S')+'  '+Math.abs(lo).toFixed(2)+'°'+(lo>=0?'E':'W');
     document.getElementById('iSub').textContent =
-      Math.round(d.altitude)+'km alt · '+Math.round(d.velocity).toLocaleString()+'km/h · '+
-      km(GE.lat, GE.lon, la, lo).toLocaleString()+'km from target · '+(d.visibility||'');
+      Math.round(d.altitude)+'km · '+Math.round(d.velocity).toLocaleString()+'km/h · '+km(GE.lat,GE.lon,la,lo).toLocaleString()+'km from target';
     up('tileIss','dIss');
-  }).catch(function(e){ down('tileIss','dIss','iPos','iSub', e.name==='AbortError'?'timeout':'blocked'); });
+  }).catch(function(e){ G.iss=null; down('tileIss','dIss','iPos','iSub',why(e)); });
 }
 
-/* --- launch manifest --- */
-function feedLaunch(){
-  jget('https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=4&mode=list', 15000).then(function(d){
-    var r = d.results || [];
-    if(!r.length){ down('tileLaunch','dLaunch','lNext','lSub','no data'); return; }
-    var next = r[0], t = new Date(next.net), hrs = (t - Date.now())/3600000;
-    document.getElementById('lNext').textContent = hrs < 0 ? 'IN PROGRESS'
-      : (hrs < 48 ? 'T-'+Math.floor(hrs)+'h '+Math.floor((hrs%1)*60)+'m' : 'T-'+Math.floor(hrs/24)+'d');
-    document.getElementById('lSub').textContent = String(next.name||'').slice(0,44);
-    document.getElementById('lList').innerHTML = r.slice(1,4).map(function(l){
-      return '<span>'+esc(new Date(l.net).toISOString().slice(5,16).replace('T',' '))+'Z · '+
-             esc(String(l.name||'').split('|')[0].slice(0,22))+'</span>';
-    }).join('');
-    up('tileLaunch','dLaunch');
-  }).catch(function(e){ down('tileLaunch','dLaunch','lNext','lSub', e.name==='AbortError'?'timeout':'rate-limited'); });
-}
+sizeGlobe();
+addEventListener('resize', function(){ sizeGlobe(); });
+paintBaked();
+feedAir(); feedIss();
+setInterval(function(){ feedAir(); feedIss(); }, 90000);
+requestAnimationFrame(loop);
 
-function sweep(){ feedQuake(); feedAir(); feedAlert(); feedIss(); }
-sweep(); feedLaunch();
-setInterval(sweep, 90000);
-setInterval(feedLaunch, 900000);
-
-/* --- re-target God's Eye onto a ZIP --- */
+/* --- re-target onto a ZIP --- */
 function retarget(zip){
   return jget('https://api.zippopotam.us/us/'+zip, 9000).then(function(d){
-    var p = (d.places || [])[0]; if(!p) throw new Error('no place');
-    GE.lat = parseFloat(p.latitude); GE.lon = parseFloat(p.longitude);
-    GE.state = p['state abbreviation'] || '';
-    GE.label = (p['place name'] || zip).toUpperCase() + ', ' + GE.state + ' (' + zip + ')';
+    var p=(d.places||[])[0]; if(!p) throw new Error('no place');
+    GE.lat=parseFloat(p.latitude); GE.lon=parseFloat(p.longitude);
+    GE.state=p['state abbreviation']||'';
+    GE.label=(p['place name']||zip).toUpperCase()+', '+GE.state+' ('+zip+')';
     document.getElementById('geTarget').textContent = GE.label;
-    sweep();
+    G.rot=[-GE.lon, GE.lat]; G.spin=false;
+    document.getElementById('spinBtn').classList.remove('on');
+    feedAir(); feedIss();
     return GE;
   }).catch(function(){ return null; });
 }

@@ -3,7 +3,9 @@ name: Generate Intelligence Brief
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 11 * * *'
+    # Twice daily: 11:00 UTC (~06:00 EST) and 23:00 UTC (~18:00 EST).
+    # Each run reports the delta since the previous brief.
+    - cron: '0 11,23 * * *'
 
 permissions:
   contents: write
@@ -32,6 +34,8 @@ jobs:
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        # Collection window, matched to the twice-daily cadence above.
+        COLLECTION_WINDOW_HOURS: '12'
       run: python3 generate_brief_final.py
 
     # Commit the brief text back to the repo on every run.
