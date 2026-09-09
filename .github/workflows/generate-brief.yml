@@ -18,6 +18,9 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        # Full history so the rebase-and-retry in the commit step below works.
+        fetch-depth: 0
       
     - uses: actions/setup-python@v4
       with:
@@ -30,7 +33,38 @@ jobs:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: python3 generate_brief_final.py
-        
+
+    # Commit the brief text back to the repo on every run.
+    #
+    # This is not just for the archive: GitHub automatically disables scheduled
+    # workflows after 60 days with no repository activity. Because this workflow
+    # only ever published a Pages artifact and never wrote to the repo, the repo
+    # went quiet and the schedule was silently switched off on 2026-05-12
+    # (state: disabled_inactivity), which is why the site froze on old content.
+    # A daily commit keeps the repo active so the cron never expires again.
+    #
+    # index.html is deliberately NOT committed: it is a build artifact that has
+    # GROK_API_KEY baked into it at render time, and committing it would write
+    # that key into public git history. It is rebuilt from latest-brief.json and
+    # template.html on every deploy, and can be regenerated locally with
+    # `python3 generate_brief_final.py --offline`.
+    - name: Commit brief to repository
+      run: |
+        git config user.name "Trident Bot"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add latest-brief.json archive
+        if git diff --cached --quiet; then
+          echo "No brief changes to commit"
+        else
+          git commit -m "Intelligence brief $(date -u +'%Y-%m-%d %H:%M UTC')"
+          for i in 1 2 3; do
+            git push origin HEAD:${{ github.ref_name }} && break
+            echo "Push failed (attempt $i); refreshing and retrying"
+            git pull --rebase origin ${{ github.ref_name }} || true
+            sleep $((i * 5))
+          done
+        fi
+
     - uses: actions/configure-pages@v4
         
     - uses: actions/upload-pages-artifact@v3
