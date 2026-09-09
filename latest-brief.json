@@ -1,60 +1,31 @@
 {
   "date": "September 09, 2026",
-  "content": "**BLUF**  \nReciprocal strikes continue in the Ukraine-Russia theater with confirmed Ukrainian deep strikes on Novorossiysk naval base/logistics and a field artillery depot; European partners advanced integrated air-defense coordination via the FREYJA program. Russian overnight strikes reported on Kyiv residential area and Odesa-region border crossing. No new verified developments in Middle East, sanctions, or major arms transfers. All other collection domains quiet in the window.[[1]](https://www.reuters.com/world/europe/russia-says-ukrainian-drone-attack-killed-four-novorossiysk-2026-09-09/)\n\n## 1. GEOPOLITICAL AND MILITARY\nNo verifiable developments in window.\n\n## 2. TECHNOLOGY AND CYBERSECURITY\nNo verifiable developments in window.\n\n## 3. UAP/UFO\nNo verifiable developments in window.\n\n## 4. PARAPSYCHOLOGY AND CONSCIOUSNESS RESEARCH\nNo verifiable developments in window.\n\n**Overall Fusion Notes:** Kinetic activity in Ukraine-Russia theater remains high-tempo with new Ukrainian naval and logistics strikes plus defense cooperation announcements. Other domains quiet in collection.",
+  "content": "**BLUF:**  \nUkraine-Russia kinetic activity continued at high tempo on 9 Sep 2026 with confirmed Ukrainian deep strikes on Novorossiysk naval base and Russian ballistic/drone attacks on Kyiv and other regions causing civilian casualties. Zelenskyy announced progress on the multinational FREYJA anti-ballistic program during meetings in Norway. No verifiable new developments in technology/cyber, UAP, or parapsychology sections within the collection window. Other domains remain quiet.[[1]](https://www.ukrinform.net/rubric-ato/block-lastnews)[[2]](https://www.local10.com/news/world/2026/09/09/zelenskyy-urges-more-international-pressure-on-russia-over-civilian-deaths/)\n\n## 1. GEOPOLITICAL AND MILITARY\n- [OSINT - CONFIRMED] @ZelenskyyUa and @DefenceU reported Ukrainian forces (SBU, Unmanned Systems Forces, Navy, DIU, Border Guard) struck Novorossiysk naval base infrastructure, oil terminal, port facilities, and frigate *Admiral Essen* (Kalibr carrier) overnight 8-9 Sep; fire confirmed on superstructure. Second strike since August.[[3]](https://x.com/ZelenskyyUa/status/2097611209067422149)[[4]](https://x.com/DefenceU/status/2097672984685171169)\n- [OSINT - CONFIRMED] Russian attacks on Kyiv (drones, ballistic missiles) and other regions 8-9 Sep killed at least 12 and injured ~66-68; specific hits on residential buildings in Kyiv (e.g., Darnytskyi/Dniprovskyi districts) and Starokozache border crossing with Moldova (2 killed, operations suspended).[[5]](https://kyivindependent.com/russian-attacks-kill-at-least-injure-across-ukraine-as-russia-continues-relentless-strikes-on-kyiv/)[[6]](https://x.com/ZelenskyyUa/status/2097581465261220246)\n- [SIGINT - VERIFIED] @ZelenskyyUa posted from meeting with Norwegian PM Jonas Gahr St\u00f8re and defense executives (FirePoint, Kongsberg, Saab, Thales, etc.) on FREYJA anti-ballistic program for integrated European air defense; partners include Ukraine, Denmark, France, Germany, Italy, Netherlands, Norway, Spain, Sweden, UK. First practical results expected.[[7]](https://x.com/ZelenskyyUa/status/2097699538240676137)[[8]](https://x.com/ZelenskyyUa/status/2097699533236973957)\n- [OSINT - WEB] @StateDept amplified reporting on SecState Marco Rubio\u2019s Latin America tour (Colombia, Ecuador, Peru) focused on security cooperation and narcoterrorism.[[9]](https://x.com/StateDept/status/2097709789333590224)\n\n**Assessment:** Ukrainian long-range strikes and multinational air-defense cooperation represent incremental advances in asymmetric response and alliance-building; Russian strikes maintain pressure on Ukrainian civilians and infrastructure post-US envoys\u2019 visit pause.  \n**Collection gaps:** No direct posts or reporting retrieved from @POTUS, @SecDef, @DeptofDefense, @NATO, @CENTCOM, @INDOPACOM, @IDF, or @IsraeliPM in window; limited corroboration on exact strike timings or damage assessments beyond official Ukrainian claims.\n\n## 2. TECHNOLOGY AND CYBERSECURITY\nNo verifiable developments in window.\n\n## 3. UAP/UFO\nNo verifiable developments in window.\n\n## 4. PARAPSYCHOLOGY AND CONSCIOUSNESS RESEARCH\nNo verifiable developments in window.\n\n**Overall Fusion Notes:** Ukraine-Russia theater remains the dominant active domain with continued strikes and new defense announcements; all other sections quiet per searches.",
   "provider": "Grok 4.1 Fast Reasoning - Multi-INT Fusion (X Search + Web Search)",
   "events": [
-    {
-      "lat": 44.72,
-      "lon": 37.77,
-      "place": "Novorossiysk, Russia",
-      "headline": "Ukrainian strike on naval base, frigate Admiral Essen, oil terminal",
-      "section": "geopolitical",
-      "classification": "SIGINT - VERIFIED",
-      "confidence": "high",
-      "url": "https://www.reuters.com/world/europe/russia-says-ukrainian-drone-attack-killed-four-novorossiysk-2026-09-09/"
-    },
-    {
-      "lat": 48.55,
-      "lon": 39.3,
-      "place": "Teple, Luhansk region, Ukraine (occupied)",
-      "headline": "Ukrainian SOF strike destroys Russian artillery ammo depot",
-      "section": "geopolitical",
-      "classification": "SIGINT - VERIFIED",
-      "confidence": "high",
-      "url": "https://x.com/DefenceU/status/2097698038382825628"
-    },
     {
       "lat": 50.45,
       "lon": 30.52,
       "place": "Kyiv, Ukraine",
-      "headline": "Russian drone strike on residential building, 4 injured",
+      "headline": "Russian drone/missile strikes kill/injure civilians in residential areas",
       "section": "geopolitical",
-      "classification": "SIGINT - VERIFIED",
+      "classification": "OSINT - CONFIRMED",
       "confidence": "high",
-      "url": "https://x.com/ZelenskyyUa/status/2097581459200479281"
+      "url": "https://www.ukrinform.net/rubric-ato/block-lastnews"
     },
     {
-      "lat": 46.2,
-      "lon": 30.35,
-      "place": "Starokozache, Odesa region, Ukraine",
-      "headline": "Russian strike on border crossing, 2 killed",
+      "lat": 44.72,
+      "lon": 37.77,
+      "place": "Novorossiysk, Russia",
+      "headline": "Ukrainian forces strike naval base, frigate Admiral Essen",
       "section": "geopolitical",
-      "classification": "SIGINT - VERIFIED",
+      "classification": "OSINT - CONFIRMED",
       "confidence": "high",
-      "url": "https://x.com/ZelenskyyUa/status/2097581459200479281"
+      "url": "https://www.ukrinform.net/rubric-ato/block-lastnews"
     }
   ],
   "feeds": {
     "quakes": [
-      {
-        "lat": -7.6774,
-        "lon": 121.0852,
-        "depth": 10,
-        "mag": 5.2,
-        "place": "123 km NNE of Ruteng, Indonesia",
-        "time": 1788881795020,
-        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000tfum"
-      },
       {
         "lat": -26.1386,
         "lon": -66.5049,
@@ -632,15 +603,6 @@
         "url": "https://earthquake.usgs.gov/earthquakes/eventpage/hv75031527"
       },
       {
-        "lat": 36.3021666666667,
-        "lon": -89.5338333333333,
-        "depth": 9.94,
-        "mag": 1.86,
-        "place": "5 km NW of Ridgely, Tennessee",
-        "time": 1788881776830,
-        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/nm60627611"
-      },
-      {
         "lat": 19.191499710083,
         "lon": -155.495666503906,
         "depth": 28.9099998474121,
@@ -1134,6 +1096,15 @@
         "place": "9 km W of Anza, CA",
         "time": 1788922727340,
         "url": "https://earthquake.usgs.gov/earthquakes/eventpage/ci41543184"
+      },
+      {
+        "lat": 31.207,
+        "lon": -103.514,
+        "depth": 0.7023,
+        "mag": 1.4,
+        "place": "18 km S of Lindsay, Texas",
+        "time": 1788967908897,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/tx2026rtydjn"
       },
       {
         "lat": 32.158,
@@ -2491,10 +2462,910 @@
       "D": 10298,
       "U": 1234
     },
-    "errors": {
-      "disasters": "HTTP 400: {\"message\":\"Eventtype is required.\"}"
-    },
-    "fetched_at": "2026-09-09T15:34:24.570698+00:00"
+    "disasters": [
+      {
+        "lat": 40.861,
+        "lon": 14.844,
+        "kind": "FL",
+        "name": "Green Flood in Italy from: 26 Jul 2026 01 to: 10 Sep 2026 01.",
+        "level": "Green",
+        "from": "2026-07-26T01:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1104053&episodeid=17&eventtype=FL"
+      },
+      {
+        "lat": 41.293,
+        "lon": 141.184,
+        "kind": "FL",
+        "name": "Green Flood in Japan from: 02 Sep 2026 01 to: 10 Sep 2026 01.",
+        "level": "Green",
+        "from": "2026-09-02T01:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1104140&episodeid=5&eventtype=FL"
+      },
+      {
+        "lat": -14.877,
+        "lon": -173.119,
+        "kind": "EQ",
+        "name": "Green M 4.7 Earthquake in Samoa Islands Region at: 09 Sep 2026 12:18:14.",
+        "level": "Green",
+        "from": "2026-09-09T12:18:14",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564410&episodeid=1732111&eventtype=EQ"
+      },
+      {
+        "lat": 34.985,
+        "lon": 112.301,
+        "kind": "EQ",
+        "name": "Green M 4.6 Earthquake in China at: 09 Sep 2026 10:51:39.",
+        "level": "Green",
+        "from": "2026-09-09T10:51:39",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564399&episodeid=1732115&eventtype=EQ"
+      },
+      {
+        "lat": -26.139,
+        "lon": -66.505,
+        "kind": "EQ",
+        "name": "Green M 5 Earthquake in Argentina at: 09 Sep 2026 10:06:57.",
+        "level": "Green",
+        "from": "2026-09-09T10:06:57",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564396&episodeid=1732098&eventtype=EQ"
+      },
+      {
+        "lat": 4.017,
+        "lon": 125.323,
+        "kind": "EQ",
+        "name": "Green M 5 Earthquake in Indonesia at: 09 Sep 2026 07:07:03.",
+        "level": "Green",
+        "from": "2026-09-09T07:07:03",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564380&episodeid=1732079&eventtype=EQ"
+      },
+      {
+        "lat": 34.3,
+        "lon": 135.9,
+        "kind": "TC",
+        "name": "KROVANH-26",
+        "level": "Green",
+        "from": "2026-09-01T06:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1001318&episodeid=33&eventtype=TC"
+      },
+      {
+        "lat": 26.2,
+        "lon": -161.1,
+        "kind": "TC",
+        "name": "LOWELL-26",
+        "level": "Green",
+        "from": "2026-08-27T21:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1001315&episodeid=52&eventtype=TC"
+      },
+      {
+        "lat": 12.926,
+        "lon": 103.232,
+        "kind": "FL",
+        "name": "Green Flood in Cambodia from: 28 Aug 2026 01 to: 09 Sep 2026 01.",
+        "level": "Green",
+        "from": "2026-08-28T01:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1104132&episodeid=5&eventtype=FL"
+      },
+      {
+        "lat": 17.145,
+        "lon": 99.438,
+        "kind": "FL",
+        "name": "Green Flood in Thailand from: 18 Aug 2026 01 to: 09 Sep 2026 01.",
+        "level": "Green",
+        "from": "2026-08-18T01:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1104122&episodeid=20&eventtype=FL"
+      },
+      {
+        "lat": 33.749,
+        "lon": -118.123,
+        "kind": "FL",
+        "name": "Green Flood in United States from: 19 May 2026 01 to: 09 Sep 2026 01.",
+        "level": "Green",
+        "from": "2026-05-19T01:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1103888&episodeid=86&eventtype=FL"
+      },
+      {
+        "lat": -4.917,
+        "lon": 102.845,
+        "kind": "EQ",
+        "name": "Green M 4.5 Earthquake in Indonesia at: 09 Sep 2026 00:23:19.",
+        "level": "Green",
+        "from": "2026-09-09T00:23:19",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564346&episodeid=1732061&eventtype=EQ"
+      },
+      {
+        "lat": -11.329,
+        "lon": 142.258,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 25 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-25T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031313&episodeid=31&eventtype=WF"
+      },
+      {
+        "lat": -11.998,
+        "lon": 136.422,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 28 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-28T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031553&episodeid=18&eventtype=WF"
+      },
+      {
+        "lat": -2.736,
+        "lon": 111.097,
+        "kind": "WF",
+        "name": "Green Forest fires in Indonesia from: 26 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-26T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031554&episodeid=10&eventtype=WF"
+      },
+      {
+        "lat": -30.256,
+        "lon": 152.335,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 01 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-01T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031579&episodeid=20&eventtype=WF"
+      },
+      {
+        "lat": -9.027,
+        "lon": -65.428,
+        "kind": "WF",
+        "name": "Green Forest fires in Brazil from: 27 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-27T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031459&episodeid=17&eventtype=WF"
+      },
+      {
+        "lat": -16.537,
+        "lon": 134.282,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 30 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-30T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031481&episodeid=17&eventtype=WF"
+      },
+      {
+        "lat": -11.13,
+        "lon": 31.082,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 26 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-26T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031514&episodeid=12&eventtype=WF"
+      },
+      {
+        "lat": -12.441,
+        "lon": 132.074,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 30 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-30T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031552&episodeid=12&eventtype=WF"
+      },
+      {
+        "lat": -17.363,
+        "lon": 130.683,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 06 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-06T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031851&episodeid=1&eventtype=WF"
+      },
+      {
+        "lat": -0.507,
+        "lon": 112.121,
+        "kind": "WF",
+        "name": "Green Forest fires in Indonesia from: 01 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-01T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031838&episodeid=4&eventtype=WF"
+      },
+      {
+        "lat": 37.108,
+        "lon": 30.78,
+        "kind": "WF",
+        "name": "Green Forest fires in T\u00fcrkiye from: 07 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-07T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031844&episodeid=4&eventtype=WF"
+      },
+      {
+        "lat": -16.417,
+        "lon": 144.836,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 06 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-06T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031845&episodeid=3&eventtype=WF"
+      },
+      {
+        "lat": -11.034,
+        "lon": 29.403,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 06 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-06T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031846&episodeid=3&eventtype=WF"
+      },
+      {
+        "lat": -15.826,
+        "lon": 27.004,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 07 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-07T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031826&episodeid=6&eventtype=WF"
+      },
+      {
+        "lat": -29.819,
+        "lon": 152.809,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 01 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-01T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031833&episodeid=4&eventtype=WF"
+      },
+      {
+        "lat": -9.599,
+        "lon": 31.325,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 31 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-31T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031840&episodeid=2&eventtype=WF"
+      },
+      {
+        "lat": -7.691,
+        "lon": 32.2,
+        "kind": "WF",
+        "name": "Green Forest fires in Tanzania from: 29 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-29T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031813&episodeid=4&eventtype=WF"
+      },
+      {
+        "lat": -17.218,
+        "lon": 126.087,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 07 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-07T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031816&episodeid=6&eventtype=WF"
+      },
+      {
+        "lat": -9.737,
+        "lon": -43.455,
+        "kind": "WF",
+        "name": "Green Forest fires in Brazil from: 07 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-07T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031817&episodeid=8&eventtype=WF"
+      },
+      {
+        "lat": -13.252,
+        "lon": -61.755,
+        "kind": "WF",
+        "name": "Green Forest fires in Brazil from: 06 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-06T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031818&episodeid=10&eventtype=WF"
+      },
+      {
+        "lat": -18.183,
+        "lon": 137.916,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 06 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-06T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031822&episodeid=7&eventtype=WF"
+      },
+      {
+        "lat": -24.095,
+        "lon": 149.417,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 04 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-04T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031824&episodeid=4&eventtype=WF"
+      },
+      {
+        "lat": -14.112,
+        "lon": 143.277,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 31 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-31T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031825&episodeid=4&eventtype=WF"
+      },
+      {
+        "lat": -17.244,
+        "lon": 20.498,
+        "kind": "WF",
+        "name": "Green Forest fires in Angola from: 05 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-05T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031731&episodeid=8&eventtype=WF"
+      },
+      {
+        "lat": -7.752,
+        "lon": 34.332,
+        "kind": "WF",
+        "name": "Green Forest fires in Tanzania from: 03 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-03T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031738&episodeid=8&eventtype=WF"
+      },
+      {
+        "lat": -16.697,
+        "lon": 16.993,
+        "kind": "WF",
+        "name": "Green Forest fires in Angola from: 03 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-03T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031739&episodeid=7&eventtype=WF"
+      },
+      {
+        "lat": -10.704,
+        "lon": 31.427,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 04 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-04T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031736&episodeid=5&eventtype=WF"
+      },
+      {
+        "lat": -16.524,
+        "lon": 134.131,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 01 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-01T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031751&episodeid=10&eventtype=WF"
+      },
+      {
+        "lat": -18.353,
+        "lon": 130.774,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 30 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-30T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031765&episodeid=10&eventtype=WF"
+      },
+      {
+        "lat": -18.056,
+        "lon": 138.055,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 03 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-03T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031769&episodeid=8&eventtype=WF"
+      },
+      {
+        "lat": -15.735,
+        "lon": 130.593,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 02 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-02T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031770&episodeid=7&eventtype=WF"
+      },
+      {
+        "lat": -15.883,
+        "lon": 130.582,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 04 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-04T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031772&episodeid=10&eventtype=WF"
+      },
+      {
+        "lat": 37.222,
+        "lon": 35.995,
+        "kind": "WF",
+        "name": "Green Forest fires in T\u00fcrkiye from: 30 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-30T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031776&episodeid=7&eventtype=WF"
+      },
+      {
+        "lat": -16.662,
+        "lon": 134.207,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 05 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-05T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031785&episodeid=6&eventtype=WF"
+      },
+      {
+        "lat": 43.062,
+        "lon": 18.462,
+        "kind": "WF",
+        "name": "Green Forest fires in Bosnia and Herzegovina from: 04 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-04T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031787&episodeid=5&eventtype=WF"
+      },
+      {
+        "lat": -17.128,
+        "lon": 20.573,
+        "kind": "WF",
+        "name": "Green Forest fires in Angola from: 04 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-04T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031788&episodeid=3&eventtype=WF"
+      },
+      {
+        "lat": -10.282,
+        "lon": 29.317,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 25 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-25T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031656&episodeid=7&eventtype=WF"
+      },
+      {
+        "lat": -16.018,
+        "lon": 136.002,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 03 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-03T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031679&episodeid=10&eventtype=WF"
+      },
+      {
+        "lat": -14.568,
+        "lon": 133.389,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 27 Aug 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-27T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031683&episodeid=12&eventtype=WF"
+      },
+      {
+        "lat": 43.76,
+        "lon": 17.381,
+        "kind": "WF",
+        "name": "Green Forest fires in Bosnia and Herzegovina from: 04 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-04T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031684&episodeid=17&eventtype=WF"
+      },
+      {
+        "lat": -2.93,
+        "lon": 105.267,
+        "kind": "WF",
+        "name": "Green Forest fires in Indonesia from: 01 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-01T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031701&episodeid=7&eventtype=WF"
+      },
+      {
+        "lat": -2.985,
+        "lon": 111.069,
+        "kind": "WF",
+        "name": "Green Forest fires in Indonesia from: 04 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-04T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031724&episodeid=13&eventtype=WF"
+      },
+      {
+        "lat": -18.166,
+        "lon": 138.103,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 03 Sep 2026 to: 09 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-03T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031728&episodeid=16&eventtype=WF"
+      },
+      {
+        "lat": 16.6,
+        "lon": 148.428,
+        "kind": "EQ",
+        "name": "Green M 4.9 Earthquake in Mariana Islands Region at: 08 Sep 2026 23:23:42.",
+        "level": "Green",
+        "from": "2026-09-08T23:23:42",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564340&episodeid=1732047&eventtype=EQ"
+      },
+      {
+        "lat": -17.726,
+        "lon": -172.233,
+        "kind": "EQ",
+        "name": "Green M 4.9 Earthquake in Tonga Islands Region at: 08 Sep 2026 21:57:33.",
+        "level": "Green",
+        "from": "2026-09-08T21:57:33",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564367&episodeid=1732065&eventtype=EQ"
+      },
+      {
+        "lat": -8.153,
+        "lon": 120.658,
+        "kind": "EQ",
+        "name": "Green M 4.6 Earthquake in Indonesia at: 08 Sep 2026 21:42:22.",
+        "level": "Green",
+        "from": "2026-09-08T21:42:22",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564322&episodeid=1732016&eventtype=EQ"
+      },
+      {
+        "lat": 29.273,
+        "lon": 83.978,
+        "kind": "EQ",
+        "name": "Green M 4.9 Earthquake in Nepal at: 08 Sep 2026 16:08:34.",
+        "level": "Green",
+        "from": "2026-09-08T16:08:34",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564287&episodeid=1731979&eventtype=EQ"
+      },
+      {
+        "lat": -16.032,
+        "lon": -173.298,
+        "kind": "EQ",
+        "name": "Green M 4.9 Earthquake in Tonga at: 08 Sep 2026 15:43:57.",
+        "level": "Green",
+        "from": "2026-09-08T15:43:57",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564286&episodeid=1731976&eventtype=EQ"
+      },
+      {
+        "lat": -7.677,
+        "lon": 121.085,
+        "kind": "EQ",
+        "name": "Green M 5.2 Earthquake in Indonesia at: 08 Sep 2026 15:36:35.",
+        "level": "Green",
+        "from": "2026-09-08T15:36:35",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564284&episodeid=1731972&eventtype=EQ"
+      },
+      {
+        "lat": 25.8,
+        "lon": -127.4,
+        "kind": "TC",
+        "name": "MARIE-26",
+        "level": "Green",
+        "from": "2026-09-01T09:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1001317&episodeid=30&eventtype=TC"
+      },
+      {
+        "lat": 49.856,
+        "lon": 155.711,
+        "kind": "EQ",
+        "name": "Green M 4.5 Earthquake in Russia at: 08 Sep 2026 14:13:09.",
+        "level": "Green",
+        "from": "2026-09-08T14:13:09",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564285&episodeid=1731974&eventtype=EQ"
+      },
+      {
+        "lat": -21.407,
+        "lon": -68.824,
+        "kind": "EQ",
+        "name": "Green M 4.7 Earthquake in Chile at: 08 Sep 2026 13:42:08.",
+        "level": "Green",
+        "from": "2026-09-08T13:42:08",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564280&episodeid=1731967&eventtype=EQ"
+      },
+      {
+        "lat": -18.474,
+        "lon": -174.155,
+        "kind": "EQ",
+        "name": "Green M 5.3 Earthquake in Tonga at: 08 Sep 2026 11:51:09.",
+        "level": "Green",
+        "from": "2026-09-08T11:51:09",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564255&episodeid=1731943&eventtype=EQ"
+      },
+      {
+        "lat": 38.426,
+        "lon": 21.246,
+        "kind": "EQ",
+        "name": "Green M 4.6 Earthquake in Greece at: 08 Sep 2026 07:46:29.",
+        "level": "Green",
+        "from": "2026-09-08T07:46:29",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564238&episodeid=1731937&eventtype=EQ"
+      },
+      {
+        "lat": -58.121,
+        "lon": -26.258,
+        "kind": "EQ",
+        "name": "Green M 5.1 Earthquake in South Sandwich Islands Region at: 08 Sep 2026 06:50:46.",
+        "level": "Green",
+        "from": "2026-09-08T06:50:46",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564231&episodeid=1731913&eventtype=EQ"
+      },
+      {
+        "lat": 10.733,
+        "lon": -69.162,
+        "kind": "EQ",
+        "name": "Green M 4.7 Earthquake in Venezuela at: 08 Sep 2026 06:49:48.",
+        "level": "Green",
+        "from": "2026-09-08T06:49:48",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564232&episodeid=1731917&eventtype=EQ"
+      },
+      {
+        "lat": -8.165,
+        "lon": 120.6,
+        "kind": "EQ",
+        "name": "Green M 5.3 Earthquake in Indonesia at: 08 Sep 2026 04:40:28.",
+        "level": "Green",
+        "from": "2026-09-08T04:40:28",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564210&episodeid=1731891&eventtype=EQ"
+      },
+      {
+        "lat": 51.56,
+        "lon": 159.702,
+        "kind": "EQ",
+        "name": "Green M 4.6 Earthquake in Russia at: 08 Sep 2026 02:34:20.",
+        "level": "Green",
+        "from": "2026-09-08T02:34:20",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564205&episodeid=1731885&eventtype=EQ"
+      },
+      {
+        "lat": -22.334,
+        "lon": -179.763,
+        "kind": "EQ",
+        "name": "Green M 4.5 Earthquake in South Of Fiji Islands at: 08 Sep 2026 01:39:35.",
+        "level": "Green",
+        "from": "2026-09-08T01:39:35",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564184&episodeid=1731863&eventtype=EQ"
+      },
+      {
+        "lat": 2.192,
+        "lon": 99.381,
+        "kind": "FL",
+        "name": "Green Flood in Indonesia from: 06 Sep 2026 01 to: 08 Sep 2026 01.",
+        "level": "Green",
+        "from": "2026-09-06T01:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1104146&episodeid=1&eventtype=FL"
+      },
+      {
+        "lat": -19.841,
+        "lon": 170.144,
+        "kind": "EQ",
+        "name": "Green M 5.1 Earthquake in Vanuatu at: 08 Sep 2026 00:52:02.",
+        "level": "Green",
+        "from": "2026-09-08T00:52:02",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1564175&episodeid=1731852&eventtype=EQ"
+      },
+      {
+        "lat": -11.4,
+        "lon": 130.788,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 24 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-24T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031428&episodeid=19&eventtype=WF"
+      },
+      {
+        "lat": -10.301,
+        "lon": 30.665,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 27 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-27T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031436&episodeid=13&eventtype=WF"
+      },
+      {
+        "lat": -15.6,
+        "lon": 38.073,
+        "kind": "WF",
+        "name": "Green Forest fires in Mozambique from: 25 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-25T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031396&episodeid=15&eventtype=WF"
+      },
+      {
+        "lat": -16.356,
+        "lon": 144.312,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 29 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-29T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031413&episodeid=28&eventtype=WF"
+      },
+      {
+        "lat": -1.139,
+        "lon": 110.034,
+        "kind": "WF",
+        "name": "Green Forest fires in Indonesia from: 26 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-26T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031350&episodeid=23&eventtype=WF"
+      },
+      {
+        "lat": -18.466,
+        "lon": 19.61,
+        "kind": "WF",
+        "name": "Green Forest fires in Namibia from: 28 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-28T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031382&episodeid=26&eventtype=WF"
+      },
+      {
+        "lat": -7.955,
+        "lon": 29.921,
+        "kind": "WF",
+        "name": "Green Forest fires in The Democratic Republic of Congo from: 27 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-27T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031393&episodeid=14&eventtype=WF"
+      },
+      {
+        "lat": -16.097,
+        "lon": 135.867,
+        "kind": "WF",
+        "name": "Green Forest fires in Australia from: 24 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-24T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031271&episodeid=30&eventtype=WF"
+      },
+      {
+        "lat": -9.989,
+        "lon": 29.841,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 28 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-28T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031511&episodeid=11&eventtype=WF"
+      },
+      {
+        "lat": -12.067,
+        "lon": 38.197,
+        "kind": "WF",
+        "name": "Green Forest fires in Mozambique from: 28 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-28T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031516&episodeid=12&eventtype=WF"
+      },
+      {
+        "lat": -17.212,
+        "lon": 18.023,
+        "kind": "WF",
+        "name": "Green Forest fires in Angola from: 31 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-31T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031504&episodeid=15&eventtype=WF"
+      },
+      {
+        "lat": -6.974,
+        "lon": 16.122,
+        "kind": "WF",
+        "name": "Green Forest fires in Angola from: 31 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-31T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031506&episodeid=8&eventtype=WF"
+      },
+      {
+        "lat": -9.504,
+        "lon": 29.566,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 26 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-26T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031522&episodeid=12&eventtype=WF"
+      },
+      {
+        "lat": -4.303,
+        "lon": 28.848,
+        "kind": "WF",
+        "name": "Green Forest fires in The Democratic Republic of Congo from: 26 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-26T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031524&episodeid=9&eventtype=WF"
+      },
+      {
+        "lat": -15.854,
+        "lon": -60.938,
+        "kind": "WF",
+        "name": "Green Forest fires in Bolivia from: 25 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-25T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031526&episodeid=15&eventtype=WF"
+      },
+      {
+        "lat": -9.729,
+        "lon": 29.656,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 28 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-28T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031478&episodeid=12&eventtype=WF"
+      },
+      {
+        "lat": 2.425,
+        "lon": 117.945,
+        "kind": "WF",
+        "name": "Green Forest fires in Indonesia from: 28 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-28T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031458&episodeid=13&eventtype=WF"
+      },
+      {
+        "lat": -3.665,
+        "lon": 13.592,
+        "kind": "WF",
+        "name": "Green Forest fires in Congo from: 01 Sep 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-01T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031440&episodeid=12&eventtype=WF"
+      },
+      {
+        "lat": -9.825,
+        "lon": 30.51,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 25 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-25T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031577&episodeid=9&eventtype=WF"
+      },
+      {
+        "lat": -5.487,
+        "lon": 16.192,
+        "kind": "WF",
+        "name": "Green Forest fires in The Democratic Republic of Congo from: 30 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-30T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031570&episodeid=8&eventtype=WF"
+      },
+      {
+        "lat": -14.405,
+        "lon": 36.353,
+        "kind": "WF",
+        "name": "Green Forest fires in Mozambique from: 29 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-29T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031571&episodeid=9&eventtype=WF"
+      },
+      {
+        "lat": -11.725,
+        "lon": 31.009,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 26 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-26T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031572&episodeid=18&eventtype=WF"
+      },
+      {
+        "lat": -3.808,
+        "lon": 28.999,
+        "kind": "WF",
+        "name": "Green Forest fires in The Democratic Republic of Congo from: 27 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-27T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031573&episodeid=7&eventtype=WF"
+      },
+      {
+        "lat": -11.741,
+        "lon": 37.673,
+        "kind": "WF",
+        "name": "Green Forest fires in Mozambique from: 01 Sep 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-01T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031559&episodeid=9&eventtype=WF"
+      },
+      {
+        "lat": -8.767,
+        "lon": 30.204,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 31 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-31T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031562&episodeid=11&eventtype=WF"
+      },
+      {
+        "lat": -7.161,
+        "lon": 15.94,
+        "kind": "WF",
+        "name": "Green Forest fires in Angola from: 30 Aug 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-08-30T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031565&episodeid=7&eventtype=WF"
+      },
+      {
+        "lat": -10.881,
+        "lon": 30.726,
+        "kind": "WF",
+        "name": "Green Forest fires in Zambia from: 01 Sep 2026 to: 08 Sep 2026.",
+        "level": "Green",
+        "from": "2026-09-01T00:00:00",
+        "url": "https://www.gdacs.org/report.aspx?eventid=1031603&episodeid=8&eventtype=WF"
+      }
+    ],
+    "errors": {},
+    "fetched_at": "2026-09-09T15:38:32.678273+00:00"
   },
-  "generated_at": "2026-09-09T15:34:24.600013+00:00"
+  "generated_at": "2026-09-09T15:38:32.703882+00:00"
 }
