@@ -326,6 +326,8 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       Generate a localized intelligence brief for your area (200-mile radius): local law enforcement activity,
       crime trends, political developments, business intelligence, and regional threats &mdash; via X search + web search.
       Entering a ZIP also re-targets the God's Eye feeds above onto that area.
+      Collection runs from your browser using your own xAI key, kept in this browser only &mdash;
+      no key is published in this page.
     </p>
     <div class="access-form">
       <input type="password" id="accessCode" placeholder="4-digit access code" maxlength="4" inputmode="numeric" autocomplete="off">
@@ -1448,7 +1450,10 @@ async function generateLocalBrief(){
 
   let key = apiKey();
   if(!key){
-    key = prompt('No collection key is embedded in this build.\nPaste your xAI API key (stored in this browser only):') || '';
+    key = prompt('This page does not ship an API key, by design \u2014 anything in a\n'
+               + 'published page is readable by every visitor.\n\n'
+               + 'Paste your own xAI API key. It is stored only in this browser\n'
+               + '(localStorage) and is never uploaded or published.') || '';
     if(!key){ msgDiv.innerHTML = '<p class="error-msg">No API key available — cannot task collection</p>'; return; }
     try { localStorage.setItem('trident_grok_key', key); } catch(_){}
   }
