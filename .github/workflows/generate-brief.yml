@@ -33,11 +33,14 @@ jobs:
       with:
         python-version: '3.10'
         
-    - run: pip install requests
+    - run: pip install requests websockets
         
     - name: Generate brief
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        # Optional. Set this repo secret to get worldwide AIS; without it the
+        # naval layer falls back to the keyless regional feed.
+        AISSTREAM_API_KEY: ${{ secrets.AISSTREAM_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         # Collection window, matched to the twice-daily cadence above.
         COLLECTION_WINDOW_HOURS: '12'
