@@ -242,6 +242,8 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         <div class="globe-ctl">
           <button class="lyr on" data-layer="events"><i style="background:#ef4444"></i>BRIEF <b id="nEvents">0</b></button>
           <button class="lyr on" data-layer="quake"><i style="background:#fbbf24"></i>SEISMIC <b id="nQuake">0</b></button>
+          <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>SATS <b id="nSats">0</b></button>
+          <button class="lyr on" data-layer="hazard"><i style="background:#f97316"></i>HAZARD <b id="nHaz">0</b></button>
           <button class="lyr on" data-layer="air"><i style="background:#22d3ee"></i>AIR <b id="nAir">0</b></button>
           <button class="lyr on" data-layer="iss"><i style="background:#a78bfa"></i>ISS</button>
           <button class="lyr on" id="spinBtn">&#8635; SPIN</button>
@@ -561,13 +563,16 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 
 var G = {
   rot:[20,-15], R:0, cx:0, cy:0, spin:true, sel:null, drag:null,
-  layers:{events:true, quake:true, air:true, iss:true},
-  air:[], iss:null
+  layers:{events:true, quake:true, sats:true, hazard:true, air:true, iss:true},
+  air:[], iss:null, sats:[]
 };
 
+var KIND_EXTRA = {launch:{color:'#22c55e', label:'LAUNCH PAD'}};
 var KIND = {
   events:{color:'#ef4444', label:'BRIEF EVENT'},
   quake: {color:'#fbbf24', label:'SEISMIC'},
+  sats:  {color:'#7dd3fc', label:'SATELLITE'},
+  hazard:{color:'#f97316', label:'HAZARD'},
   air:   {color:'#22d3ee', label:'AIR CONTACT'},
   iss:   {color:'#a78bfa', label:'ORBITAL'}
 };
@@ -607,6 +612,20 @@ function contacts(){
   if(G.layers.air) G.air.forEach(function(x,i){
     if(x.lat!=null && x.lon!=null) out.push({k:'air', lat:x.lat, lon:x.lon, r:2, d:x, id:'a'+i, color:KIND.air.color});
   });
+  if(G.layers.sats) G.sats.forEach(function(x,i){
+    out.push({k:'sats', lat:x.lat, lon:x.lon, r:1.3, d:x, id:'s'+i, color:KIND.sats.color});
+  });
+  if(G.layers.hazard){
+    (FEEDS.alerts||[]).forEach(function(a,i){
+      if(a.lat!=null) out.push({k:'hazard', lat:a.lat, lon:a.lon, r:3.4, d:a, id:'h'+i, color:KIND.hazard.color});
+    });
+    (FEEDS.disasters||[]).forEach(function(x,i){
+      if(x.lat!=null) out.push({k:'hazard', lat:x.lat, lon:x.lon, r:4, d:x, id:'g'+i, color:KIND.hazard.color});
+    });
+    (FEEDS.launches||[]).forEach(function(x,i){
+      if(x.lat!=null) out.push({k:'launch', lat:x.lat, lon:x.lon, r:4, d:x, id:'L'+i, color:'#22c55e'});
+    });
+  }
   if(G.layers.iss && G.iss) out.push({k:'iss', lat:G.iss.lat, lon:G.iss.lon, r:5, d:G.iss, id:'iss', color:KIND.iss.color});
   return out;
 }
@@ -658,7 +677,7 @@ function draw(){
     ctx.beginPath(); ctx.arc(c.sx,c.sy,c.r,0,7);
     ctx.fillStyle=c.color; ctx.globalAlpha = 0.45 + 0.55*c.z; ctx.fill();
     ctx.globalAlpha=1;
-    if(c.k==='events' || isSel){
+    if((c.k==='events' && c.r>3) || isSel){
       ctx.beginPath(); ctx.arc(c.sx,c.sy,c.r+(isSel?7:4),0,7);
       ctx.strokeStyle=c.color; ctx.lineWidth=isSel?2:1; ctx.globalAlpha=isSel?1:.5; ctx.stroke(); ctx.globalAlpha=1;
     }
@@ -731,6 +750,28 @@ function renderDetail(c){
     if(d.gs!=null) rows.push(['GROUND SPD', Math.round(d.gs)+' kt']);
     if(d.squawk) rows.push(['SQUAWK', d.squawk + (['7500','7600','7700'].indexOf(String(d.squawk))>-1 ? '  EMERGENCY' : '')]);
     if(d.r) rows.push(['REGISTRATION', d.r]);
+  } else if(c.k==='sats'){
+    title = esc(d.s[0]);
+    place = 'NORAD ' + d.s[1];
+    rows.push(['ALTITUDE', Math.round(d.alt).toLocaleString()+' km']);
+    rows.push(['INCLINATION', d.s[3].toFixed(2)+'°']);
+    rows.push(['PERIOD', (1440/d.s[8]).toFixed(1)+' min']);
+    rows.push(['ECCENTRICITY', d.s[5].toFixed(5)]);
+    rows.push(['ELEMENT EPOCH', fmtTime(d.s[2]*1000)]);
+    link = 'https://www.n2yo.com/satellite/?s=' + d.s[1];
+  } else if(c.k==='hazard'){
+    title = esc(d.event || d.name || 'Hazard');
+    place = d.area || d.kind || '';
+    if(d.severity) rows.push(['SEVERITY', d.severity]);
+    if(d.level)    rows.push(['ALERT LEVEL', d.level]);
+    if(d.kind)     rows.push(['TYPE', d.kind]);
+    if(d.expires)  rows.push(['EXPIRES', fmtTime(d.expires)]);
+    link = d.url || '';
+  } else if(c.k==='launch'){
+    title = esc(String(d.name||'Launch'));
+    place = d.pad || '';
+    if(d.net)    rows.push(['NET', fmtTime(d.net)]);
+    if(d.status) rows.push(['STATUS', d.status]);
   } else if(c.k==='iss'){
     title = 'International Space Station';
     place = 'NORAD 25544';
@@ -741,7 +782,7 @@ function renderDetail(c){
   rows.push(['POSITION', Math.abs(c.lat).toFixed(2)+'°'+(c.lat>=0?'N':'S')+'  '+Math.abs(c.lon).toFixed(2)+'°'+(c.lon>=0?'E':'W')]);
 
   el.innerHTML =
-    '<div class="d-kind" style="color:'+c.color+'"><span class="dot" style="background:'+c.color+'"></span>'+(KIND[c.k]||{}).label+'</div>' +
+    '<div class="d-kind" style="color:'+c.color+'"><span class="dot" style="background:'+c.color+'"></span>'+((KIND[c.k]||KIND_EXTRA[c.k])||{}).label+'</div>' +
     '<div class="d-title">'+title+'</div>' +
     (place ? '<div class="d-place">'+esc(place)+'</div>' : '') +
     '<div class="d-rows">'+rows.map(function(r){ return '<div class="d-row"><span>'+r[0]+'</span><span>'+esc(String(r[1]))+'</span></div>'; }).join('')+'</div>' +
@@ -759,6 +800,67 @@ document.querySelectorAll('.lyr[data-layer]').forEach(function(b){
 document.getElementById('spinBtn').addEventListener('click', function(){
   G.spin=!G.spin; this.classList.toggle('on', G.spin);
 });
+
+
+/* =====================================================================
+   Satellite propagation -- mean elements from the Skywatch catalogue.
+   Kepler's equation plus J2 secular drift in RAAN, argument of perigee and
+   mean anomaly. Not full SGP4 (no drag or short-period terms), but at globe
+   scale one pixel is tens of kilometres, so the difference is not visible.
+   ===================================================================== */
+var MU = 398600.4418, RE = 6378.137, J2 = 1.08262668e-3, TAU = Math.PI*2;
+
+function gmst(tSec){
+  var JD = tSec/86400 + 2440587.5, T = (JD - 2451545.0)/36525;
+  var sec = 67310.54841 + (876600*3600 + 8640184.812866)*T + 0.093104*T*T - 6.2e-6*T*T*T;
+  var deg = ((sec % 86400)/240) % 360;
+  return (deg < 0 ? deg+360 : deg) * D;
+}
+
+/* s = [name, norad, epochUnix, incDeg, raanDeg, ecc, argpDeg, maDeg, revPerDay] */
+function satPos(s, tSec, g){
+  var dtMin = (tSec - s[2])/60;
+  var n0 = s[8]*TAU/1440;                       // rad/min
+  var a  = Math.pow(MU/Math.pow(n0/60, 2), 1/3);
+  var e  = s[5], i = s[3]*D;
+  var p  = a*(1 - e*e);
+  if(p <= 0) return null;
+  var ci = Math.cos(i);
+  var k  = 1.5*J2*(RE/p)*(RE/p)*n0;             // secular coefficient
+  var raan = s[4]*D - k*ci*dtMin;
+  var argp = s[6]*D + 0.5*k*(5*ci*ci - 1)*dtMin;
+  var M    = s[7]*D + (n0 + 0.5*k*Math.sqrt(1-e*e)*(3*ci*ci - 1))*dtMin;
+  M = M % TAU;
+  var E = M;                                     // Newton on Kepler's equation
+  for(var q=0; q<7; q++){
+    var d1 = (E - e*Math.sin(E) - M)/(1 - e*Math.cos(E));
+    E -= d1;
+    if(Math.abs(d1) < 1e-10) break;
+  }
+  var v = Math.atan2(Math.sqrt(1-e*e)*Math.sin(E), Math.cos(E) - e);
+  var r = a*(1 - e*Math.cos(E));
+  var u = argp + v;
+  var cu=Math.cos(u), su=Math.sin(u), cr=Math.cos(raan), sr=Math.sin(raan), si=Math.sin(i);
+  var x = r*(cr*cu - sr*su*ci), y = r*(sr*cu + cr*su*ci), z = r*(su*si);
+  var lat = Math.asin(Math.max(-1, Math.min(1, z/r)))/D;
+  var lon = (Math.atan2(y, x) - g)/D;
+  lon = ((lon + 180) % 360 + 360) % 360 - 180;
+  return {lat:lat, lon:lon, alt:r - RE, r:r};
+}
+
+/* Positions refresh on a timer, not per frame: a satellite moves ~7km/s, so at
+   globe scale a two-second-old position is well under a pixel. */
+function stepSats(){
+  var sats = FEEDS.sats;
+  if(!sats || !sats.length){ G.sats = []; return; }
+  var t = Date.now()/1000, g = gmst(t), out = [];
+  for(var i=0;i<sats.length;i++){
+    var q = satPos(sats[i], t, g);
+    if(q && isFinite(q.lat) && isFinite(q.lon)) out.push({s:sats[i], lat:q.lat, lon:q.lon, alt:q.alt});
+  }
+  G.sats = out;
+  var el = document.getElementById('nSats'); if(el) el.textContent = out.length;
+}
 
 /* =====================  tiles  ===================== */
 function jget(url, ms){
@@ -833,6 +935,9 @@ function paintBaked(){
   } else { liveLaunch(); }
 
   document.getElementById('nEvents').textContent = EVENTS.length;
+  var plottable = function(arr){ return (arr||[]).filter(function(x){ return x.lat!=null; }).length; };
+  document.getElementById('nHaz').textContent =
+    plottable(FEEDS.alerts) + plottable(FEEDS.disasters) + plottable(FEEDS.launches);
 }
 
 
@@ -929,6 +1034,7 @@ function feedIss(){
 sizeGlobe();
 addEventListener('resize', function(){ sizeGlobe(); });
 paintBaked();
+stepSats(); setInterval(stepSats, 2000);
 feedAir(); feedIss();
 setInterval(function(){ feedAir(); feedIss(); }, 90000);
 requestAnimationFrame(loop);
