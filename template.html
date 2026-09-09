@@ -613,10 +613,14 @@ function contacts(){
   if(G.layers.quake) (FEEDS.quakes||[]).forEach(function(q,i){
     out.push({k:'quake', lat:q.lat, lon:q.lon, r:Math.max(2, Math.min(7,(q.mag-1.5)*1.4)), d:q, id:'q'+i, color:KIND.quake.color});
   });
+  // Only military and emergency traffic go through the per-frame contact list;
+  // the bulk of civil aircraft are drawn in the batched pass with the satellites.
   if(G.layers.air) G.air.forEach(function(x,i){
-    if(x.lat!=null && x.lon!=null)
-      out.push({k:'air', lat:x.lat, lon:x.lon, r:x._mil?2.6:2, d:x, id:'a'+i,
-                color:x._mil ? '#f87171' : KIND.air.color});
+    if(x.lat==null || x.lon==null) return;
+    var hot = ['7500','7600','7700'].indexOf(String(x.squawk||'')) > -1;
+    if(x._mil || hot)
+      out.push({k:'air', lat:x.lat, lon:x.lon, r:hot?3.4:2.6, d:x, id:'a'+i,
+                color: hot ? '#ef4444' : '#f87171'});
   });
   if(G.layers.hazard){
     (FEEDS.alerts||[]).forEach(function(a,i){
@@ -911,9 +915,22 @@ function drawSats(){
   if(!S || !G.satOk) return;
   var l = G.layers, cx=G.cx, cy=G.cy, R=G.R, rot0=G.rot[0]*D, p0=G.rot[1]*D;
   var cp0=Math.cos(p0), sp0=Math.sin(p0);
-  var paths = {sats:new Path2D(), rocket:new Path2D(), debris:new Path2D()};
-  var size  = {sats:1.6, rocket:1.6, debris:1.1};
+  var paths = {sats:new Path2D(), rocket:new Path2D(), debris:new Path2D(), air:new Path2D()};
+  var size  = {sats:1.6, rocket:1.6, debris:1.1, air:1.8};
   var any = false;
+
+  if(l.air){
+    for(var ai=0; ai<G.air.length; ai++){
+      var A = G.air[ai];
+      if(A.lat==null || A.lon==null || A._mil) continue;
+      var alat=A.lat*D, alon=A.lon*D + rot0, acp=Math.cos(alat);
+      if(sp0*Math.sin(alat) + cp0*acp*Math.cos(alon) <= 0) continue;
+      var ax = cx + R*(acp*Math.sin(alon));
+      var ay = cy - R*(cp0*Math.sin(alat) - sp0*acp*Math.cos(alon));
+      paths.air.rect(ax-0.9, ay-0.9, 1.8, 1.8);
+      any = true;
+    }
+  }
   for(var i=0;i<S.length;i++){
     if(!G.satOk[i]) continue;
     var kind = KIND_OF[S[i][9]] || 'debris';
@@ -932,6 +949,7 @@ function drawSats(){
   ctx.fillStyle=KIND.debris.color; ctx.globalAlpha=.42; ctx.fill(paths.debris);
   ctx.fillStyle=KIND.rocket.color; ctx.globalAlpha=.72; ctx.fill(paths.rocket);
   ctx.fillStyle=KIND.sats.color;   ctx.globalAlpha=.85; ctx.fill(paths.sats);
+  ctx.fillStyle=KIND.air.color;    ctx.globalAlpha=.9;  ctx.fill(paths.air);
   ctx.globalAlpha=1;
 }
 
@@ -1109,10 +1127,21 @@ function liveLaunch(){
    target, and the global military feed so the globe is populated worldwide
    rather than only around one point. ----------------------------------------*/
 function tryChain(urls, ms){
-  var i = 0;
+  var i = 0, tried = [];
   function next(){
-    if(i >= urls.length) return Promise.reject(new Error('all providers failed'));
-    return jget(urls[i++], ms).catch(next);
+    if(i >= urls.length){
+      var e = new Error('all providers failed: ' + tried.join(', '));
+      e.chain = tried;
+      return Promise.reject(e);
+    }
+    var u = urls[i++];
+    return jget(u, ms).catch(function(err){
+      // A cross-origin rejection and a dead host are indistinguishable to
+      // fetch (both surface as TypeError), so name the host and let the
+      // reader judge which it was.
+      tried.push(u.split('/')[2] + ' ' + why(err));
+      return next();
+    });
   }
   return next();
 }
@@ -1127,20 +1156,75 @@ var MIL_URLS = ['https://api.airplanes.live/v2/mil',
                 'https://opendata.adsb.fi/api/v2/mil',
                 'https://api.adsb.lol/v2/mil'];
 
-function feedAir(){
-  var nm = 250;
-  var local = tryChain(localUrls(GE.lat, GE.lon, nm), 14000).then(acList).catch(function(e){ return {err:why(e)}; });
-  var mil   = tryChain(MIL_URLS, 14000).then(acList).catch(function(){ return []; });
 
-  Promise.all([local, mil]).then(function(res){
+/* --- global air picture --------------------------------------------------
+   A 250nm ring is a speck at globe scale, so the local query alone leaves the
+   globe looking empty of aircraft. OpenSky's states/all returns every tracked
+   aircraft worldwide in one request, which is far less traffic than fanning out
+   many regional queries; if it is unavailable (it rate-limits anonymous callers
+   hard) we fall back to a spread of regional queries against the same providers
+   the local picture uses. Global refresh is deliberately slow -- the payload is
+   large and aircraft positions are not the point of a twice-daily brief. ---- */
+var AIR_ANCHORS = [
+  [40.7,-74.0],[34.0,-118.2],[41.9,-87.6],[29.8,-95.4],
+  [51.5,-0.1],[50.1,8.7],[41.9,12.5],[40.4,-3.7],
+  [25.3,55.3],[35.7,139.7],[31.2,121.5],[28.6,77.2],
+  [1.35,103.8],[-33.9,151.2],[-23.5,-46.6],[-26.2,28.0]
+];
+
+/* OpenSky states/all -> the same shape the readsb providers return. */
+function fromOpenSky(j){
+  var st = (j && j.states) || [];
+  var out = [];
+  for(var i=0;i<st.length;i++){
+    var a = st[i];
+    var lon = a[5], lat = a[6];
+    if(lat == null || lon == null) continue;
+    out.push({
+      hex: a[0], flight: (a[1]||'').trim(), t: '', lat: lat, lon: lon,
+      alt_baro: a[8] ? 'ground' : (a[7] != null ? Math.round(a[7]*3.28084) : null),
+      gs: a[9] != null ? Math.round(a[9]*1.94384) : null,
+      squawk: a[14] || '', country: a[2] || ''
+    });
+  }
+  return out;
+}
+
+function globalAir(){
+  return jget('https://opensky-network.org/api/states/all', 25000)
+    .then(fromOpenSky)
+    .then(function(list){ if(!list.length) throw new Error('empty'); G.airSource='OpenSky'; return list; })
+    .catch(function(){
+      // fan out across regions using the providers we know answer
+      var jobs = AIR_ANCHORS.map(function(a){
+        return tryChain(localUrls(a[0], a[1], 250), 12000).then(acList).catch(function(){ return []; });
+      });
+      return Promise.all(jobs).then(function(chunks){
+        G.airSource = 'regional';
+        return chunks.reduce(function(x,y){ return x.concat(y); }, []);
+      });
+    });
+}
+
+function feedAir(refreshGlobal){
+  var nm = 250;
+  var local = tryChain(localUrls(GE.lat, GE.lon, nm), 14000).then(acList)
+                .catch(function(e){ return {err: (e.chain||[]).join(' | ') || why(e)}; });
+  var mil   = tryChain(MIL_URLS, 14000).then(acList).catch(function(){ return []; });
+  var glob  = refreshGlobal ? globalAir().catch(function(){ return []; })
+                            : Promise.resolve(G.airGlobal || []);
+
+  Promise.all([local, mil, glob]).then(function(res){
     var loc = res[0], milAc = res[1];
+    G.airGlobal = res[2] || [];
     var locErr = loc && loc.err ? loc.err : null;
+    if(loc && loc.err) console.warn('air providers:', loc.err);
     if(locErr) loc = [];
 
     // de-duplicate: an aircraft can appear in both the local and military feeds
     var seen = {}, merged = [];
     milAc.forEach(function(a){ a._mil = true; });
-    milAc.concat(loc).forEach(function(a){
+    milAc.concat(loc).concat(G.airGlobal).forEach(function(a){
       var k = a.hex || a.r || a.flight;
       if(!k || seen[k]) return;
       seen[k] = 1;
@@ -1148,12 +1232,13 @@ function feedAir(){
     });
     G.air = merged;
 
-    if(!merged.length && locErr){ down('tileAir','dAir','aCount','aSub', locErr); return; }
+    if(!merged.length){ down('tileAir','dAir','aCount','aSub', locErr || 'no provider answered'); return; }
     var emerg = merged.filter(function(a){ return ['7500','7600','7700'].indexOf(String(a.squawk||''))>-1; });
     document.getElementById('aCount').textContent = merged.length;
     document.getElementById('nAir').textContent = merged.length;
     document.getElementById('aSub').textContent =
-      milAc.length + ' military worldwide · ' + loc.length + ' within ' + nm + 'nm' +
+      G.airGlobal.length + ' global' + (G.airSource ? ' ('+G.airSource+')' : '') +
+      ' · ' + milAc.length + ' military · ' + loc.length + ' within ' + nm + 'nm' +
       (emerg.length ? ' · ' + emerg.length + ' SQUAWK ALERT' : '');
     document.getElementById('aList').innerHTML = emerg.concat(merged).filter(function(v,i,x){return x.indexOf(v)===i;})
       .slice(0,3).map(function(a){
@@ -1183,8 +1268,9 @@ sizeGlobe();
 addEventListener('resize', function(){ sizeGlobe(); });
 paintBaked();
 loadSats(); setInterval(stepSats, 2000);
-feedAir(); feedIss();
-setInterval(function(){ feedAir(); feedIss(); }, 90000);
+feedAir(true); feedIss();
+setInterval(function(){ feedAir(false); feedIss(); }, 90000);
+setInterval(function(){ feedAir(true); }, 600000);
 requestAnimationFrame(loop);
 
 /* --- re-target onto a ZIP --- */
