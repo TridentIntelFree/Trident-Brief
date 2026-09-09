@@ -337,9 +337,15 @@ def fetch_disasters():
     No key, worldwide, and already geolocated. Best effort: if the shape is not
     what we expect the layer is simply absent.
     """
+    # GDACS rejects a request without eventtype ("Eventtype is required"), and
+    # the accepted parameter set varies by endpoint, so try progressively
+    # simpler forms rather than relying on one.
+    types = 'EQ;TC;FL;VO;DR;WF'
     d, err = _try([
-        'https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?alertlevel=Green;Orange;Red',
-        'https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP',
+        f'https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventlist={types}&alertlevel=Green;Orange;Red',
+        f'https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?eventtype={types}',
+        f'https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP?eventtype={types}',
+        'https://www.gdacs.org/gdacsapi/api/events/geteventlist/MAP?eventlist=EQ;TC;FL;VO',
     ], timeout=25)
     if d is None:
         return None, err
