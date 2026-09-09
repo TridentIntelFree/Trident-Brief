@@ -4,3 +4,4 @@ __pycache__/
 # regenerated from Skywatch on every run; too large to version
 assets/satellites.json
 assets/aircraft.json
+assets/feed-status.json

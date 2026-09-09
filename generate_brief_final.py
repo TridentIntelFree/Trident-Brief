@@ -703,7 +703,34 @@ def fetch_server_feeds():
     # geo-blocked where a shared CI runner IP is.
     feeds['errors'] = errors
     feeds['fetched_at'] = datetime.now(timezone.utc).isoformat()
+    write_feed_status(feeds)
     return feeds
+
+
+def write_feed_status(feeds):
+    """Publish a small feed-health file alongside the page.
+
+    The feeds-only job does not commit, so a failure there is otherwise only
+    visible in an Actions log. This lands at assets/feed-status.json on the live
+    site, where it can be read directly.
+    """
+    counts = {}
+    for k in ('quakes', 'launches', 'alerts', 'disasters', 'vessels'):
+        counts[k] = len(feeds[k]) if isinstance(feeds.get(k), list) else None
+    counts['aircraft'] = feeds.get('aircount')
+    counts['satellites'] = feeds.get('satcounts')
+    status = {'fetched_at': feeds.get('fetched_at'),
+              'collected': counts,
+              'errors': feeds.get('errors') or {}}
+    try:
+        os.makedirs('assets', exist_ok=True)
+        with open('assets/feed-status.json', 'w', encoding='utf-8') as f:
+            json.dump(status, f, indent=2)
+        print('  feed status -> assets/feed-status.json')
+        for k, v in (status['errors'] or {}).items():
+            print(f'    FAILED {k}: {str(v)[:150]}')
+    except Exception as e:
+        print(f'  could not write feed status: {e}')
 
 
 # --------------------------------------------------------------- storage ----
