@@ -65,6 +65,7 @@ jobs:
         git config user.name "Trident Bot"
         git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git add latest-brief.json archive
+        git add history.json 2>/dev/null || true
         if git diff --cached --quiet; then
           echo "No brief changes to commit"
         else

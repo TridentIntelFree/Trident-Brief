@@ -102,6 +102,24 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .d-link:hover{background:rgba(59,130,246,.3);color:#fff}
 @media (max-width:860px){ .ge-wrap{grid-template-columns:1fr} }
 
+/* ---------- recurrence ---------- */
+.recur-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.recur{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));border:1px solid var(--line2);
+  border-radius:9px;padding:12px 14px;cursor:pointer;transition:.15s;text-align:left;width:100%}
+.recur:hover{border-color:var(--blue);background:rgba(59,130,246,.14)}
+.recur.hot{border-color:rgba(239,68,68,.5)}
+.recur-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.recur-place{color:#fff;font-weight:700;font-size:.88em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.recur-n{font-family:var(--mono);font-size:.72em;color:var(--amber);white-space:nowrap}
+.recur-head{color:var(--ink-dim);font-size:.75em;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.recur-when{color:var(--ink-faint);font-family:var(--mono);font-size:.66em;margin-top:6px;letter-spacing:.04em}
+
+/* ---------- layer groups ---------- */
+.lyr-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:rgba(7,11,28,.5);
+  border:1px solid var(--line2);border-radius:8px;padding:5px 8px}
+.lyr-group > b{font-family:var(--mono);font-size:.6em;letter-spacing:.12em;color:var(--ink-faint);
+  text-transform:uppercase;margin-right:2px}
+
 /* ---------- toolbar ---------- */
 .toolbar{position:sticky;top:0;z-index:30;background:rgba(8,13,30,.94);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);padding:11px clamp(16px,3.5vw,40px);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -114,6 +132,14 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
   font-size:.72em;font-family:var(--mono);cursor:pointer;white-space:nowrap;text-decoration:none;letter-spacing:.04em;transition:.15s}
 .chip:hover,.chip.on{background:rgba(59,130,246,.2);border-color:var(--blue);color:#fff}
 .hitcount{font-size:.72em;font-family:var(--mono);color:var(--amber);white-space:nowrap}
+
+/* ---------- archive hits ---------- */
+#archiveHits{padding:12px clamp(16px,3.5vw,40px);border-bottom:1px solid var(--line2);background:rgba(59,130,246,.05)}
+.arch-hits-h{font-family:var(--mono);font-size:.7em;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}
+.arch-hit{display:block;width:100%;text-align:left;background:none;border:none;border-left:2px solid var(--line);
+  color:var(--ink-dim);font-size:.8em;padding:5px 0 5px 10px;margin-bottom:3px;cursor:pointer;line-height:1.5}
+.arch-hit:hover{color:#fff;border-left-color:var(--blue)}
+.arch-hit span{font-family:var(--mono);font-size:.85em;color:var(--ink-faint);margin-right:10px}
 
 /* ---------- brief body ---------- */
 .content{padding:clamp(20px,3.5vw,40px);font-size:.97em}
@@ -240,19 +266,29 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       <div class="globe-col">
         <canvas id="globe"></canvas>
         <div class="globe-ctl">
-          <button class="lyr on" data-layer="events"><i style="background:#ef4444"></i>BRIEF <b id="nEvents">0</b></button>
-          <button class="lyr on" data-layer="quake"><i style="background:#fbbf24"></i>SEISMIC <b id="nQuake">0</b></button>
-          <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
-          <button class="lyr on" data-layer="rocket"><i style="background:#c084fc"></i>R/B <b id="nRocket">0</b></button>
-          <button class="lyr on" data-layer="debris"><i style="background:#7c8aa5"></i>DEBRIS <b id="nDebris">0</b></button>
-          <button class="lyr on" data-layer="naval"><i style="background:#34d399"></i>NAVAL <b id="nNaval">0</b></button>
-          <button class="lyr on" data-layer="hazard"><i style="background:#f97316"></i>HAZARD <b id="nHaz">0</b></button>
-          <button class="lyr on" data-layer="air"><i style="background:#22d3ee"></i>AIR <b id="nAir">0</b></button>
-          <button class="lyr on" data-layer="iss"><i style="background:#a78bfa"></i>ISS</button>
-          <button class="lyr on" id="spinBtn">&#8635; SPIN</button>
-          <button class="lyr" id="zoomOut" title="Zoom out">&minus;</button>
-          <button class="lyr" id="zoomLabelBtn" title="Reset zoom"><b id="zoomLabel">1.0&times;</b></button>
-          <button class="lyr" id="zoomIn" title="Zoom in">+</button>
+          <span class="lyr-group"><b>brief</b>
+            <button class="lyr on" data-layer="events"><i style="background:#ef4444"></i>EVENTS <b id="nEvents">0</b></button>
+          </span>
+          <span class="lyr-group"><b>orbital</b>
+            <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
+            <button class="lyr on" data-layer="rocket"><i style="background:#c084fc"></i>R/B <b id="nRocket">0</b></button>
+            <button class="lyr on" data-layer="debris"><i style="background:#7c8aa5"></i>DEBRIS <b id="nDebris">0</b></button>
+            <button class="lyr on" data-layer="iss"><i style="background:#a78bfa"></i>ISS</button>
+          </span>
+          <span class="lyr-group"><b>surface</b>
+            <button class="lyr on" data-layer="air"><i style="background:#22d3ee"></i>AIR <b id="nAir">0</b></button>
+            <button class="lyr on" data-layer="naval"><i style="background:#34d399"></i>NAVAL <b id="nNaval">0</b></button>
+          </span>
+          <span class="lyr-group"><b>earth</b>
+            <button class="lyr on" data-layer="quake"><i style="background:#fbbf24"></i>SEISMIC <b id="nQuake">0</b></button>
+            <button class="lyr on" data-layer="hazard"><i style="background:#f97316"></i>HAZARD <b id="nHaz">0</b></button>
+          </span>
+          <span class="lyr-group"><b>view</b>
+            <button class="lyr on" id="spinBtn">&#8635; SPIN</button>
+            <button class="lyr" id="zoomOut" title="Zoom out">&minus;</button>
+            <button class="lyr" id="zoomLabelBtn" title="Reset zoom"><b id="zoomLabel">1.0&times;</b></button>
+            <button class="lyr" id="zoomIn" title="Zoom in">+</button>
+          </span>
         </div>
         <div class="globe-hint">Drag to rotate &middot; scroll or pinch to zoom &middot; click any contact to expand it</div>
       </div>
@@ -306,15 +342,26 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
     </div>
   </div>
 
+  <!-- ============ RECURRENCE ============ -->
+  <div class="section-band" id="recurBand" style="display:none">
+    <div class="band-head">
+      <h2>&#128260; Recurring Locations</h2>
+      <div class="sub" id="recurSub"></div>
+    </div>
+    <div class="recur-list" id="recurList"></div>
+  </div>
+
   <!-- ============ TOOLBAR ============ -->
   <div class="toolbar">
     <div class="search">
       <span style="color:var(--ink-faint);font-family:var(--mono);font-size:.8em">&#128269;</span>
-      <input type="search" id="briefSearch" placeholder="Filter brief &mdash; keyword, @handle, source&hellip;" autocomplete="off">
+      <input type="search" id="briefSearch" placeholder="Search this brief and the archive&hellip;" autocomplete="off">
       <span class="hitcount" id="hitCount"></span>
     </div>
     <div class="nav-chips" id="navChips"></div>
   </div>
+
+  <div id="archiveHits" style="display:none"></div>
 
   <!-- ============ BRIEF ============ -->
   <div class="content" id="briefBody"></div>
@@ -381,6 +428,7 @@ const ARCHIVE    = __ARCHIVE_JSON__;
 const EVENTS     = __EVENTS_JSON__;
 const FEEDS      = __FEEDS_JSON__;
 const COASTLINE  = __COASTLINE_JSON__;
+const HISTORY    = __HISTORY_JSON__;
 const GROK_KEY   = __GROK_KEY_JSON__;
 const ACCESS_CODE= "0330";
 
@@ -537,9 +585,42 @@ function runSearch(q){
     frag.appendChild(document.createTextNode(node.nodeValue.slice(last)));
     node.parentNode.replaceChild(frag, node);
   });
-  count.textContent = hits ? hits+' hit'+(hits>1?'s':'') : 'no match';
+  var past = searchHistory(q);
+  count.textContent = (hits ? hits+' here' : 'none here') + (past ? ' \u00b7 '+past+' in archive' : '');
   var first = body.querySelector('mark');
   if(first) first.scrollIntoView({block:'center',behavior:'smooth'});
+}
+
+/* The archive is where a twice-daily brief compounds, so searching only the
+   open one throws most of the value away. HISTORY carries a condensed line and
+   the headlines for every past brief, which is enough to search cheaply. */
+function searchHistory(q){
+  var host = document.getElementById('archiveHits');
+  var briefs = (HISTORY && HISTORY.briefs) || [];
+  if(!host) return 0;
+  if(q.length < 2 || !briefs.length){ host.innerHTML = ''; host.style.display='none'; return 0; }
+  var needle = q.toLowerCase(), hit = [];
+  briefs.forEach(function(b){
+    var hay = ((b.bluf||'') + ' ' + (b.headlines||[]).join(' ')).toLowerCase();
+    if(hay.indexOf(needle) > -1) hit.push(b);
+  });
+  if(!hit.length){ host.innerHTML=''; host.style.display='none'; return 0; }
+  host.style.display = '';
+  host.innerHTML = '<div class="arch-hits-h">' + hit.length + ' earlier brief' + (hit.length>1?'s':'') +
+    ' mention \u201c' + esc(q) + '\u201d</div>' +
+    hit.slice(0,8).map(function(b){
+      var line = (b.bluf || (b.headlines||[])[0] || '').slice(0,150);
+      return '<button class="arch-hit" data-path="'+esc(b.path||'')+'">'+
+             '<span>'+esc(String(b.at||'').slice(0,16).replace('T',' '))+'Z</span>'+
+             esc(line)+'</button>';
+    }).join('');
+  host.querySelectorAll('.arch-hit').forEach(function(el){
+    el.onclick = function(){
+      var p = el.dataset.path;
+      if(p) openArch({date: el.querySelector('span').textContent, path: p});
+    };
+  });
+  return hit.length;
 }
 
 /* ---- freshness + next-run clock ---- */
@@ -631,7 +712,9 @@ function project(lon, lat){
 function contacts(){
   var out=[];
   if(G.layers.events) EVENTS.forEach(function(e,i){
-    out.push({k:'events', lat:e.lat, lon:e.lon, r:5.5, d:e, id:'e'+i,
+    // size by priority so a frigate strike does not read like a press release
+    var pri = Math.max(1, Math.min(5, e.priority || 3));
+    out.push({k:'events', lat:e.lat, lon:e.lon, r:3 + pri*1.1, d:e, id:'e'+i, pri:pri,
               color:SECTION_COLOR[e.section] || KIND.events.color});
   });
   if(G.layers.quake) (FEEDS.quakes||[]).forEach(function(q,i){
@@ -801,6 +884,7 @@ function renderDetail(c){
   if(c.k==='events'){
     title = d.headline || 'Reported event';
     place = d.place || '';
+    if(d.priority) rows.push(['PRIORITY', d.priority + ' / 5' + (d.priority>=4 ? '  \u25b2' : '')]);
     if(d.classification) rows.push(['CLASS', d.classification]);
     if(d.confidence)     rows.push(['CONFIDENCE', d.confidence.toUpperCase()]);
     if(d.section)        rows.push(['SECTION', d.section.toUpperCase()]);
@@ -1541,6 +1625,36 @@ async function generateLocalBrief(){
     btn.disabled = false;
   }
 }
+
+/* =====================================================================
+   RECURRENCE -- what a single brief cannot show
+   ===================================================================== */
+(function(){
+  var places = ((HISTORY && HISTORY.places) || []).filter(function(p){ return p.count > 1; });
+  if(!places.length) return;
+  var band = document.getElementById('recurBand'), list = document.getElementById('recurList');
+  band.style.display = '';
+  var briefs = (HISTORY.briefs || []).length;
+  document.getElementById('recurSub').textContent =
+    places.length + ' location' + (places.length>1?'s':'') + ' reported in more than one brief, across ' + briefs + ' collections';
+  places.slice(0, 12).forEach(function(p){
+    var b = document.createElement('button');
+    b.className = 'recur' + (p.maxPriority >= 4 ? ' hot' : '');
+    b.innerHTML =
+      '<div class="recur-top"><span class="recur-place">'+esc(p.place || 'unnamed')+'</span>'+
+      '<span class="recur-n">\u00d7'+p.count+'</span></div>'+
+      '<div class="recur-head">'+esc((p.headlines||[])[0] || '')+'</div>'+
+      '<div class="recur-when">'+esc(String(p.first||'').slice(5,10))+' \u2192 '+esc(String(p.last||'').slice(5,10))+
+      ' \u00b7 max priority '+(p.maxPriority||'-')+'</div>';
+    b.onclick = function(){
+      G.rot = [-p.lon, p.lat]; G.spin = false;
+      document.getElementById('spinBtn').classList.remove('on');
+      setZoom(Math.max(G.zoom, 3));
+      document.getElementById('godseye').scrollIntoView({behavior:'smooth', block:'start'});
+    };
+    list.appendChild(b);
+  });
+})();
 
 /* =====================================================================
    ARCHIVE

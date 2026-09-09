@@ -1,0 +1,21 @@
+{
+  "_comment": "Your standing intelligence requirements. Edit freely; the collector injects these into every prompt and flags matching items as PRIORITY. Keep it short - a focused list beats a long one.",
+  "actors": [
+    "Russian Black Sea Fleet",
+    "Ukrainian deep-strike units",
+    "IRGC and proxy forces",
+    "PRC military activity near Taiwan"
+  ],
+  "regions": [
+    "Novorossiysk and Crimea",
+    "Baltic states and Kaliningrad",
+    "Taiwan Strait",
+    "Red Sea and Bab el-Mandeb"
+  ],
+  "topics": [
+    "long-range strike and air defence",
+    "undersea cable and pipeline interference",
+    "critical infrastructure intrusion",
+    "AI capability with military application"
+  ]
+}

@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import re
 import sys
@@ -12,6 +13,10 @@ CACHE_FILE = 'latest-brief.json'
 TEMPLATE_FILE = 'template.html'
 ARCHIVE_DIR = 'archive'
 WINDOW_HOURS = int(os.environ.get('COLLECTION_WINDOW_HOURS', '12'))
+MAX_OUTPUT_TOKENS = int(os.environ.get('MAX_OUTPUT_TOKENS', '6000'))
+WATCHLIST_FILE = 'watchlist.json'
+SYSTEM_PROMPT = ('You are a SIGINT/HUMINT fusion analyst with real-time X/Twitter access and web search capabilities. Monitor verified official sources (SIGINT) and unverified local accounts (HUMINT/CHATTER). Also search the broader web for news, government sites, and intelligence sources. Distinguish between confirmed intelligence and uncorroborated chatter. Use professional intelligence terminology. Search X and the web RIGHT NOW.')
+SLOW_SECTIONS = '## 3. UAP/UFO\nSearch: @DeptofDefense @AARO_DOD_Info @SenGillibrand @RepTimBurchett;\n@ChrisKMellon @LueElizondo @rosscoulthart; web: The Black Vault, The Debrief,\nLiberation Times, AARO releases, congressional records.\nFocus: official statements, hearings, document releases, sensor data. Distinguish\nofficial positions from advocacy claims. This section is frequently empty - that is fine.\n\n## 4. PARAPSYCHOLOGY AND CONSCIOUSNESS RESEARCH\nSearch: web only - Nature, Science, arXiv, PubMed, university press releases.\nFocus: peer-reviewed publications and funded programs. Note methodological criticism and\nreplication status. Ignore popular-press speculation. Frequently empty - that is fine.'
 
 
 def generate_with_grok(prompt):
@@ -31,7 +36,7 @@ def generate_with_grok(prompt):
                 'input': [
                     {
                         'role': 'system',
-                        'content': 'You are a SIGINT/HUMINT fusion analyst with real-time X/Twitter access and web search capabilities. Monitor verified official sources (SIGINT) and unverified local accounts (HUMINT/CHATTER). Also search the broader web for news, government sites, and intelligence sources. Distinguish between confirmed intelligence and uncorroborated chatter. Use professional intelligence terminology. Search X and the web RIGHT NOW.'
+                        'content': SYSTEM_PROMPT
                     },
                     {
                         'role': 'user',
@@ -42,10 +47,26 @@ def generate_with_grok(prompt):
                     {'type': 'x_search'},
                     {'type': 'web_search'}
                 ],
-                'temperature': 0.6
+                'temperature': 0.6,
+                'max_output_tokens': MAX_OUTPUT_TOKENS
             },
             timeout=180
         )
+
+        # A reasoning model with no ceiling is an open-ended bill. If this
+        # deployment rejects the cap, retry once uncapped rather than lose the run.
+        if response.status_code == 400 and 'max_output_tokens' in response.text:
+            print('  max_output_tokens rejected; retrying uncapped')
+            response = requests.post(
+                'https://api.x.ai/v1/responses',
+                headers={'Content-Type': 'application/json',
+                         'Authorization': f'Bearer {api_key}'},
+                json={'model': 'grok-4-1-fast-reasoning',
+                      'input': [{'role': 'system', 'content': SYSTEM_PROMPT},
+                                {'role': 'user', 'content': prompt}],
+                      'tools': [{'type': 'x_search'}, {'type': 'web_search'}],
+                      'temperature': 0.6},
+                timeout=180)
         
         if response.status_code == 200:
             data = response.json()
@@ -97,6 +118,47 @@ def generate_with_groq(prompt):
 
 # ---------------------------------------------------------------- prompt ----
 
+def load_watchlist():
+    """Standing intelligence requirements, injected into every prompt.
+
+    Roughly 200 tokens, and it does more for signal than any other change:
+    without it the tasking is generic and returns whatever the model happens
+    to find.
+    """
+    try:
+        with open(WATCHLIST_FILE, 'r', encoding='utf-8') as f:
+            w = json.load(f)
+    except Exception as e:
+        print(f"  no watchlist ({e}); collection will be untargeted")
+        return ''
+    parts = []
+    for key, label in (('actors', 'ACTORS'), ('regions', 'REGIONS'), ('topics', 'TOPICS')):
+        vals = [str(v).strip() for v in (w.get(key) or []) if str(v).strip()]
+        if vals:
+            parts.append(f'{label}: ' + '; '.join(vals[:12]))
+    if not parts:
+        return ''
+    return ('\n=== STANDING REQUIREMENTS (highest priority) ===\n'
+            'Anything matching these outranks general coverage. Search for them by name\n'
+            'even if nothing surfaced organically, and tag matching items [PRIORITY].\n'
+            + '\n'.join(parts) + '\n')
+
+
+def deep_run(now):
+    """Whether to collect the slow-moving sections this run.
+
+    UAP and consciousness research returned "No verifiable developments in
+    window" in every brief on file, yet each run still paid for x_search and
+    web_search against both. They are collected once a day instead of twice.
+    """
+    mode = os.environ.get('COLLECTION_DEPTH', 'auto').lower()
+    if mode in ('deep', 'full'):
+        return True
+    if mode in ('core', 'shallow'):
+        return False
+    return now.hour < 12
+
+
 def previous_digest(previous):
     """Condense the last brief into a short list of what was already reported.
 
@@ -120,7 +182,10 @@ def previous_digest(previous):
     return '\n'.join(lines) if lines else "Previous brief contained no parseable items."
 
 
-def build_prompt(window_start, window_end, prev_digest):
+def build_prompt(window_start, window_end, prev_digest, watchlist='', deep=True):
+    slow_sections = SLOW_SECTIONS if deep else (
+        '(Sections 3 and 4 - UAP and consciousness research - are collected on the\n'
+        'daily deep run only. Do not search for or report them now.)')
     return f"""MULTI-INT COLLECTION TASKING
 
 COLLECTION WINDOW: {window_start:%Y-%m-%d %H:%M} UTC to {window_end:%Y-%m-%d %H:%M} UTC
@@ -166,6 +231,7 @@ CLASSIFICATION TAGS:
 [OSINT - CONFIRMED]      Independently corroborated by two or more sources
 [OSINT - WEB]            Named publication, government portal or research institution
 
+{watchlist}
 === SECTIONS ===
 
 ## 1. GEOPOLITICAL AND MILITARY
@@ -182,17 +248,7 @@ Krebs on Security, BleepingComputer, CISA.gov.
 Focus: active exploitation, breaches, model releases with substantive capability claims,
 regulatory action. Skip routine product marketing.
 
-## 3. UAP/UFO
-Search: @DeptofDefense @AARO_DOD_Info @SenGillibrand @RepTimBurchett;
-@ChrisKMellon @LueElizondo @rosscoulthart; web: The Black Vault, The Debrief,
-Liberation Times, AARO releases, congressional records.
-Focus: official statements, hearings, document releases, sensor data. Distinguish
-official positions from advocacy claims. This section is frequently empty - that is fine.
-
-## 4. PARAPSYCHOLOGY AND CONSCIOUSNESS RESEARCH
-Search: web only - Nature, Science, arXiv, PubMed, university press releases.
-Focus: peer-reviewed publications and funded programs. Note methodological criticism and
-replication status. Ignore popular-press speculation. Frequently empty - that is fine.
+{slow_sections}
 
 === OUTPUT FORMAT ===
 Markdown. Start with a 3-5 line BLUF covering the window overall, then the sections above.
@@ -206,13 +262,15 @@ for each reported item that has a real physical location. Omit items with no loc
 
 ```json
 {{"events":[
-  {{"lat":44.72,"lon":37.77,"place":"Novorossiysk, Russia","headline":"one line, under 100 chars","section":"geopolitical","classification":"SIGINT - VERIFIED","confidence":"high","url":"https://..."}}
+  {{"lat":44.72,"lon":37.77,"place":"Novorossiysk, Russia","headline":"one line, under 100 chars","section":"geopolitical","classification":"SIGINT - VERIFIED","confidence":"high","priority":4,"url":"https://..."}}
 ]}}
 ```
 
 Rules for this block: lat/lon numeric decimal degrees for the place the event occurred;
 section is one of geopolitical, technology, uap, research; confidence is high, medium or
-low; url must be one you actually retrieved. Valid JSON only, no comments, no trailing
+low; priority is 1-5, where 5 demands immediate attention and 1 is routine, scored
+higher for anything matching the standing requirements above; url must be one you
+actually retrieved. Valid JSON only, no comments, no trailing
 commas. If there are no locatable events, output {{"events":[]}}.
 
 Begin collection now."""
@@ -247,9 +305,14 @@ def extract_events(text):
                 continue
             if not (-90 <= lat <= 90 and -180 <= lon <= 180):
                 continue
+            try:
+                pri = max(1, min(5, int(e.get('priority', 3))))
+            except (TypeError, ValueError):
+                pri = 3
             events.append({
                 'lat': lat,
                 'lon': lon,
+                'priority': pri,
                 'place': str(e.get('place', ''))[:120],
                 'headline': str(e.get('headline', ''))[:240],
                 'section': str(e.get('section', 'geopolitical'))[:40],
@@ -867,6 +930,88 @@ def load_cached_brief():
     return None
 
 
+HISTORY_FILE = 'history.json'
+
+
+def _km(lat1, lon1, lat2, lon2):
+    r = 6371.0
+    p = math.pi / 180
+    d_lat, d_lon = (lat2 - lat1) * p, (lon2 - lon1) * p
+    x = (math.sin(d_lat / 2) ** 2
+         + math.cos(lat1 * p) * math.cos(lat2 * p) * math.sin(d_lon / 2) ** 2)
+    return 2 * r * math.asin(min(1.0, math.sqrt(x)))
+
+
+def load_history():
+    try:
+        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {'briefs': [], 'places': []}
+
+
+def update_history(events, archive_path, content, when):
+    """Accumulate events across briefs so patterns become visible.
+
+    A single brief cannot show that somewhere has been hit four times this
+    week. This costs no tokens -- the events are already parsed -- and it is
+    the cheapest real intelligence value in the pipeline. Committed with the
+    brief so it survives the runner being discarded.
+    """
+    try:
+        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+            h = json.load(f)
+    except Exception:
+        h = {}
+    briefs = h.get('briefs') or []
+    places = {p['key']: p for p in (h.get('places') or []) if p.get('key')}
+
+    bluf = ''
+    for line in content.splitlines():
+        t = line.strip()
+        if t and not t.startswith('#'):
+            bluf = re.sub(r'\[\[\d+\]\]\([^)]*\)', '', t)
+            bluf = re.sub(r'[*`]', '', bluf)[:240]
+            break
+
+    stamp = when.isoformat()
+    briefs.insert(0, {'at': stamp, 'path': archive_path, 'bluf': bluf,
+                      'events': len(events),
+                      'headlines': [e.get('headline', '')[:120] for e in events[:6]]})
+
+    for e in events:
+        # Match to an existing location by distance, not by a rounded key:
+        # rounding splits neighbours that straddle a boundary (44.72 and 44.75
+        # round apart while being 3km from each other).
+        p = None
+        for cand in places.values():
+            if _km(e['lat'], e['lon'], cand['lat'], cand['lon']) <= 30:
+                p = cand
+                break
+        if p is None:
+            key = f"{round(e['lat'], 2)},{round(e['lon'], 2)}"
+            p = {'key': key, 'lat': e['lat'], 'lon': e['lon'], 'place': e.get('place', ''),
+                 'count': 0, 'first': stamp, 'headlines': [], 'maxPriority': 0}
+            places[key] = p
+        p['count'] += 1
+        p['last'] = stamp
+        if e.get('place'):
+            p['place'] = e['place']
+        p['maxPriority'] = max(p.get('maxPriority', 0), e.get('priority', 3))
+        head = e.get('headline', '')[:120]
+        if head and head not in p['headlines']:
+            p['headlines'].insert(0, head)
+            p['headlines'] = p['headlines'][:4]
+
+    ranked = sorted(places.values(), key=lambda x: (-x['count'], x.get('last', '')))
+    out = {'updated': stamp, 'briefs': briefs[:60], 'places': ranked[:300]}
+    with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+        json.dump(out, f, indent=1)
+    repeat = sum(1 for p in ranked if p['count'] > 1)
+    print(f"  history: {len(ranked)} locations tracked, {repeat} seen more than once")
+    return out
+
+
 def write_cache(content, provider, events, feeds):
     with open(CACHE_FILE, 'w', encoding='utf-8') as f:
         json.dump({
@@ -928,7 +1073,7 @@ def js_json(value):
             .replace(' ', '\\u2029'))
 
 
-def render(content, provider, badge, timestamp, archive, events, feeds, stale=False):
+def render(content, provider, badge, timestamp, archive, events, feeds, stale=False, history=None):
     """Fill template.html and write index.html.
 
     Brief text is injected as a JSON string literal, never as raw HTML, so a
@@ -972,6 +1117,7 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
         '__EVENTS_JSON__': js_json(events),
         '__FEEDS_JSON__': js_json(feeds),
         '__COASTLINE_JSON__': js_json(coastline.get('lines', [])),
+        '__HISTORY_JSON__': js_json(history or load_history()),
         '__GROK_KEY_JSON__': js_json(grok_key),
     }
     for token, value in subs.items():
@@ -1002,7 +1148,7 @@ def main():
         print('Refreshing feeds only (no collection)...')
         feeds = fetch_server_feeds()
         render(content, cache.get('provider', 'CACHED'), 'FEEDS-REFRESH', timestamp,
-               index_archive(), cache.get('events', []), feeds, False)
+               index_archive(), cache.get('events', []), feeds, False, load_history())
         cache['feeds'] = feeds
         with open(CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump(cache, f, indent=2)
@@ -1020,13 +1166,16 @@ def main():
         if not events:
             events = cache.get('events', [])
         render(content, 'CACHED - offline re-render', 'CACHE-RENDER', timestamp,
-               index_archive(), events, cache.get('feeds', {}), True)
+               index_archive(), events, cache.get('feeds', {}), True, load_history())
         print('Re-rendered index.html from cache (offline mode)')
         return
 
     window_end = now
     window_start = now - timedelta(hours=WINDOW_HOURS)
-    prompt = build_prompt(window_start, window_end, previous_digest(load_cached_brief()))
+    deep = deep_run(now)
+    print(f"Collection depth: {'deep (all sections)' if deep else 'core (sections 1-2)'}")
+    prompt = build_prompt(window_start, window_end, previous_digest(load_cached_brief()),
+                          load_watchlist(), deep)
 
     stale = False
     print(f"Initiating collection, {WINDOW_HOURS}h window, Grok 4.1 + x_search + web_search...")
@@ -1062,7 +1211,9 @@ def main():
         feeds = fetch_server_feeds()
 
     archive = write_archive(content, now)
-    render(content, provider, badge, timestamp, archive, events, feeds, stale)
+    hist = update_history(events, (archive[0]['path'] if archive else ''), content, now) \
+        if not stale else load_history()
+    render(content, provider, badge, timestamp, archive, events, feeds, stale, hist)
     write_cache(content, provider, events, feeds)
     print(f"Brief generated successfully at {timestamp}")
 
