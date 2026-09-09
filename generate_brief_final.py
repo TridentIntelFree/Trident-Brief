@@ -398,6 +398,82 @@ def _tle_elements(entry):
         return None
 
 
+AIR_ANCHORS = [
+    (40.7, -74.0), (34.0, -118.2), (41.9, -87.6), (29.8, -95.4),
+    (51.5, -0.1), (50.1, 8.7), (41.9, 12.5), (40.4, -3.7),
+    (25.3, 55.3), (35.7, 139.7), (31.2, 121.5), (28.6, 77.2),
+    (1.35, 103.8), (-33.9, 151.2), (-23.5, -46.6), (-26.2, 28.0),
+]
+
+
+def _ac_urls(lat, lon, nm=250):
+    return [f'https://api.airplanes.live/v2/point/{lat:.4f}/{lon:.4f}/{nm}',
+            f'https://opendata.adsb.fi/api/v2/lat/{lat:.4f}/lon/{lon:.4f}/dist/{nm}',
+            f'https://api.adsb.lol/v2/lat/{lat:.4f}/lon/{lon:.4f}/dist/{nm}']
+
+
+def fetch_aircraft():
+    """Collect the air picture here rather than in the browser.
+
+    Every ADS-B provider refuses cross-origin requests from at least some
+    browsers; the Skywatch project hits the same wall and marks the layer
+    'blocked' in its own code. The Actions runner has no such restriction, so
+    the picture is collected server-side and served same-origin, where nothing
+    can refuse it. It is a snapshot, not a live feed, and the page says so.
+    """
+    seen, out = set(), []
+
+    def take(rows, mil=False):
+        for a in rows or []:
+            lat, lon = a.get('lat'), a.get('lon')
+            if lat is None or lon is None:
+                continue
+            key = a.get('hex') or a.get('r') or a.get('flight')
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            rec = {'hex': key, 'flight': (a.get('flight') or '').strip()[:10],
+                   't': (a.get('t') or '')[:8], 'lat': round(lat, 3), 'lon': round(lon, 3)}
+            alt = a.get('alt_baro')
+            if alt is not None:
+                rec['alt_baro'] = alt if alt == 'ground' else int(alt)
+            if a.get('gs') is not None:
+                try:
+                    rec['gs'] = int(a['gs'])
+                except (TypeError, ValueError):
+                    pass
+            if a.get('squawk'):
+                rec['squawk'] = str(a['squawk'])[:4]
+            if mil or (a.get('dbFlags') and int(a['dbFlags']) & 1):
+                rec['_mil'] = True
+            out.append(rec)
+
+    d, _ = _try(['https://api.airplanes.live/v2/mil',
+                 'https://opendata.adsb.fi/api/v2/mil',
+                 'https://api.adsb.lol/v2/mil'], timeout=25)
+    if d:
+        take(d.get('ac') or d.get('aircraft'), mil=True)
+    mil_n = len(out)
+
+    for lat, lon in AIR_ANCHORS:
+        d, _ = _try(_ac_urls(lat, lon), timeout=20)
+        if d:
+            take(d.get('ac') or d.get('aircraft'))
+
+    if not out:
+        return None, 'no provider answered from the runner either'
+
+    out = out[:5000]
+    os.makedirs('assets', exist_ok=True)
+    with open('assets/aircraft.json', 'w', encoding='utf-8') as f:
+        json.dump({'fetched_at': datetime.now(timezone.utc).isoformat(),
+                   'military': mil_n, 'count': len(out), 'ac': out},
+                  f, separators=(',', ':'))
+    print(f"  aircraft: {len(out)} ({mil_n} military) -> assets/aircraft.json "
+          f"({os.path.getsize('assets/aircraft.json')//1024} KB)")
+    return len(out), None
+
+
 def fetch_skywatch():
     """Satellite catalogue from the user's own Skywatch project.
 
@@ -495,6 +571,13 @@ def fetch_server_feeds():
         feeds['alerts'] = [_alert(f) for f in d.get('features', [])
                            if ((f.get('properties') or {}).get('severity') in ('Severe', 'Extreme'))]
         print(f"  alerts: {len(feeds['alerts'])}")
+
+    ac, err = fetch_aircraft()
+    if ac is None:
+        errors['aircraft'] = err
+        print(f"  aircraft failed: {err}")
+    else:
+        feeds['aircount'] = ac
 
     sats, err = fetch_skywatch()
     if sats is None:
@@ -646,6 +729,24 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
 def main():
     now = datetime.now(timezone.utc)
     timestamp = now.strftime('%Y-%m-%d %H:%M UTC')
+
+    if '--feeds-only' in sys.argv:
+        # Refresh the live layers and redeploy without calling any LLM, so a
+        # cheap job can run often enough to keep the air picture current while
+        # the brief itself stays on its twice-daily schedule.
+        cache = load_cache()
+        content = load_cached_brief()
+        if not content:
+            raise Exception('--feeds-only requires a usable brief in ' + CACHE_FILE)
+        print('Refreshing feeds only (no collection)...')
+        feeds = fetch_server_feeds()
+        render(content, cache.get('provider', 'CACHED'), 'FEEDS-REFRESH', timestamp,
+               index_archive(), cache.get('events', []), feeds, False)
+        cache['feeds'] = feeds
+        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cache, f, indent=2)
+        print('Feeds refreshed at ' + timestamp)
+        return
 
     if '--offline' in sys.argv:
         # Re-render index.html from cache. No API calls, no new archive entry.

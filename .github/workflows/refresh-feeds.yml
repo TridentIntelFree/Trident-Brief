@@ -1,0 +1,45 @@
+name: Refresh Live Feeds
+
+# The brief itself runs twice a day, but the live layers (aircraft especially)
+# are worthless at that age. This job refreshes only the feeds and redeploys.
+# It makes no LLM call, so it costs nothing beyond runner minutes, which are
+# free on a public repository.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let a feed refresh and a brief collection deploy to Pages at once.
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - run: pip install requests
+
+      - name: Refresh feeds
+        env:
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        run: python3 generate_brief_final.py --feeds-only
+
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - uses: actions/deploy-pages@v4
