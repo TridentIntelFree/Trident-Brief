@@ -1,6 +1,10 @@
-import requests
+import json
 import os
-from datetime import datetime
+import sys
+from datetime import datetime, timezone
+from html import escape
+
+import requests
 
 def generate_with_grok(prompt):
     api_key = os.environ.get('GROK_API_KEY')
@@ -82,6 +86,19 @@ def generate_with_groq(prompt):
         return None, str(e)
 
 def main():
+    stale = False
+    if '--offline' in sys.argv:
+        # Re-render index.html from the cached brief. No API calls, no new
+        # archive entry -- for previewing template changes locally.
+        content = load_cached_brief()
+        if not content:
+            raise Exception('--offline requires a usable brief in ' + CACHE_FILE)
+        timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+        render(content, 'CACHED - offline re-render', 'CACHE-RENDER',
+               timestamp, index_archive(), True)
+        print('Re-rendered index.html from cache (offline mode)')
+        return
+
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
     readable_date = datetime.now().strftime('%B %d, %Y at %H:%M UTC')
     year = str(datetime.now().year)
@@ -215,295 +232,129 @@ Execute multi-INT collection now."""
             provider = "Groq Llama 3.3 (Backup)"
             badge = "GROQ-BACKUP"
         else:
-            raise Exception(f"All providers failed: {error}")
-    
+            # Both providers down. Rather than deploying nothing, re-render the
+            # last good brief and flag it as cached on the page.
+            content = load_cached_brief()
+            if content:
+                print(f"All providers failed ({error}); re-rendering cached brief.")
+                provider = "CACHED - last successful collection"
+                badge = "CACHE-STALE"
+                stale = True
+            else:
+                raise Exception(f"All providers failed and no cache available: {error}")
+
+    archive = write_archive(content)
+    render(content, provider, badge, timestamp, archive, stale)
+    write_cache(content, provider)
+    print(f"Brief generated successfully at {timestamp}")
+
+
+CACHE_FILE = 'latest-brief.json'
+TEMPLATE_FILE = 'template.html'
+ARCHIVE_DIR = 'archive'
+
+
+def load_cached_brief():
+    """Return the last successfully generated brief text, if any."""
+    try:
+        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        text = (data.get('content') or '').strip()
+        # Never resurrect a cached error payload as if it were a brief.
+        if text and not text.startswith('Error generating brief'):
+            return text
+    except Exception as e:
+        print(f"No usable cache: {e}")
+    return None
+
+
+def write_cache(content, provider):
+    payload = {
+        'date': datetime.now(timezone.utc).strftime('%B %d, %Y'),
+        'content': content,
+        'provider': provider,
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+    }
+    with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, indent=2)
+
+
+def write_archive(content):
+    """Persist today's brief to archive/, then refresh the archive index."""
+    os.makedirs(ARCHIVE_DIR, exist_ok=True)
+    day = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    with open(os.path.join(ARCHIVE_DIR, f'{day}.md'), 'w', encoding='utf-8') as f:
+        f.write(content)
+    return index_archive()
+
+
+def index_archive():
+    """Rebuild archive/index.json from the .md files on disk, newest first."""
+    os.makedirs(ARCHIVE_DIR, exist_ok=True)
+    entries = []
+    for name in sorted(os.listdir(ARCHIVE_DIR), reverse=True):
+        if not name.endswith('.md'):
+            continue
+        stem = name[:-3]
+        try:
+            label = datetime.strptime(stem, '%Y-%m-%d').strftime('%d %b %Y').upper()
+        except ValueError:
+            label = stem.upper()
+        entries.append({'date': label, 'path': f'{ARCHIVE_DIR}/{name}'})
+
+    with open(os.path.join(ARCHIVE_DIR, 'index.json'), 'w', encoding='utf-8') as f:
+        json.dump(entries, f, indent=2)
+    return entries
+
+
+def js_json(value):
+    """JSON-encode for embedding inside a <script> block.
+
+    json.dumps leaves '<' intact, so a literal '</script>' in model output would
+    close the script tag early and blank the page. Escaping the HTML-significant
+    characters as \\uXXXX keeps the value byte-identical to the JS engine while
+    making it inert to the HTML parser.
+    """
+    return (json.dumps(value)
+            .replace('<', '\\u003c')
+            .replace('>', '\\u003e')
+            .replace('&', '\\u0026')
+            .replace('\u2028', '\\u2028')
+            .replace('\u2029', '\\u2029'))
+
+
+def render(content, provider, badge, timestamp, archive, stale=False):
+    """Fill template.html and write index.html.
+
+    Brief text is injected as a JSON string literal, never as raw HTML, so a
+    stray '<' or '</pre>' in model output can no longer break the page.
+    """
+    with open(TEMPLATE_FILE, 'r', encoding='utf-8') as f:
+        html = f.read()
+
+    # Same key handling as before: whatever is in the environment at build time.
     grok_key = os.environ.get('GROK_API_KEY', '')
-    
-    html = f'''<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Trident SIGINT Brief</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{
-            font-family: system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0a0e27, #1a1f3a);
-            color: #e0e6ed;
-            padding: 20px;
-            line-height: 1.6;
-        }}
-        .container {{
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 12px;
-            overflow: hidden;
-        }}
-        .header {{
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border-bottom: 2px solid #3b82f6;
-            padding: 40px;
-        }}
-        .badge {{
-            background: #dc2626;
-            color: white;
-            padding: 4px 12px;
-            font-size: 11px;
-            font-weight: 700;
-            border-radius: 3px;
-            display: inline-block;
-            margin-bottom: 15px;
-        }}
-        h1 {{
-            font-size: 2.5em;
-            color: #3b82f6;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }}
-        .meta {{
-            color: #94a3b8;
-            font-size: 0.9em;
-            margin-top: 10px;
-        }}
-        .sigint {{
-            color: #fbbf24;
-            font-size: 0.8em;
-            font-weight: 600;
-            margin-top: 5px;
-        }}
-        .content {{
-            padding: 40px;
-        }}
-        pre {{
-            white-space: pre-wrap;
-            font-family: inherit;
-            line-height: 1.7;
-        }}
-        .local-intel {{
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 8px;
-            padding: 30px;
-            margin: 20px 40px;
-        }}
-        .local-intel h2 {{
-            color: #3b82f6;
-            font-size: 1.3em;
-            margin-bottom: 15px;
-        }}
-        .access-form {{
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }}
-        .access-form input {{
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(59, 130, 246, 0.5);
-            color: #e0e6ed;
-            padding: 10px 15px;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }}
-        .access-form button {{
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9em;
-        }}
-        .access-form button:hover {{
-            background: #2563eb;
-        }}
-        .error-msg {{
-            color: #ef4444;
-            font-size: 0.85em;
-            margin-top: 10px;
-        }}
-        .success-msg {{
-            color: #10b981;
-            font-size: 0.85em;
-            margin-top: 10px;
-        }}
-        #localBriefContent {{
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 4px;
-            display: none;
-        }}
-        .footer {{
-            background: #0f172a;
-            border-top: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 25px;
-            text-align: center;
-            color: #64748b;
-            font-size: 0.85em;
-        }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="badge">CLASSIFIED: SIGINT/HUMINT COLLECTION BRIEF</div>
-            <h1>&#9876;&#65039; THE TRIDENT BRIEF &#9876;&#65039;</h1>
-            <div class="meta">Collection Period: {timestamp} | Source: {badge}</div>
-            <div class="sigint">MULTI-INT FUSION | SIGINT + HUMINT + OSINT-WEB + CHATTER MONITORING</div>
-        </div>
-        
-        <div class="content">
-            <pre>{content}</pre>
-        </div>
-        
-        <div class="local-intel">
-            <h2>&#127919; LOCAL INTELLIGENCE BRIEF (RESTRICTED ACCESS)</h2>
-            <p style="color: #94a3b8; font-size: 0.9em; margin-bottom: 15px;">
-                Generate a localized intelligence brief for your area (200-mile radius). 
-                Includes: local law enforcement activity, crime trends, political developments, 
-                business intelligence, and regional threats. Now powered by X search + web search for broader coverage.
-            </p>
-            <div class="access-form">
-                <input type="password" id="accessCode" placeholder="4-digit access code" maxlength="4">
-                <input type="text" id="zipCode" placeholder="ZIP code" maxlength="5">
-                <button onclick="generateLocalBrief()">Generate Local Brief</button>
-            </div>
-            <div id="accessMessage"></div>
-            <div id="localBriefContent"></div>
-        </div>
-        
-        <div class="footer">
-            AUTOMATED MULTI-INT COLLECTION SYSTEM | {provider} | DAILY 06:00 EST<br>
-            MONITORING 100+ HIGH-VALUE X ACCOUNTS + WEB SOURCES | SIGINT + HUMINT + OSINT-WEB + CHATTER FUSION
-        </div>
-    </div>
-    
-    <script>
-        async function generateLocalBrief() {{
-            const code = document.getElementById('accessCode').value;
-            const zip = document.getElementById('zipCode').value;
-            const msgDiv = document.getElementById('accessMessage');
-            const contentDiv = document.getElementById('localBriefContent');
-            
-            msgDiv.innerHTML = '';
-            contentDiv.style.display = 'none';
-            
-            if (code !== '0330') {{
-                msgDiv.innerHTML = '<p class="error-msg">Invalid access code</p>';
-                return;
-            }}
-            
-            if (!/^\\d{{5}}$/.test(zip)) {{
-                msgDiv.innerHTML = '<p class="error-msg">Invalid ZIP code format</p>';
-                return;
-            }}
-            
-            msgDiv.innerHTML = '<p class="success-msg">Generating multi-source local brief for ZIP ' + zip + '... (60-90 seconds)</p>';
-            
-            try {{
-                const prompt = 'LOCALIZED INTELLIGENCE BRIEF - ZIP CODE ' + zip + '\\n' +
-                    'Collection Period: Past 24 hours\\n' +
-                    'Search Radius: 200 miles from ZIP ' + zip + '\\n\\n' +
-                    'MISSION: Generate tactical intelligence brief for local area using BOTH X/Twitter search AND web search. Pull from local news sites, police department websites, government portals, AND social media.\\n\\n' +
-                    'PRIORITY LOCAL INTELLIGENCE REQUIREMENTS:\\n\\n' +
-                    '1. LAW ENFORCEMENT & PUBLIC SAFETY\\n' +
-                    '- Search X for local police, sheriff, fire/EMS accounts and incidents\\n' +
-                    '- Search web for local news crime reports, police blotters, court records\\n\\n' +
-                    '2. CRIME & SECURITY THREATS\\n' +
-                    '- Monitor X for crime reports, trends, gang activity, security concerns\\n' +
-                    '- Search web for local newspaper crime sections, FBI field office alerts\\n\\n' +
-                    '3. LOCAL POLITICS & GOVERNMENT\\n' +
-                    '- Track X for city council, county decisions, local elections, policy changes\\n' +
-                    '- Search web for local government meeting minutes, press releases\\n\\n' +
-                    '4. BUSINESS & ECONOMIC INTELLIGENCE\\n' +
-                    '- Monitor X for business openings/closings, corporate announcements\\n' +
-                    '- Search web for local business journals, economic development news\\n\\n' +
-                    '5. REGIONAL THREATS & HAZARDS\\n' +
-                    '- Search X for weather, disasters, infrastructure failures, health concerns\\n' +
-                    '- Search web for NWS alerts, FEMA updates, state emergency management\\n\\n' +
-                    'INTELLIGENCE CLASSIFICATION:\\n' +
-                    '[SIGINT - VERIFIED]: Official law enforcement, government accounts\\n' +
-                    '[HUMINT - LOCAL CHATTER]: Community reports, citizen observations\\n' +
-                    '[OSINT - NEWS]: Local news outlet reporting\\n' +
-                    '[OSINT - WEB]: Government websites, official databases, verified web sources\\n\\n' +
-                    'Search X AND the web NOW for location-specific intelligence within 200 miles of ZIP ' + zip + '.';
-                
-                const response = await fetch('https://api.x.ai/v1/responses', {{
-                    method: 'POST',
-                    headers: {{
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer {grok_key}'
-                    }},
-                    body: JSON.stringify({{
-                        model: 'grok-4-1-fast-reasoning',
-                        input: [
-                            {{
-                                role: 'system',
-                                content: 'You are a local intelligence analyst with real-time X/Twitter access and web search capabilities. Generate tactical intelligence for specific geographic areas. Search for local accounts, news sites, government portals, and chatter relevant to the specified location. Use both X search and web search to provide comprehensive coverage.'
-                            }},
-                            {{
-                                role: 'user',
-                                content: prompt
-                            }}
-                        ],
-                        tools: [
-                            {{ type: 'x_search' }},
-                            {{ type: 'web_search' }}
-                        ],
-                        temperature: 0.6
-                    }})
-                }});
-                
-                if (!response.ok) {{
-                    const errText = await response.text();
-                    throw new Error('API request failed: ' + response.status + ' - ' + errText.substring(0, 200));
-                }}
-                
-                const data = await response.json();
-                
-                let briefContent = '';
-                if (data.output_text) {{
-                    briefContent = data.output_text;
-                }} else if (data.output) {{
-                    for (const item of data.output) {{
-                        if (item.type === 'message' && item.content) {{
-                            for (const block of item.content) {{
-                                if (block.type === 'output_text' || block.type === 'text') {{
-                                    briefContent += block.text;
-                                }}
-                            }}
-                        }}
-                    }}
-                }}
-                
-                if (!briefContent && data.choices) {{
-                    briefContent = data.choices[0].message.content;
-                }}
-                
-                if (!briefContent) {{
-                    throw new Error('No content in response. Keys: ' + Object.keys(data).join(', '));
-                }}
-                
-                contentDiv.innerHTML = '<pre>' + briefContent + '</pre>';
-                contentDiv.style.display = 'block';
-                msgDiv.innerHTML = '<p class="success-msg">Multi-source local brief generated successfully</p>';
-                
-            }} catch (error) {{
-                msgDiv.innerHTML = '<p class="error-msg">Error generating brief: ' + error.message + '</p>';
-            }}
-        }}
-    </script>
-</body>
-</html>'''
-    
+
+    subs = {
+        '__TIMESTAMP__': escape(timestamp),
+        '__BADGE__': escape(badge),
+        '__PROVIDER__': escape(provider),
+        '__BRIEF_JSON__': js_json(content),
+        '__BUILT_AT_JSON__': js_json(datetime.now(timezone.utc).isoformat()),
+        '__IS_STALE_JSON__': 'true' if stale else 'false',
+        '__ARCHIVE_JSON__': js_json(archive),
+        '__GROK_KEY_JSON__': js_json(grok_key),
+    }
+    for token, value in subs.items():
+        html = html.replace(token, value)
+
+    leftover = [t for t in subs if t in html]
+    if leftover:
+        raise Exception(f"Template placeholders not substituted: {leftover}")
+
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html)
-    
-    print(f"Brief generated successfully at {timestamp}")
+
 
 if __name__ == '__main__':
     main()
