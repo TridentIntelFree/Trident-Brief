@@ -242,7 +242,9 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         <div class="globe-ctl">
           <button class="lyr on" data-layer="events"><i style="background:#ef4444"></i>BRIEF <b id="nEvents">0</b></button>
           <button class="lyr on" data-layer="quake"><i style="background:#fbbf24"></i>SEISMIC <b id="nQuake">0</b></button>
-          <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>SATS <b id="nSats">0</b></button>
+          <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
+          <button class="lyr on" data-layer="rocket"><i style="background:#c084fc"></i>R/B <b id="nRocket">0</b></button>
+          <button class="lyr on" data-layer="debris"><i style="background:#7c8aa5"></i>DEBRIS <b id="nDebris">0</b></button>
           <button class="lyr on" data-layer="hazard"><i style="background:#f97316"></i>HAZARD <b id="nHaz">0</b></button>
           <button class="lyr on" data-layer="air"><i style="background:#22d3ee"></i>AIR <b id="nAir">0</b></button>
           <button class="lyr on" data-layer="iss"><i style="background:#a78bfa"></i>ISS</button>
@@ -563,15 +565,17 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 
 var G = {
   rot:[20,-15], R:0, cx:0, cy:0, spin:true, sel:null, drag:null,
-  layers:{events:true, quake:true, sats:true, hazard:true, air:true, iss:true},
-  air:[], iss:null, sats:[]
+  layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, iss:true},
+  air:[], iss:null, sats:[], satsRaw:null
 };
 
 var KIND_EXTRA = {launch:{color:'#22c55e', label:'LAUNCH PAD'}};
 var KIND = {
   events:{color:'#ef4444', label:'BRIEF EVENT'},
   quake: {color:'#fbbf24', label:'SEISMIC'},
-  sats:  {color:'#7dd3fc', label:'SATELLITE'},
+  sats:  {color:'#7dd3fc', label:'PAYLOAD'},
+  rocket:{color:'#c084fc', label:'ROCKET BODY'},
+  debris:{color:'#7c8aa5', label:'DEBRIS'},
   hazard:{color:'#f97316', label:'HAZARD'},
   air:   {color:'#22d3ee', label:'AIR CONTACT'},
   iss:   {color:'#a78bfa', label:'ORBITAL'}
@@ -610,10 +614,9 @@ function contacts(){
     out.push({k:'quake', lat:q.lat, lon:q.lon, r:Math.max(2, Math.min(7,(q.mag-1.5)*1.4)), d:q, id:'q'+i, color:KIND.quake.color});
   });
   if(G.layers.air) G.air.forEach(function(x,i){
-    if(x.lat!=null && x.lon!=null) out.push({k:'air', lat:x.lat, lon:x.lon, r:2, d:x, id:'a'+i, color:KIND.air.color});
-  });
-  if(G.layers.sats) G.sats.forEach(function(x,i){
-    out.push({k:'sats', lat:x.lat, lon:x.lon, r:1.3, d:x, id:'s'+i, color:KIND.sats.color});
+    if(x.lat!=null && x.lon!=null)
+      out.push({k:'air', lat:x.lat, lon:x.lon, r:x._mil?2.6:2, d:x, id:'a'+i,
+                color:x._mil ? '#f87171' : KIND.air.color});
   });
   if(G.layers.hazard){
     (FEEDS.alerts||[]).forEach(function(a,i){
@@ -667,6 +670,8 @@ function draw(){
     ctx.stroke();
   }
 
+  drawSats();
+
   /* contacts, far side first so near side draws on top */
   var pts = contacts().map(function(c){ var q=project(c.lon,c.lat); c.sx=q.x; c.sy=q.y; c.z=q.z; return c; })
                       .filter(function(c){ return c.z>0; })
@@ -687,7 +692,11 @@ function draw(){
 var last=0;
 function loop(t){
   if(G.spin && !G.drag){ var dt=(t-last)||16; G.rot[0] -= dt*0.006; }
-  last=t; draw(); requestAnimationFrame(loop);
+  last=t;
+  var f0 = performance.now();
+  draw();
+  adapt(performance.now() - f0);
+  requestAnimationFrame(loop);
 }
 
 /* ---- interaction ---- */
@@ -719,6 +728,7 @@ function pick(p){
     var d=(c.sx-p.x)*(c.sx-p.x)+(c.sy-p.y)*(c.sy-p.y);
     if(d<bd){ bd=d; best=c; }
   });
+  if(!best) best = pickSat(p.x, p.y);
   G.sel = best; renderDetail(best);
 }
 
@@ -745,14 +755,14 @@ function renderDetail(c){
     link = d.url || '';
   } else if(c.k==='air'){
     title = (String(d.flight||d.r||d.hex||'unknown').trim()) + ' &mdash; ' + (d.t||'unknown type');
-    place = 'ADS-B contact';
+    place = d._mil ? 'ADS-B contact · MILITARY' : 'ADS-B contact';
     if(d.alt_baro!=null) rows.push(['ALTITUDE', d.alt_baro==='ground' ? 'ON GROUND' : Math.round(d.alt_baro).toLocaleString()+' ft']);
     if(d.gs!=null) rows.push(['GROUND SPD', Math.round(d.gs)+' kt']);
     if(d.squawk) rows.push(['SQUAWK', d.squawk + (['7500','7600','7700'].indexOf(String(d.squawk))>-1 ? '  EMERGENCY' : '')]);
     if(d.r) rows.push(['REGISTRATION', d.r]);
-  } else if(c.k==='sats'){
-    title = esc(d.s[0]);
-    place = 'NORAD ' + d.s[1];
+  } else if(c.k==='sats' || c.k==='rocket' || c.k==='debris'){
+    title = esc(d.s[0] || ('Object ' + d.s[1]));
+    place = 'NORAD ' + d.s[1] + '  ·  ' + KIND[c.k].label;
     rows.push(['ALTITUDE', Math.round(d.alt).toLocaleString()+' km']);
     rows.push(['INCLINATION', d.s[3].toFixed(2)+'°']);
     rows.push(['PERIOD', (1440/d.s[8]).toFixed(1)+' min']);
@@ -849,17 +859,113 @@ function satPos(s, tSec, g){
 }
 
 /* Positions refresh on a timer, not per frame: a satellite moves ~7km/s, so at
-   globe scale a two-second-old position is well under a pixel. */
+   globe scale a two-second-old position is well under a pixel. Results go into
+   flat typed arrays so the draw loop never allocates. */
+var KIND_OF = {P:'sats', R:'rocket', D:'debris', U:'debris'};
+
+/* Debris is by far the heaviest layer. Rather than capping it for everyone at a
+   number guessed from one machine, measure the frame and thin only that layer
+   when the device cannot keep up. Desktop stays at full density; a slow phone
+   degrades to a readable subset instead of crawling. */
+var FRAME = {avg:16, stride:1};
+function adapt(ms){
+  FRAME.avg += (ms - FRAME.avg)*0.1;
+  if(FRAME.avg > 26 && FRAME.stride < 8) FRAME.stride++;
+  else if(FRAME.avg < 15 && FRAME.stride > 1) FRAME.stride--;
+}
+
+function loadSats(){
+  var el = document.getElementById('nSats'); if(el) el.textContent = '…';
+  jget('assets/satellites.json', 30000).then(function(d){
+    G.satsRaw = d.sats || [];
+    var c = d.counts || {};
+    var n = function(id,v){ var e=document.getElementById(id); if(e) e.textContent = v||0; };
+    n('nSats', c.P); n('nRocket', c.R); n('nDebris', (c.D||0)+(c.U||0));
+    G.satLat = new Float32Array(G.satsRaw.length);
+    G.satLon = new Float32Array(G.satsRaw.length);
+    G.satAlt = new Float32Array(G.satsRaw.length);
+    G.satOk  = new Uint8Array(G.satsRaw.length);
+    stepSats();
+  }).catch(function(e){
+    var el = document.getElementById('nSats'); if(el) el.textContent = '--';
+    console.warn('satellite catalogue unavailable:', e.message);
+  });
+}
+
 function stepSats(){
-  var sats = FEEDS.sats;
-  if(!sats || !sats.length){ G.sats = []; return; }
-  var t = Date.now()/1000, g = gmst(t), out = [];
-  for(var i=0;i<sats.length;i++){
-    var q = satPos(sats[i], t, g);
-    if(q && isFinite(q.lat) && isFinite(q.lon)) out.push({s:sats[i], lat:q.lat, lon:q.lon, alt:q.alt});
+  var S = G.satsRaw;
+  if(!S || !S.length) return;
+  var t = Date.now()/1000, g = gmst(t);
+  for(var i=0;i<S.length;i++){
+    var q = satPos(S[i], t, g);
+    if(q && isFinite(q.lat) && isFinite(q.lon)){
+      G.satLat[i]=q.lat; G.satLon[i]=q.lon; G.satAlt[i]=q.alt; G.satOk[i]=1;
+    } else G.satOk[i]=0;
   }
-  G.sats = out;
-  var el = document.getElementById('nSats'); if(el) el.textContent = out.length;
+}
+
+/* Batched: one path per class, one fill. 32k individual arc()+fill() calls
+   cannot hold 60fps; rects accumulated into a single path can. */
+function drawSats(){
+  var S = G.satsRaw;
+  if(!S || !G.satOk) return;
+  var l = G.layers, cx=G.cx, cy=G.cy, R=G.R, rot0=G.rot[0]*D, p0=G.rot[1]*D;
+  var cp0=Math.cos(p0), sp0=Math.sin(p0);
+  var paths = {sats:new Path2D(), rocket:new Path2D(), debris:new Path2D()};
+  var size  = {sats:1.6, rocket:1.6, debris:1.1};
+  var any = false;
+  for(var i=0;i<S.length;i++){
+    if(!G.satOk[i]) continue;
+    var kind = KIND_OF[S[i][9]] || 'debris';
+    if(!l[kind]) continue;
+    if(kind==='debris' && FRAME.stride > 1 && (i % FRAME.stride)) continue;
+    var lat=G.satLat[i]*D, lon=G.satLon[i]*D + rot0;
+    var cpp=Math.cos(lat), z = sp0*Math.sin(lat) + cp0*cpp*Math.cos(lon);
+    if(z<=0) continue;                                   // far side
+    var x = cx + R*(cpp*Math.sin(lon));
+    var y = cy - R*(cp0*Math.sin(lat) - sp0*cpp*Math.cos(lon));
+    var w = size[kind];
+    paths[kind].rect(x-w/2, y-w/2, w, w);
+    any = true;
+  }
+  if(!any) return;
+  ctx.fillStyle=KIND.debris.color; ctx.globalAlpha=.42; ctx.fill(paths.debris);
+  ctx.fillStyle=KIND.rocket.color; ctx.globalAlpha=.72; ctx.fill(paths.rocket);
+  ctx.fillStyle=KIND.sats.color;   ctx.globalAlpha=.85; ctx.fill(paths.sats);
+  ctx.globalAlpha=1;
+}
+
+function pickSatProbe(i){
+  if(!G.satOk || !G.satOk[i]) return null;
+  var rot0=G.rot[0]*D, p0=G.rot[1]*D, cp0=Math.cos(p0), sp0=Math.sin(p0);
+  var lat=G.satLat[i]*D, lon=G.satLon[i]*D + rot0, cpp=Math.cos(lat);
+  var z = sp0*Math.sin(lat) + cp0*cpp*Math.cos(lon);
+  if(z<=0) return null;
+  return {x:G.cx + G.R*(cpp*Math.sin(lon)), y:G.cy - G.R*(cp0*Math.sin(lat) - sp0*cpp*Math.cos(lon))};
+}
+
+/* Click hit-testing walks the catalogue directly rather than the contacts list,
+   which would otherwise have to hold 32k objects every frame. */
+function pickSat(px, py){
+  var S = G.satsRaw;
+  if(!S || !G.satOk) return null;
+  var l=G.layers, cx=G.cx, cy=G.cy, R=G.R, rot0=G.rot[0]*D, p0=G.rot[1]*D;
+  var cp0=Math.cos(p0), sp0=Math.sin(p0), best=null, bd=25;
+  for(var i=0;i<S.length;i++){
+    if(!G.satOk[i]) continue;
+    var kind = KIND_OF[S[i][9]] || 'debris';
+    if(!l[kind]) continue;
+    var lat=G.satLat[i]*D, lon=G.satLon[i]*D + rot0;
+    var cpp=Math.cos(lat), z = sp0*Math.sin(lat) + cp0*cpp*Math.cos(lon);
+    if(z<=0) continue;
+    var x = cx + R*(cpp*Math.sin(lon));
+    var y = cy - R*(cp0*Math.sin(lat) - sp0*cpp*Math.cos(lon));
+    var dd=(x-px)*(x-px)+(y-py)*(y-py);
+    if(dd<bd){ bd=dd; best={k:kind, lat:G.satLat[i], lon:G.satLon[i], sx:x, sy:y, z:z,
+                            color:KIND[kind].color, id:'sat'+i,
+                            d:{s:S[i], alt:G.satAlt[i]}}; }
+  }
+  return best;
 }
 
 /* =====================  tiles  ===================== */
@@ -995,27 +1101,69 @@ function liveLaunch(){
   }).catch(function(e){ down('tileLaunch','dLaunch','lNext','lSub', srvErr('launches')+' / '+why(e)); });
 }
 
-/* --- live: air picture --- */
+/* --- live: air picture ---------------------------------------------------
+   Provider chain taken from the user's Skywatch project, which uses
+   airplanes.live first and opendata.adsb.fi as fallback; adsb.lol is kept as a
+   third. All three are readsb-derived and answer with the same shape, so one
+   parser covers them. Two queries run: a dense local picture around the current
+   target, and the global military feed so the globe is populated worldwide
+   rather than only around one point. ----------------------------------------*/
+function tryChain(urls, ms){
+  var i = 0;
+  function next(){
+    if(i >= urls.length) return Promise.reject(new Error('all providers failed'));
+    return jget(urls[i++], ms).catch(next);
+  }
+  return next();
+}
+function acList(j){ return (j && (j.ac || j.aircraft)) || []; }
+
+function localUrls(lat, lon, nm){
+  return ['https://api.airplanes.live/v2/point/'+lat.toFixed(4)+'/'+lon.toFixed(4)+'/'+nm,
+          'https://opendata.adsb.fi/api/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm,
+          'https://api.adsb.lol/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm];
+}
+var MIL_URLS = ['https://api.airplanes.live/v2/mil',
+                'https://opendata.adsb.fi/api/v2/mil',
+                'https://api.adsb.lol/v2/mil'];
+
 function feedAir(){
   var nm = 250;
-  jget('https://api.adsb.lol/v2/lat/'+GE.lat.toFixed(4)+'/lon/'+GE.lon.toFixed(4)+'/dist/'+nm).then(function(d){
-    var ac = d.ac || [];
-    G.air = ac;
-    document.getElementById('aCount').textContent = ac.length;
-    document.getElementById('nAir').textContent = ac.length;
-    var emerg = ac.filter(function(a){ return ['7500','7600','7700'].indexOf(String(a.squawk||''))>-1; });
-    var mil = ac.filter(function(a){ return a.dbFlags && (a.dbFlags & 1); });
+  var local = tryChain(localUrls(GE.lat, GE.lon, nm), 14000).then(acList).catch(function(e){ return {err:why(e)}; });
+  var mil   = tryChain(MIL_URLS, 14000).then(acList).catch(function(){ return []; });
+
+  Promise.all([local, mil]).then(function(res){
+    var loc = res[0], milAc = res[1];
+    var locErr = loc && loc.err ? loc.err : null;
+    if(locErr) loc = [];
+
+    // de-duplicate: an aircraft can appear in both the local and military feeds
+    var seen = {}, merged = [];
+    milAc.forEach(function(a){ a._mil = true; });
+    milAc.concat(loc).forEach(function(a){
+      var k = a.hex || a.r || a.flight;
+      if(!k || seen[k]) return;
+      seen[k] = 1;
+      if(a.lat != null && a.lon != null) merged.push(a);
+    });
+    G.air = merged;
+
+    if(!merged.length && locErr){ down('tileAir','dAir','aCount','aSub', locErr); return; }
+    var emerg = merged.filter(function(a){ return ['7500','7600','7700'].indexOf(String(a.squawk||''))>-1; });
+    document.getElementById('aCount').textContent = merged.length;
+    document.getElementById('nAir').textContent = merged.length;
     document.getElementById('aSub').textContent =
-      'within '+nm+'nm · '+mil.length+' mil-flagged'+(emerg.length?' · '+emerg.length+' SQUAWK ALERT':'');
-    document.getElementById('aList').innerHTML = emerg.concat(mil).concat(ac).filter(function(v,i,s){return s.indexOf(v)===i;})
+      milAc.length + ' military worldwide · ' + loc.length + ' within ' + nm + 'nm' +
+      (emerg.length ? ' · ' + emerg.length + ' SQUAWK ALERT' : '');
+    document.getElementById('aList').innerHTML = emerg.concat(merged).filter(function(v,i,x){return x.indexOf(v)===i;})
       .slice(0,3).map(function(a){
         var sq=String(a.squawk||''), hot=['7500','7600','7700'].indexOf(sq)>-1;
-        return '<span>'+(hot?'<span class="sev">⚠ '+sq+'</span> ':'')+esc(String(a.flight||a.r||a.hex||'?').trim().slice(0,10))+
-               ' · '+esc(String(a.t||'---'))+'</span>';
+        return '<span>'+(hot?'<span class="sev">⚠ '+sq+'</span> ':'')+
+               esc(String(a.flight||a.r||a.hex||'?').trim().slice(0,10))+' · '+esc(String(a.t||'---'))+'</span>';
       }).join('');
     document.getElementById('tileAir').classList.toggle('alert', emerg.length>0);
     up('tileAir','dAir');
-  }).catch(function(e){ G.air=[]; document.getElementById('nAir').textContent='0'; down('tileAir','dAir','aCount','aSub',why(e)); });
+  });
 }
 
 /* --- live: ISS --- */
@@ -1034,7 +1182,7 @@ function feedIss(){
 sizeGlobe();
 addEventListener('resize', function(){ sizeGlobe(); });
 paintBaked();
-stepSats(); setInterval(stepSats, 2000);
+loadSats(); setInterval(stepSats, 2000);
 feedAir(); feedIss();
 setInterval(function(){ feedAir(); feedIss(); }, 90000);
 requestAnimationFrame(loop);
