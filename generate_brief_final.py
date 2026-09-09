@@ -802,8 +802,22 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
         print(f"Coastline geometry unavailable ({e}); globe will draw without landmasses")
         coastline = {'lines': []}
 
-    # Same key handling as before: whatever is in the environment at build time.
-    grok_key = os.environ.get('GROK_API_KEY', '')
+    # The collection key is NOT written into the page by default.
+    #
+    # index.html is published to GitHub Pages, so anything in it is readable by
+    # every visitor via View Source -- the key was never leaked by GitHub
+    # Secrets, it was leaked by this line putting it in a public file. The page
+    # falls back to asking the viewer for their own key and keeping it in their
+    # own browser, so the local-brief feature still works without publishing
+    # anyone's credentials.
+    #
+    # Setting PUBLISH_GROK_KEY=1 restores the old behaviour. No workflow sets
+    # it, and it should stay that way unless the key is one you are content to
+    # make public.
+    grok_key = (os.environ.get('GROK_API_KEY', '')
+                if os.environ.get('PUBLISH_GROK_KEY') == '1' else '')
+    if grok_key:
+        print('WARNING: embedding GROK_API_KEY in index.html - it will be public')
 
     subs = {
         '__TIMESTAMP__': escape(timestamp),
