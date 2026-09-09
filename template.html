@@ -288,7 +288,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         <div class="t-val" id="vCount">&middot;&middot;&middot;</div>
         <div class="t-sub" id="vSub">Loading vessels&hellip;</div>
         <div class="t-list" id="vList"></div>
-        <div class="t-src">collected server-side &middot; Digitraffic open AIS</div>
+        <div class="t-src">collected server-side &middot; AISStream + Digitraffic</div>
       </div>
       <div class="tile" id="tileIss">
         <div class="t-label"><span class="dot" id="dIss"></span>Orbital &mdash; ISS (25544)</div>
@@ -1146,8 +1146,13 @@ function paintBaked(){
   if(V.length){
     var vmil = V.filter(function(x){ return x._mil; });
     document.getElementById('vCount').textContent = V.length;
+    // Describe the coverage actually present rather than asserting a fixed
+    // region: with a global key the spread is worldwide, without one it is not.
+    var lons = V.map(function(x){ return x.lon; });
+    var span = Math.max.apply(null, lons) - Math.min.apply(null, lons);
     document.getElementById('vSub').textContent =
-      'Baltic / Finnish AIS · ' + vmil.length + ' military or enforcement';
+      (span > 90 ? 'worldwide AIS' : 'regional AIS (Baltic)') +
+      ' · ' + vmil.length + ' military or enforcement';
     document.getElementById('vList').innerHTML = vmil.concat(V).filter(function(x,i,a){return a.indexOf(x)===i;})
       .slice(0,3).map(function(x){
         return '<span>'+(x._mil?'<span class="sev">▲</span> ':'')+

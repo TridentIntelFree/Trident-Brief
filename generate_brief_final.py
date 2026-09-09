@@ -503,6 +503,81 @@ def _ship_kind(code):
     return ''
 
 
+def _aisstream_global(api_key, seconds=25, cap=8000):
+    """Global AIS via AISStream.io.
+
+    AIS is VHF radio with roughly 40-60nm line of sight, so open-ocean coverage
+    only exists via satellite AIS, which is commercial. AISStream aggregates
+    both and gives it away on a free tier, but it needs an account key and
+    speaks websocket rather than REST. We connect, subscribe to the whole
+    globe, listen for a fixed window, and take a snapshot of whatever reported.
+    """
+    try:
+        import asyncio
+        import websockets
+    except ImportError:
+        return None, 'websockets package not installed'
+
+    async def collect():
+        seen = {}
+        sub = {'APIKey': api_key,
+               'BoundingBoxes': [[[-90, -180], [90, 180]]],
+               'FilterMessageTypes': ['PositionReport', 'ShipStaticData']}
+        async with websockets.connect('wss://stream.aisstream.io/v0/stream',
+                                      ping_interval=None, max_size=None) as ws:
+            await ws.send(json.dumps(sub))
+            deadline = time.time() + seconds
+            while time.time() < deadline and len(seen) < cap:
+                left = deadline - time.time()
+                if left <= 0:
+                    break
+                try:
+                    raw = await asyncio.wait_for(ws.recv(), timeout=left)
+                except asyncio.TimeoutError:
+                    break
+                try:
+                    msg = json.loads(raw)
+                except Exception:
+                    continue
+                if msg.get('error'):
+                    raise RuntimeError(str(msg['error'])[:120])
+                meta = msg.get('MetaData') or {}
+                mmsi = meta.get('MMSI') or meta.get('MMSI_String')
+                if mmsi is None:
+                    continue
+                mmsi = int(mmsi)
+                rec = seen.setdefault(mmsi, {'mmsi': mmsi})
+                lat, lon = meta.get('latitude'), meta.get('longitude')
+                if lat is not None and lon is not None:
+                    rec['lat'], rec['lon'] = round(lat, 4), round(lon, 4)
+                name = (meta.get('ShipName') or '').strip()
+                if name:
+                    rec['name'] = name[:28]
+                body = (msg.get('Message') or {})
+                pr = body.get('PositionReport') or {}
+                if pr.get('Sog') is not None:
+                    try: rec['sog'] = round(float(pr['Sog']), 1)
+                    except (TypeError, ValueError): pass
+                if pr.get('TrueHeading') is not None and pr['TrueHeading'] < 360:
+                    rec['hdg'] = pr['TrueHeading']
+                sd = body.get('ShipStaticData') or {}
+                if sd.get('Type') is not None:
+                    kind = _ship_kind(sd['Type'])
+                    if kind:
+                        rec['kind'] = kind
+                        if kind in ('MILITARY OPS', 'LAW ENFORCEMENT', 'Search and rescue'):
+                            rec['_mil'] = True
+        return [v for v in seen.values() if 'lat' in v]
+
+    try:
+        out = asyncio.run(collect())
+    except Exception as e:
+        return None, str(e)[:160]
+    if not out:
+        return None, 'connected but no positions in window'
+    return out, None
+
+
 def fetch_vessels():
     """Live AIS vessel positions.
 
@@ -511,15 +586,37 @@ def fetch_vessels():
     and Baltic AIS as open data with no key, which is real live shipping but
     regionally bounded -- the tile says so rather than implying global coverage.
     """
+    out, source = [], []
+
+    # Global coverage, if a key is configured. Never required: without it the
+    # regional feed below still runs.
+    ais_key = os.environ.get('AISSTREAM_API_KEY', '').strip()
+    if ais_key:
+        g, err = _aisstream_global(ais_key)
+        if g:
+            out.extend(g)
+            source.append(f'global {len(g)}')
+            print(f"  vessels: {len(g)} global (AISStream)")
+        else:
+            print(f"    AISStream unavailable: {err}")
+    else:
+        print('    AISSTREAM_API_KEY not set - regional AIS only')
+
     hdr_note = 'Digitraffic-User'
     try:
         r = requests.get('https://meri.digitraffic.fi/api/ais/v1/locations', timeout=30,
                          headers={'Accept': 'application/json',
                                   hdr_note: 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'})
         if r.status_code != 200:
+            if out:
+                print(f"    Digitraffic HTTP {r.status_code}; keeping global only")
+                return _finish_vessels(out, source), None
             return None, f'HTTP {r.status_code}: {r.text[:100]}'
         loc = r.json()
     except Exception as e:
+        if out:
+            print(f"    Digitraffic unavailable ({str(e)[:60]}); keeping global only")
+            return _finish_vessels(out, source), None
         return None, str(e)[:160]
 
     # Names and ship types live on a separate endpoint; positions still stand
@@ -541,9 +638,11 @@ def fetch_vessels():
 
     feats = loc.get('features') if isinstance(loc, dict) else None
     if not feats:
+        if out:
+            return _finish_vessels(out, source), None
         return None, 'no features in AIS response'
 
-    out = []
+    regional = []
     for f in feats:
         g, p = f.get('geometry') or {}, f.get('properties') or {}
         c = g.get('coordinates') or []
@@ -564,12 +663,28 @@ def fetch_vessels():
             except (TypeError, ValueError): pass
         if p.get('heading') is not None:
             rec['hdg'] = p['heading']
-        out.append(rec)
+        regional.append(rec)
 
-    out = out[:4000]
+    source.append(f'Baltic {len(regional)}')
+    print(f"  vessels: {len(regional)} regional (Digitraffic)")
+    out.extend(regional)
+    return _finish_vessels(out, source), None
+
+
+def _finish_vessels(rows, source):
+    """De-duplicate by MMSI, preferring the record that carries a ship type."""
+    best = {}
+    for v in rows:
+        m = v.get('mmsi')
+        if m is None:
+            continue
+        cur = best.get(m)
+        if cur is None or (not cur.get('kind') and v.get('kind')):
+            best[m] = v
+    out = list(best.values())[:9000]
     mil = sum(1 for v in out if v.get('_mil'))
-    print(f"  vessels: {len(out)} ({mil} military/enforcement) - Baltic/Finnish AIS")
-    return out, None
+    print(f"  vessels: {len(out)} total ({mil} military/enforcement) [{', '.join(source)}]")
+    return out
 
 
 def fetch_skywatch():
