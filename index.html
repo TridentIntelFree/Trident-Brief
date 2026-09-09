@@ -215,7 +215,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
   <div class="header">
     <div class="badge">CLASSIFIED: SIGINT/HUMINT COLLECTION BRIEF</div>
     <h1>&#9876;&#65039; THE TRIDENT BRIEF &#9876;&#65039;</h1>
-    <div class="meta">Collection Period: 2026-09-09 15:50 UTC &nbsp;|&nbsp; Source: CACHE-RENDER</div>
+    <div class="meta">Collection Period: 2026-09-09 16:02 UTC &nbsp;|&nbsp; Source: CACHE-RENDER</div>
     <div class="sigint">MULTI-INT FUSION | SIGINT + HUMINT + OSINT-WEB + CHATTER MONITORING</div>
     <div class="pills">
       <span class="pill"><span class="dot live" id="freshDot"></span><b id="freshAge">--</b>&nbsp;since collection</span>
@@ -245,12 +245,16 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
           <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
           <button class="lyr on" data-layer="rocket"><i style="background:#c084fc"></i>R/B <b id="nRocket">0</b></button>
           <button class="lyr on" data-layer="debris"><i style="background:#7c8aa5"></i>DEBRIS <b id="nDebris">0</b></button>
+          <button class="lyr on" data-layer="naval"><i style="background:#34d399"></i>NAVAL <b id="nNaval">0</b></button>
           <button class="lyr on" data-layer="hazard"><i style="background:#f97316"></i>HAZARD <b id="nHaz">0</b></button>
           <button class="lyr on" data-layer="air"><i style="background:#22d3ee"></i>AIR <b id="nAir">0</b></button>
           <button class="lyr on" data-layer="iss"><i style="background:#a78bfa"></i>ISS</button>
           <button class="lyr on" id="spinBtn">&#8635; SPIN</button>
+          <button class="lyr" id="zoomOut" title="Zoom out">&minus;</button>
+          <button class="lyr" id="zoomLabelBtn" title="Reset zoom"><b id="zoomLabel">1.0&times;</b></button>
+          <button class="lyr" id="zoomIn" title="Zoom in">+</button>
         </div>
-        <div class="globe-hint">Drag to rotate &middot; click any contact to expand it</div>
+        <div class="globe-hint">Drag to rotate &middot; scroll or pinch to zoom &middot; click any contact to expand it</div>
       </div>
       <div class="detail-col">
         <div id="detailPanel"><div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div></div>
@@ -278,6 +282,13 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         <div class="t-sub" id="wSub">Loading&hellip;</div>
         <div class="t-list" id="wList"></div>
         <div class="t-src">collected server-side &middot; api.weather.gov</div>
+      </div>
+      <div class="tile" id="tileNaval">
+        <div class="t-label"><span class="dot" id="dNaval"></span>Naval &mdash; AIS</div>
+        <div class="t-val" id="vCount">&middot;&middot;&middot;</div>
+        <div class="t-sub" id="vSub">Loading vessels&hellip;</div>
+        <div class="t-list" id="vList"></div>
+        <div class="t-src">collected server-side &middot; Digitraffic open AIS</div>
       </div>
       <div class="tile" id="tileIss">
         <div class="t-label"><span class="dot" id="dIss"></span>Orbital &mdash; ISS (25544)</div>
@@ -362,7 +373,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
    Data injected at build time
    ===================================================================== */
 const BRIEF_MD   = "**BLUF:**  \nUkraine-Russia kinetic activity continued at high tempo on 9 Sep 2026 with confirmed Ukrainian deep strikes on Novorossiysk naval base and Russian ballistic/drone attacks on Kyiv and other regions causing civilian casualties. Zelenskyy announced progress on the multinational FREYJA anti-ballistic program during meetings in Norway. No verifiable new developments in technology/cyber, UAP, or parapsychology sections within the collection window. Other domains remain quiet.[[1]](https://www.ukrinform.net/rubric-ato/block-lastnews)[[2]](https://www.local10.com/news/world/2026/09/09/zelenskyy-urges-more-international-pressure-on-russia-over-civilian-deaths/)\n\n## 1. GEOPOLITICAL AND MILITARY\n- [OSINT - CONFIRMED] @ZelenskyyUa and @DefenceU reported Ukrainian forces (SBU, Unmanned Systems Forces, Navy, DIU, Border Guard) struck Novorossiysk naval base infrastructure, oil terminal, port facilities, and frigate *Admiral Essen* (Kalibr carrier) overnight 8-9 Sep; fire confirmed on superstructure. Second strike since August.[[3]](https://x.com/ZelenskyyUa/status/2097611209067422149)[[4]](https://x.com/DefenceU/status/2097672984685171169)\n- [OSINT - CONFIRMED] Russian attacks on Kyiv (drones, ballistic missiles) and other regions 8-9 Sep killed at least 12 and injured ~66-68; specific hits on residential buildings in Kyiv (e.g., Darnytskyi/Dniprovskyi districts) and Starokozache border crossing with Moldova (2 killed, operations suspended).[[5]](https://kyivindependent.com/russian-attacks-kill-at-least-injure-across-ukraine-as-russia-continues-relentless-strikes-on-kyiv/)[[6]](https://x.com/ZelenskyyUa/status/2097581465261220246)\n- [SIGINT - VERIFIED] @ZelenskyyUa posted from meeting with Norwegian PM Jonas Gahr St\u00f8re and defense executives (FirePoint, Kongsberg, Saab, Thales, etc.) on FREYJA anti-ballistic program for integrated European air defense; partners include Ukraine, Denmark, France, Germany, Italy, Netherlands, Norway, Spain, Sweden, UK. First practical results expected.[[7]](https://x.com/ZelenskyyUa/status/2097699538240676137)[[8]](https://x.com/ZelenskyyUa/status/2097699533236973957)\n- [OSINT - WEB] @StateDept amplified reporting on SecState Marco Rubio\u2019s Latin America tour (Colombia, Ecuador, Peru) focused on security cooperation and narcoterrorism.[[9]](https://x.com/StateDept/status/2097709789333590224)\n\n**Assessment:** Ukrainian long-range strikes and multinational air-defense cooperation represent incremental advances in asymmetric response and alliance-building; Russian strikes maintain pressure on Ukrainian civilians and infrastructure post-US envoys\u2019 visit pause.  \n**Collection gaps:** No direct posts or reporting retrieved from @POTUS, @SecDef, @DeptofDefense, @NATO, @CENTCOM, @INDOPACOM, @IDF, or @IsraeliPM in window; limited corroboration on exact strike timings or damage assessments beyond official Ukrainian claims.\n\n## 2. TECHNOLOGY AND CYBERSECURITY\nNo verifiable developments in window.\n\n## 3. UAP/UFO\nNo verifiable developments in window.\n\n## 4. PARAPSYCHOLOGY AND CONSCIOUSNESS RESEARCH\nNo verifiable developments in window.\n\n**Overall Fusion Notes:** Ukraine-Russia theater remains the dominant active domain with continued strikes and new defense announcements; all other sections quiet per searches.";
-const BUILT_AT   = "2026-09-09T15:50:22.919563+00:00";
+const BUILT_AT   = "2026-09-09T16:02:31.941673+00:00";
 const IS_STALE   = true;
 const ARCHIVE    = [{"date": "09 SEP 2026", "path": "archive/2026-09-09.md"}, {"date": "09 SEP 2026 15:38Z", "path": "archive/2026-09-09-1538.md"}, {"date": "09 SEP 2026 15:33Z", "path": "archive/2026-09-09-1533.md"}, {"date": "09 SEP 2026 15:25Z", "path": "archive/2026-09-09-1525.md"}, {"date": "09 SEP 2026 15:02Z", "path": "archive/2026-09-09-1502.md"}, {"date": "09 SEP 2026 14:57Z", "path": "archive/2026-09-09-1457.md"}, {"date": "24 FEB 2026", "path": "archive/2026-02-24.md"}, {"date": "23 FEB 2026", "path": "archive/2026-02-23.md"}, {"date": "22 FEB 2026", "path": "archive/2026-02-22.md"}, {"date": "21 FEB 2026", "path": "archive/2026-02-21.md"}, {"date": "20 FEB 2026", "path": "archive/2026-02-20.md"}, {"date": "19 FEB 2026", "path": "archive/2026-02-19.md"}, {"date": "18 FEB 2026", "path": "archive/2026-02-18.md"}, {"date": "17 FEB 2026", "path": "archive/2026-02-17.md"}, {"date": "16 FEB 2026", "path": "archive/2026-02-16.md"}, {"date": "15 FEB 2026", "path": "archive/2026-02-15.md"}, {"date": "14 FEB 2026", "path": "archive/2026-02-14.md"}, {"date": "13 FEB 2026", "path": "archive/2026-02-13.md"}, {"date": "12 FEB 2026", "path": "archive/2026-02-12.md"}, {"date": "11 FEB 2026", "path": "archive/2026-02-11.md"}, {"date": "10 FEB 2026", "path": "archive/2026-02-10.md"}, {"date": "09 FEB 2026", "path": "archive/2026-02-09.md"}, {"date": "08 FEB 2026", "path": "archive/2026-02-08.md"}, {"date": "07 FEB 2026", "path": "archive/2026-02-07.md"}, {"date": "06 FEB 2026", "path": "archive/2026-02-06.md"}, {"date": "05 FEB 2026", "path": "archive/2026-02-05.md"}];
 const EVENTS     = [{"lat": 50.45, "lon": 30.52, "place": "Kyiv, Ukraine", "headline": "Russian drone/missile strikes kill/injure civilians in residential areas", "section": "geopolitical", "classification": "OSINT - CONFIRMED", "confidence": "high", "url": "https://www.ukrinform.net/rubric-ato/block-lastnews"}, {"lat": 44.72, "lon": 37.77, "place": "Novorossiysk, Russia", "headline": "Ukrainian forces strike naval base, frigate Admiral Essen", "section": "geopolitical", "classification": "OSINT - CONFIRMED", "confidence": "high", "url": "https://www.ukrinform.net/rubric-ato/block-lastnews"}];
@@ -564,8 +575,8 @@ addEventListener('scroll', function(){
 var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 
 var G = {
-  rot:[20,-15], R:0, cx:0, cy:0, spin:true, sel:null, drag:null,
-  layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, iss:true},
+  rot:[20,-15], R:0, baseR:0, zoom:1, cx:0, cy:0, spin:true, sel:null, drag:null,
+  layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true},
   air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[]
 };
 
@@ -578,6 +589,7 @@ var KIND = {
   debris:{color:'#7c8aa5', label:'DEBRIS'},
   hazard:{color:'#f97316', label:'HAZARD'},
   air:   {color:'#22d3ee', label:'AIR CONTACT'},
+  naval: {color:'#34d399', label:'VESSEL'},
   iss:   {color:'#a78bfa', label:'ORBITAL'}
 };
 var SECTION_COLOR = {geopolitical:'#ef4444', technology:'#a78bfa', uap:'#22d3ee', research:'#22c55e'};
@@ -590,7 +602,17 @@ function sizeGlobe(){
   var w = cv.clientWidth || 480, h = cv.clientHeight || w;
   cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  G.cx = w/2; G.cy = h/2; G.R = Math.min(w,h)/2 - 12;
+  G.cx = w/2; G.cy = h/2;
+  G.baseR = Math.min(w,h)/2 - 12;
+  G.R = G.baseR * G.zoom;
+}
+
+var ZOOM_MIN = 1, ZOOM_MAX = 12;
+function setZoom(z){
+  G.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+  G.R = G.baseR * G.zoom;
+  var el = document.getElementById('zoomLabel');
+  if(el) el.textContent = G.zoom.toFixed(1) + '\u00d7';
 }
 
 /* orthographic projection: lon/lat -> screen, with back-hemisphere culling */
@@ -633,6 +655,10 @@ function contacts(){
       if(x.lat!=null) out.push({k:'launch', lat:x.lat, lon:x.lon, r:4, d:x, id:'L'+i, color:'#22c55e'});
     });
   }
+  if(G.layers.naval) (FEEDS.vessels||[]).forEach(function(v,i){
+    if(v.lat==null || v.lon==null || !v._mil) return;
+    out.push({k:'naval', lat:v.lat, lon:v.lon, r:3, d:v, id:'v'+i, color:'#10b981'});
+  });
   if(G.layers.iss && G.iss) out.push({k:'iss', lat:G.iss.lat, lon:G.iss.lon, r:5, d:G.iss, id:'iss', color:KIND.iss.color});
   return out;
 }
@@ -714,14 +740,41 @@ function onMove(e){
   if(!G.drag) return;
   var p=evtPos(e), dx=p.x-G.drag.p.x, dy=p.y-G.drag.p.y;
   if(Math.abs(dx)+Math.abs(dy) > 3) G.drag.moved=true;
-  G.rot[0] = G.drag.rot[0] + dx*0.35;
-  G.rot[1] = Math.max(-85, Math.min(85, G.drag.rot[1] - dy*0.35));
+  var k = 0.35 / G.zoom;   // same on-screen travel regardless of magnification
+  G.rot[0] = G.drag.rot[0] + dx*k;
+  G.rot[1] = Math.max(-85, Math.min(85, G.drag.rot[1] - dy*k));
   if(e.cancelable) e.preventDefault();
 }
 function onUp(e){
   if(G.drag && !G.drag.moved) pick(evtPos(e.changedTouches ? {touches:e.changedTouches} : e));
   G.drag=null; cv.classList.remove('drag');
 }
+cv.addEventListener('wheel', function(e){
+  e.preventDefault();
+  // multiplicative so each notch feels the same at any magnification
+  setZoom(G.zoom * (e.deltaY < 0 ? 1.18 : 1/1.18));
+}, {passive:false});
+
+/* two-finger pinch */
+var pinch = null;
+function touchDist(t){
+  var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
+  return Math.hypot(dx, dy);
+}
+cv.addEventListener('touchstart', function(e){
+  if(e.touches.length === 2){ pinch = {d: touchDist(e.touches), z: G.zoom}; G.drag = null; }
+}, {passive:true});
+cv.addEventListener('touchmove', function(e){
+  if(pinch && e.touches.length === 2){
+    if(e.cancelable) e.preventDefault();
+    var d = touchDist(e.touches);
+    if(pinch.d > 0) setZoom(pinch.z * (d / pinch.d));
+  }
+}, {passive:false});
+cv.addEventListener('touchend', function(e){ if(e.touches.length < 2) pinch = null; }, {passive:true});
+
+cv.addEventListener('dblclick', function(){ setZoom(G.zoom * 1.8); });
+
 cv.addEventListener('mousedown',onDown); cv.addEventListener('touchstart',onDown,{passive:true});
 addEventListener('mousemove',onMove);   cv.addEventListener('touchmove',onMove,{passive:false});
 addEventListener('mouseup',onUp);       cv.addEventListener('touchend',onUp);
@@ -786,6 +839,14 @@ function renderDetail(c){
     place = d.pad || '';
     if(d.net)    rows.push(['NET', fmtTime(d.net)]);
     if(d.status) rows.push(['STATUS', d.status]);
+  } else if(c.k==='naval'){
+    title = esc(d.name || ('MMSI ' + d.mmsi));
+    place = d.kind || 'AIS contact';
+    rows.push(['MMSI', String(d.mmsi)]);
+    if(d.kind) rows.push(['TYPE', d.kind]);
+    if(d.sog != null) rows.push(['SPEED', d.sog + ' kn']);
+    if(d.hdg != null) rows.push(['HEADING', d.hdg + '\u00b0']);
+    link = 'https://www.marinetraffic.com/en/ais/details/ships/mmsi:' + d.mmsi;
   } else if(c.k==='iss'){
     title = 'International Space Station';
     place = 'NORAD 25544';
@@ -811,6 +872,9 @@ document.querySelectorAll('.lyr[data-layer]').forEach(function(b){
     if(G.sel && G.sel.k===k && !G.layers[k]){ G.sel=null; renderDetail(null); }
   });
 });
+document.getElementById('zoomIn').addEventListener('click', function(){ setZoom(G.zoom*1.4); });
+document.getElementById('zoomOut').addEventListener('click', function(){ setZoom(G.zoom/1.4); });
+document.getElementById('zoomLabelBtn').addEventListener('click', function(){ setZoom(1); });
 document.getElementById('spinBtn').addEventListener('click', function(){
   G.spin=!G.spin; this.classList.toggle('on', G.spin);
 });
@@ -915,9 +979,23 @@ function drawSats(){
   if(!S || !G.satOk) return;
   var l = G.layers, cx=G.cx, cy=G.cy, R=G.R, rot0=G.rot[0]*D, p0=G.rot[1]*D;
   var cp0=Math.cos(p0), sp0=Math.sin(p0);
-  var paths = {sats:new Path2D(), rocket:new Path2D(), debris:new Path2D(), air:new Path2D()};
-  var size  = {sats:1.6, rocket:1.6, debris:1.1, air:1.8};
+  var paths = {sats:new Path2D(), rocket:new Path2D(), debris:new Path2D(), air:new Path2D(), naval:new Path2D()};
+  var size  = {sats:1.6, rocket:1.6, debris:1.1, air:1.8, naval:1.8};
   var any = false;
+
+  if(l.naval){
+    var V = FEEDS.vessels || [];
+    for(var vi=0; vi<V.length; vi++){
+      var Vv = V[vi];
+      if(Vv.lat==null || Vv.lon==null || Vv._mil) continue;
+      var vlat=Vv.lat*D, vlon=Vv.lon*D + rot0, vcp=Math.cos(vlat);
+      if(sp0*Math.sin(vlat) + cp0*vcp*Math.cos(vlon) <= 0) continue;
+      var vx = cx + R*(vcp*Math.sin(vlon));
+      var vy = cy - R*(cp0*Math.sin(vlat) - sp0*vcp*Math.cos(vlon));
+      paths.naval.rect(vx-0.9, vy-0.9, 1.8, 1.8);
+      any = true;
+    }
+  }
 
   if(l.air){
     for(var ai=0; ai<G.air.length; ai++){
@@ -950,6 +1028,7 @@ function drawSats(){
   ctx.fillStyle=KIND.rocket.color; ctx.globalAlpha=.72; ctx.fill(paths.rocket);
   ctx.fillStyle=KIND.sats.color;   ctx.globalAlpha=.85; ctx.fill(paths.sats);
   ctx.fillStyle=KIND.air.color;    ctx.globalAlpha=.9;  ctx.fill(paths.air);
+  ctx.fillStyle=KIND.naval.color;  ctx.globalAlpha=.85; ctx.fill(paths.naval);
   ctx.globalAlpha=1;
 }
 
@@ -1060,6 +1139,25 @@ function paintBaked(){
 
   document.getElementById('nEvents').textContent = EVENTS.length;
   var plottable = function(arr){ return (arr||[]).filter(function(x){ return x.lat!=null; }).length; };
+  var V = FEEDS.vessels || [];
+  document.getElementById('nNaval').textContent = V.length;
+  if(V.length){
+    var vmil = V.filter(function(x){ return x._mil; });
+    document.getElementById('vCount').textContent = V.length;
+    document.getElementById('vSub').textContent =
+      'Baltic / Finnish AIS · ' + vmil.length + ' military or enforcement';
+    document.getElementById('vList').innerHTML = vmil.concat(V).filter(function(x,i,a){return a.indexOf(x)===i;})
+      .slice(0,3).map(function(x){
+        return '<span>'+(x._mil?'<span class="sev">▲</span> ':'')+
+               esc(String(x.name||('MMSI '+x.mmsi)).slice(0,20))+' · '+esc(String(x.kind||'—').slice(0,14))+'</span>';
+      }).join('');
+    document.getElementById('tileNaval').classList.toggle('alert', vmil.length>0);
+    up('tileNaval','dNaval');
+  } else {
+    down('tileNaval','dNaval','vCount','vSub',
+         (FEEDS.errors && FEEDS.errors.vessels) ? String(FEEDS.errors.vessels).split(':')[0] : 'not collected');
+  }
+
   document.getElementById('nHaz').textContent =
     plottable(FEEDS.alerts) + plottable(FEEDS.disasters) + plottable(FEEDS.launches);
 }
@@ -1147,14 +1245,15 @@ function tryChain(urls, ms){
 }
 function acList(j){ return (j && (j.ac || j.aircraft)) || []; }
 
+/* airplanes.live 403s every unregistered caller, so it goes last here too. */
 function localUrls(lat, lon, nm){
-  return ['https://api.airplanes.live/v2/point/'+lat.toFixed(4)+'/'+lon.toFixed(4)+'/'+nm,
-          'https://opendata.adsb.fi/api/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm,
-          'https://api.adsb.lol/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm];
+  return ['https://opendata.adsb.fi/api/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm,
+          'https://api.adsb.lol/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm,
+          'https://api.airplanes.live/v2/point/'+lat.toFixed(4)+'/'+lon.toFixed(4)+'/'+nm];
 }
-var MIL_URLS = ['https://api.airplanes.live/v2/mil',
-                'https://opendata.adsb.fi/api/v2/mil',
-                'https://api.adsb.lol/v2/mil'];
+var MIL_URLS = ['https://opendata.adsb.fi/api/v2/mil',
+                'https://api.adsb.lol/v2/mil',
+                'https://api.airplanes.live/v2/mil'];
 
 
 /* --- global air picture --------------------------------------------------
