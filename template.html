@@ -801,10 +801,11 @@ function paintBaked(){
     }).join('');
     document.getElementById('tileQuake').classList.toggle('alert', q[0].mag>=6);
     up('tileQuake','dQuake');
-  } else down('tileQuake','dQuake','qCount','qSub','not collected this run');
+  } else { liveQuake(); }
   document.getElementById('nQuake').textContent = q.length;
 
-  var a = FEEDS.alerts || [];
+  var a = FEEDS.alerts;
+  if(!a){ liveAlert(); a = []; }
   if(a.length){
     document.getElementById('wCount').textContent = a.length;
     document.getElementById('wSub').textContent = 'severe/extreme, nationwide';
@@ -813,7 +814,7 @@ function paintBaked(){
     }).join('');
     document.getElementById('tileAlert').classList.add('alert');
     up('tileAlert','dAlert');
-  } else {
+  } else if(FEEDS.alerts){
     document.getElementById('wCount').textContent = '0';
     document.getElementById('wSub').textContent = 'no severe/extreme alerts active';
     up('tileAlert','dAlert');
@@ -829,9 +830,64 @@ function paintBaked(){
       return '<span>'+esc(fmtTime(x.net).slice(5))+' · '+esc(String(x.name||'').split('|')[0].slice(0,22))+'</span>';
     }).join('');
     up('tileLaunch','dLaunch');
-  } else down('tileLaunch','dLaunch','lNext','lSub','not collected this run');
+  } else { liveLaunch(); }
 
   document.getElementById('nEvents').textContent = EVENTS.length;
+}
+
+
+/* --- browser-side retry for feeds the runner could not collect ---------
+   A shared CI runner IP gets rate-limited or geo-blocked where a visitor's
+   residential IP usually is not, so it is worth asking again from here. --- */
+function srvErr(k){ return (FEEDS.errors && FEEDS.errors[k]) ? FEEDS.errors[k].split(':')[0] : 'not collected'; }
+
+function liveQuake(){
+  document.getElementById('qSub').textContent = 'retrying from your browser…';
+  jget('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson').then(function(d){
+    var q = (d.features||[]).map(function(f){
+      var c=(f.geometry||{}).coordinates||[], p=f.properties||{};
+      return {lat:c[1], lon:c[0], depth:c[2], mag:p.mag, place:p.place, time:p.time, url:p.url};
+    }).filter(function(x){ return x.mag!=null; }).sort(function(m,n){ return n.mag-m.mag; });
+    FEEDS.quakes = q;
+    document.getElementById('qCount').textContent = q.length;
+    document.getElementById('nQuake').textContent = q.length;
+    document.getElementById('qSub').textContent = 'M2.5+ worldwide / 24h · strongest M'+Number(q[0].mag).toFixed(1);
+    document.getElementById('qList').innerHTML = q.slice(0,3).map(function(x){
+      return '<span><span class="mag">M'+Number(x.mag).toFixed(1)+'</span> '+esc(String(x.place||'').slice(0,32))+'</span>'; }).join('');
+    up('tileQuake','dQuake');
+  }).catch(function(e){ down('tileQuake','dQuake','qCount','qSub', srvErr('quakes')+' / '+why(e)); });
+}
+
+function liveAlert(){
+  document.getElementById('wSub').textContent = 'retrying from your browser…';
+  jget('https://api.weather.gov/alerts/active?severity=Severe,Extreme').then(function(d){
+    var a = (d.features||[]).map(function(f){ var p=f.properties||{};
+      return {event:p.event, area:p.areaDesc, severity:p.severity, expires:p.expires}; })
+      .filter(function(x){ return x.severity==='Severe' || x.severity==='Extreme'; });
+    FEEDS.alerts = a;
+    document.getElementById('wCount').textContent = a.length;
+    document.getElementById('wSub').textContent = a.length ? 'severe/extreme, nationwide' : 'no severe/extreme alerts active';
+    document.getElementById('wList').innerHTML = a.slice(0,3).map(function(x){
+      return '<span><span class="sev">●</span> '+esc(String(x.event||'').slice(0,26))+' · '+esc(String(x.area||'').split(';')[0].slice(0,20))+'</span>'; }).join('');
+    document.getElementById('tileAlert').classList.toggle('alert', a.length>0);
+    up('tileAlert','dAlert');
+  }).catch(function(e){ down('tileAlert','dAlert','wCount','wSub', srvErr('alerts')+' / '+why(e)); });
+}
+
+function liveLaunch(){
+  document.getElementById('lSub').textContent = 'retrying from your browser…';
+  jget('https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=6&mode=list', 15000).then(function(d){
+    var l = (d.results||[]).map(function(x){ return {name:x.name, net:x.net}; });
+    if(!l.length) throw new Error('empty manifest');
+    FEEDS.launches = l;
+    var t=new Date(l[0].net), hrs=(t-Date.now())/3600000;
+    document.getElementById('lNext').textContent = hrs<0 ? 'IN PROGRESS'
+      : (hrs<48 ? 'T-'+Math.floor(hrs)+'h '+Math.floor((hrs%1)*60)+'m' : 'T-'+Math.floor(hrs/24)+'d');
+    document.getElementById('lSub').textContent = String(l[0].name||'').slice(0,44);
+    document.getElementById('lList').innerHTML = l.slice(1,4).map(function(x){
+      return '<span>'+esc(fmtTime(x.net).slice(5))+' · '+esc(String(x.name||'').split('|')[0].slice(0,22))+'</span>'; }).join('');
+    up('tileLaunch','dLaunch');
+  }).catch(function(e){ down('tileLaunch','dLaunch','lNext','lSub', srvErr('launches')+' / '+why(e)); });
 }
 
 /* --- live: air picture --- */
