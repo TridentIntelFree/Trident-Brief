@@ -395,12 +395,14 @@ def _tle_elements(entry):
 def fetch_skywatch():
     """Satellite catalogue from the user's own Skywatch project.
 
-    Payloads only, evenly strided down to a size the page can propagate every
-    frame. Even striding over the NORAD-ordered catalogue keeps a spread of
-    orbital regimes rather than clustering on one constellation.
+    Every tracked object -- payloads, rocket bodies, debris and unknowns -- is
+    written to assets/satellites.json rather than embedded in the page. At
+    ~2.4MB raw (~820KB gzipped, which is how Pages serves it) it would otherwise
+    triple the size of index.html and block first paint; as a separate
+    same-origin asset the page renders immediately and the catalogue streams in.
     """
     try:
-        r = requests.get(SKYWATCH_CATALOG, timeout=60)
+        r = requests.get(SKYWATCH_CATALOG, timeout=120)
         if r.status_code != 200:
             return None, f'HTTP {r.status_code}'
         cat = r.json()
@@ -408,15 +410,31 @@ def fetch_skywatch():
         return None, str(e)[:160]
 
     raw = cat.get('sats') or []
-    pay = [x for x in (_tle_elements(e) for e in raw if len(e) >= 5 and e[2] == 'P') if x]
-    if not pay:
-        return None, 'no payloads parsed'
-    step = max(1, len(pay) // SAT_TARGET)
-    sub = pay[::step]
-    have = {p[1] for p in sub}
-    sub += [p for p in pay if p[1] in NOTABLE_SATS and p[1] not in have]
-    print(f"  skywatch: {len(sub)} of {len(pay)} payloads (catalogue generated {cat.get('generated')})")
-    return sub, None
+    out, counts = [], {}
+    for e in raw:
+        if len(e) < 5:
+            continue
+        kind = e[2] if e[2] in ('P', 'R', 'D', 'U') else 'U'
+        el = _tle_elements(e)
+        if not el:
+            continue
+        # Debris names are generic ("THOR ABLE DEB (YO)") and make up a third of
+        # the payload; the NORAD id identifies them well enough.
+        name = '' if kind == 'D' else el[0]
+        out.append([name, el[1], el[2], round(el[3], 2), round(el[4], 2),
+                    round(el[5], 6), round(el[6], 2), round(el[7], 2),
+                    round(el[8], 6), kind])
+        counts[kind] = counts.get(kind, 0) + 1
+    if not out:
+        return None, 'no objects parsed'
+
+    os.makedirs('assets', exist_ok=True)
+    with open('assets/satellites.json', 'w', encoding='utf-8') as f:
+        json.dump({'generated': cat.get('generated'), 'counts': counts, 'sats': out},
+                  f, separators=(',', ':'))
+    size = os.path.getsize('assets/satellites.json') // 1024
+    print(f"  skywatch: {len(out)} objects {counts} -> assets/satellites.json ({size} KB)")
+    return counts, None
 
 
 def fetch_server_feeds():
@@ -477,7 +495,7 @@ def fetch_server_feeds():
         errors['sats'] = err
         print(f"  skywatch failed: {err}")
     else:
-        feeds['sats'] = sats
+        feeds['satcounts'] = sats
 
     dis, err = fetch_disasters()
     if dis is None:

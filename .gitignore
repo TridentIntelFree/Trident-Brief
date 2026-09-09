@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# regenerated from Skywatch on every run; too large to version
+assets/satellites.json
