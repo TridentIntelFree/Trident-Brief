@@ -566,7 +566,7 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 var G = {
   rot:[20,-15], R:0, cx:0, cy:0, spin:true, sel:null, drag:null,
   layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, iss:true},
-  air:[], iss:null, sats:[], satsRaw:null
+  air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[]
 };
 
 var KIND_EXTRA = {launch:{color:'#22c55e', label:'LAUNCH PAD'}};
@@ -1206,6 +1206,47 @@ function globalAir(){
     });
 }
 
+/* The air picture collected by the Action, served same-origin so no browser can
+   refuse it. Loaded first so aircraft are on the globe immediately; a live fetch
+   replaces it if this browser can actually reach a provider. */
+function snapshotAir(){
+  return jget('assets/aircraft.json', 20000).then(function(d){
+    G.airSnapshot = d.ac || [];
+    G.airSnapAt = d.fetched_at;
+    if(!G.air.length){ G.air = G.airSnapshot; paintAirTile(G.airSnapshot, [], [], null); }
+    return G.airSnapshot;
+  }).catch(function(){ return []; });
+}
+
+function snapAge(){
+  if(!G.airSnapAt) return 'age unknown';
+  var m = Math.floor((Date.now() - new Date(G.airSnapAt).getTime())/60000);
+  return m < 60 ? m+'m old' : Math.floor(m/60)+'h '+(m%60)+'m old';
+}
+
+function paintAirTile(merged, milAc, loc, locErr){
+  var emerg = merged.filter(function(a){ return ['7500','7600','7700'].indexOf(String(a.squawk||''))>-1; });
+  var isLive = merged !== G.airSnapshot;
+  document.getElementById('aCount').textContent = merged.length;
+  document.getElementById('nAir').textContent = merged.length;
+  document.getElementById('aSub').textContent = isLive
+    ? ((G.airGlobal||[]).length + ' global' + (G.airSource ? ' ('+G.airSource+')' : '') +
+       ' · ' + milAc.length + ' military · ' + loc.length + ' local' +
+       (emerg.length ? ' · ' + emerg.length + ' SQUAWK ALERT' : ''))
+    : ('server-collected · ' + snapAge() + ' · ' +
+       merged.filter(function(a){ return a._mil; }).length + ' military' +
+       (emerg.length ? ' · ' + emerg.length + ' SQUAWK ALERT' : '') +
+       (locErr ? ' · live providers blocked' : ''));
+  document.getElementById('aList').innerHTML = emerg.concat(merged).filter(function(v,i,x){return x.indexOf(v)===i;})
+    .slice(0,3).map(function(a){
+      var sq=String(a.squawk||''), hot=['7500','7600','7700'].indexOf(sq)>-1;
+      return '<span>'+(hot?'<span class="sev">⚠ '+sq+'</span> ':'')+
+             esc(String(a.flight||a.r||a.hex||'?').trim().slice(0,10))+' · '+esc(String(a.t||'---'))+'</span>';
+    }).join('');
+  document.getElementById('tileAir').classList.toggle('alert', emerg.length>0);
+  up('tileAir','dAir');
+}
+
 function feedAir(refreshGlobal){
   var nm = 250;
   var local = tryChain(localUrls(GE.lat, GE.lon, nm), 14000).then(acList)
@@ -1232,22 +1273,19 @@ function feedAir(refreshGlobal){
     });
     G.air = merged;
 
-    if(!merged.length){ down('tileAir','dAir','aCount','aSub', locErr || 'no provider answered'); return; }
-    var emerg = merged.filter(function(a){ return ['7500','7600','7700'].indexOf(String(a.squawk||''))>-1; });
-    document.getElementById('aCount').textContent = merged.length;
-    document.getElementById('nAir').textContent = merged.length;
-    document.getElementById('aSub').textContent =
-      G.airGlobal.length + ' global' + (G.airSource ? ' ('+G.airSource+')' : '') +
-      ' · ' + milAc.length + ' military · ' + loc.length + ' within ' + nm + 'nm' +
-      (emerg.length ? ' · ' + emerg.length + ' SQUAWK ALERT' : '');
-    document.getElementById('aList').innerHTML = emerg.concat(merged).filter(function(v,i,x){return x.indexOf(v)===i;})
-      .slice(0,3).map(function(a){
-        var sq=String(a.squawk||''), hot=['7500','7600','7700'].indexOf(sq)>-1;
-        return '<span>'+(hot?'<span class="sev">⚠ '+sq+'</span> ':'')+
-               esc(String(a.flight||a.r||a.hex||'?').trim().slice(0,10))+' · '+esc(String(a.t||'---'))+'</span>';
-      }).join('');
-    document.getElementById('tileAir').classList.toggle('alert', emerg.length>0);
-    up('tileAir','dAir');
+    if(!merged.length){
+      // Every live provider refused this browser. Fall back to the picture the
+      // runner collected, rather than showing nothing.
+      if(G.airSnapshot && G.airSnapshot.length){
+        G.air = G.airSnapshot;
+        paintAirTile(G.airSnapshot, [], [], locErr);
+        if(locErr) console.warn('live air providers unavailable:', locErr);
+      } else {
+        down('tileAir','dAir','aCount','aSub', locErr || 'no provider answered');
+      }
+      return;
+    }
+    paintAirTile(merged, milAc, loc, locErr);
   });
 }
 
@@ -1268,7 +1306,7 @@ sizeGlobe();
 addEventListener('resize', function(){ sizeGlobe(); });
 paintBaked();
 loadSats(); setInterval(stepSats, 2000);
-feedAir(true); feedIss();
+snapshotAir().then(function(){ feedAir(true); }); feedIss();
 setInterval(function(){ feedAir(false); feedIss(); }, 90000);
 setInterval(function(){ feedAir(true); }, 600000);
 requestAnimationFrame(loop);

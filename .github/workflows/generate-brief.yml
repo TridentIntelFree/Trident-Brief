@@ -7,6 +7,11 @@ on:
     # Each run reports the delta since the previous brief.
     - cron: '0 11,23 * * *'
 
+# Serialised against the feed-refresh job so two runs never deploy at once.
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pages: write
