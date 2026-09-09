@@ -271,8 +271,21 @@ def _get(url, timeout=20):
         # api.weather.gov rejects clients without a descriptive UA
         'User-Agent': 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)',
     })
-    r.raise_for_status()
+    if r.status_code != 200:
+        raise RuntimeError(f'HTTP {r.status_code}: {r.text[:120]}')
     return r.json()
+
+
+def _try(urls, timeout=20):
+    """First URL that answers wins. Returns (data, None) or (None, reason)."""
+    last = 'no url tried'
+    for u in urls:
+        try:
+            return _get(u, timeout), None
+        except Exception as e:
+            last = str(e)[:160]
+            print(f"    {u.split('?')[0]} -> {last}")
+    return None, last
 
 
 def fetch_server_feeds():
@@ -283,8 +296,12 @@ def fetch_server_feeds():
     """
     feeds = {}
 
-    try:
-        d = _get('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson')
+    errors = {}
+
+    d, err = _try(['https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson'])
+    if d is None:
+        errors['quakes'] = err
+    else:
         quakes = []
         for f in d.get('features', []):
             p, g = f.get('properties') or {}, f.get('geometry') or {}
@@ -296,11 +313,15 @@ def fetch_server_feeds():
         quakes.sort(key=lambda q: q['mag'], reverse=True)
         feeds['quakes'] = quakes[:60]
         print(f"  quakes: {len(feeds['quakes'])}")
-    except Exception as e:
-        print(f"  quakes feed failed: {e}")
 
-    try:
-        d = _get('https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=6&mode=list', timeout=25)
+    d, err = _try([
+        'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=6&mode=list',
+        'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=6&mode=list',
+        'https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=6&mode=list',
+    ], timeout=25)
+    if d is None:
+        errors['launches'] = err
+    else:
         feeds['launches'] = [{
             'name': (l.get('name') or '')[:120],
             'net': l.get('net'),
@@ -308,21 +329,28 @@ def fetch_server_feeds():
             'pad': (((l.get('pad') or {}).get('location') or {}).get('name') or '')[:120],
         } for l in d.get('results', [])]
         print(f"  launches: {len(feeds['launches'])}")
-    except Exception as e:
-        print(f"  launches feed failed: {e}")
 
-    try:
-        d = _get('https://api.weather.gov/alerts/active?severity=Severe,Extreme&limit=60')
+    d, err = _try([
+        'https://api.weather.gov/alerts/active?severity=Severe,Extreme',
+        'https://api.weather.gov/alerts/active?status=actual&message_type=alert',
+        'https://api.weather.gov/alerts/active',
+    ])
+    if d is None:
+        errors['alerts'] = err
+    else:
         feeds['alerts'] = [{
             'event': ((f.get('properties') or {}).get('event') or '')[:80],
             'area': ((f.get('properties') or {}).get('areaDesc') or '')[:120],
             'severity': ((f.get('properties') or {}).get('severity') or ''),
             'expires': (f.get('properties') or {}).get('expires'),
-        } for f in d.get('features', [])]
+        } for f in d.get('features', [])
+          if ((f.get('properties') or {}).get('severity') in ('Severe', 'Extreme'))]
         print(f"  alerts: {len(feeds['alerts'])}")
-    except Exception as e:
-        print(f"  alerts feed failed: {e}")
 
+    # Recorded so the page can name the real reason, and retry that feed from the
+    # visitor's own browser -- a residential IP is often not rate-limited or
+    # geo-blocked where a shared CI runner IP is.
+    feeds['errors'] = errors
     feeds['fetched_at'] = datetime.now(timezone.utc).isoformat()
     return feeds
 
