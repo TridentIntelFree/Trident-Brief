@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from html import escape
 
@@ -406,10 +407,13 @@ AIR_ANCHORS = [
 ]
 
 
+# airplanes.live answers 403 to every unregistered request ("Please contact us
+# at contact@airplanes.live"), so it is tried last rather than first: putting it
+# ahead of the others cost a wasted round-trip on all seventeen queries.
 def _ac_urls(lat, lon, nm=250):
-    return [f'https://api.airplanes.live/v2/point/{lat:.4f}/{lon:.4f}/{nm}',
-            f'https://opendata.adsb.fi/api/v2/lat/{lat:.4f}/lon/{lon:.4f}/dist/{nm}',
-            f'https://api.adsb.lol/v2/lat/{lat:.4f}/lon/{lon:.4f}/dist/{nm}']
+    return [f'https://opendata.adsb.fi/api/v2/lat/{lat:.4f}/lon/{lon:.4f}/dist/{nm}',
+            f'https://api.adsb.lol/v2/lat/{lat:.4f}/lon/{lon:.4f}/dist/{nm}',
+            f'https://api.airplanes.live/v2/point/{lat:.4f}/{lon:.4f}/{nm}']
 
 
 def fetch_aircraft():
@@ -448,14 +452,16 @@ def fetch_aircraft():
                 rec['_mil'] = True
             out.append(rec)
 
-    d, _ = _try(['https://api.airplanes.live/v2/mil',
-                 'https://opendata.adsb.fi/api/v2/mil',
-                 'https://api.adsb.lol/v2/mil'], timeout=25)
+    d, _ = _try(['https://opendata.adsb.fi/api/v2/mil',
+                 'https://api.adsb.lol/v2/mil',
+                 'https://api.airplanes.live/v2/mil'], timeout=25)
     if d:
         take(d.get('ac') or d.get('aircraft'), mil=True)
     mil_n = len(out)
 
-    for lat, lon in AIR_ANCHORS:
+    for i, (lat, lon) in enumerate(AIR_ANCHORS):
+        if i:
+            time.sleep(0.4)   # one anchor drew a 429 when fired back to back
         d, _ = _try(_ac_urls(lat, lon), timeout=20)
         if d:
             take(d.get('ac') or d.get('aircraft'))

@@ -1147,14 +1147,15 @@ function tryChain(urls, ms){
 }
 function acList(j){ return (j && (j.ac || j.aircraft)) || []; }
 
+/* airplanes.live 403s every unregistered caller, so it goes last here too. */
 function localUrls(lat, lon, nm){
-  return ['https://api.airplanes.live/v2/point/'+lat.toFixed(4)+'/'+lon.toFixed(4)+'/'+nm,
-          'https://opendata.adsb.fi/api/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm,
-          'https://api.adsb.lol/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm];
+  return ['https://opendata.adsb.fi/api/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm,
+          'https://api.adsb.lol/v2/lat/'+lat.toFixed(4)+'/lon/'+lon.toFixed(4)+'/dist/'+nm,
+          'https://api.airplanes.live/v2/point/'+lat.toFixed(4)+'/'+lon.toFixed(4)+'/'+nm];
 }
-var MIL_URLS = ['https://api.airplanes.live/v2/mil',
-                'https://opendata.adsb.fi/api/v2/mil',
-                'https://api.adsb.lol/v2/mil'];
+var MIL_URLS = ['https://opendata.adsb.fi/api/v2/mil',
+                'https://api.adsb.lol/v2/mil',
+                'https://api.airplanes.live/v2/mil'];
 
 
 /* --- global air picture --------------------------------------------------
