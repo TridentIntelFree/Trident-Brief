@@ -1,6 +1,17 @@
 {
- "updated": "2026-09-10T00:41:33.695518+00:00",
+ "updated": "2026-09-10T14:41:06.163652+00:00",
  "briefs": [
+  {
+   "at": "2026-09-10T14:41:06.163652+00:00",
+   "path": "archive/2026-09-10-1441.md",
+   "bluf": "BLUF",
+   "events": 3,
+   "headlines": [
+    "Russian drone strike near shopping mall",
+    "Zelenskyy arrives for defense and energy talks",
+    "Ukrainian strikes on port and vessels"
+   ]
+  },
   {
    "at": "2026-09-10T00:41:33.695518+00:00",
    "path": "archive/2026-09-10-0041.md",
@@ -19,13 +30,14 @@
    "lat": 50.91,
    "lon": 34.8,
    "place": "Sumy, Ukraine",
-   "count": 1,
+   "count": 2,
    "first": "2026-09-10T00:41:33.695518+00:00",
    "headlines": [
+    "Russian drone strike near shopping mall",
     "Russian drone strike near mall: 2 killed, 14 wounded"
    ],
    "maxPriority": 3,
-   "last": "2026-09-10T00:41:33.695518+00:00"
+   "last": "2026-09-10T14:41:06.163652+00:00"
   },
   {
    "key": "50.45,30.52",
@@ -52,6 +64,32 @@
    ],
    "maxPriority": 3,
    "last": "2026-09-10T00:41:33.695518+00:00"
+  },
+  {
+   "key": "50.45,-104.62",
+   "lat": 50.45,
+   "lon": -104.62,
+   "place": "Ottawa, Canada",
+   "count": 1,
+   "first": "2026-09-10T14:41:06.163652+00:00",
+   "headlines": [
+    "Zelenskyy arrives for defense and energy talks"
+   ],
+   "maxPriority": 2,
+   "last": "2026-09-10T14:41:06.163652+00:00"
+  },
+  {
+   "key": "44.72,37.77",
+   "lat": 44.72,
+   "lon": 37.77,
+   "place": "Novorossiysk, Russia",
+   "count": 1,
+   "first": "2026-09-10T14:41:06.163652+00:00",
+   "headlines": [
+    "Ukrainian strikes on port and vessels"
+   ],
+   "maxPriority": 4,
+   "last": "2026-09-10T14:41:06.163652+00:00"
   }
  ]
 }
