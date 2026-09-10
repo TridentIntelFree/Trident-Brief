@@ -5,3 +5,6 @@ __pycache__/
 assets/satellites.json
 assets/aircraft.json
 assets/feed-status.json
+assets/three.module.js
+assets/earth_*.jpg
+assets/earth_*.png
