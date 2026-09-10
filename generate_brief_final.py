@@ -1086,8 +1086,14 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
         with open('assets/coastline.json', 'r', encoding='utf-8') as f:
             coastline = json.load(f)
     except Exception as e:
-        print(f"Coastline geometry unavailable ({e}); globe will draw without landmasses")
+        print(f"Coastline geometry unavailable ({e}); globe draws without outlines")
         coastline = {'lines': []}
+    try:
+        with open('assets/land.json', 'r', encoding='utf-8') as f:
+            land = json.load(f)
+    except Exception as e:
+        print(f"Land polygons unavailable ({e}); globe draws unfilled")
+        land = {'rings': []}
 
     # The collection key is NOT written into the page by default.
     #
@@ -1117,6 +1123,7 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
         '__EVENTS_JSON__': js_json(events),
         '__FEEDS_JSON__': js_json(feeds),
         '__COASTLINE_JSON__': js_json(coastline.get('lines', [])),
+        '__LAND_JSON__': js_json(land.get('rings', [])),
         '__HISTORY_JSON__': js_json(history or load_history()),
         '__GROK_KEY_JSON__': js_json(grok_key),
     }

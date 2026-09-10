@@ -19,9 +19,9 @@ html{scroll-behavior:smooth}
 body{
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   background:var(--bg0);
-  background-image:radial-gradient(1200px 700px at 15% -10%,rgba(59,130,246,.16),transparent 60%),
-                   radial-gradient(1000px 600px at 90% 0%,rgba(167,139,250,.10),transparent 55%),
-                   linear-gradient(160deg,#070b1c,#111a35 60%,#0a1024);
+  background-image:radial-gradient(1200px 700px at 15% -10%,rgba(59,130,246,.14),transparent 60%),
+                   radial-gradient(1000px 600px at 90% 0%,rgba(167,139,250,.09),transparent 55%),
+                   linear-gradient(160deg,#050916,#0d1630 60%,#070c1e);
   background-attachment:fixed;
   color:var(--ink); line-height:1.65; padding:16px;
   -webkit-text-size-adjust:100%;
@@ -74,7 +74,13 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 /* ---------- globe ---------- */
 .ge-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-bottom:16px;align-items:start}
 .globe-col{min-width:0}
-#globe{width:100%;max-width:520px;aspect-ratio:1;display:block;margin:0 auto;cursor:grab;touch-action:none}
+#globe{width:100%;max-width:560px;aspect-ratio:1;display:block;margin:0 auto;cursor:grab;touch-action:none;
+  position:relative;z-index:1}
+/* Glow lives on a static pseudo-element, not as a filter on the live canvas. */
+.globe-col{position:relative}
+.globe-col::before{content:"";position:absolute;left:50%;top:calc(50% - 22px);width:min(88%,500px);aspect-ratio:1;
+  transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(37,99,235,.20),rgba(37,99,235,.05) 55%,transparent 72%);filter:blur(22px)}
 #globe.drag{cursor:grabbing}
 .globe-ctl{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px}
 .lyr{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink-faint);
@@ -428,6 +434,7 @@ const ARCHIVE    = __ARCHIVE_JSON__;
 const EVENTS     = __EVENTS_JSON__;
 const FEEDS      = __FEEDS_JSON__;
 const COASTLINE  = __COASTLINE_JSON__;
+const LAND       = __LAND_JSON__;
 const HISTORY    = __HISTORY_JSON__;
 const GROK_KEY   = __GROK_KEY_JSON__;
 const ACCESS_CODE= "0330";
@@ -680,8 +687,156 @@ var SECTION_COLOR = {geopolitical:'#ef4444', technology:'#a78bfa', uap:'#22d3ee'
 var cv = document.getElementById('globe'), ctx = cv.getContext('2d');
 var D = Math.PI/180;
 
+/* =====================================================================
+   Globe rendering: filled land, solar shading, atmospheric limb.
+   Still plain canvas 2D -- no WebGL, no library. Every effect degrades on
+   its own if QUALITY is dropped, so a weak device can shed cost without
+   losing the map.
+   ===================================================================== */
+var QUALITY = 'high';   // high | low, set from measured frame time
+
+/* Gradients are expensive to build and rasterise, and the ocean and limb only
+   change when the sphere is resized or zoomed. Cache them against the geometry
+   instead of rebuilding three full-disc gradients on every frame. */
+var GRAD = {key:'', ocean:null, limb:null};
+function gradients(){
+  var key = G.cx+':'+G.cy+':'+Math.round(G.R*10);
+  if(GRAD.key === key) return GRAD;
+  var R = G.R;
+  var o = ctx.createRadialGradient(G.cx-R*0.35, G.cy-R*0.4, R*0.1, G.cx, G.cy, R);
+  o.addColorStop(0,'#123156'); o.addColorStop(0.65,'#0a1c38'); o.addColorStop(1,'#050c1d');
+  var l = ctx.createRadialGradient(G.cx, G.cy, R*0.965, G.cx, G.cy, R*1.10);
+  l.addColorStop(0,'rgba(96,165,250,0)'); l.addColorStop(0.30,'rgba(96,165,250,.30)');
+  l.addColorStop(0.55,'rgba(56,189,248,.16)'); l.addColorStop(1,'rgba(56,189,248,0)');
+  GRAD = {key:key, ocean:o, limb:l};
+  return GRAD;
+}
+
+/* The sun moves 0.004 degrees a second; recomputing its shading gradient every
+   frame is pure waste. Rebuild it when the geometry or the position changes. */
+var SHADE = {key:'', grad:null, flat:false};
+
+/* Fixed star field, generated once from a fixed seed so it does not shimmer. */
+var STARS = (function(){
+  var s = 20260909, out = [];
+  function rnd(){ s = (s*1103515245 + 12345) & 0x7fffffff; return s/0x7fffffff; }
+  for(var i=0;i<420;i++) out.push([rnd(), rnd(), 0.25 + rnd()*0.75]);
+  return out;
+})();
+
+function drawStars(w, h){
+  if(QUALITY !== 'high') return;
+  for(var i=0;i<STARS.length;i++){
+    var st = STARS[i];
+    ctx.globalAlpha = 0.10 + st[2]*0.42;
+    ctx.fillStyle = '#cfe4ff';
+    ctx.fillRect(st[0]*w, st[1]*h, st[2] > 0.85 ? 1.6 : 1, st[2] > 0.85 ? 1.6 : 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* Sub-solar point: where the sun is directly overhead right now. */
+function subsolar(d){
+  var t = d.getTime()/86400000 + 2440587.5;          // Julian day
+  var n = t - 2451545.0;
+  var L = (280.460 + 0.9856474*n) % 360;             // mean longitude
+  var g = ((357.528 + 0.9856003*n) % 360) * D;       // mean anomaly
+  var lam = (L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g)) * D;
+  var eps = (23.439 - 0.0000004*n) * D;
+  var dec = Math.asin(Math.sin(eps)*Math.sin(lam))/D;
+  var utc = d.getUTCHours() + d.getUTCMinutes()/60 + d.getUTCSeconds()/3600;
+  var lon = -15*(utc - 12);
+  // equation of time, minutes -> degrees
+  var eot = 4*(L - 0.0057183 - Math.atan2(Math.cos(eps)*Math.sin(lam), Math.cos(lam))/D);
+  lon -= eot/4;
+  return {lat: dec, lon: ((lon + 540) % 360) - 180};
+}
+
+/* Land, clipped at the horizon: points behind the limb are dropped and the
+   crossing is snapped onto the rim, which is accurate enough at this scale
+   once the coastline stroke is drawn over the top. */
+function drawLand(){
+  if(!LAND || !LAND.length) return;
+  var cx=G.cx, cy=G.cy, R=G.R, rot0=G.rot[0]*D, p0=G.rot[1]*D;
+  var cp0=Math.cos(p0), sp0=Math.sin(p0);
+  var path = new Path2D();
+  for(var i=0;i<LAND.length;i++){
+    var ring = LAND[i], started = false, prevZ = 0, prevX = 0, prevY = 0;
+    for(var j=0;j<ring.length;j++){
+      var lat=ring[j][1]*D, lon=ring[j][0]*D + rot0, cpp=Math.cos(lat);
+      var z = sp0*Math.sin(lat) + cp0*cpp*Math.cos(lon);
+      var x = cx + R*(cpp*Math.sin(lon));
+      var y = cy - R*(cp0*Math.sin(lat) - sp0*cpp*Math.cos(lon));
+      if(z > 0){
+        if(!started){
+          if(j > 0 && prevZ <= 0){            // entering: snap onto the rim
+            var a0 = Math.atan2(y-cy, x-cx);
+            path.moveTo(cx + R*Math.cos(a0), cy + R*Math.sin(a0));
+            path.lineTo(x, y);
+          } else path.moveTo(x, y);
+          started = true;
+        } else path.lineTo(x, y);
+      } else if(started){                      // leaving: snap onto the rim
+        var a1 = Math.atan2(prevY-cy, prevX-cx);
+        path.lineTo(cx + R*Math.cos(a1), cy + R*Math.sin(a1));
+        path.closePath();
+        started = false;
+      }
+      prevZ = z; prevX = x; prevY = y;
+    }
+    if(started) path.closePath();
+  }
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.clip();   // never spill off the sphere
+  var g = ctx.createLinearGradient(cx-R, cy-R, cx+R, cy+R);
+  g.addColorStop(0, '#1b3a5c'); g.addColorStop(1, '#122b45');
+  ctx.fillStyle = g; ctx.fill(path);
+  ctx.restore();
+}
+
+/* Day/night. A radial falloff from the sub-solar point is a close enough
+   stand-in for lambertian shading, and it doubles as a terminator. */
+function drawShading(){
+  if(QUALITY !== 'high') return;
+  var sun = subsolar(new Date());
+  var lat=sun.lat*D, lon=sun.lon*D + G.rot[0]*D, p0=G.rot[1]*D;
+  var cpp=Math.cos(lat), cp0=Math.cos(p0), sp0=Math.sin(p0);
+  var z = sp0*Math.sin(lat) + cp0*cpp*Math.cos(lon);
+  var sx = G.cx + G.R*(cpp*Math.sin(lon));
+  var sy = G.cy - G.R*(cp0*Math.sin(lat) - sp0*cpp*Math.cos(lon));
+  var key = Math.round(sx)+':'+Math.round(sy)+':'+Math.round(G.R)+':'+(z>-0.15);
+  if(SHADE.key !== key){
+    if(z > -0.15){
+      var g = ctx.createRadialGradient(sx, sy, 0, sx, sy, G.R*1.55);
+      g.addColorStop(0,   'rgba(255,238,190,0.13)');
+      g.addColorStop(0.32,'rgba(0,0,0,0)');
+      g.addColorStop(0.62,'rgba(2,6,20,0.50)');
+      g.addColorStop(1,   'rgba(1,3,12,0.80)');
+      SHADE = {key:key, grad:g, flat:false};
+    } else {
+      SHADE = {key:key, grad:'rgba(1,3,12,0.66)', flat:true};   // sun behind the globe
+    }
+  }
+  ctx.save();
+  ctx.beginPath(); ctx.arc(G.cx, G.cy, G.R, 0, 7); ctx.clip();
+  ctx.fillStyle = SHADE.grad;
+  ctx.fillRect(G.cx-G.R, G.cy-G.R, G.R*2, G.R*2);
+  ctx.restore();
+  G._sun = {x:sx, y:sy, z:z};
+}
+
+/* Atmosphere: a thin bright rim just outside the sphere. */
+function drawLimb(){
+  ctx.beginPath(); ctx.arc(G.cx, G.cy, G.R*1.10, 0, 7);
+  ctx.fillStyle = gradients().limb; ctx.fill();
+}
+
+
 function sizeGlobe(){
-  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // Cap at 1.5: a 560px globe at DPR 2 is a 1.25M-pixel backing store, and the
+  // full-disc gradients are fill-rate bound. 1.5 is visually near-identical and
+  // costs 44% less.
+  var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   var w = cv.clientWidth || 480, h = cv.clientHeight || w;
   cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -751,15 +906,15 @@ function contacts(){
 function draw(){
   var w = cv.clientWidth, h = cv.clientHeight;
   ctx.clearRect(0,0,w,h);
+  drawStars(w, h);
 
-  /* ocean disc */
-  var grd = ctx.createRadialGradient(G.cx-G.R*0.35, G.cy-G.R*0.4, G.R*0.1, G.cx, G.cy, G.R);
-  grd.addColorStop(0,'#16305c'); grd.addColorStop(1,'#070d20');
-  ctx.beginPath(); ctx.arc(G.cx,G.cy,G.R,0,7); ctx.fillStyle=grd; ctx.fill();
-  ctx.strokeStyle='rgba(59,130,246,.45)'; ctx.lineWidth=1; ctx.stroke();
+  /* ocean */
+  ctx.beginPath(); ctx.arc(G.cx,G.cy,G.R,0,7); ctx.fillStyle=gradients().ocean; ctx.fill();
+
+  drawLand();
 
   /* graticule every 30 degrees */
-  ctx.strokeStyle='rgba(59,130,246,.13)'; ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(96,165,250,.11)'; ctx.lineWidth=1;
   for(var lat=-60; lat<=60; lat+=30){
     ctx.beginPath(); var on=false;
     for(var lo=-180; lo<=180; lo+=4){ var q=project(lo,lat);
@@ -773,8 +928,8 @@ function draw(){
     ctx.stroke();
   }
 
-  /* coastlines: stroke only the visible half of each ring */
-  ctx.strokeStyle='rgba(125,211,252,.62)'; ctx.lineWidth=1;
+  /* coastlines over the fill to crisp the edges */
+  ctx.strokeStyle='rgba(147,214,255,.55)'; ctx.lineWidth=1;
   for(var i=0;i<COASTLINE.length;i++){
     var ring=COASTLINE[i]; ctx.beginPath(); var pen=false;
     for(var j=0;j<ring.length;j++){
@@ -785,6 +940,7 @@ function draw(){
     ctx.stroke();
   }
 
+  drawShading();     /* night falls on the map, not on the contacts */
   drawSats();
 
   /* contacts, far side first so near side draws on top */
@@ -794,23 +950,33 @@ function draw(){
   G._hit = pts;
   pts.forEach(function(c){
     var isSel = G.sel && G.sel.id===c.id;
+    var hot = c.k==='events' && c.pri >= 4;
+    if(QUALITY==='high' && (hot || isSel)){ ctx.shadowColor = c.color; ctx.shadowBlur = isSel ? 16 : 10; }
     ctx.beginPath(); ctx.arc(c.sx,c.sy,c.r,0,7);
     ctx.fillStyle=c.color; ctx.globalAlpha = 0.45 + 0.55*c.z; ctx.fill();
-    ctx.globalAlpha=1;
+    ctx.shadowBlur = 0; ctx.globalAlpha=1;
     if((c.k==='events' && c.r>3) || isSel){
       ctx.beginPath(); ctx.arc(c.sx,c.sy,c.r+(isSel?7:4),0,7);
       ctx.strokeStyle=c.color; ctx.lineWidth=isSel?2:1; ctx.globalAlpha=isSel?1:.5; ctx.stroke(); ctx.globalAlpha=1;
     }
   });
+
+  drawLimb();
+
+  /* terminator rim so the sphere edge reads as an edge */
+  ctx.beginPath(); ctx.arc(G.cx,G.cy,G.R,0,7);
+  ctx.strokeStyle='rgba(125,211,252,.42)'; ctx.lineWidth=1; ctx.stroke();
 }
 
 var last=0;
 function loop(t){
-  if(G.spin && !G.drag){ var dt=(t-last)||16; G.rot[0] -= dt*0.006; }
+  var dt = last ? (t - last) : 16;
+  if(G.spin && !G.drag){ G.rot[0] -= dt*0.006; }
+  // Measure the real frame interval, not just how long draw() takes: the
+  // expensive part can sit in compositing, which draw() never sees.
+  if(dt > 0 && dt < 500) adapt(dt);
   last=t;
-  var f0 = performance.now();
   draw();
-  adapt(performance.now() - f0);
   requestAnimationFrame(loop);
 }
 
@@ -1024,8 +1190,15 @@ var KIND_OF = {P:'sats', R:'rocket', D:'debris', U:'debris'};
 var FRAME = {avg:16, stride:1};
 function adapt(ms){
   FRAME.avg += (ms - FRAME.avg)*0.1;
-  if(FRAME.avg > 26 && FRAME.stride < 8) FRAME.stride++;
-  else if(FRAME.avg < 15 && FRAME.stride > 1) FRAME.stride--;
+  // Drop decoration before dropping data: a thinner debris cloud is a worse
+  // loss than losing the starfield.
+  // Hysteresis has to overlap the real operating range or the page can never
+  // climb back: dropping at 34ms while only recovering below 20ms strands a
+  // device sitting at 25ms in permanent low quality.
+  if(FRAME.avg > 38 && QUALITY === 'high') QUALITY = 'low';
+  else if(FRAME.avg < 30 && QUALITY === 'low') QUALITY = 'high';
+  else if(FRAME.avg > 52 && FRAME.stride < 8) FRAME.stride++;
+  else if(FRAME.avg < 34 && FRAME.stride > 1) FRAME.stride--;
 }
 
 function loadSats(){
