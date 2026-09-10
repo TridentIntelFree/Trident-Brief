@@ -1,0 +1,57 @@
+{
+ "updated": "2026-09-10T00:41:33.695518+00:00",
+ "briefs": [
+  {
+   "at": "2026-09-10T00:41:33.695518+00:00",
+   "path": "archive/2026-09-10-0041.md",
+   "bluf": "BLUF:",
+   "events": 3,
+   "headlines": [
+    "Russian drone strike near mall: 2 killed, 14 wounded",
+    "Russian drone strike on 9-story building: 1 killed, 7 injured",
+    "Russian large-scale drone attacks: 2 killed, 7 wounded"
+   ]
+  }
+ ],
+ "places": [
+  {
+   "key": "50.91,34.8",
+   "lat": 50.91,
+   "lon": 34.8,
+   "place": "Sumy, Ukraine",
+   "count": 1,
+   "first": "2026-09-10T00:41:33.695518+00:00",
+   "headlines": [
+    "Russian drone strike near mall: 2 killed, 14 wounded"
+   ],
+   "maxPriority": 3,
+   "last": "2026-09-10T00:41:33.695518+00:00"
+  },
+  {
+   "key": "50.45,30.52",
+   "lat": 50.45,
+   "lon": 30.52,
+   "place": "Kyiv, Ukraine",
+   "count": 1,
+   "first": "2026-09-10T00:41:33.695518+00:00",
+   "headlines": [
+    "Russian drone strike on 9-story building: 1 killed, 7 injured"
+   ],
+   "maxPriority": 3,
+   "last": "2026-09-10T00:41:33.695518+00:00"
+  },
+  {
+   "key": "46.97,32.0",
+   "lat": 46.97,
+   "lon": 32.0,
+   "place": "Mykolaiv, Ukraine",
+   "count": 1,
+   "first": "2026-09-10T00:41:33.695518+00:00",
+   "headlines": [
+    "Russian large-scale drone attacks: 2 killed, 7 wounded"
+   ],
+   "maxPriority": 3,
+   "last": "2026-09-10T00:41:33.695518+00:00"
+  }
+ ]
+}
