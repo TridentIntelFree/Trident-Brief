@@ -795,6 +795,46 @@ def fetch_skywatch():
     return counts, None
 
 
+THREE_BASE = 'https://raw.githubusercontent.com/mrdoob/three.js/r160'
+GFX_ASSETS = [
+    ('three.module.js', THREE_BASE + '/build/three.module.js'),
+    ('earth_day.jpg',    THREE_BASE + '/examples/textures/planets/earth_atmos_2048.jpg'),
+    ('earth_night.png',  THREE_BASE + '/examples/textures/planets/earth_lights_2048.png'),
+    ('earth_spec.jpg',   THREE_BASE + '/examples/textures/planets/earth_specular_2048.jpg'),
+    ('earth_norm.jpg',   THREE_BASE + '/examples/textures/planets/earth_normal_2048.jpg'),
+]
+
+
+def fetch_gfx_assets():
+    """Vendor three.js and the Earth textures into assets/.
+
+    Served same-origin rather than from a CDN: cdnjs is not reachable from every
+    network this project has met, and an external script tag is exactly the kind
+    of dependency that has failed here before. Fetched at build time and
+    gitignored, so the repository stays small.
+    """
+    os.makedirs('assets', exist_ok=True)
+    ok = 0
+    for name, url in GFX_ASSETS:
+        dest = os.path.join('assets', name)
+        if os.path.exists(dest) and os.path.getsize(dest) > 1000:
+            ok += 1
+            continue
+        try:
+            r = requests.get(url, timeout=90)
+            if r.status_code != 200 or len(r.content) < 1000:
+                print(f"  gfx asset {name}: HTTP {r.status_code}")
+                continue
+            with open(dest, 'wb') as f:
+                f.write(r.content)
+            ok += 1
+        except Exception as e:
+            print(f"  gfx asset {name} failed: {str(e)[:80]}")
+    print(f"  graphics assets: {ok}/{len(GFX_ASSETS)} present"
+          + ('' if ok == len(GFX_ASSETS) else ' - globe falls back to canvas'))
+    return ok == len(GFX_ASSETS)
+
+
 def fetch_server_feeds():
     """Fetch the rate-limited / CORS-awkward feeds here instead of in the browser.
 
@@ -847,6 +887,8 @@ def fetch_server_feeds():
         feeds['alerts'] = [_alert(f) for f in d.get('features', [])
                            if ((f.get('properties') or {}).get('severity') in ('Severe', 'Extreme'))]
         print(f"  alerts: {len(feeds['alerts'])}")
+
+    fetch_gfx_assets()
 
     ves, err = fetch_vessels()
     if ves is None:
