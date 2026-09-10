@@ -46,3 +46,9 @@ jobs:
         with:
           path: .
       - uses: actions/deploy-pages@v4
+
+      - name: Feed summary
+        if: always()
+        run: |
+          echo "----- FEED STATUS -----"
+          cat assets/feed-status.json 2>/dev/null || echo "(no feed-status.json written)"
