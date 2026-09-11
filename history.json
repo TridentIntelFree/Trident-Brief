@@ -1,6 +1,17 @@
 {
- "updated": "2026-09-11T00:38:18.251405+00:00",
+ "updated": "2026-09-11T14:40:17.026040+00:00",
  "briefs": [
+  {
+   "at": "2026-09-11T14:40:17.026040+00:00",
+   "path": "archive/2026-09-11-1440.md",
+   "bluf": "BLUF:",
+   "events": 3,
+   "headlines": [
+    "Russian jet-powered Shahed strikes on gas stations kill 2, injure 9+",
+    "Ukrainian long-range strike hits oil refinery, fires reported",
+    "Russian strikes kill 5, injure 67 at shopping/industrial sites"
+   ]
+  },
   {
    "at": "2026-09-11T00:38:18.251405+00:00",
    "path": "archive/2026-09-11-0038.md",
@@ -55,13 +66,28 @@
    "lat": 50.45,
    "lon": 30.52,
    "place": "Kyiv, Ukraine",
-   "count": 1,
+   "count": 2,
    "first": "2026-09-10T00:41:33.695518+00:00",
    "headlines": [
+    "Russian jet-powered Shahed strikes on gas stations kill 2, injure 9+",
     "Russian drone strike on 9-story building: 1 killed, 7 injured"
    ],
-   "maxPriority": 3,
-   "last": "2026-09-10T00:41:33.695518+00:00"
+   "maxPriority": 5,
+   "last": "2026-09-11T14:40:17.026040+00:00"
+  },
+  {
+   "key": "48.53,35.87",
+   "lat": 48.53,
+   "lon": 35.87,
+   "place": "Pavlohrad, Ukraine",
+   "count": 2,
+   "first": "2026-09-11T00:38:18.251405+00:00",
+   "headlines": [
+    "Russian strikes kill 5, injure 67 at shopping/industrial sites",
+    "Russian drone strike kills four near shopping mall"
+   ],
+   "maxPriority": 4,
+   "last": "2026-09-11T14:40:17.026040+00:00"
   },
   {
    "key": "46.97,32.0",
@@ -129,17 +155,17 @@
    "last": "2026-09-11T00:38:18.251405+00:00"
   },
   {
-   "key": "48.53,35.87",
-   "lat": 48.53,
-   "lon": 35.87,
-   "place": "Pavlohrad, Ukraine",
+   "key": "51.54,46.01",
+   "lat": 51.54,
+   "lon": 46.01,
+   "place": "Saratov, Russia",
    "count": 1,
-   "first": "2026-09-11T00:38:18.251405+00:00",
+   "first": "2026-09-11T14:40:17.026040+00:00",
    "headlines": [
-    "Russian drone strike kills four near shopping mall"
+    "Ukrainian long-range strike hits oil refinery, fires reported"
    ],
    "maxPriority": 4,
-   "last": "2026-09-11T00:38:18.251405+00:00"
+   "last": "2026-09-11T14:40:17.026040+00:00"
   }
  ]
 }
