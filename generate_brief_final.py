@@ -316,10 +316,14 @@ Rule 2 is mandatory either way, and a three-item brief that skipped six theatres
 failure of collection, not a quiet day.
 
 === RULE 6: ATTRIBUTION ===
-EVERY bullet BEGINS with a classification tag in square brackets. A bullet without one
-is malformed - the tag is not decoration, it is how the reader knows whether to act on
-the line. After the tag: the source (handle or outlet), a UTC timestamp, and a working
-URL as a markdown link.
+EVERY REPORTED ITEM BEGINS with a classification tag in square brackets - every bullet
+in Sections 1 through 5. An item without one is malformed: the tag is not decoration,
+it is how the reader knows whether to act on the line. After the tag: the source (handle
+or outlet), a UTC timestamp, and a working URL as a markdown link.
+
+The two closing blocks take NO tags. Indicators and warnings are forecasts and
+collection gaps are open questions; neither has a source to attribute, because neither
+has happened. Tagging them would claim provenance for something you inferred.
 
   - [OSINT - CONFIRMED] Reuters and AFP (11 Sep, 14:10 UTC) report ... [link]
 
@@ -392,8 +396,8 @@ Markdown, with real headings: `##` for the numbered sections, `###` for each the
 inside Section 1. Bold text is not a heading and breaks the page's navigation.
 Open with a BLUF of three to five lines covering only what matters most and why - not a
 list of everything below. Then the sections, then the two closing blocks.
-Items as bullets, each starting with its classification tag. Keep each item to two or
-three sentences: what, who reported it, why it matters.
+Items as bullets, each starting with its classification tag (reported items only - see
+Rule 6). Keep each item to two or three sentences: what, who reported it, why it matters.
 
 === REQUIRED FINAL BLOCK: GEOLOCATED EVENTS ===
 After all prose, output a single fenced json code block, and nothing after it. One entry
@@ -1321,6 +1325,38 @@ def fly_novelty(tags_state, tag, now, halflife_days=FLY_HALFLIFE_DAYS):
     warm = sorted(i for i, v in prior.items() if v > 0.02)
     return round(novelty, 3), round(seen, 3), warm
 
+
+def brief_quality(content):
+    """Report format compliance to the run log.
+
+    Written because the first measurement of this was wrong: counting tags
+    across every bullet in the brief scored 6/15 and looked like a failure,
+    when the nine untagged lines were all forecasts and open questions in the
+    two closing blocks, which correctly carry no attribution. Compliance was
+    6/6. A check that cannot tell those apart is worse than no check, so this
+    one stops counting at the closing blocks.
+    """
+    reported, tagged, theatres = 0, 0, 0
+    closing = False
+    for raw in content.splitlines():
+        line = raw.strip()
+        if re.match(r'^[*#\s]*(INDICATORS AND WARNINGS|COLLECTION GAPS)', line, re.I):
+            closing = True
+        if re.match(r'^###\s+\S', line):
+            theatres += 1
+        if closing or not line.startswith('- '):
+            continue
+        reported += 1
+        if re.match(r'^-\s*\[(SIGINT|HUMINT|OSINT)\b', line):
+            tagged += 1
+    iw = bool(re.search(r'INDICATORS AND WARNINGS', content, re.I))
+    gaps = bool(re.search(r'COLLECTION GAPS', content, re.I))
+    print(f"  format: {tagged}/{reported} reported items tagged, {theatres} theatre headings, "
+          f"I&W {'yes' if iw else 'MISSING'}, gaps {'yes' if gaps else 'MISSING'}")
+    return {'reported': reported, 'tagged': tagged, 'theatres': theatres,
+            'indicators': iw, 'gaps': gaps}
+
+
 def update_history(events, archive_path, content, when):
     """Accumulate events across briefs so patterns become visible.
 
@@ -1615,6 +1651,8 @@ def main():
         feeds = fetch_server_feeds()
 
     archive = write_archive(content, now)
+    if not stale:
+        brief_quality(content)
     hist = update_history(events, (archive[0]['path'] if archive else ''), content, now) \
         if not stale else load_history()
     render(content, provider, badge, timestamp, archive, events, feeds, stale, hist)
