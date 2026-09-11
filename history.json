@@ -1,6 +1,19 @@
 {
- "updated": "2026-09-11T14:40:17.026040+00:00",
+ "updated": "2026-09-11T19:59:04.250575+00:00",
  "briefs": [
+  {
+   "at": "2026-09-11T19:59:04.250575+00:00",
+   "path": "archive/2026-09-11-1959.md",
+   "bluf": "BLUF",
+   "events": 5,
+   "headlines": [
+    "Russian drone strikes on gas stations kill 2, injure 12+",
+    "Russian strikes on shopping center and areas kill 5+, injure dozens",
+    "Ukrainian drone strike kills 1",
+    "Ukrainian drone strikes kill 2, injure 3",
+    "Houthis seize Perim Island in Bab el-Mandab"
+   ]
+  },
   {
    "at": "2026-09-11T14:40:17.026040+00:00",
    "path": "archive/2026-09-11-1440.md",
@@ -48,6 +61,21 @@
  ],
  "places": [
   {
+   "key": "50.45,30.52",
+   "lat": 50.45,
+   "lon": 30.52,
+   "place": "Kyiv, Ukraine",
+   "count": 3,
+   "first": "2026-09-10T00:41:33.695518+00:00",
+   "headlines": [
+    "Russian drone strikes on gas stations kill 2, injure 12+",
+    "Russian jet-powered Shahed strikes on gas stations kill 2, injure 9+",
+    "Russian drone strike on 9-story building: 1 killed, 7 injured"
+   ],
+   "maxPriority": 5,
+   "last": "2026-09-11T19:59:04.250575+00:00"
+  },
+  {
    "key": "50.91,34.8",
    "lat": 50.91,
    "lon": 34.8,
@@ -60,20 +88,6 @@
    ],
    "maxPriority": 3,
    "last": "2026-09-10T14:41:06.163652+00:00"
-  },
-  {
-   "key": "50.45,30.52",
-   "lat": 50.45,
-   "lon": 30.52,
-   "place": "Kyiv, Ukraine",
-   "count": 2,
-   "first": "2026-09-10T00:41:33.695518+00:00",
-   "headlines": [
-    "Russian jet-powered Shahed strikes on gas stations kill 2, injure 9+",
-    "Russian drone strike on 9-story building: 1 killed, 7 injured"
-   ],
-   "maxPriority": 5,
-   "last": "2026-09-11T14:40:17.026040+00:00"
   },
   {
    "key": "48.53,35.87",
@@ -166,6 +180,58 @@
    ],
    "maxPriority": 4,
    "last": "2026-09-11T14:40:17.026040+00:00"
+  },
+  {
+   "key": "48.57,35.02",
+   "lat": 48.57,
+   "lon": 35.02,
+   "place": "Pavlohrad, Ukraine",
+   "count": 1,
+   "first": "2026-09-11T19:59:04.250575+00:00",
+   "headlines": [
+    "Russian strikes on shopping center and areas kill 5+, injure dozens"
+   ],
+   "maxPriority": 4,
+   "last": "2026-09-11T19:59:04.250575+00:00"
+  },
+  {
+   "key": "51.77,36.19",
+   "lat": 51.77,
+   "lon": 36.19,
+   "place": "Kursk region, Russia",
+   "count": 1,
+   "first": "2026-09-11T19:59:04.250575+00:00",
+   "headlines": [
+    "Ukrainian drone strike kills 1"
+   ],
+   "maxPriority": 3,
+   "last": "2026-09-11T19:59:04.250575+00:00"
+  },
+  {
+   "key": "54.2,37.62",
+   "lat": 54.2,
+   "lon": 37.62,
+   "place": "Tula region, Russia",
+   "count": 1,
+   "first": "2026-09-11T19:59:04.250575+00:00",
+   "headlines": [
+    "Ukrainian drone strikes kill 2, injure 3"
+   ],
+   "maxPriority": 3,
+   "last": "2026-09-11T19:59:04.250575+00:00"
+  },
+  {
+   "key": "12.66,43.42",
+   "lat": 12.66,
+   "lon": 43.42,
+   "place": "Perim Island, Yemen",
+   "count": 1,
+   "first": "2026-09-11T19:59:04.250575+00:00",
+   "headlines": [
+    "Houthis seize Perim Island in Bab el-Mandab"
+   ],
+   "maxPriority": 5,
+   "last": "2026-09-11T19:59:04.250575+00:00"
   }
  ]
 }
