@@ -511,6 +511,16 @@ def fetch_aircraft():
                     pass
             if a.get('squawk'):
                 rec['squawk'] = str(a['squawk'])[:4]
+            # Heading, so the map can draw an aircraft pointing where it is going
+            # rather than an undifferentiated dot. One int per contact.
+            trk = a.get('track')
+            if trk is None:
+                trk = a.get('true_heading')
+            if trk is not None:
+                try:
+                    rec['track'] = int(float(trk)) % 360
+                except (TypeError, ValueError):
+                    pass
             if mil or (a.get('dbFlags') and int(a['dbFlags']) & 1):
                 rec['_mil'] = True
             out.append(rec)
@@ -724,8 +734,15 @@ def fetch_vessels():
         if p.get('sog') is not None:
             try: rec['sog'] = round(float(p['sog']), 1)
             except (TypeError, ValueError): pass
-        if p.get('heading') is not None:
-            rec['hdg'] = p['heading']
+        # AIS encodes "heading not available" as 511, and course over ground as
+        # 3600 (tenths of a degree). Passing either through would point the map
+        # glyph at a bearing the vessel never reported.
+        hdg = p.get('heading')
+        if hdg is None or hdg >= 360:
+            cog = p.get('cog')
+            hdg = round(cog) if cog is not None and cog < 360 else None
+        if hdg is not None:
+            rec['hdg'] = int(hdg) % 360
         regional.append(rec)
 
     source.append(f'Baltic {len(regional)}')
