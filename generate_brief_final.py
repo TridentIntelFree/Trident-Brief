@@ -813,13 +813,32 @@ def fetch_skywatch():
 
 
 THREE_BASE = 'https://raw.githubusercontent.com/mrdoob/three.js/r160'
+# NASA Blue Marble Next Generation, mirrored by three-globe. Public domain, and
+# 4096x2048 against the 2048x1024 that ships with three.js: four times the
+# pixels, with bathymetry and far more separation between desert, forest and
+# ice. three.js's own earth_atmos_4096.jpg is a misnomer -- it decodes to
+# 2048x1024 as well, just less compressed -- so it is no use here.
+# Each entry is (filename, [urls tried in order]): the first that returns
+# something plausible wins, so a dead mirror degrades to the older texture
+# rather than leaving the globe untextured.
+BLUE_MARBLE = 'https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img'
 GFX_ASSETS = [
-    ('three.module.js', THREE_BASE + '/build/three.module.js'),
-    ('earth_day.jpg',    THREE_BASE + '/examples/textures/planets/earth_atmos_2048.jpg'),
-    ('earth_night.png',  THREE_BASE + '/examples/textures/planets/earth_lights_2048.png'),
-    ('earth_spec.jpg',   THREE_BASE + '/examples/textures/planets/earth_specular_2048.jpg'),
-    ('earth_norm.jpg',   THREE_BASE + '/examples/textures/planets/earth_normal_2048.jpg'),
+    ('three.module.js', [THREE_BASE + '/build/three.module.js']),
+    ('earth_day.jpg',   [BLUE_MARBLE + '/earth-blue-marble.jpg',
+                         THREE_BASE + '/examples/textures/planets/earth_atmos_2048.jpg']),
+    # Night stays the three.js lights map on purpose: it is city light on black,
+    # which composites cleanly under the terminator. The Blue Marble night image
+    # has moonlit terrain baked in and double-exposes the land.
+    ('earth_night.png', [THREE_BASE + '/examples/textures/planets/earth_lights_2048.png']),
+    ('earth_spec.jpg',  [THREE_BASE + '/examples/textures/planets/earth_specular_2048.jpg']),
+    ('earth_norm.jpg',  [THREE_BASE + '/examples/textures/planets/earth_normal_2048.jpg']),
 ]
+
+
+# A previous build's 512 KB earth_atmos_2048.jpg would otherwise satisfy the
+# "already present" check forever and the globe would never pick up the Blue
+# Marble. Sized to sit above the old file and below the new one.
+MIN_GFX_BYTES = {'earth_day.jpg': 900_000}
 
 
 def fetch_gfx_assets():
@@ -832,21 +851,25 @@ def fetch_gfx_assets():
     """
     os.makedirs('assets', exist_ok=True)
     ok = 0
-    for name, url in GFX_ASSETS:
+    for name, urls in GFX_ASSETS:
         dest = os.path.join('assets', name)
-        if os.path.exists(dest) and os.path.getsize(dest) > 1000:
+        if os.path.exists(dest) and os.path.getsize(dest) > MIN_GFX_BYTES.get(name, 1000):
             ok += 1
             continue
-        try:
-            r = requests.get(url, timeout=90)
-            if r.status_code != 200 or len(r.content) < 1000:
-                print(f"  gfx asset {name}: HTTP {r.status_code}")
-                continue
-            with open(dest, 'wb') as f:
-                f.write(r.content)
-            ok += 1
-        except Exception as e:
-            print(f"  gfx asset {name} failed: {str(e)[:80]}")
+        for url in urls:
+            try:
+                r = requests.get(url, timeout=90)
+                if r.status_code != 200 or len(r.content) < 1000:
+                    print(f"  gfx asset {name}: HTTP {r.status_code} from {url.rsplit('/',1)[-1]}")
+                    continue
+                with open(dest, 'wb') as f:
+                    f.write(r.content)
+                ok += 1
+                if url is not urls[0]:
+                    print(f"  gfx asset {name}: fell back to {url.rsplit('/',1)[-1]}")
+                break
+            except Exception as e:
+                print(f"  gfx asset {name} from {url.rsplit('/',1)[-1]} failed: {str(e)[:70]}")
     print(f"  graphics assets: {ok}/{len(GFX_ASSETS)} present"
           + ('' if ok == len(GFX_ASSETS) else ' - globe falls back to canvas'))
     return ok == len(GFX_ASSETS)
@@ -956,8 +979,16 @@ def write_feed_status(feeds):
         counts[k] = len(feeds[k]) if isinstance(feeds.get(k), list) else None
     counts['aircraft'] = feeds.get('aircount')
     counts['satellites'] = feeds.get('satcounts')
+    # Which basemap actually reached the page. The globe silently degrades to the
+    # older, lower-contrast three.js texture if the Blue Marble mirror is down,
+    # and that degradation is invisible from the Actions log unless it is stated.
+    gfx = {}
+    for name in ('earth_day.jpg', 'earth_night.png', 'three.module.js'):
+        path = os.path.join('assets', name)
+        gfx[name] = (os.path.getsize(path) // 1024 if os.path.exists(path) else None)
     status = {'fetched_at': feeds.get('fetched_at'),
               'collected': counts,
+              'assets_kb': gfx,
               'errors': feeds.get('errors') or {}}
     try:
         os.makedirs('assets', exist_ok=True)
