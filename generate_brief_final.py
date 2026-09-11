@@ -13,10 +13,62 @@ CACHE_FILE = 'latest-brief.json'
 TEMPLATE_FILE = 'template.html'
 ARCHIVE_DIR = 'archive'
 WINDOW_HOURS = int(os.environ.get('COLLECTION_WINDOW_HOURS', '12'))
-MAX_OUTPUT_TOKENS = int(os.environ.get('MAX_OUTPUT_TOKENS', '6000'))
+# Raised from 6000 with the theatre sweep. The old cap was never what made briefs
+# short -- they came in around 600 output tokens against a 6000 ceiling, so the
+# brevity was coming from the prompt, not the budget. This is headroom for a full
+# sweep, not a target: Rule 5 tells the model length follows the world.
+MAX_OUTPUT_TOKENS = int(os.environ.get('MAX_OUTPUT_TOKENS', '10000'))
 WATCHLIST_FILE = 'watchlist.json'
-SYSTEM_PROMPT = ('You are a SIGINT/HUMINT fusion analyst with real-time X/Twitter access and web search capabilities. Monitor verified official sources (SIGINT) and unverified local accounts (HUMINT/CHATTER). Also search the broader web for news, government sites, and intelligence sources. Distinguish between confirmed intelligence and uncorroborated chatter. Use professional intelligence terminology. Search X and the web RIGHT NOW.')
-SLOW_SECTIONS = '## 3. UAP/UFO\nSearch: @DeptofDefense @AARO_DOD_Info @SenGillibrand @RepTimBurchett;\n@ChrisKMellon @LueElizondo @rosscoulthart; web: The Black Vault, The Debrief,\nLiberation Times, AARO releases, congressional records.\nFocus: official statements, hearings, document releases, sensor data. Distinguish\nofficial positions from advocacy claims. This section is frequently empty - that is fine.\n\n## 4. PARAPSYCHOLOGY AND CONSCIOUSNESS RESEARCH\nSearch: web only - Nature, Science, arXiv, PubMed, university press releases.\nFocus: peer-reviewed publications and funded programs. Note methodological criticism and\nreplication status. Ignore popular-press speculation. Frequently empty - that is fine.'
+SYSTEM_PROMPT = (
+    'You are the duty intelligence analyst writing the watch brief that hands off to '
+    'the next shift. You have real-time X/Twitter search and web search. '
+    'Your reader is an informed generalist who needs to know what changed in the world, '
+    'what it means, and what to watch for next -- not a digest of headlines. '
+    'You sweep the whole board every shift, including the theatres that were quiet last '
+    'time, because a theatre going from quiet to active is itself the intelligence. '
+    'You separate what is confirmed from what is claimed, you say which way the evidence '
+    'cuts, and you never assert anything you did not retrieve in this session. '
+    'Search X and the web RIGHT NOW.')
+# The standing sweep. The single biggest reason earlier briefs reported nothing but
+# Ukraine was that the whole world sat in one bucket called "GEOPOLITICAL AND MILITARY"
+# with a dozen X handles under it: the model searched the handles, found Ukraine (those
+# accounts post constantly), and stopped. Naming the theatres makes the sweep structural
+# rather than a matter of what happened to surface. A theatre that is genuinely quiet
+# costs one line, which is cheap; a theatre nobody looked at costs the whole brief.
+THEATRES = """- EUROPE / RUSSIA-UKRAINE: front-line movement, deep strikes, energy and port
+  infrastructure, NATO air policing and Baltic/Black Sea incidents, EU and national
+  policy shifts, Belarus, Moldova/Transnistria.
+- MIDDLE EAST: Israel-Gaza-Lebanon-Syria, Iran (nuclear programme, IRGC, proxies),
+  Yemen and Red Sea shipping, Iraq, Gulf states, Turkey.
+- INDO-PACIFIC: PLA activity around Taiwan and the median line, South and East China
+  Sea incidents, Korean peninsula (missile tests, DPRK-Russia), Philippines, Japan,
+  AUKUS and regional force posture.
+- SOUTH AND CENTRAL ASIA: India-Pakistan and Kashmir, Afghanistan, Bangladesh,
+  Central Asian states and Russian/Chinese influence there.
+- AFRICA: Sahel juntas and Wagner/Africa Corps, Horn of Africa and Somaliland/Ethiopia,
+  Sudan, Libya, DRC and the Great Lakes, Nigeria and the Gulf of Guinea.
+- AMERICAS: US homeland security and the southwest border, Mexican cartel violence,
+  Venezuela, Haiti, Colombia, and hemispheric military deployments.
+- STRATEGIC AND SPACE: nuclear forces and doctrine, missile and hypersonic tests,
+  ASAT and counterspace activity, military launches, Arctic, undersea cables and
+  pipelines, GPS jamming and spoofing.
+- ECONOMIC AND ENERGY PRESSURE: sanctions and export controls, oil/gas/LNG and
+  critical-mineral shocks, maritime chokepoints (Hormuz, Bab el-Mandeb, Suez, Panama,
+  Malacca), shadow-fleet and insurance measures, sovereign financial stress."""
+
+SLOW_SECTIONS = """## 4. UAP/UFO
+Seeds: @DeptofDefense @AARO_DOD_Info @SenGillibrand @RepTimBurchett @ChrisKMellon
+@LueElizondo @rosscoulthart; web: The Black Vault, The Debrief, Liberation Times,
+AARO releases, congressional records.
+Focus: official statements, hearings, document releases, sensor data. Distinguish
+official positions from advocacy claims. Frequently quiet - one line is fine.
+
+## 5. FRONTIER AND CONSCIOUSNESS RESEARCH
+Seeds: web only - Nature, Science, arXiv, PubMed, university press releases, DARPA
+and IARPA programme announcements.
+Focus: peer-reviewed publications and funded programmes. Note methodological
+criticism and replication status. Ignore popular-press speculation. Frequently
+quiet - one line is fine."""
 
 
 def generate_with_grok(prompt):
@@ -147,9 +199,11 @@ def load_watchlist():
 def deep_run(now):
     """Whether to collect the slow-moving sections this run.
 
-    UAP and consciousness research returned "No verifiable developments in
-    window" in every brief on file, yet each run still paid for x_search and
-    web_search against both. They are collected once a day instead of twice.
+    UAP and frontier research returned "No verifiable developments in window" in
+    every brief on file, yet each run still paid for x_search and web_search
+    against both. They are collected once a day instead of twice. The theatre
+    sweep in Section 1 is never skipped: a theatre is only known to be quiet
+    because it was looked at.
     """
     mode = os.environ.get('COLLECTION_DEPTH', 'auto').lower()
     if mode in ('deep', 'full'):
@@ -159,24 +213,34 @@ def deep_run(now):
     return now.hour < 12
 
 
+# Lines that are the previous brief talking about itself rather than reporting the
+# world. Feeding these back as "already reported" wasted digest budget and, worse,
+# re-primed the model with the handle roll-call that Rule 3 exists to stamp out.
+_DIGEST_SKIP = re.compile(
+    r'^(assessment|collection gaps?|indicators?( and warnings?)?|overall|fusion|bluf'
+    r'|changes since|no verifiable developments)', re.I)
+
+
 def previous_digest(previous):
     """Condense the last brief into a short list of what was already reported.
 
     Fed back to the model so a run twice a day reports the delta instead of
-    restating the morning's items.
+    restating the morning's items. Only the reported items go in: section
+    headings and the brief's own commentary are not things that were reported.
     """
     if not previous:
         return "None available. This is the first brief; report the full window."
     lines = []
     for raw in previous.splitlines():
         line = raw.strip()
-        if not line or line.startswith('```'):
+        if not line or line.startswith('```') or line.startswith('#'):
             continue
-        if line.startswith(('#', '-', '*', '**[', '[')) or '**' in line:
-            clean = re.sub(r'\[\[\d+\]\]\([^)]*\)', '', line)
-            clean = re.sub(r'[#*`]', '', clean).strip()
-            if len(clean) > 24:
-                lines.append('- ' + clean[:200])
+        clean = re.sub(r'\[\[\d+\]\]\([^)]*\)', '', line)       # strip [[1]](url) citations
+        clean = re.sub(r'[#*`]', '', clean).strip()
+        clean = re.sub(r'^[-*]\s*', '', clean).strip()
+        if len(clean) < 40 or _DIGEST_SKIP.match(clean):
+            continue
+        lines.append('- ' + clean[:180])
         if len(lines) >= 30:
             break
     return '\n'.join(lines) if lines else "Previous brief contained no parseable items."
@@ -184,14 +248,27 @@ def previous_digest(previous):
 
 def build_prompt(window_start, window_end, prev_digest, watchlist='', deep=True):
     slow_sections = SLOW_SECTIONS if deep else (
-        '(Sections 3 and 4 - UAP and consciousness research - are collected on the\n'
-        'daily deep run only. Do not search for or report them now.)')
+        '(Sections 4 and 5 - UAP and frontier research - are collected on the daily\n'
+        'deep run only. Do not search for or report them now.)')
     return f"""MULTI-INT COLLECTION TASKING
 
 COLLECTION WINDOW: {window_start:%Y-%m-%d %H:%M} UTC to {window_end:%Y-%m-%d %H:%M} UTC
-Today's date is {window_end:%d %B %Y}. This brief runs multiple times per day.
+Today's date is {window_end:%d %B %Y}. This brief runs twice a day.
 
-You have x_search and web_search. Use them for every section before writing anything.
+You have x_search and web_search. Use them before writing anything.
+
+=== HOW TO WORK THIS TASKING ===
+You are writing a watch brief, not a news digest. The reader wants to know what changed
+in the world in the last {(window_end - window_start).days * 24 + (window_end - window_start).seconds // 3600} hours, what it means, and what to watch for next.
+
+Work in this order:
+1. SWEEP  - search every standing theatre in Section 1 by name, whether or not anything
+            surfaced organically. The seed accounts named below are entry points, not the
+            search space: most of what matters will come from sources not on any list.
+            Search the theatre, not the handle.
+2. TRIAGE - rank by consequence, not by how loudly something was posted. A quiet policy
+            change with strategic effect outranks a noisy strike that changes nothing.
+3. WRITE  - every item says what happened, who reported it, and why it matters.
 
 === RULE 1: VERIFICATION (this rule outranks every other instruction) ===
 Every factual claim must trace to a source you actually retrieved during THIS task.
@@ -199,30 +276,42 @@ Every factual claim must trace to a source you actually retrieved during THIS ta
 - Never reconstruct a quote, timestamp, handle, headline, figure or URL from memory,
   training data, or inference. A plausible-sounding detail you did not read is a fabrication.
 - No illustrative, representative, hypothetical or "example" items. None.
-- If searches return little, the correct output is a short brief. A short accurate brief
-  is a success. A padded one is a failure.
 - Do not adjust real-world facts to fit the requested date. If your searches surface
   nothing inside the window, say so plainly rather than inventing events to fill it.
+- Breadth is never a licence to fabricate. An empty theatre reported as empty is a
+  correct answer; an empty theatre filled with invented content is the worst possible one.
 
-=== RULE 2: OMIT WHAT IS EMPTY ===
-The account lists below are search starting points, NOT a checklist to report against.
-- Never write that an account "had no significant posts" or "no announcements in window".
-  If a source had nothing, it simply does not appear.
-- If an entire section has no verifiable developments, output the heading followed by the
-  single line: No verifiable developments in window.
-- Prefer five substantiated items over twenty thin ones.
+=== RULE 2: SWEEP THE WHOLE BOARD ===
+Every theatre in Section 1 gets a verdict, every run. A theatre with nothing verifiable
+gets exactly one line - "THEATRE - quiet in window" - and costs you almost nothing.
+A brief that reports only the loudest one or two theatres has failed this tasking even
+if every line in it is true. Going from quiet to active is itself intelligence, and you
+cannot detect that in a theatre you did not look at.
 
-=== RULE 3: REPORT THE DELTA ===
-Already reported in the previous brief — do NOT restate these. Report only what is new,
+=== RULE 3: WHO DIDN'T POST IS NOT INTELLIGENCE ===
+Never write that an account "had no significant posts", and never list which handles
+were silent. That is a report on your own search history, not on the world. Collection
+gaps are substantive questions you could not answer - "no independent confirmation of
+the damage claim at X", "casualty figures come only from one side" - not a roll call.
+
+=== RULE 4: REPORT THE DELTA ===
+Already reported in the previous brief - do NOT restate these. Report only what is new,
 advanced, contradicted or resolved since. If a prior item materially changed, say what
 changed and how.
 
 {prev_digest}
 
-=== RULE 4: ATTRIBUTION ===
+=== RULE 5: CALIBRATION ===
+Do not pad, and do not ration. If fifteen things of consequence happened, report fifteen.
+If three did, report three. Length follows the world, not a target - but the sweep in
+Rule 2 is mandatory either way, and a three-item brief that skipped six theatres is a
+failure of collection, not a quiet day.
+
+=== RULE 6: ATTRIBUTION ===
 Every item carries: classification tag, source (handle or outlet), UTC timestamp, and a
 working URL as a markdown link. Where two independent sources agree, say so and upgrade
-confidence. Where they conflict, present both and say they conflict.
+confidence. Where they conflict, present both and say they conflict. Where a claim comes
+from a party with an interest in it being believed, say whose claim it is.
 
 CLASSIFICATION TAGS:
 [SIGINT - VERIFIED]      Official government, military or institutional account
@@ -234,26 +323,57 @@ CLASSIFICATION TAGS:
 {watchlist}
 === SECTIONS ===
 
-## 1. GEOPOLITICAL AND MILITARY
-Search: @POTUS @StateDept @SecDef @DeptofDefense @NATO @CENTCOM @INDOPACOM @ZelenskyyUa
-@DefenceU @IDF @IsraeliPM; analysts @christogrozev @RALee85 @Osinttechnical @Conflicts;
-web: Reuters, AP, BBC, Defense One, ISW (understandingwar.org), Al Jazeera.
-Focus: troop movements, strikes, diplomatic shifts, sanctions, arms transfers, alliances.
-Ukraine-Russia and the Middle East must each be addressed or explicitly marked quiet.
+## 1. STANDING THEATRE SWEEP
+Each theatre below gets a verdict this run. Report what moved; mark the rest quiet.
+
+{THEATRES}
+
+Seed accounts (entry points only, not the search space): @POTUS @StateDept @SecDef
+@DeptofDefense @NATO @CENTCOM @INDOPACOM @AFRICOM_ @SOUTHCOM @USForcesKorea
+@ZelenskyyUa @DefenceU @IDF @IsraeliPM @MofaJapan_en @MOFA_Taiwan; analysts
+@christogrozev @RALee85 @Osinttechnical @Conflicts @sentdefender @IndoPac_Info;
+web: Reuters, AP, AFP, BBC Monitoring, Defense One, War on the Rocks, ISW
+(understandingwar.org), Al Jazeera, Nikkei Asia, SCMP, Africa Confidential, Lloyd's List.
 
 ## 2. TECHNOLOGY AND CYBERSECURITY
-Search: @elonmusk @sama @satyanadella @OpenAI @xAI @USCYBERCOM @CISAgov @FBI;
-researchers @briankrebs @SwiftOnSecurity @thegrugq; web: Ars Technica, Wired,
-Krebs on Security, BleepingComputer, CISA.gov.
-Focus: active exploitation, breaches, model releases with substantive capability claims,
-regulatory action. Skip routine product marketing.
+Seeds: @USCYBERCOM @CISAgov @FBI @NSAGov @NCSC; researchers @briankrebs
+@SwiftOnSecurity @thegrugq @vxunderground; industry @OpenAI @xAI @AnthropicAI;
+web: Ars Technica, Wired, Krebs on Security, BleepingComputer, The Record, CISA KEV.
+Focus: active exploitation and named intrusions with an identified victim or actor,
+ransomware against infrastructure, state-linked operations, model or hardware releases
+with substantive capability claims, and regulatory or export-control action.
+Skip routine product marketing and vendor blogs with no incident behind them.
+
+## 3. HOMELAND AND INFRASTRUCTURE
+Seeds: @DHSgov @FBI @TSA @CISAgov @NTSB @FAANews; web: state emergency management,
+regional press. Focus: incidents affecting civil aviation, rail, ports, power, water and
+telecoms; domestic security events; large-scale disruption. Distinguish accident from
+attack, and say when the distinction is not yet established.
 
 {slow_sections}
 
+=== ANALYSIS THE BRIEF MUST CARRY ===
+Reporting what happened is the easy half. Every section closes with one short
+**Assessment** that answers the so-what - what this signifies, whose position improved
+or worsened, and what it implies - rather than restating the bullets in other words.
+Where the evidence supports more than one reading, give the alternative explicitly and
+say which you favour and why.
+
+After the sections, two blocks:
+
+**INDICATORS AND WARNINGS** - three to six things that would materially change the
+picture if they occurred in the next 24-48 hours. Each written as:
+indicator -> what it would mean -> where it would show up first.
+These are forward-looking judgements, so they are not bound by Rule 1's retrieval
+requirement - but they must follow from what you actually reported above.
+
+**COLLECTION GAPS** - the substantive questions this brief could not answer, per Rule 3.
+
 === OUTPUT FORMAT ===
-Markdown. Start with a 3-5 line BLUF covering the window overall, then the sections above.
-Under each: items as bullets, then a short "Assessment" on what it means, then
-"Collection gaps" naming what you could not verify.
+Markdown. Open with a BLUF of three to five lines covering only what matters most and
+why - not a list of everything below. Then the sections, then the two closing blocks.
+Items as bullets. Keep each item to two or three sentences: what, who reported it, why
+it matters.
 
 === REQUIRED FINAL BLOCK: GEOLOCATED EVENTS ===
 After all prose, output a single fenced json code block, and nothing after it. One entry
@@ -267,7 +387,7 @@ for each reported item that has a real physical location. Omit items with no loc
 ```
 
 Rules for this block: lat/lon numeric decimal degrees for the place the event occurred;
-section is one of geopolitical, technology, uap, research; confidence is high, medium or
+section is one of geopolitical, technology, homeland, uap, research; confidence is high, medium or
 low; priority is 1-5, where 5 demands immediate attention and 1 is routine, scored
 higher for anything matching the standing requirements above; url must be one you
 actually retrieved. Valid JSON only, no comments, no trailing
