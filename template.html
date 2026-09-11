@@ -111,6 +111,12 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .d-link:hover{background:rgba(59,130,246,.3);color:#fff}
 @media (max-width:860px){ .ge-wrap{grid-template-columns:1fr} }
 
+.content a.cite{display:inline-block;min-width:13px;padding:0 4px;margin:0 1px;text-align:center;
+  font-family:var(--mono);font-size:.6em;line-height:1.6;vertical-align:super;text-decoration:none;
+  color:var(--cyan);background:rgba(59,130,246,.15);border:1px solid var(--line2);border-radius:4px}
+.content a.cite:hover{background:rgba(59,130,246,.4);color:#fff;border-color:var(--blue)}
+@media print{ .content a.cite{color:#333;background:none;border-color:#999} }
+
 /* ---------- quiet-theatre roll-up ---------- */
 .quiet-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;margin:14px 0 18px;
   padding:9px 12px;border:1px dashed var(--line2);border-radius:8px;background:rgba(15,23,48,.5)}
@@ -509,6 +515,13 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 
 function inline(s){
   s = esc(s);
+  /* Citations first. The model writes them as [[4]](url), and the general link
+     rule below cannot match that -- its label class excludes "]", so the nested
+     brackets defeat it, the pattern falls through to the bare-URL rule, and the
+     whole 90-character URL gets printed inline. On a brief with two dozen
+     citations that was roughly a third of the text on screen. */
+  s = s.replace(/\[\[(\d{1,3})\]\]\s*\((https?:\/\/[^\s)]+)\)/g,
+                '<a class="cite" href="$2" target="_blank" rel="noopener">$1</a>');
   // links [text](url) then bare urls
   s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
   s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)\]]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');
@@ -600,7 +613,8 @@ function renderMD(md){
   var body = document.getElementById('briefBody');
   try { body.innerHTML = renderMD(BRIEF_MD); }
   catch(e){ body.innerHTML = '<pre class="raw">'+esc(BRIEF_MD)+'</pre>'; }
-  try { rollUpQuiet(); } catch(e){ console.warn('quiet roll-up skipped:', e.message); }
+  try { promotePseudoHeadings(); rollUpQuiet(); }
+  catch(e){ console.warn('brief post-processing skipped:', e.message); }
   buildNav();
 })();
 
@@ -611,23 +625,83 @@ function renderMD(md){
    inverts the hierarchy the reader needs. They collapse into one row -- but only
    when there is genuinely nothing under them, so a heading that says quiet and
    then reports something is never swallowed. */
+/* Models do not agree on what a heading is. Asked for `### THEATRE`, one run
+   emits exactly that and the next emits `**THEATRE**` as a bare paragraph,
+   which renders identically to a reader and is invisible to everything that
+   walks the document: the section nav, the quiet roll-up, the anchor links.
+   Promoting the bold-only paragraphs to real headings up front means the page
+   does not depend on winning that coin toss. */
+function promotePseudoHeadings(){
+  var body = document.getElementById('briefBody');
+  Array.prototype.forEach.call(body.querySelectorAll('p'), function(p, idx){
+    var first = p.firstChild;
+    if(!first || first.nodeName !== 'STRONG') return;
+    var txt = first.textContent.trim();
+    // a heading, not a sentence that happens to open in bold
+    // 140, not 90: a run that batched five theatres under one heading writes
+    // "SOUTH AND CENTRAL ASIA / AFRICA / AMERICAS / STRATEGIC AND SPACE / ..."
+    // at 98 characters, and that is exactly the case the roll-up exists for.
+    if(txt.length < 5 || txt.length > 140 || /[.!?,;:]$/.test(txt)) return;
+    if(txt !== txt.toUpperCase() || !/[A-Z]/.test(txt)) return;
+    if(txt === 'BLUF') return;              // the summary keeps its callout styling
+    if(p === body.firstElementChild) return;
+    /* Two shapes reach here. Either the bold run is the whole paragraph, or the
+       model ended the line with markdown's two-space break and the renderer kept
+       the heading and its body in one <p> joined by a <br>. Split that: the
+       heading becomes a real heading and whatever followed stays a paragraph. */
+    var h = document.createElement('h3');
+    h.textContent = txt;
+    p.removeChild(first);
+    if(p.firstChild && p.firstChild.nodeName === 'BR') p.removeChild(p.firstChild);
+    p.parentNode.insertBefore(h, p);
+    if(!p.textContent.trim() && !p.querySelector('img,a')) p.parentNode.removeChild(p);
+  });
+}
+
 function rollUpQuiet(){
   /* Declared in here, not at file scope: this runs from an IIFE that sits above
      it in the file, and a hoisted `var` is still undefined at that point. */
-  var QUIET_RE = /[\u2014\u2013-]\s*quiet(\s+in\s+window)?\s*\.?$/i;
+  var QUIET_RE = /[\u2014\u2013-]\s*(all\s+)?quiet(\s+in\s+window)?\s*\.?$/i;
+  /* Matches a paragraph that OPENS with a quiet verdict, not one that consists
+     solely of it: runs write "All quiet in window. No verifiable developments
+     matching standing requirements." and an anchored full-string match missed
+     every one of them. Length-capped so a real report that happens to start
+     with the word "quiet" is never swallowed. */
+  var BODY_QUIET = /^((all\s+)?quiet\b|no(thing)? verifiable\b|no new\b)/i;
   var body = document.getElementById('briefBody');
-  var heads = body.querySelectorAll('h2, h3, h4');
+  /* h3/h4 only. A numbered top-level section ("## 3. HOMELAND AND
+     INFRASTRUCTURE") keeps its heading even on a quiet day -- it is part of the
+     brief's skeleton, and collapsing it would make the brief look like it never
+     covered homeland at all. Only theatre-level headings roll up. */
+  var heads = body.querySelectorAll('h3, h4');
   var quiet = [], anchor = null;
   Array.prototype.forEach.call(heads, function(h){
-    if(!QUIET_RE.test(h.textContent.trim())) return;
-    // only collapse it if nothing but another heading follows
+    var txt = h.textContent.trim();
     var nxt = h.nextElementSibling;
-    if(nxt && !/^H[2-4]$/.test(nxt.tagName)) return;
-    quiet.push(h.textContent.trim().replace(QUIET_RE, '').trim());
+    var headSaysQuiet = QUIET_RE.test(txt);
+    /* The verdict can land either in the heading ("AFRICA - quiet in window") or
+       in a one-line paragraph under it. Both mean the same thing to a reader, so
+       both collapse. */
+    var bodySaysQuiet = !headSaysQuiet && nxt && nxt.tagName === 'P' &&
+                        nxt.textContent.trim().length < 240 &&
+                        BODY_QUIET.test(nxt.textContent.trim()) &&
+                        /* What must NOT follow is a list: a theatre that says
+                           quiet and then reports items is not quiet. An
+                           Assessment paragraph after it is normal and fine. */
+                        (!nxt.nextElementSibling || !/^(UL|OL)$/.test(nxt.nextElementSibling.tagName));
+    if(!headSaysQuiet && !bodySaysQuiet) return;
+    if(headSaysQuiet && nxt && /^(UL|OL)$/.test(nxt.tagName)) return;
+    /* A run that batched several theatres under one slash-joined heading still
+       names them all, so split it back out rather than showing one long chip. */
+    txt.replace(QUIET_RE, '').split(/\s*\/\s*/).forEach(function(name){
+      name = name.trim();
+      if(name) quiet.push(name);
+    });
     if(!anchor) anchor = h;
     h.dataset.quiet = '1';
+    if(bodySaysQuiet) nxt.dataset.quiet = '1';
   });
-  if(quiet.length < 2) {           // one stray line is not worth a roll-up
+  if(quiet.length < 2) {           // one stray theatre is not worth a roll-up
     Array.prototype.forEach.call(heads, function(h){ delete h.dataset.quiet; });
     return;
   }
