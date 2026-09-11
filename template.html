@@ -109,6 +109,43 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .d-link:hover{background:rgba(59,130,246,.3);color:#fff}
 @media (max-width:860px){ .ge-wrap{grid-template-columns:1fr} }
 
+/* ---------- event board ---------- */
+.ev-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.ev-f{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);font-family:var(--mono);
+  font-size:.68em;letter-spacing:.08em;padding:5px 10px;border-radius:20px;cursor:pointer;transition:.15s;text-transform:uppercase}
+.ev-f:hover{border-color:var(--blue);color:var(--ink)}
+.ev-f.on{background:rgba(59,130,246,.22);border-color:var(--blue);color:#fff}
+.ev-f i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.ev-list{display:flex;flex-direction:column;gap:7px}
+.ev{background:linear-gradient(180deg,rgba(18,28,56,.8),rgba(11,18,38,.8));border:1px solid var(--line2);
+  border-radius:9px;overflow:hidden;border-left-width:3px;transition:.15s}
+.ev:hover{border-color:var(--line);border-left-width:3px}
+.ev.open{background:rgba(20,32,64,.95)}
+.ev-head{display:flex;align-items:flex-start;gap:11px;width:100%;background:none;border:0;cursor:pointer;
+  padding:11px 13px;text-align:left;color:inherit;font:inherit}
+.ev-pri{flex:0 0 auto;width:22px;height:22px;border-radius:5px;display:grid;place-items:center;
+  font-family:var(--mono);font-size:.72em;font-weight:700;color:#06101f;background:var(--ink-faint)}
+.ev-pri.p4{background:#f59e0b}.ev-pri.p5{background:#ef4444;color:#fff}
+.ev-pri.p3{background:#64748b;color:#e2e8f0}.ev-pri.p2,.ev-pri.p1{background:#334155;color:#94a3b8}
+.ev-main{flex:1;min-width:0}
+.ev-h{display:block;color:#fff;font-size:.9em;font-weight:600;line-height:1.45}
+.ev-sub{display:block;margin-top:4px;font-family:var(--mono);font-size:.68em;letter-spacing:.06em;
+  color:var(--ink-faint);text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev-caret{flex:0 0 auto;color:var(--ink-faint);font-size:.8em;transition:transform .18s;margin-top:2px}
+.ev.open .ev-caret{transform:rotate(180deg);color:var(--cyan)}
+.ev-body{border-top:1px solid var(--line2);padding:13px;display:grid;grid-template-columns:168px 1fr;gap:14px}
+.ev-chip-wrap{min-width:0}
+#detailPanel .ev-chip{max-width:250px;margin:0 auto}
+.ev-chip{width:100%;height:auto;display:block;border-radius:7px;border:1px solid var(--line2);background:#050b18}
+.ev-chip-cap{margin-top:5px;font-family:var(--mono);font-size:.62em;color:var(--ink-faint);letter-spacing:.05em;text-align:center}
+.ev-rows{min-width:0}
+.ev-acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.ev-btn{background:rgba(59,130,246,.16);border:1px solid var(--line);color:var(--cyan);padding:6px 12px;border-radius:6px;
+  font-size:.72em;font-family:var(--mono);text-decoration:none;letter-spacing:.05em;cursor:pointer;transition:.15s}
+.ev-btn:hover{background:rgba(59,130,246,.32);color:#fff}
+.ev-none{color:var(--ink-faint);font-family:var(--mono);font-size:.76em;padding:18px;text-align:center}
+@media (max-width:640px){ .ev-body{grid-template-columns:1fr} }
+
 /* ---------- recurrence ---------- */
 .recur-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
 .recur{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));border:1px solid var(--line2);
@@ -255,6 +292,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       <span class="pill">NEXT COLLECTION <b id="nextRun">11:00 UTC</b></span>
       <span class="pill" id="stalePill" style="display:none"></span>
       <a class="pill" href="#godseye" style="text-decoration:none"><span class="dot live"></span>GOD'S EYE FEEDS</a>
+      <a class="pill" href="#eventBand" style="text-decoration:none">EVENT BOARD <b id="pillEvents">0</b></a>
       <button class="pill" style="cursor:pointer" onclick="window.print()">PRINT / PDF</button>
     </div>
   </div>
@@ -349,6 +387,16 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         <div class="t-src">collected server-side &middot; Launch Library 2</div>
       </div>
     </div>
+  </div>
+
+  <!-- ============ EVENT BOARD ============ -->
+  <div class="section-band" id="eventBand" style="display:none">
+    <div class="band-head">
+      <h2>&#128451;&#65039; Event Board</h2>
+      <div class="sub" id="eventSub"></div>
+    </div>
+    <div class="ev-filters" id="evFilters"></div>
+    <div class="ev-list" id="evList"></div>
   </div>
 
   <!-- ============ RECURRENCE ============ -->
@@ -1073,6 +1121,7 @@ function renderDetail(c){
     if(d.gs!=null) rows.push(['GROUND SPD', Math.round(d.gs)+' kt']);
     if(d.squawk) rows.push(['SQUAWK', d.squawk + (['7500','7600','7700'].indexOf(String(d.squawk))>-1 ? '  EMERGENCY' : '')]);
     if(d.r) rows.push(['REGISTRATION', d.r]);
+    rows.push(['TRACK', d.track==null ? 'not reported' : String(d.track).padStart(3,'0')+'\u00b0']);
   } else if(c.k==='sats' || c.k==='rocket' || c.k==='debris'){
     title = esc(d.s[0] || ('Object ' + d.s[1]));
     place = 'NORAD ' + d.s[1] + '  ·  ' + KIND[c.k].label;
@@ -1101,7 +1150,7 @@ function renderDetail(c){
     rows.push(['MMSI', String(d.mmsi)]);
     if(d.kind) rows.push(['TYPE', d.kind]);
     if(d.sog != null) rows.push(['SPEED', d.sog + ' kn']);
-    if(d.hdg != null) rows.push(['HEADING', d.hdg + '\u00b0']);
+    rows.push(['HEADING', d.hdg==null ? 'not reported' : String(d.hdg).padStart(3,'0')+'\u00b0']);
     link = 'https://www.marinetraffic.com/en/ais/details/ships/mmsi:' + d.mmsi;
   } else if(c.k==='iss'){
     title = 'International Space Station';
@@ -1112,12 +1161,20 @@ function renderDetail(c){
   }
   rows.push(['POSITION', Math.abs(c.lat).toFixed(2)+'°'+(c.lat>=0?'N':'S')+'  '+Math.abs(c.lon).toFixed(2)+'°'+(c.lon>=0?'E':'W')]);
 
+  /* Surface contacts get a locator chip too: knowing a vessel is at 12.4N 43.2E
+     is nearly useless without seeing that it is in the Bab-el-Mandeb. */
+  var wantsChip = ['events','quake','hazard','naval','air','launch'].indexOf(c.k) > -1;
+
   el.innerHTML =
     '<div class="d-kind" style="color:'+c.color+'"><span class="dot" style="background:'+c.color+'"></span>'+((KIND[c.k]||KIND_EXTRA[c.k])||{}).label+'</div>' +
     '<div class="d-title">'+title+'</div>' +
     (place ? '<div class="d-place">'+esc(place)+'</div>' : '') +
+    (wantsChip ? '<div class="ev-chip-wrap" style="margin-bottom:13px"><canvas class="ev-chip" data-lat="'+c.lat+
+       '" data-lon="'+c.lon+'" data-tint="'+esc(c.color)+'"></canvas></div>' : '') +
     '<div class="d-rows">'+rows.map(function(r){ return '<div class="d-row"><span>'+r[0]+'</span><span>'+esc(String(r[1]))+'</span></div>'; }).join('')+'</div>' +
     (link ? '<a class="d-link" href="'+esc(link)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '');
+
+  if(wantsChip){ basemap(); drawChip(el.querySelector('canvas.ev-chip')); }
 }
 
 /* ---- layer buttons ---- */
@@ -1235,6 +1292,33 @@ function stepSats(){
   }
 }
 
+/* Screen bearing of true north at a projected point. On an orthographic globe
+   north only points up at the centre of the disc; near the limb it can lean
+   most of a right angle, so a heading drawn straight from the compass would be
+   wrong exactly where the map is most crowded. Differentiating the projection
+   with respect to latitude gives the direction analytically, reusing the sines
+   and cosines the caller already computed. */
+function northAngle(sinLat, cosLat, sinLon, cosLon, cp0, sp0){
+  var dx = -sinLat*sinLon;                      // d(screen x)/d(lat), /R
+  var dy = -(cp0*cosLat + sp0*sinLat*cosLon);   // d(screen y)/d(lat), /R, y down
+  return Math.atan2(dx, -dy);
+}
+
+/* Append one oriented glyph to a batched path. Kept to straight segments: these
+   go into the same single fill as everything else in the class. */
+function glyph(path, x, y, ang, shape){
+  var c = Math.cos(ang), s = Math.sin(ang);
+  var pts = shape === 'plane'
+    ? [[0,-3.6],[2.9,2.2],[0,0.9],[-2.9,2.2]]
+    : [[0,-3.4],[1.5,-0.6],[1.5,2.6],[-1.5,2.6],[-1.5,-0.6]];
+  for(var k=0;k<pts.length;k++){
+    var u = pts[k][0], v = pts[k][1];
+    var px = x + u*c - v*s, py = y + u*s + v*c;
+    if(k) path.lineTo(px, py); else path.moveTo(px, py);
+  }
+  path.closePath();
+}
+
 /* Batched: one path per class, one fill. 32k individual arc()+fill() calls
    cannot hold 60fps; rects accumulated into a single path can. */
 function drawSats(){
@@ -1245,6 +1329,10 @@ function drawSats(){
   var paths = {sats:new Path2D(), rocket:new Path2D(), debris:new Path2D(), air:new Path2D(), naval:new Path2D()};
   var size  = {sats:1.6, rocket:1.6, debris:1.1, air:1.8, naval:1.8};
   var any = false;
+  /* Above this zoom there is room for a shape instead of a 2px square, and the
+     visible contact count has dropped far enough to afford drawing one. Mirrors
+     the WebGL renderer's glyph threshold so the two views agree. */
+  var GLYPH = G.zoom >= 2.4;
 
   if(l.naval){
     var V = FEEDS.vessels || [];
@@ -1255,7 +1343,11 @@ function drawSats(){
       if(sp0*Math.sin(vlat) + cp0*vcp*Math.cos(vlon) <= 0) continue;
       var vx = cx + R*(vcp*Math.sin(vlon));
       var vy = cy - R*(cp0*Math.sin(vlat) - sp0*vcp*Math.cos(vlon));
-      paths.naval.rect(vx-0.9, vy-0.9, 1.8, 1.8);
+      if(GLYPH && Vv.hdg != null){
+        glyph(paths.naval, vx, vy,
+              Vv.hdg*D + northAngle(Math.sin(vlat), vcp, Math.sin(vlon), Math.cos(vlon), cp0, sp0),
+              'ship');
+      } else paths.naval.rect(vx-0.9, vy-0.9, 1.8, 1.8);
       any = true;
     }
   }
@@ -1268,7 +1360,11 @@ function drawSats(){
       if(sp0*Math.sin(alat) + cp0*acp*Math.cos(alon) <= 0) continue;
       var ax = cx + R*(acp*Math.sin(alon));
       var ay = cy - R*(cp0*Math.sin(alat) - sp0*acp*Math.cos(alon));
-      paths.air.rect(ax-0.9, ay-0.9, 1.8, 1.8);
+      if(GLYPH && A.track != null){
+        glyph(paths.air, ax, ay,
+              A.track*D + northAngle(Math.sin(alat), acp, Math.sin(alon), Math.cos(alon), cp0, sp0),
+              'plane');
+      } else paths.air.rect(ax-0.9, ay-0.9, 1.8, 1.8);
       any = true;
     }
   }
@@ -1401,6 +1497,7 @@ function paintBaked(){
   } else { liveLaunch(); }
 
   document.getElementById('nEvents').textContent = EVENTS.length;
+  document.getElementById('pillEvents').textContent = EVENTS.length;
   var plottable = function(arr){ return (arr||[]).filter(function(x){ return x.lat!=null; }).length; };
   var V = FEEDS.vessels || [];
   document.getElementById('nNaval').textContent = V.length;
@@ -1850,6 +1947,285 @@ async function generateLocalBrief(){
 }
 
 /* =====================================================================
+   LOCATOR CHIP -- a real image of where the event is
+
+   Cropped out of the same 2048x1024 equirectangular Earth basemap the 3D globe
+   is textured with, so it costs one already-downloaded asset and no third-party
+   request: nothing here phones out to a tile server, which would both leak the
+   reader's interest and break on the networks this page has to work on. At
+   2048px the basemap is ~11 km/px at the equator, so the chip is honest
+   regional context -- terrain, coast, ice -- not overhead imagery, and the
+   caption says so rather than implying a resolution it does not have.
+   If the asset is missing (an --offline re-render never fetches it) the chip
+   falls back to the vector landmass already embedded in this page.
+   ===================================================================== */
+var BASEMAP = null, BASEMAP_STATE = 'idle';
+function basemap(){
+  if(BASEMAP_STATE !== 'idle') return;
+  BASEMAP_STATE = 'loading';
+  var im = new Image();
+  im.onload  = function(){ BASEMAP = im; BASEMAP_STATE = 'ready';
+                           document.querySelectorAll('canvas.ev-chip[data-pending]').forEach(function(c){
+                             c.removeAttribute('data-pending'); drawChip(c); }); };
+  im.onerror = function(){ BASEMAP_STATE = 'failed';
+                           document.querySelectorAll('canvas.ev-chip[data-pending]').forEach(function(c){
+                             c.removeAttribute('data-pending'); drawChip(c); }); };
+  im.src = 'assets/earth_day.jpg';
+}
+
+var CHIP_W = 168, CHIP_H = 108, HALF_LON = 14, HALF_LAT = 9;
+
+function drawChip(cv){
+  var lat = parseFloat(cv.dataset.lat), lon = parseFloat(cv.dataset.lon);
+  var tint = cv.dataset.tint || '#ef4444';
+  if(!isFinite(lat) || !isFinite(lon)) return;
+  /* Size the backing store from the box the chip actually occupies -- it is
+     168px in an event card and twice that in the detail panel, and a fixed
+     canvas scaled up turned the legend into blurry 20px text. */
+  cv.style.aspectRatio = CHIP_W + ' / ' + CHIP_H;
+  var W = Math.round(cv.clientWidth || CHIP_W), H = Math.round(W * CHIP_H / CHIP_W);
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = W*dpr; cv.height = H*dpr;
+  var g = cv.getContext('2d');
+  g.setTransform(dpr,0,0,dpr,0,0);
+  g.fillStyle = '#060d1d'; g.fillRect(0,0,W,H);
+
+  if(BASEMAP_STATE === 'loading'){ cv.dataset.pending = '1';
+    g.fillStyle = 'rgba(148,163,184,.45)'; g.font = '9px ui-monospace,monospace'; g.textAlign='center';
+    g.fillText('loading basemap', W/2, H/2); return; }
+
+  /* Clamp the window so a polar event still yields a full frame instead of a
+     crop running off the top of the map. */
+  var cLat = Math.max(-90+HALF_LAT, Math.min(90-HALF_LAT, lat));
+  var top = cLat + HALF_LAT, left = lon - HALF_LON;
+
+  if(BASEMAP_STATE === 'ready' && BASEMAP){
+    var iw = BASEMAP.naturalWidth, ih = BASEMAP.naturalHeight;
+    var sh = (2*HALF_LAT/180)*ih, sy = ((90-top)/180)*ih;
+    var sw = (2*HALF_LON/360)*iw;
+    /* The crop can straddle the antimeridian, where the source has a hard edge;
+       drawing it as two slices keeps the Pacific from tearing. */
+    var sx = (((left+180)%360)+360)%360 / 360 * iw;
+    if(sx + sw <= iw){
+      g.drawImage(BASEMAP, sx, sy, sw, sh, 0, 0, W, H);
+    } else {
+      var w1 = iw - sx, px = W * (w1/sw);
+      g.drawImage(BASEMAP, sx, sy, w1, sh, 0, 0, px, H);
+      g.drawImage(BASEMAP, 0, sy, sw-w1, sh, px, 0, W-px, H);
+    }
+    /* Grade it into the page's palette; the raw texture is much warmer. */
+    g.globalCompositeOperation = 'multiply';
+    g.fillStyle = 'rgba(168,198,255,1)'; g.fillRect(0,0,W,H);
+    g.globalCompositeOperation = 'source-over';
+    g.fillStyle = 'rgba(8,16,36,.16)'; g.fillRect(0,0,W,H);
+  } else {
+    var pxPerDegX = W/(2*HALF_LON), pxPerDegY = H/(2*HALF_LAT);
+    g.fillStyle = '#0a1630'; g.fillRect(0,0,W,H);
+    g.fillStyle = 'rgba(56,86,140,.85)'; g.strokeStyle = 'rgba(125,211,252,.5)'; g.lineWidth = .6;
+    for(var i=0;i<LAND.length;i++){
+      var ring = LAND[i], path = null, on = false;
+      for(var j=0;j<ring.length;j++){
+        var dx = ((ring[j][0] - left + 540) % 360) - 180;
+        if(dx < -HALF_LON*3 || dx > HALF_LON*3) { on = false; continue; }
+        var X = dx*pxPerDegX, Y = (top - ring[j][1])*pxPerDegY;
+        if(Y < -H || Y > 2*H) { on = false; continue; }
+        if(!path) path = new Path2D();
+        if(!on){ path.moveTo(X,Y); on = true; } else path.lineTo(X,Y);
+      }
+      if(path){ g.fill(path); g.stroke(path); }
+    }
+  }
+
+  /* Graticule, so the chip reads as a chart rather than a photo. */
+  /* The overlay grows far more slowly than the frame: scaling the legend and
+     crosshair linearly made them twice the size in the detail panel, which is
+     the wrong way round -- the bigger frame exists to show more map, not a
+     bigger reticle. */
+  var scale = Math.pow(W/CHIP_W, 0.35);
+  g.strokeStyle = 'rgba(125,211,252,.13)'; g.lineWidth = 1;
+  var stepX = W/(2*HALF_LON)*5, stepY = H/(2*HALF_LAT)*5;
+  g.beginPath();
+  for(var gx = (W/2)%stepX; gx < W; gx += stepX){ g.moveTo(gx,0); g.lineTo(gx,H); }
+  for(var gy = (H/2)%stepY; gy < H; gy += stepY){ g.moveTo(0,gy); g.lineTo(W,gy); }
+  g.stroke();
+
+  /* Crosshair on the reported position, offset if the window was clamped. */
+  var mx = W/2, my = H/2 + (cLat - lat)*(H/(2*HALF_LAT));
+  my = Math.max(6*scale, Math.min(H-6*scale, my));
+  g.strokeStyle = tint; g.lineWidth = 1.2*scale; g.globalAlpha = .95;
+  g.beginPath();
+  g.moveTo(mx-11*scale,my); g.lineTo(mx-4*scale,my); g.moveTo(mx+4*scale,my); g.lineTo(mx+11*scale,my);
+  g.moveTo(mx,my-11*scale); g.lineTo(mx,my-4*scale); g.moveTo(mx,my+4*scale); g.lineTo(mx,my+11*scale);
+  g.stroke();
+  g.beginPath(); g.arc(mx,my,6.5*scale,0,Math.PI*2); g.stroke();
+  g.globalAlpha = .3; g.beginPath(); g.arc(mx,my,13*scale,0,Math.PI*2); g.stroke();
+  g.globalAlpha = 1;
+
+  var barH = 13*scale;
+  g.fillStyle = 'rgba(6,13,29,.78)'; g.fillRect(0, H-barH, W, barH);
+  g.fillStyle = 'rgba(148,163,184,.9)';
+  g.font = (8*scale).toFixed(1)+'px ui-monospace,SFMono-Regular,monospace'; g.textAlign = 'left';
+  g.fillText(Math.abs(lat).toFixed(2)+(lat>=0?'N':'S')+'  '+Math.abs(lon).toFixed(2)+(lon>=0?'E':'W'), 4*scale, H-4*scale);
+  var km = Math.round(2*HALF_LON*111.32*Math.cos(cLat*Math.PI/180)/10)*10;
+  g.textAlign = 'right';
+  g.fillText('~'+km.toLocaleString()+' km', W-4*scale, H-4*scale);
+  g.strokeStyle = 'rgba(59,130,246,.35)'; g.lineWidth = 1;
+  g.strokeRect(.5,.5,W-1,H-1);
+}
+
+/* =====================================================================
+   EVENT BOARD -- every reported event, expandable, filterable
+
+   The brief body is prose and the globe is a dot: neither lets you go down the
+   list of what was actually reported and open one up. This does, and it reads
+   from the same EVENTS array the globe plots, so the two can never disagree.
+   ===================================================================== */
+function focusGlobe(lat, lon, zoom){
+  G.rot = [-lon, lat]; G.spin = false;
+  var sb = document.getElementById('spinBtn'); if(sb) sb.classList.remove('on');
+  setZoom(Math.max(G.zoom, zoom || 3));
+  document.getElementById('godseye').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+(function(){
+  if(!EVENTS || !EVENTS.length) return;
+  var band = document.getElementById('eventBand'), list = document.getElementById('evList');
+  band.style.display = '';
+
+  var order = EVENTS.map(function(e,i){ return i; }).sort(function(a,b){
+    return (EVENTS[b].priority||3) - (EVENTS[a].priority||3);
+  });
+  var hi = EVENTS.filter(function(e){ return (e.priority||3) >= 4; }).length;
+  document.getElementById('eventSub').textContent =
+    EVENTS.length + ' geolocated event' + (EVENTS.length>1?'s':'') + ' in this collection' +
+    (hi ? ' · ' + hi + ' at priority 4+' : '') + ' · click any row to expand';
+
+  /* Filters: section, plus a priority gate. Both narrow the same list rather
+     than re-sorting it, so a reader never loses their place. */
+  var sections = [];
+  EVENTS.forEach(function(e){ var k = e.section || 'geopolitical';
+                              if(sections.indexOf(k) < 0) sections.push(k); });
+  var filter = {section:null, hot:false};
+  var fbox = document.getElementById('evFilters');
+  function fbtn(label, dot, on, fn){
+    var b = document.createElement('button');
+    b.className = 'ev-f' + (on ? ' on' : '');
+    b.innerHTML = (dot ? '<i style="background:'+dot+'"></i>' : '') + esc(label);
+    b.onclick = function(){ fn(); paint(); };
+    fbox.appendChild(b); return b;
+  }
+  function buildFilters(){
+    fbox.innerHTML = '';
+    fbtn('all ('+EVENTS.length+')', null, !filter.section && !filter.hot,
+         function(){ filter.section = null; filter.hot = false; });
+    sections.forEach(function(k){
+      var n = EVENTS.filter(function(e){ return (e.section||'geopolitical') === k; }).length;
+      fbtn(k+' ('+n+')', SECTION_COLOR[k] || KIND.events.color, filter.section === k,
+           function(){ filter.section = filter.section === k ? null : k; });
+    });
+    if(hi) fbtn('priority 4+ ('+hi+')', '#ef4444', filter.hot,
+                function(){ filter.hot = !filter.hot; });
+  }
+
+  function rowsFor(e){
+    var r = [];
+    if(e.priority)       r.push(['PRIORITY', e.priority + ' / 5' + (e.priority>=4 ? '   ▲ ELEVATED' : '')]);
+    if(e.classification) r.push(['CLASSIFICATION', e.classification]);
+    if(e.confidence)     r.push(['CONFIDENCE', String(e.confidence).toUpperCase()]);
+    if(e.section)        r.push(['SECTION', String(e.section).toUpperCase()]);
+    if(e.place)          r.push(['LOCATION', e.place]);
+    r.push(['COORDS', Math.abs(e.lat).toFixed(3)+'°'+(e.lat>=0?'N':'S')+'  '+
+                      Math.abs(e.lon).toFixed(3)+'°'+(e.lon>=0?'E':'W')]);
+    /* Cross-brief context: the single most valuable thing one brief cannot say
+       by itself is "this place has come up before". */
+    var seen = ((HISTORY && HISTORY.places) || []).filter(function(p){
+      return Math.abs(p.lat - e.lat) < 0.6 && Math.abs(p.lon - e.lon) < 0.6 && p.count > 1; })[0];
+    if(seen) r.push(['RECURRENCE', 'reported in ' + seen.count + ' briefs since ' + String(seen.first||'').slice(0,10)]);
+    return r;
+  }
+
+  function card(idx){
+    var e = EVENTS[idx];
+    var tint = SECTION_COLOR[e.section] || KIND.events.color;
+    var pri = Math.max(1, Math.min(5, e.priority || 3));
+    var art = document.createElement('article');
+    art.className = 'ev';
+    art.style.borderLeftColor = tint;
+    art.dataset.idx = idx;
+
+    var head = document.createElement('button');
+    head.className = 'ev-head';
+    head.setAttribute('aria-expanded', 'false');
+    head.innerHTML =
+      '<span class="ev-pri p'+pri+'">'+pri+'</span>' +
+      '<span class="ev-main"><span class="ev-h">'+esc(e.headline || 'Reported event')+'</span>' +
+      '<span class="ev-sub">'+esc([e.place, e.section, e.classification, e.confidence]
+        .filter(Boolean).join(' · '))+'</span></span>' +
+      '<span class="ev-caret">▾</span>';
+
+    var body = document.createElement('div');
+    body.className = 'ev-body'; body.hidden = true;
+
+    head.onclick = function(){
+      var open = body.hidden;
+      body.hidden = !open;
+      art.classList.toggle('open', open);
+      head.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if(open && !body.dataset.built){
+        body.dataset.built = '1';
+        body.innerHTML =
+          '<div class="ev-chip-wrap"><canvas class="ev-chip" data-lat="'+e.lat+'" data-lon="'+e.lon+
+            '" data-tint="'+esc(tint)+'"></canvas>' +
+          '<div class="ev-chip-cap">2048px basemap crop</div></div>' +
+          '<div class="ev-rows">' +
+            '<div class="d-rows">' + rowsFor(e).map(function(r){
+              return '<div class="d-row"><span>'+r[0]+'</span><span>'+esc(String(r[1]))+'</span></div>'; }).join('') +
+            '</div>' +
+            '<div class="ev-acts">' +
+              (e.url ? '<a class="ev-btn" href="'+esc(e.url)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '') +
+              '<button class="ev-btn" data-act="globe">SHOW ON GLOBE</button>' +
+              '<button class="ev-btn" data-act="find">FIND IN BRIEF</button>' +
+            '</div>' +
+          '</div>';
+        basemap();
+        drawChip(body.querySelector('canvas.ev-chip'));
+        body.querySelector('[data-act="globe"]').onclick = function(){
+          G.sel = {k:'events', lat:e.lat, lon:e.lon, d:e, id:'ev'+idx, color:tint};
+          renderDetail(G.sel);
+          focusGlobe(e.lat, e.lon, 3.2);
+        };
+        body.querySelector('[data-act="find"]').onclick = function(){
+          /* Search the brief prose for the most distinctive words in the
+             headline; an exact-string match almost never hits, because the
+             model writes the prose and the JSON separately. */
+          var q = (e.headline || '').split(/[^A-Za-z0-9'-]+/)
+                    .filter(function(w){ return w.length > 4; }).slice(0,2).join(' ');
+          var box = document.getElementById('briefSearch');
+          box.value = q; runSearch(q);
+          box.scrollIntoView({behavior:'smooth', block:'center'});
+        };
+      }
+    };
+    art.appendChild(head); art.appendChild(body);
+    return art;
+  }
+
+  function paint(){
+    buildFilters();
+    list.innerHTML = '';
+    var n = 0;
+    order.forEach(function(idx){
+      var e = EVENTS[idx];
+      if(filter.section && (e.section||'geopolitical') !== filter.section) return;
+      if(filter.hot && (e.priority||3) < 4) return;
+      list.appendChild(card(idx)); n++;
+    });
+    if(!n) list.innerHTML = '<div class="ev-none">No events match this filter.</div>';
+  }
+  paint();
+})();
+
+/* =====================================================================
    RECURRENCE -- what a single brief cannot show
    ===================================================================== */
 (function(){
@@ -1869,12 +2245,7 @@ async function generateLocalBrief(){
       '<div class="recur-head">'+esc((p.headlines||[])[0] || '')+'</div>'+
       '<div class="recur-when">'+esc(String(p.first||'').slice(5,10))+' \u2192 '+esc(String(p.last||'').slice(5,10))+
       ' \u00b7 max priority '+(p.maxPriority||'-')+'</div>';
-    b.onclick = function(){
-      G.rot = [-p.lon, p.lat]; G.spin = false;
-      document.getElementById('spinBtn').classList.remove('on');
-      setZoom(Math.max(G.zoom, 3));
-      document.getElementById('godseye').scrollIntoView({behavior:'smooth', block:'start'});
-    };
+    b.onclick = function(){ focusGlobe(p.lat, p.lon, 3); };
     list.appendChild(b);
   });
 })();
@@ -2008,32 +2379,161 @@ async function boot(){
   /* Contacts: one Points cloud, coloured and sized per object. 32k points is
      nothing on the GPU, where the canvas renderer had to batch by hand. */
   const D0 = 4.2;          // default camera distance; also the point-size datum
+
+  /* Glyph atlas. Every contact is still one GPU point -- 33k sprites in one
+     draw call -- but the fragment shader now stamps a shape into it instead of
+     a disc, so a plane reads as a plane and a rocket body as a rocket body.
+     The shapes are drawn white and tinted by the per-point colour attribute.
+     Tiles are inset ~6px inside their 64px cell so bilinear sampling at the
+     seam, and rotation of the UVs, never reach a neighbouring glyph. */
+  const TILE = 64, NTILE = 10;
+  const TL = {dot:0, sats:1, rocket:2, air:3, naval:4, events:5, quake:6, debris:7, hazard:8, iss:9};
+  function buildAtlas(){
+    const c = document.createElement('canvas');
+    c.width = TILE*NTILE; c.height = TILE;
+    const g = c.getContext('2d');
+    g.lineJoin = 'round'; g.lineCap = 'round';
+    const cell = (i, fn) => { g.save(); g.translate(i*TILE + TILE/2, TILE/2);
+                              g.fillStyle = '#fff'; g.strokeStyle = '#fff'; fn(g); g.restore(); };
+    const poly = (g, pts, close) => { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+                                      for(let k=1;k<pts.length;k++) g.lineTo(pts[k][0], pts[k][1]);
+                                      if(close!==false) g.closePath(); };
+
+    /* 0 dot -- soft disc, the shape every contact falls back to when it is too
+       small on screen for a glyph to carry any information. */
+    cell(TL.dot, g => {
+      const rg = g.createRadialGradient(0,0,0, 0,0,26);
+      rg.addColorStop(0,'rgba(255,255,255,1)'); rg.addColorStop(0.45,'rgba(255,255,255,1)');
+      rg.addColorStop(1,'rgba(255,255,255,0)');
+      g.fillStyle = rg; g.beginPath(); g.arc(0,0,26,0,Math.PI*2); g.fill();
+    });
+    /* 1 payload -- bus with two solar wings */
+    cell(TL.sats, g => {
+      g.fillRect(-7,-9,14,18);
+      g.fillRect(-25,-5,15,10); g.fillRect(10,-5,15,10);
+      g.lineWidth = 3; g.beginPath(); g.moveTo(-10,0); g.lineTo(10,0); g.stroke();
+    });
+    /* 2 rocket body -- spent stage: capsule plus fins, canted so it never reads
+       as a payload at a glance */
+    cell(TL.rocket, g => {
+      g.rotate(-Math.PI/5);
+      g.beginPath(); g.moveTo(0,-25);
+      g.lineTo(7,-8); g.lineTo(7,17); g.lineTo(-7,17); g.lineTo(-7,-8); g.closePath(); g.fill();
+      poly(g, [[-7,8],[-16,20],[-7,20]]); g.fill();
+      poly(g, [[7,8],[16,20],[7,20]]);    g.fill();
+    });
+    /* 3 aircraft -- swept planform, nose up; the point's rot attribute turns it
+       to the contact's ADS-B track */
+    cell(TL.air, g => {
+      poly(g, [[0,-26],[4,-8],[24,6],[24,12],[4,5],[4,15],[10,21],[10,25],[0,22],
+               [-10,25],[-10,21],[-4,15],[-4,5],[-24,12],[-24,6],[-4,-8]]);
+      g.fill();
+    });
+    /* 4 vessel -- hull, superstructure, mast; turned to AIS heading */
+    cell(TL.naval, g => {
+      poly(g, [[-22,4],[22,4],[16,17],[-16,17]]); g.fill();   // hull
+      g.fillRect(-8,-8,16,12);                                 // house
+      g.fillRect(-2,-24,4,16);                                 // mast
+      g.fillRect(-9,-20,18,3);                                 // yard
+    });
+    /* 5 brief event -- diamond inside a standoff ring, the one marker meant to
+       be found without hunting */
+    cell(TL.events, g => {
+      g.lineWidth = 4; g.beginPath(); g.arc(0,0,23,0,Math.PI*2); g.stroke();
+      poly(g, [[0,-14],[14,0],[0,14],[-14,0]]); g.fill();
+    });
+    /* 6 seismic -- expanding wavefronts over the epicentre */
+    cell(TL.quake, g => {
+      g.beginPath(); g.arc(0,0,5,0,Math.PI*2); g.fill();
+      g.lineWidth = 3.5;
+      [12,19,26].forEach((r,k) => { g.globalAlpha = 0.85 - k*0.22;
+        g.beginPath(); g.arc(0,0,r,0,Math.PI*2); g.stroke(); });
+      g.globalAlpha = 1;
+    });
+    /* 7 debris -- an irregular shard, deliberately unlike the tidy payload */
+    cell(TL.debris, g => {
+      poly(g, [[-14,-16],[13,-20],[20,2],[4,19],[-17,10]]); g.fill();
+    });
+    /* 8 hazard -- warning triangle */
+    cell(TL.hazard, g => {
+      g.lineWidth = 5; poly(g, [[0,-24],[24,18],[-24,18]]); g.stroke();
+      g.fillRect(-3,-12,6,16); g.fillRect(-3,8,6,6);
+    });
+    /* 9 station -- big trussed array, distinct from a plain payload */
+    cell(TL.iss, g => {
+      g.fillRect(-5,-7,10,14);
+      g.fillRect(-26,-16,17,11); g.fillRect(-26,5,17,11);
+      g.fillRect(9,-16,17,11);   g.fillRect(9,5,17,11);
+      g.lineWidth = 3.5; g.beginPath(); g.moveTo(-26,0); g.lineTo(26,0); g.stroke();
+    });
+    const tex = new THREE.CanvasTexture(c);
+    tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+    tex.generateMipmaps = false;
+    return tex;
+  }
+  const atlas = buildAtlas();
+
   const CAP = 40000;
   const cPos = new Float32Array(CAP*3), cCol = new Float32Array(CAP*3), cSize = new Float32Array(CAP);
+  const cTile = new Float32Array(CAP), cAlpha = new Float32Array(CAP), cRot = new Float32Array(CAP);
   const cg = new THREE.BufferGeometry();
   cg.setAttribute('position', new THREE.BufferAttribute(cPos,3));
   cg.setAttribute('color', new THREE.BufferAttribute(cCol,3));
   cg.setAttribute('psize', new THREE.BufferAttribute(cSize,1));
+  cg.setAttribute('tile',  new THREE.BufferAttribute(cTile,1));
+  cg.setAttribute('palpha',new THREE.BufferAttribute(cAlpha,1));
+  cg.setAttribute('prot',  new THREE.BufferAttribute(cRot,1));
   /* gl_PointSize is in physical pixels. Scaling by 300/-z made a psize of 1.7
      render 121px wide at the default camera distance, and a priority-5 event
      over 1000px, on a 560px canvas -- 33k translucent discs that size are a
      solid wash, which is what "mostly blue sky" was. Dividing by the default
      distance instead makes psize mean "pixels when fully zoomed out", with
      perspective attenuation either side of it. */
+  /* GLYPH_PX is the point size, in physical pixels, below which a glyph stops
+     being readable and is worse than a dot -- a 3px aeroplane is just a noisier
+     3px smudge. Below it every contact draws tile 0, so the zoomed-out globe
+     keeps the clean starfield look; above it the shapes resolve as you close in.
+     The threshold is in physical pixels, so a HiDPI display crosses it sooner,
+     which is exactly right: it has the pixels to show the detail. */
   const cloud = new THREE.Points(cg, new THREE.ShaderMaterial({
-    uniforms:{ uScale:{value:D0}, uDpr:{value:Math.min(devicePixelRatio||1, 2)} },
+    uniforms:{ uScale:{value:D0}, uDpr:{value:Math.min(devicePixelRatio||1, 2)},
+               uAtlas:{value:atlas}, uTiles:{value:NTILE} },
     vertexShader:`attribute float psize; attribute vec3 color;
+      attribute float tile; attribute float palpha; attribute float prot;
       uniform float uScale; uniform float uDpr;
-      varying vec3 vC; varying float vA;
-      void main(){ vC=color; vec4 mv = modelViewMatrix*vec4(position,1.0);
-        vA = 1.0;
-        gl_PointSize = clamp(psize * uDpr * (uScale / -mv.z), 1.0, 48.0);
+      varying vec3 vC; varying float vA; varying float vT; varying float vPx; varying float vR;
+      void main(){ vC=color; vA=palpha; vT=tile;
+        vec4 mv = modelViewMatrix*vec4(position,1.0);
+        /* Compass-referenced glyphs (aircraft, vessels) are re-aimed at the
+           screen direction of true north under the contact. north is the
+           surface tangent towards +Y; at the poles that degenerates, so fall
+           back to any tangent rather than emitting a NaN that would blank the
+           whole sprite. */
+        if(prot > 50.0){
+          vec3 n = normalize(position);
+          vec3 t = vec3(0.0,1.0,0.0) - n*n.y;
+          float L = length(t);
+          vec3 nv = (modelViewMatrix*vec4(L > 1e-4 ? t/L : vec3(0.0,0.0,1.0), 0.0)).xyz;
+          vR = (prot - 100.0) + atan(nv.x, nv.y);
+        } else vR = prot;
+        float px = clamp(psize * uDpr * (uScale / -mv.z), 1.0, 48.0);
+        vPx = px; gl_PointSize = px;
         gl_Position = projectionMatrix*mv; }`,
-    fragmentShader:`varying vec3 vC; varying float vA;
-      void main(){ vec2 d = gl_PointCoord - vec2(0.5);
-        float r = dot(d,d); if(r > 0.25) discard;
-        float a = smoothstep(0.25, 0.05, r);
-        gl_FragColor = vec4(vC, a*vA); }`,
+    fragmentShader:`uniform sampler2D uAtlas; uniform float uTiles;
+      varying vec3 vC; varying float vA; varying float vT; varying float vPx; varying float vR;
+      const float GLYPH_PX = 6.0;
+      void main(){
+        float t = vPx < GLYPH_PX ? 0.0 : vT;
+        vec2 p = gl_PointCoord - vec2(0.5);
+        p.y = -p.y;
+        if(t > 0.5 && vR != 0.0){
+          float s = sin(vR), c = cos(vR);
+          p = vec2(c*p.x - s*p.y, s*p.x + c*p.y);
+        }
+        vec2 uv = p + vec2(0.5);
+        vec4 g = texture2D(uAtlas, vec2((t + uv.x)/uTiles, uv.y));
+        if(g.a < 0.03) discard;
+        gl_FragColor = vec4(vC, g.a*vA); }`,
     transparent:true, depthWrite:false
   }));
   world.add(cloud);
@@ -2045,12 +2545,23 @@ async function boot(){
     const p = (90-lat)*RAD, t = (lon+180)*RAD;
     return [-r*Math.sin(p)*Math.cos(t), r*Math.cos(p), r*Math.sin(p)*Math.sin(t)];
   }
-  function push(i, lat, lon, alt, hex, size, m){
+  function push(i, lat, lon, alt, hex, size, m, tile, alpha, rotDeg, compass){
     const v = ll2v(lat, lon, alt);
     cPos[i*3]=v[0]; cPos[i*3+1]=v[1]; cPos[i*3+2]=v[2];
     col.set(hex); cCol[i*3]=col.r; cCol[i*3+1]=col.g; cCol[i*3+2]=col.b;
     cSize[i]=size; meta[i]=m;
+    cTile[i]  = tile  == null ? TL.dot : tile;
+    cAlpha[i] = alpha == null ? 1 : alpha;
+    /* prot carries the glyph's rotation in radians, clockwise from screen-up.
+       Adding ROT_NORTH marks it as a compass bearing instead: the vertex shader
+       then rotates it again by wherever true north points on screen for that
+       point, which is nowhere near up once the globe has been dragged or the
+       contact sits near the limb. Sneaking the flag into the same attribute
+       saves a fourth 40k-float buffer re-uploaded on every rebuild. */
+    cRot[i]   = rotDeg == null ? (compass ? ROT_NORTH : 0)
+                              : rotDeg*Math.PI/180 + (compass ? ROT_NORTH : 0);
   }
+  const ROT_NORTH = 100.0;   // must match the shader's sentinel
 
   function rebuild(){
     const T = window.TB, L = T.G.layers, K = T.KIND;
@@ -2058,46 +2569,65 @@ async function boot(){
     if(L.events) for(const e of T.EVENTS){
       if(i>=CAP) break;
       const pri = Math.max(1, Math.min(5, e.priority||3));
-      push(i++, e.lat, e.lon, 0.012, T.SECTION_COLOR[e.section] || K.events.color, 4+pri*2.2, {k:'events', d:e, lat:e.lat, lon:e.lon, pri});
+      push(i++, e.lat, e.lon, 0.012, T.SECTION_COLOR[e.section] || K.events.color, 7+pri*2.4,
+           {k:'events', d:e, lat:e.lat, lon:e.lon, pri}, TL.events, 1);
     }
     if(L.quake) for(const q of (T.FEEDS.quakes||[])){
       if(i>=CAP) break;
-      push(i++, q.lat, q.lon, 0.006, K.quake.color, Math.max(3, Math.min(11,(q.mag-1.5)*2.2)), {k:'quake', d:q, lat:q.lat, lon:q.lon});
+      push(i++, q.lat, q.lon, 0.006, K.quake.color, Math.max(3.4, Math.min(13,(q.mag-1.5)*2.6)),
+           {k:'quake', d:q, lat:q.lat, lon:q.lon}, TL.quake, 0.9);
     }
+    /* A hull or a planform is a claim about which way the contact is pointing.
+       Where AIS or ADS-B did not report a bearing there is nothing to claim, so
+       those fall back to the neutral dot rather than all facing due north. */
     if(L.naval) for(const v of (T.FEEDS.vessels||[])){
       if(i>=CAP) break;
-      push(i++, v.lat, v.lon, 0.004, v._mil ? '#10b981' : K.naval.color, v._mil?5:2.6, {k:'naval', d:v, lat:v.lat, lon:v.lon});
+      push(i++, v.lat, v.lon, 0.004, v._mil ? '#10b981' : K.naval.color, v._mil?6.5:3.2,
+           {k:'naval', d:v, lat:v.lat, lon:v.lon},
+           v.hdg==null ? TL.dot : TL.naval, v._mil?1:0.82, v.hdg, v.hdg!=null);
     }
     if(L.air) for(const a of T.G.air){
       if(i>=CAP || a.lat==null) continue;
-      push(i++, a.lat, a.lon, 0.018, a._mil ? '#f87171' : K.air.color, a._mil?4.6:2.8, {k:'air', d:a, lat:a.lat, lon:a.lon});
+      push(i++, a.lat, a.lon, 0.018, a._mil ? '#f87171' : K.air.color, a._mil?6.2:3.4,
+           {k:'air', d:a, lat:a.lat, lon:a.lon},
+           a.track==null ? TL.dot : TL.air, a._mil?1:0.85, a.track, a.track!=null);
     }
     if(L.hazard){
       for(const a of (T.FEEDS.alerts||[])) if(a.lat!=null && i<CAP)
-        push(i++, a.lat, a.lon, 0.006, K.hazard.color, 5, {k:'hazard', d:a, lat:a.lat, lon:a.lon});
+        push(i++, a.lat, a.lon, 0.006, K.hazard.color, 6.5, {k:'hazard', d:a, lat:a.lat, lon:a.lon}, TL.hazard, 0.9);
       for(const x of (T.FEEDS.disasters||[])) if(x.lat!=null && i<CAP)
-        push(i++, x.lat, x.lon, 0.006, K.hazard.color, 5.6, {k:'hazard', d:x, lat:x.lat, lon:x.lon});
+        push(i++, x.lat, x.lon, 0.006, K.hazard.color, 7.2, {k:'hazard', d:x, lat:x.lat, lon:x.lon}, TL.hazard, 1);
       for(const x of (T.FEEDS.launches||[])) if(x.lat!=null && i<CAP)
-        push(i++, x.lat, x.lon, 0.006, '#22c55e', 5.6, {k:'launch', d:x, lat:x.lat, lon:x.lon});
+        push(i++, x.lat, x.lon, 0.006, '#22c55e', 7.2, {k:'launch', d:x, lat:x.lat, lon:x.lon}, TL.rocket, 1);
     }
     const S = T.G.satsRaw, ok = T.G.satOk;
     if(S && ok){
       const KO = T.KIND_OF;
+      /* Debris outnumbers everything else four to one and is the least
+         informative class, so it stays small and half-transparent: it should
+         read as a haze of junk, not compete with the payloads inside it. */
+      const SZ = {sats:3.0, rocket:3.4, debris:2.4};
+      const AL = {sats:0.92, rocket:0.85, debris:0.5};
       for(let j=0;j<S.length && i<CAP;j++){
         if(!ok[j]) continue;
         const kind = KO[S[j][9]] || 'debris';
         if(!L[kind]) continue;
         push(i++, T.G.satLat[j], T.G.satLon[j], Math.max(0.004, T.G.satAlt[j]/6371),
-             K[kind].color, kind==='debris'?1.7:2.4, {k:kind, d:{s:S[j], alt:T.G.satAlt[j]}, lat:T.G.satLat[j], lon:T.G.satLon[j]});
+             K[kind].color, SZ[kind]||2.4, {k:kind, d:{s:S[j], alt:T.G.satAlt[j]}, lat:T.G.satLat[j], lon:T.G.satLon[j]},
+             TL[kind], AL[kind]||0.9, kind==='debris' ? (j*47)%360 : 0);
       }
     }
     if(T.G.iss && L.iss && i<CAP)
-      push(i++, T.G.iss.latitude, T.G.iss.longitude, T.G.iss.altitude/6371, K.iss.color, 8, {k:'iss', d:T.G.iss, lat:T.G.iss.latitude, lon:T.G.iss.longitude});
+      push(i++, T.G.iss.latitude, T.G.iss.longitude, T.G.iss.altitude/6371, K.iss.color, 11,
+           {k:'iss', d:T.G.iss, lat:T.G.iss.latitude, lon:T.G.iss.longitude}, TL.iss, 1);
 
     for(let j=i;j<CAP;j++){ cPos[j*3]=cPos[j*3+1]=cPos[j*3+2]=0; cSize[j]=0; meta[j]=null; }
     cg.attributes.position.needsUpdate = true;
     cg.attributes.color.needsUpdate = true;
     cg.attributes.psize.needsUpdate = true;
+    cg.attributes.tile.needsUpdate = true;
+    cg.attributes.palpha.needsUpdate = true;
+    cg.attributes.prot.needsUpdate = true;
     cg.setDrawRange(0, i);
     return i;
   }
@@ -2109,7 +2639,11 @@ async function boot(){
      the additive blue shell was most of what you saw. 4.2 gives 2.89, putting
      the earth at 69% with proper margin, matching the 2D globe's framing. */
   let rotY = -0.35, rotX = -0.26, dist = D0, drag = null;
-  const MIN = 1.75, MAX = 9.0;
+  /* MIN is not just a comfort limit: it sets how far the glyph threshold can be
+     crossed. 4.2/1.6 = 2.6x, which is what lifts a 2.4px debris shard past the
+     6px mark on a non-HiDPI display. Closer than 1.6 and the 1.035 atmosphere
+     shell starts to swallow the frame again. */
+  const MIN = 1.60, MAX = 9.0;
   function resize(){
     const w = cv.clientWidth || 480;
     renderer.setSize(w, w, false);
@@ -2202,9 +2736,14 @@ async function boot(){
                     get dist(){ return dist; }, setDist(d){ dist = d; }};
   window.TB.onWebglReady();
   const dpr = Math.min(devicePixelRatio||1, 2);
-  console.info('point sizes at default zoom (px):',
-    ['debris 1.7','payload 2.4','event p5 15'].map((l,i)=>{
-      const ps=[1.7,2.4,15][i]; return l.split(' ')[0]+' '+(ps*dpr*(D0/dist)).toFixed(1); }).join(', '));
+  /* Reported because the glyph threshold is invisible until you hit it: if a
+     class never reaches 6 physical px even at MIN dist, it will only ever draw
+     as a dot on this display, and that is a sizing bug, not a texture bug. */
+  const zoomIn = D0/MIN;
+  console.info('contact sizes (physical px, default zoom -> max zoom; glyph at 6.0):',
+    [['debris',2.4],['payload',3.0],['rocket',3.4],['air',3.4],['air mil',6.2],
+     ['naval',3.2],['event p5',19]]
+      .map(([n,ps]) => n+' '+(ps*dpr*(D0/dist)).toFixed(1)+'->'+(ps*dpr*zoomIn).toFixed(1)).join(', '));
   const visH = 2*dist*Math.tan(38*RAD/2);
   console.info('WebGL globe active | camera dist', dist.toFixed(2),
                '| earth fills', (2/visH*100).toFixed(0)+'% of frame',
