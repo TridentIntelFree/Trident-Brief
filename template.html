@@ -91,6 +91,8 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .lyr.on i{opacity:1;box-shadow:0 0 6px currentColor}
 .lyr b{color:var(--cyan);font-weight:700}
 .lyr:hover{border-color:var(--blue)}
+.lyr.paused{border-style:dashed;opacity:.72}
+.lyr.paused::after{content:' \2016';letter-spacing:0}
 .globe-hint{text-align:center;color:var(--ink-faint);font-size:.68em;font-family:var(--mono);margin-top:8px;letter-spacing:.05em}
 .detail-col{min-width:0}
 #detailPanel{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));border:1px solid var(--line2);
@@ -108,6 +110,14 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
   padding:7px 14px;border-radius:6px;font-size:.76em;font-family:var(--mono);text-decoration:none;letter-spacing:.05em}
 .d-link:hover{background:rgba(59,130,246,.3);color:#fff}
 @media (max-width:860px){ .ge-wrap{grid-template-columns:1fr} }
+
+/* ---------- quiet-theatre roll-up ---------- */
+.quiet-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;margin:14px 0 18px;
+  padding:9px 12px;border:1px dashed var(--line2);border-radius:8px;background:rgba(15,23,48,.5)}
+.quiet-row b{font-family:var(--mono);font-size:.66em;letter-spacing:.12em;color:var(--ink-faint);
+  text-transform:uppercase;margin-right:2px}
+.quiet-row span{font-family:var(--mono);font-size:.68em;letter-spacing:.06em;color:var(--ink-dim);
+  background:rgba(30,41,73,.7);border-radius:4px;padding:2px 7px}
 
 /* ---------- event board ---------- */
 .ev-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
@@ -590,8 +600,44 @@ function renderMD(md){
   var body = document.getElementById('briefBody');
   try { body.innerHTML = renderMD(BRIEF_MD); }
   catch(e){ body.innerHTML = '<pre class="raw">'+esc(BRIEF_MD)+'</pre>'; }
+  try { rollUpQuiet(); } catch(e){ console.warn('quiet roll-up skipped:', e.message); }
   buildNav();
 })();
+
+/* ---- roll up the theatres that reported nothing ----
+   The standing sweep means a brief always carries all eight theatres, and on a
+   calm day most of them say only "quiet in window". Rendered as full headings
+   those cost more vertical space than the theatres that actually moved, which
+   inverts the hierarchy the reader needs. They collapse into one row -- but only
+   when there is genuinely nothing under them, so a heading that says quiet and
+   then reports something is never swallowed. */
+function rollUpQuiet(){
+  /* Declared in here, not at file scope: this runs from an IIFE that sits above
+     it in the file, and a hoisted `var` is still undefined at that point. */
+  var QUIET_RE = /[\u2014\u2013-]\s*quiet(\s+in\s+window)?\s*\.?$/i;
+  var body = document.getElementById('briefBody');
+  var heads = body.querySelectorAll('h2, h3, h4');
+  var quiet = [], anchor = null;
+  Array.prototype.forEach.call(heads, function(h){
+    if(!QUIET_RE.test(h.textContent.trim())) return;
+    // only collapse it if nothing but another heading follows
+    var nxt = h.nextElementSibling;
+    if(nxt && !/^H[2-4]$/.test(nxt.tagName)) return;
+    quiet.push(h.textContent.trim().replace(QUIET_RE, '').trim());
+    if(!anchor) anchor = h;
+    h.dataset.quiet = '1';
+  });
+  if(quiet.length < 2) {           // one stray line is not worth a roll-up
+    Array.prototype.forEach.call(heads, function(h){ delete h.dataset.quiet; });
+    return;
+  }
+  var row = document.createElement('div');
+  row.className = 'quiet-row';
+  row.innerHTML = '<b>quiet in window</b>' +
+    quiet.map(function(t){ return '<span>' + esc(t) + '</span>'; }).join('');
+  anchor.parentNode.insertBefore(row, anchor);
+  body.querySelectorAll('[data-quiet]').forEach(function(h){ h.remove(); });
+}
 
 /* ---- section nav chips ---- */
 function buildNav(){
@@ -611,7 +657,13 @@ function buildNav(){
     h.id = 'sec'+n;
     var a = document.createElement('a');
     a.className='chip'; a.href='#sec'+n;
-    a.textContent = txt.replace(/^[\d.\s]*/,'').slice(0,26).toUpperCase();
+    var label = txt.replace(/^[\d.\s]*/,'');
+    if(label.length > 26){
+      var cut = label.slice(0, 26);
+      var sp = cut.lastIndexOf(' ');
+      label = (sp > 12 ? cut.slice(0, sp) : cut) + '\u2026';
+    }
+    a.textContent = label.toUpperCase();
     chips.appendChild(a);
   });
 }
@@ -735,7 +787,7 @@ var KIND = {
   naval: {color:'#34d399', label:'VESSEL'},
   iss:   {color:'#a78bfa', label:'ORBITAL'}
 };
-var SECTION_COLOR = {geopolitical:'#ef4444', technology:'#a78bfa', uap:'#22d3ee', research:'#22c55e'};
+var SECTION_COLOR = {geopolitical:'#ef4444', technology:'#a78bfa', homeland:'#f59e0b', uap:'#22d3ee', research:'#22c55e'};
 
 var cv = document.getElementById('globe'), ctx = cv.getContext('2d');
 var D = Math.PI/180;
@@ -1025,7 +1077,7 @@ var last=0;
 function loop(t){
   if(G.stopped) return;               // WebGL renderer took over
   var dt = last ? (t - last) : 16;
-  if(G.spin && !G.drag){ G.rot[0] -= dt*0.006; }
+  if(G.spin && !G.drag && !G.hover){ G.rot[0] -= dt*0.006; }
   // Measure the real frame interval, not just how long draw() takes: the
   // expensive part can sit in compositing, which draw() never sees.
   if(dt > 0 && dt < 500) adapt(dt);
@@ -1042,7 +1094,7 @@ function evtPos(e){
 }
 function onDown(e){ G.drag = {p:evtPos(e), rot:G.rot.slice(), moved:false}; cv.classList.add('drag'); }
 function onMove(e){
-  if(!G.drag) return;
+  if(!G.drag){ if(!e.touches) hoverTest(evtPos(e)); return; }
   var p=evtPos(e), dx=p.x-G.drag.p.x, dy=p.y-G.drag.p.y;
   if(Math.abs(dx)+Math.abs(dy) > 3) G.drag.moved=true;
   var k = 0.35 / G.zoom;   // same on-screen travel regardless of magnification
@@ -1085,13 +1137,32 @@ addEventListener('mousemove',onMove);   cv.addEventListener('touchmove',onMove,{
 addEventListener('mouseup',onUp);       cv.addEventListener('touchend',onUp);
 
 function pick(p){
-  var best=null, bd=16*16;
+  var best=null, bd=20*20;
   (G._hit||[]).forEach(function(c){
     var d=(c.sx-p.x)*(c.sx-p.x)+(c.sy-p.y)*(c.sy-p.y);
     if(d<bd){ bd=d; best=c; }
   });
   if(!best) best = pickSat(p.x, p.y);
+  // Having picked something out, you want to read it, not watch it rotate away.
+  if(best && G.spin) setSpin(false);
   G.sel = best; renderDetail(best);
+}
+
+/* Cursor feedback, so you can tell you are on a contact before you commit to a
+   click. Throttled: the satellite probe walks the whole catalogue. */
+var hoverAt = 0;
+function hoverTest(p){
+  var now = Date.now();
+  if(now - hoverAt < 70) return;
+  hoverAt = now;
+  var hit = false, bd = 20*20;
+  var list = G._hit || [];
+  for(var i=0;i<list.length;i++){
+    var c = list[i];
+    if((c.sx-p.x)*(c.sx-p.x) + (c.sy-p.y)*(c.sy-p.y) < bd){ hit = true; break; }
+  }
+  if(!hit && pickSat(p.x, p.y)) hit = true;
+  cv.style.cursor = hit ? 'pointer' : '';
 }
 
 function fmtTime(ts){ try{ return new Date(ts).toISOString().replace('T',' ').slice(0,16)+'Z'; }catch(_){ return ''; } }
@@ -1190,8 +1261,35 @@ document.querySelectorAll('.lyr[data-layer]').forEach(function(b){
 document.getElementById('zoomIn').addEventListener('click', function(){ setZoom(G.zoom*1.4); });
 document.getElementById('zoomOut').addEventListener('click', function(){ setZoom(G.zoom/1.4); });
 document.getElementById('zoomLabelBtn').addEventListener('click', function(){ setZoom(1); });
+/* Spin is shared by both renderers and by the jump-to-location buttons, so it
+   gets one setter that also keeps the button honest about the current state. */
+function setSpin(on){
+  G.spin = !!on;
+  var b = document.getElementById('spinBtn');
+  if(b){ b.classList.toggle('on', G.spin); b.classList.remove('paused'); }
+}
+
+/* Hovering the globe pauses the rotation. Clicking a 3px contact on a sphere
+   that is turning under the cursor was the single most awkward thing on this
+   page: you aim, it moves, you miss. The pointer being over the globe is
+   exactly the moment you might be aiming at something, and the moment the
+   rotation stops mattering -- so it stops, and starts again when you leave.
+   G.spin itself is untouched, so this never overrides the button. */
+function hoverPause(on){
+  G.hover = !!on;
+  var b = document.getElementById('spinBtn');
+  if(b) b.classList.toggle('paused', !!on && G.spin);
+}
+['globe','globe3d'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('mouseenter', function(){ hoverPause(true); });
+  el.addEventListener('mouseleave', function(){ hoverPause(false); });
+});
+
 document.getElementById('spinBtn').addEventListener('click', function(){
   G.spin=!G.spin; this.classList.toggle('on', G.spin);
+  this.classList.remove('paused');
 });
 
 
@@ -1785,8 +1883,7 @@ function retarget(zip){
     GE.state=p['state abbreviation']||'';
     GE.label=(p['place name']||zip).toUpperCase()+', '+GE.state+' ('+zip+')';
     document.getElementById('geTarget').textContent = GE.label;
-    G.rot=[-GE.lon, GE.lat]; G.spin=false;
-    document.getElementById('spinBtn').classList.remove('on');
+    G.rot=[-GE.lon, GE.lat]; setSpin(false);
     feedAir(); feedIss();
     return GE;
   }).catch(function(){ return null; });
@@ -1824,6 +1921,7 @@ window.TB = {
   get G(){ return G; },           get KIND_OF(){ return KIND_OF; },
   renderDetail: function(c){ return renderDetail(c); },
   setZoomLabel: function(z){ var e=document.getElementById('zoomLabel'); if(e) e.textContent = z.toFixed(1)+'\u00d7'; },
+  setSpin: function(on){ setSpin(on); },
   stopCanvasGlobe: function(){ G.stopped = true; },
   clearThinning: function(){ var el = document.getElementById('thinNote'); if(el) el.style.display = 'none'; },
   /* The 3D renderer draws only a sample of the orbital catalogue when zoomed
@@ -2115,8 +2213,7 @@ function drawChip(cv){
    from the same EVENTS array the globe plots, so the two can never disagree.
    ===================================================================== */
 function focusGlobe(lat, lon, zoom){
-  G.rot = [-lon, lat]; G.spin = false;
-  var sb = document.getElementById('spinBtn'); if(sb) sb.classList.remove('on');
+  G.rot = [-lon, lat]; setSpin(false);
   setZoom(Math.max(G.zoom, zoom || 3));
   document.getElementById('godseye').scrollIntoView({behavior:'smooth', block:'start'});
 }
@@ -2765,10 +2862,13 @@ async function boot(){
   cv.addEventListener('touchend', e => { if(e.touches.length<2) pinch=null; if(!e.touches.length) drag=null; }, {passive:true});
 
   const v3 = new THREE.Vector3();
-  function pick(ev){
+  /* One screen-space search over the drawn points, shared by the click handler
+     and the hover cursor. Returns the index so hover can skip rebuilding the
+     contact object it does not need. */
+  function nearest(ev, radius){
     const r = cv.getBoundingClientRect();
     const px = ev.clientX - r.left, py = ev.clientY - r.top;
-    let best = null, bd = 18*18;
+    let bi = -1, bd = radius*radius;
     const n = cg.drawRange.count;
     for(let i=0;i<n;i++){
       if(!meta[i]) continue;
@@ -2776,11 +2876,31 @@ async function boot(){
       if(v3.z > 1) continue;
       const sx = (v3.x*0.5+0.5)*r.width, sy = (-v3.y*0.5+0.5)*r.height;
       const dd = (sx-px)*(sx-px) + (sy-py)*(sy-py);
-      if(dd < bd){ bd = dd; best = Object.assign({}, meta[i], {color:'#'+col.fromArray(cCol, i*3).getHexString()}); }
+      if(dd < bd){ bd = dd; bi = i; }
     }
+    return bi;
+  }
+
+  function pick(ev){
+    const i = nearest(ev, 20);
+    const best = i < 0 ? null
+      : Object.assign({}, meta[i], {color:'#'+col.fromArray(cCol, i*3).getHexString()});
+    // stop the rotation once something is selected, so it stays under the cursor
+    if(best && window.TB.G.spin) window.TB.setSpin(false);
     window.TB.G.sel = best;
     window.TB.renderDetail(best);
   }
+
+  /* Cursor feedback. Throttled because nearest() projects every drawn point;
+     at ~8k points that is well under a millisecond, but not at 60Hz. */
+  let hoverAt = 0;
+  cv.addEventListener('mousemove', ev => {
+    if(drag) return;
+    const now = performance.now();
+    if(now - hoverAt < 70) return;
+    hoverAt = now;
+    cv.style.cursor = nearest(ev, 20) >= 0 ? 'pointer' : '';
+  });
 
   /* go */
   if(!window.TB.prefersCanvas()){
@@ -2793,7 +2913,7 @@ async function boot(){
   const sunV = earthMat.uniforms.sunDir.value;
   let lastRebuild = 0, lastSun = 0;
   function frame(t){
-    if(window.TB.G.spin && !drag) rotY += 0.00022 * 16;
+    if(window.TB.G.spin && !drag && !window.TB.G.hover) rotY += 0.00022 * 16;
     world.rotation.set(rotX, rotY, 0);
     camera.position.set(0, 0, dist); camera.lookAt(0,0,0);
     if(t - lastSun > 30000 || !lastSun){
