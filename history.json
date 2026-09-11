@@ -1,6 +1,17 @@
 {
- "updated": "2026-09-10T14:41:06.163652+00:00",
+ "updated": "2026-09-11T00:38:18.251405+00:00",
  "briefs": [
+  {
+   "at": "2026-09-11T00:38:18.251405+00:00",
+   "path": "archive/2026-09-11-0038.md",
+   "bluf": "BLUF:",
+   "events": 3,
+   "headlines": [
+    "Zelenskyy details $2B+ Canada aid package for air defense/energy",
+    "Ukrainian forces strike Su-24 at airfield",
+    "Russian drone strike kills four near shopping mall"
+   ]
+  },
   {
    "at": "2026-09-10T14:41:06.163652+00:00",
    "path": "archive/2026-09-10-1441.md",
@@ -90,6 +101,45 @@
    ],
    "maxPriority": 4,
    "last": "2026-09-10T14:41:06.163652+00:00"
+  },
+  {
+   "key": "51.05,-114.07",
+   "lat": 51.05,
+   "lon": -114.07,
+   "place": "Calgary, Canada",
+   "count": 1,
+   "first": "2026-09-11T00:38:18.251405+00:00",
+   "headlines": [
+    "Zelenskyy details $2B+ Canada aid package for air defense/energy"
+   ],
+   "maxPriority": 4,
+   "last": "2026-09-11T00:38:18.251405+00:00"
+  },
+  {
+   "key": "45.05,35.38",
+   "lat": 45.05,
+   "lon": 35.38,
+   "place": "Occupied Crimea, Ukraine",
+   "count": 1,
+   "first": "2026-09-11T00:38:18.251405+00:00",
+   "headlines": [
+    "Ukrainian forces strike Su-24 at airfield"
+   ],
+   "maxPriority": 5,
+   "last": "2026-09-11T00:38:18.251405+00:00"
+  },
+  {
+   "key": "48.53,35.87",
+   "lat": 48.53,
+   "lon": 35.87,
+   "place": "Pavlohrad, Ukraine",
+   "count": 1,
+   "first": "2026-09-11T00:38:18.251405+00:00",
+   "headlines": [
+    "Russian drone strike kills four near shopping mall"
+   ],
+   "maxPriority": 4,
+   "last": "2026-09-11T00:38:18.251405+00:00"
   }
  ]
 }
