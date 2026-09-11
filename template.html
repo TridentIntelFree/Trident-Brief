@@ -117,6 +117,36 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .content a.cite:hover{background:rgba(59,130,246,.4);color:#fff;border-color:var(--blue)}
 @media print{ .content a.cite{color:#333;background:none;border-color:#999} }
 
+/* ---------- mushroom body ---------- */
+.fly-wrap{display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
+#flyCanvas{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;
+  background:linear-gradient(180deg,#070d1e,#05091a)}
+.fly-side{min-width:0}
+.fly-read{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));
+  border:1px solid var(--line2);border-radius:10px;padding:15px;min-height:220px}
+.fly-label{font-family:var(--mono);font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+.fly-head{color:#fff;font-size:.9em;font-weight:600;line-height:1.45;margin:7px 0 13px;min-height:2.6em}
+.fly-nov{display:flex;align-items:baseline;gap:8px}
+.fly-nov span{font-family:var(--mono);font-size:1.9em;font-weight:700;color:var(--cyan);line-height:1}
+.fly-nov small{font-family:var(--mono);font-size:.62em;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+.fly-bar{height:7px;border-radius:4px;background:rgba(30,41,73,.9);overflow:hidden;margin:9px 0 8px}
+.fly-bar i{display:block;height:100%;width:0;border-radius:4px;transition:width .5s ease;
+  background:linear-gradient(90deg,#f59e0b,#22d3ee)}
+.fly-verdict{font-family:var(--mono);font-size:.68em;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.fly-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.fly-chip{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);cursor:pointer;
+  font-family:var(--mono);font-size:.66em;letter-spacing:.05em;padding:5px 10px;border-radius:6px;
+  max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:.15s;text-align:left}
+.fly-chip:hover{border-color:var(--blue);color:var(--ink)}
+.fly-chip.on{background:rgba(59,130,246,.22);border-color:var(--blue);color:#fff}
+.fly-chip b{color:var(--cyan);margin-right:6px;font-weight:700}
+.fly-foot{display:grid;grid-template-columns:260px 1fr;gap:16px;margin-top:14px;align-items:start}
+.fly-trace{min-width:0}
+#flyTrace{width:100%;height:auto;display:block;margin-top:6px;border:1px solid var(--line2);border-radius:7px;background:rgba(7,13,30,.7)}
+.fly-note{color:var(--ink-faint);font-size:.74em;line-height:1.7;margin:0}
+.fly-note b{color:var(--ink-dim);font-weight:600}
+@media (max-width:860px){ .fly-wrap{grid-template-columns:1fr} .fly-foot{grid-template-columns:1fr} }
+
 /* ---------- quiet-theatre roll-up ---------- */
 .quiet-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;margin:14px 0 18px;
   padding:9px 12px;border:1px dashed var(--line2);border-radius:8px;background:rgba(15,23,48,.5)}
@@ -460,6 +490,36 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
     <div id="localBriefContent"></div>
   </div>
 
+  <!-- ============ MUSHROOM BODY ============ -->
+  <div class="section-band" id="flyBand" style="display:none">
+    <div class="band-head">
+      <h2>&#129439; Mushroom Body &mdash; Novelty Detection</h2>
+      <div class="sub">
+        the fruit fly's olfactory circuit, run on this brief's headlines &middot;
+        <a href="https://www.science.org/doi/10.1126/science.aam9868" target="_blank" rel="noopener">Dasgupta&nbsp;2017</a>,
+        <a href="https://www.pnas.org/content/115/51/13093" target="_blank" rel="noopener">Dasgupta&nbsp;2018</a>
+      </div>
+    </div>
+    <div class="fly-wrap">
+      <canvas id="flyCanvas"></canvas>
+      <div class="fly-side">
+        <div class="fly-read">
+          <div class="fly-label">reading</div>
+          <div class="fly-head" id="flyHead">&mdash;</div>
+          <div class="fly-nov"><span id="flyNovVal">&mdash;</span><small>novelty</small></div>
+          <div class="fly-bar"><i id="flyBar"></i></div>
+          <div class="fly-verdict" id="flyVerdict"></div>
+          <div class="d-rows" id="flyRows"></div>
+        </div>
+      </div>
+    </div>
+    <div class="fly-chips" id="flyChips"></div>
+    <div class="fly-foot">
+      <div class="fly-trace"><div class="fly-label">mean novelty per brief</div><canvas id="flyTrace"></canvas></div>
+      <p class="fly-note" id="flyNote"></p>
+    </div>
+  </div>
+
   <!-- ============ ARCHIVE ============ -->
   <div class="section-band" id="archiveBand" style="display:none">
     <div class="band-head">
@@ -505,6 +565,7 @@ const FEEDS      = __FEEDS_JSON__;
 const COASTLINE  = __COASTLINE_JSON__;
 const LAND       = __LAND_JSON__;
 const HISTORY    = __HISTORY_JSON__;
+const FLY        = __FLY_JSON__;
 const GROK_KEY   = __GROK_KEY_JSON__;
 const ACCESS_CODE= "0330";
 
@@ -2453,6 +2514,241 @@ function focusGlobe(lat, lon, zoom){
     b.onclick = function(){ focusGlobe(p.lat, p.lon, 3); };
     list.appendChild(b);
   });
+})();
+
+/* =====================================================================
+   MUSHROOM BODY -- the fly's novelty detector, drawn as it computes
+
+   The circuit is the real one: ~50 projection neurons feed ~2000 Kenyon
+   cells, each KC sampling about 6 PNs at random, and the APL neuron
+   inhibits all but the strongest ~5%. That sparse tag is the input's
+   fingerprint, and a single output neuron reads novelty off how much of
+   the tag the archive has already worn in.
+
+   The wiring is shipped from the collector rather than invented here, so
+   the animation runs the same synapses that produced the stored score --
+   the browser recomputes the Kenyon drive from the projection-neuron
+   activation and finds the winners itself. What you see fire is what was
+   scored. What is NOT real: the fly smells odours, and this is reading
+   headline text. The circuit is the fly's; the input is ours.
+   ===================================================================== */
+(function(){
+  var band = document.getElementById('flyBand');
+  if(!band || !FLY || !FLY.wiring) return;
+  var scored = (EVENTS || []).filter(function(e){ return e.fly && e.fly.kc && e.fly.kc.length; });
+  if(!scored.length) return;
+  band.style.display = '';
+
+  /* one byte per synapse, KC_FANIN bytes per Kenyon cell */
+  var wire;
+  try {
+    var bin = atob(FLY.wiring);
+    wire = new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) wire[i] = bin.charCodeAt(i);
+  } catch(_){ band.style.display = 'none'; return; }
+
+  var NKC = FLY.kc, NPN = FLY.pn, FANIN = FLY.fanin, WIN = FLY.winners;
+  if(wire.length < NKC*FANIN){ band.style.display = 'none'; return; }
+
+  var cv = document.getElementById('flyCanvas'), ctx = cv.getContext('2d');
+  var COLS = 50, ROWS = Math.ceil(NKC/COLS);
+  var drive = new Float32Array(NKC);
+  var isWinner = new Uint8Array(NKC), isWarm = new Uint8Array(NKC);
+  var cur = null, phase = 0, raf = null, started = 0;
+
+  function sizeCanvas(){
+    var w = Math.max(320, cv.clientWidth || 620);
+    var h = Math.round(Math.min(330, Math.max(220, w*0.42)));
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = w*dpr; cv.height = h*dpr;
+    cv.style.aspectRatio = w + ' / ' + h;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w:w, h:h};
+  }
+
+  /* Run the Kenyon stage here, from the same wiring the collector used. */
+  function computeDrive(pn){
+    var max = 0;
+    for(var k=0;k<NKC;k++){
+      var s = 0, base = k*FANIN;
+      for(var j=0;j<FANIN;j++) s += pn[wire[base+j]] || 0;
+      drive[k] = s;
+      if(s > max) max = s;
+    }
+    if(max > 0) for(var m=0;m<NKC;m++) drive[m] /= max;
+  }
+
+  function select(ev, idx){
+    cur = ev;
+    isWinner.fill(0); isWarm.fill(0);
+    ev.fly.kc.forEach(function(k){ if(k < NKC) isWinner[k] = 1; });
+    (ev.fly.warm || []).forEach(function(k){ if(k < NKC) isWarm[k] = 1; });
+    computeDrive(ev.fly.pn || []);
+    started = performance.now();
+
+    document.getElementById('flyHead').textContent = ev.headline || ev.place || 'event';
+    var nov = ev.novelty == null ? 1 : ev.novelty;
+    document.getElementById('flyNovVal').textContent = nov.toFixed(2);
+    document.getElementById('flyBar').style.width = Math.round(nov*100) + '%';
+    var v = document.getElementById('flyVerdict');
+    var warmN = (ev.fly.warm || []).length;
+    if(nov >= 0.66){ v.textContent = '▲ not seen before'; v.style.color = '#22d3ee'; }
+    else if(nov >= 0.33){ v.textContent = '◆ developing — partly familiar'; v.style.color = '#f59e0b'; }
+    else { v.textContent = '● saturated — the archive knows this'; v.style.color = 'var(--ink-faint)'; }
+    document.getElementById('flyRows').innerHTML =
+      [['KENYON CELLS', ev.fly.kc.length + ' of ' + NKC.toLocaleString() + ' firing'],
+       ['ALREADY TRACED', warmN + ' of ' + ev.fly.kc.length + ' carried a prior trace'],
+       ['MBON READING', (ev.fly.seen == null ? 0 : ev.fly.seen).toFixed(3) + ' familiarity'],
+       ['PLACE', ev.place || '—']]
+      .map(function(r){ return '<div class="d-row"><span>'+r[0]+'</span><span>'+esc(String(r[1]))+'</span></div>'; }).join('');
+
+    Array.prototype.forEach.call(document.querySelectorAll('.fly-chip'), function(c, i){
+      c.classList.toggle('on', i === idx);
+    });
+    if(!raf) raf = requestAnimationFrame(draw);
+  }
+
+  function draw(now){
+    var d = sizeCanvas(), W = d.w, H = d.h;
+    /* 0 -> 1 over 1.6s: PN activation, Kenyon drive, inhibition, readout */
+    var t = Math.min(1, (now - started)/1600);
+    ctx.clearRect(0,0,W,H);
+
+    var padL = 14, pnW = 54, gapA = 30;
+    var kcX = padL + pnW + gapA, mbW = 58, gapB = 22;
+    var kcW = W - kcX - mbW - gapB - padL, kcY = 26, kcH = H - 44;
+    var pn = (cur && cur.fly.pn) || [];
+    var pnMax = 0; for(var q=0;q<pn.length;q++) if(pn[q] > pnMax) pnMax = pn[q];
+
+    ctx.font = '9px ui-monospace,SFMono-Regular,monospace';
+    ctx.fillStyle = 'rgba(148,163,184,.55)'; ctx.textAlign = 'left';
+    ctx.fillText('PN ×' + NPN, padL, 14);
+    ctx.fillText('KENYON CELLS ×' + NKC.toLocaleString(), kcX, 14);
+    ctx.textAlign = 'right';
+    ctx.fillText('MBON', W - padL, 14);
+    ctx.textAlign = 'left';
+
+    /* projection neurons: a column of glomeruli, brightness = activation */
+    var pnRows = Math.ceil(NPN/2), pcw = pnW/2, pch = kcH/pnRows;
+    var pT = Math.min(1, t/0.22);
+    for(var i=0;i<NPN;i++){
+      var col = i % 2, row = (i/2)|0;
+      var cxp = padL + col*pcw + pcw/2, cyp = kcY + row*pch + pch/2;
+      var a = pnMax > 0 ? (pn[i]||0)/pnMax : 0;
+      var lit = a * pT * (i/NPN < pT ? 1 : 0.25);
+      ctx.beginPath(); ctx.arc(cxp, cyp, Math.min(pcw,pch)*0.34, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(34,211,238,' + (0.10 + 0.90*Math.pow(lit, 0.6)) + ')';
+      ctx.fill();
+    }
+
+    /* Kenyon field. Between 22% and 58% every cell shows its raw drive; then
+       the APL neuron's inhibition sweeps a threshold up and only the strongest
+       5% survive. That is the winner-take-all, not a transition effect. */
+    var cw = kcW/COLS, chh = kcH/ROWS, r = Math.max(1.1, Math.min(cw,chh)*0.36);
+    var driveT = Math.max(0, Math.min(1, (t-0.18)/0.34));
+    var inhib   = Math.max(0, Math.min(1, (t-0.52)/0.34));
+    /* Every cell gets a faint mark first. Without it the settled frame shows
+       100 dots floating in black and the sparsity -- the whole point of the
+       representation -- is invisible: you cannot see that this is 5% of a
+       population unless the population is on screen. */
+    ctx.fillStyle = 'rgba(99,130,180,.15)';
+    for(var q=0;q<NKC;q++){
+      var qx = kcX + (q % COLS)*cw + cw/2, qy = kcY + ((q/COLS)|0)*chh + chh/2;
+      ctx.fillRect(qx - 0.6, qy - 0.6, 1.2, 1.2);
+    }
+    for(var k=0;k<NKC;k++){
+      var kx = kcX + (k % COLS)*cw + cw/2, ky = kcY + ((k/COLS)|0)*chh + chh/2;
+      var dv = drive[k], al, cr, cg2, cb;
+      if(isWinner[k]){
+        al = 0.10 + 0.90*Math.max(dv*driveT, inhib);
+        if(isWarm[k]){ cr=245; cg2=158; cb=11; }     // amber: already traced
+        else         { cr=34;  cg2=211; cb=238; }    // cyan: new to the archive
+      } else {
+        al = dv*driveT*0.5*(1-inhib);                 // driven, then inhibited
+        cr=125; cg2=170; cb=225;
+      }
+      if(al <= 0.012) continue;
+      ctx.beginPath(); ctx.arc(kx, ky, r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba('+cr+','+cg2+','+cb+','+al.toFixed(3)+')';
+      ctx.fill();
+    }
+
+    /* MBON: fills only after inhibition resolves, which is when the fly's
+       output neuron actually reads the surviving tag. */
+    var nov = cur && cur.novelty != null ? cur.novelty : 1;
+    var readT = Math.max(0, Math.min(1, (t-0.72)/0.28));
+    var bx = W - padL - mbW, bh = kcH, by = kcY;
+    ctx.fillStyle = 'rgba(30,41,73,.85)';
+    ctx.fillRect(bx, by, mbW, bh);
+    var fh = bh * nov * readT;
+    var grd = ctx.createLinearGradient(0, by+bh, 0, by);
+    grd.addColorStop(0, '#f59e0b'); grd.addColorStop(1, '#22d3ee');
+    ctx.fillStyle = grd;
+    ctx.fillRect(bx, by + bh - fh, mbW, fh);
+    ctx.strokeStyle = 'rgba(59,130,246,.35)'; ctx.lineWidth = 1;
+    ctx.strokeRect(bx+.5, by+.5, mbW-1, bh-1);
+    if(readT > 0.15){
+      ctx.fillStyle = '#e8eefc'; ctx.textAlign = 'center';
+      ctx.font = '600 13px ui-monospace,SFMono-Regular,monospace';
+      ctx.fillText((nov*readT).toFixed(2), bx + mbW/2, by + bh - fh - 7 < 16 ? by + 30 : by + bh - fh - 7);
+      ctx.textAlign = 'left';
+    }
+
+    if(t < 1){ raf = requestAnimationFrame(draw); } else { raf = null; }
+  }
+
+  /* chips: one per scored event, newest-first by novelty */
+  var chips = document.getElementById('flyChips');
+  scored.slice().sort(function(a,b){ return (b.novelty||0) - (a.novelty||0); })
+        .forEach(function(e, i){
+    var b = document.createElement('button');
+    b.className = 'fly-chip';
+    b.innerHTML = '<b>' + (e.novelty == null ? '--' : e.novelty.toFixed(2)) + '</b>' +
+                  esc((e.headline || e.place || 'event').slice(0, 46));
+    b.onclick = function(){ select(e, i); };
+    chips.appendChild(b);
+  });
+
+  /* mean novelty per brief, oldest on the left */
+  (function(){
+    var tc = document.getElementById('flyTrace'), g = tc.getContext('2d');
+    var tr = (FLY.trace || []).slice(0, 24).reverse();
+    var w = Math.max(180, tc.clientWidth || 240), h = 54;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    tc.width = w*dpr; tc.height = h*dpr; tc.style.aspectRatio = w + ' / ' + h;
+    g.setTransform(dpr,0,0,dpr,0,0);
+    if(!tr.length){
+      g.fillStyle = 'rgba(148,163,184,.45)'; g.font = '9px ui-monospace,monospace';
+      g.textAlign = 'center'; g.fillText('no prior briefs scored yet', w/2, h/2 + 3);
+      return;
+    }
+    var bw = w/tr.length;
+    tr.forEach(function(p, i){
+      var bh = Math.max(2, (p.mean||0) * (h-10));
+      var grd = g.createLinearGradient(0, h, 0, h-bh);
+      grd.addColorStop(0, 'rgba(245,158,11,.75)'); grd.addColorStop(1, 'rgba(34,211,238,.95)');
+      g.fillStyle = grd;
+      g.fillRect(i*bw + bw*0.18, h - bh - 4, Math.max(1.5, bw*0.64), bh);
+    });
+    g.strokeStyle = 'rgba(125,211,252,.18)'; g.beginPath();
+    g.moveTo(0, h-4); g.lineTo(w, h-4); g.stroke();
+  })();
+
+  document.getElementById('flyNote').innerHTML =
+    'Each headline is hashed the way the fly hashes an odour: word counts drive ' +
+    NPN + ' projection neurons, each of ' + NKC.toLocaleString() + ' Kenyon cells samples ' +
+    FLY.fanin + ' of them at random, and inhibition leaves the strongest ' + WIN +
+    ' firing. Similar wording lights overlapping cells, so a rewritten headline about ' +
+    'the same event is recognised where an exact-match check would call it new. ' +
+    '<b>Amber cells already carried a trace</b>; cyan ones are new to the archive. ' +
+    'The trace fades with a ' + FLY.halflife + '-day half-life, so somewhere that has ' +
+    'been quiet for weeks reads as news again when it returns. ' +
+    '<b>' + (FLY.traced || 0).toLocaleString() + ' of ' + NKC.toLocaleString() +
+    '</b> cells currently carry a trace from the archive. ' +
+    'The circuit and its wiring are the fly’s; the input is headline text, not odour.';
+
+  addEventListener('resize', function(){ if(cur && !raf){ started = performance.now(); raf = requestAnimationFrame(draw); } });
+  select(scored[0], 0);
 })();
 
 /* =====================================================================

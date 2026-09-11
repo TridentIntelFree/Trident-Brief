@@ -1,5 +1,8 @@
+import base64
+import hashlib
 import json
 import math
+import random
 import os
 import re
 import sys
@@ -1177,6 +1180,147 @@ def load_history():
         return {'briefs': [], 'places': []}
 
 
+
+# ============================================================ mushroom body ==
+# The fruit fly's olfactory circuit is a novelty detector, and unlike the rest
+# of the fly connectome it has a published, portable algorithm. Two results:
+# the projection-neuron -> Kenyon-cell stage is locality-sensitive hashing
+# (Dasgupta, Stevens & Navlakha, Science 2017), and the mushroom body output
+# neuron reads novelty off it like a Bloom filter that forgets (Dasgupta,
+# Sheehan, Stevens & Navlakha, PNAS 2018).
+#
+# It is worth having here because this brief's whole job is "what changed", and
+# the existing answer to that is weak in two ways. history.json counts
+# LOCATIONS, so a genuinely new development in Novorossiysk is indistinguishable
+# from the fifth restatement of the same strike. And the delta rule spends input
+# tokens every run shipping the previous brief back to the model, which only
+# ever sees one brief back. This sees the whole archive, costs nothing per run,
+# and -- because the fly's filter decays -- scores a theatre that has been quiet
+# for three weeks as newly interesting when it wakes up, which is exactly the
+# transition the standing sweep exists to catch.
+#
+# The anatomy is the real one: ~50 projection neurons, ~2000 Kenyon cells, each
+# KC sampling about 6 PNs at random, and a winner-take-all that leaves ~5% of
+# KCs firing. Only the input is ours -- headline text where the fly has odour.
+PN_COUNT   = 50       # projection neurons (fly: ~50 glomeruli)
+KC_COUNT   = 2000     # Kenyon cells      (fly: ~2000)
+KC_FANIN   = 6        # PNs sampled per KC (fly: ~6, random)
+KC_WINNERS = 100      # after winner-take-all (fly: ~5% of KCs)
+FLY_SEED   = 20260911 # fixed, so a headline always hashes to the same tag
+FLY_HALFLIFE_DAYS = 21.0   # how fast the filter forgets
+
+
+def _fly_wiring():
+    """The PN->KC connectivity. Random, but fixed for the life of the archive.
+
+    Regenerating this would silently invalidate every novelty score ever
+    stored, so it is derived from a constant seed rather than saved.
+    """
+    rnd = random.Random(FLY_SEED)
+    return [tuple(rnd.randrange(PN_COUNT) for _ in range(KC_FANIN))
+            for _ in range(KC_COUNT)]
+
+
+_FLY_WIRING = None
+
+
+def fly_wiring_b64():
+    """The PN->KC connectivity, packed one byte per synapse for the page.
+
+    12,000 synapses at 16 KB of base64. Shipping it means the browser can run
+    the Kenyon-cell stage itself and animate the real winner-take-all -- which
+    cells were driven hardest, which survived inhibition -- instead of showing
+    a canned pattern next to a number computed elsewhere. PN_COUNT is 50, so
+    every index fits in a byte.
+    """
+    global _FLY_WIRING
+    if _FLY_WIRING is None:
+        _FLY_WIRING = _fly_wiring()
+    flat = bytes(i for fan in _FLY_WIRING for i in fan)
+    return base64.b64encode(flat).decode('ascii')
+
+
+def fly_tag(text):
+    """Hash text to a sparse Kenyon-cell tag: the fly's own LSH.
+
+    Word-level hashing into PN_COUNT channels stands in for the fly's odour
+    receptors. Two headlines about the same event overlap in their words, so
+    they overlap in PN activation, so they overlap in KC tag -- which is the
+    whole point of locality-sensitive hashing and the reason this beats an
+    exact-match check on strings that are never exactly equal.
+    """
+    global _FLY_WIRING
+    if _FLY_WIRING is None:
+        _FLY_WIRING = _fly_wiring()
+
+    words = re.findall(r'[a-z0-9]{3,}', (text or '').lower())
+    if not words:
+        return [], [0.0] * PN_COUNT
+    pn = [0.0] * PN_COUNT
+    for w in words:
+        pn[hash_word(w) % PN_COUNT] += 1.0
+    # The fly normalises odour intensity away before the KC stage, so that a
+    # strong smell and a faint one of the same thing get the same tag.
+    mean = sum(pn) / PN_COUNT
+    if mean <= 0:
+        return [], [0.0] * PN_COUNT
+    pn = [v / mean for v in pn]
+
+    kc = [sum(pn[i] for i in fan) for fan in _FLY_WIRING]
+    # Winner-take-all: the APL neuron inhibits all but the strongest KCs.
+    order = sorted(range(KC_COUNT), key=lambda i: kc[i], reverse=True)
+    # The PN vector comes back too: the page animates the real activation, and
+    # recomputing this hash in JavaScript would risk the two drifting apart.
+    return sorted(order[:KC_WINNERS]), [round(v, 2) for v in pn]
+
+
+def hash_word(w):
+    """Stable across runs and Python processes, unlike hash()."""
+    return int(hashlib.blake2b(w.encode('utf-8'), digest_size=4).hexdigest(), 16)
+
+
+def fly_novelty(tags_state, tag, now, halflife_days=FLY_HALFLIFE_DAYS):
+    """Score a tag against the decaying filter, then write it in.
+
+    Returns novelty in 0..1: 1 is a pattern the archive has never carried,
+    0 is one it is saturated with. The decay is what separates "never seen"
+    from "not seen lately", and the fly makes that same distinction.
+    """
+    if not tag:
+        return 1.0, 0.0
+    w = tags_state.setdefault('w', {})
+    t0 = tags_state.get('at')
+    # Decay everything to now before reading, so scores do not depend on how
+    # many runs happened to fire in between.
+    if t0:
+        try:
+            elapsed = (now - datetime.fromisoformat(t0)).total_seconds() / 86400.0
+        except Exception:
+            elapsed = 0.0
+        if elapsed > 0:
+            factor = 0.5 ** (elapsed / halflife_days)
+            if factor < 0.01:
+                w.clear()
+            else:
+                for k in list(w):
+                    v = w[k] * factor
+                    if v < 0.01:
+                        del w[k]
+                    else:
+                        w[k] = v
+    tags_state['at'] = now.isoformat()
+
+    prior = {i: w.get(str(i), 0.0) for i in tag}
+    seen = sum(prior.values()) / len(tag)
+    novelty = max(0.0, min(1.0, 1.0 - seen))
+    for i in tag:
+        k = str(i)
+        w[k] = min(1.0, w.get(k, 0.0) + 1.0 / 3.0)   # three sightings saturates
+    # Cells that already carried a trace are what the MBON is actually reading;
+    # the page colours them differently so the score is legible, not asserted.
+    warm = sorted(i for i, v in prior.items() if v > 0.02)
+    return round(novelty, 3), round(seen, 3), warm
+
 def update_history(events, archive_path, content, when):
     """Accumulate events across briefs so patterns become visible.
 
@@ -1192,6 +1336,7 @@ def update_history(events, archive_path, content, when):
         h = {}
     briefs = h.get('briefs') or []
     places = {p['key']: p for p in (h.get('places') or []) if p.get('key')}
+    fly = h.get('fly') or {'w': {}, 'at': None}
 
     bluf = ''
     for line in content.splitlines():
@@ -1205,6 +1350,14 @@ def update_history(events, archive_path, content, when):
     briefs.insert(0, {'at': stamp, 'path': archive_path, 'bluf': bluf,
                       'events': len(events),
                       'headlines': [e.get('headline', '')[:120] for e in events[:6]]})
+
+    # Score every event through the mushroom body before the place-matching
+    # below, so novelty reflects the archive as it stood BEFORE this brief.
+    for e in events:
+        tag, pn = fly_tag((e.get('headline', '') + ' ' + e.get('place', '')).strip())
+        nov, seen, warm = fly_novelty(fly, tag, when)
+        e['novelty'] = nov
+        e['fly'] = {'kc': tag, 'pn': pn, 'warm': warm, 'seen': seen}
 
     for e in events:
         # Match to an existing location by distance, not by a rounded key:
@@ -1231,11 +1384,23 @@ def update_history(events, archive_path, content, when):
             p['headlines'] = p['headlines'][:4]
 
     ranked = sorted(places.values(), key=lambda x: (-x['count'], x.get('last', '')))
-    out = {'updated': stamp, 'briefs': briefs[:60], 'places': ranked[:300]}
+    # Keep a short trace of the filter's readings so the page can chart how
+    # novel each brief was overall, not just the items inside this one.
+    trace = h.get('flytrace') or []
+    if events:
+        trace.insert(0, {'at': stamp,
+                         'mean': round(sum(e['novelty'] for e in events)/len(events), 3),
+                         'n': len(events)})
+    out = {'updated': stamp, 'briefs': briefs[:60], 'places': ranked[:300],
+           'fly': fly, 'flytrace': trace[:60]}
     with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
         json.dump(out, f, indent=1)
     repeat = sum(1 for p in ranked if p['count'] > 1)
     print(f"  history: {len(ranked)} locations tracked, {repeat} seen more than once")
+    if events:
+        novel = sum(1 for e in events if e['novelty'] >= 0.66)
+        print(f"  mushroom body: {len(fly.get('w', {}))}/{KC_COUNT} Kenyon cells "
+              f"carry a trace, {novel}/{len(events)} events scored novel")
     return out
 
 
@@ -1352,6 +1517,11 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
         '__COASTLINE_JSON__': js_json(coastline.get('lines', [])),
         '__LAND_JSON__': js_json(land.get('rings', [])),
         '__HISTORY_JSON__': js_json(history or load_history()),
+        '__FLY_JSON__': js_json({'kc': KC_COUNT, 'pn': PN_COUNT, 'fanin': KC_FANIN,
+                                 'winners': KC_WINNERS, 'halflife': FLY_HALFLIFE_DAYS,
+                                 'wiring': fly_wiring_b64(),
+                                 'trace': ((history or load_history()) or {}).get('flytrace', []),
+                                 'traced': len((((history or load_history()) or {}).get('fly') or {}).get('w', {}))}),
         '__GROK_KEY_JSON__': js_json(grok_key),
     }
     for token, value in subs.items():
