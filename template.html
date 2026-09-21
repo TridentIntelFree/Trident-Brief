@@ -117,6 +117,34 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .content a.cite:hover{background:rgba(59,130,246,.4);color:#fff;border-color:var(--blue)}
 @media print{ .content a.cite{color:#333;background:none;border-color:#999} }
 
+/* ---------- fieldwatch ---------- */
+.fw-drop{border:1.5px dashed var(--line);border-radius:11px;padding:26px 18px;text-align:center;
+  background:rgba(15,23,48,.45);transition:.15s;cursor:pointer}
+.fw-drop:hover,.fw-drop.over{border-color:var(--blue);background:rgba(59,130,246,.12)}
+.fw-drop-in b{display:block;color:#fff;font-size:.95em;margin-bottom:7px}
+.fw-drop-in span{display:block;color:var(--ink-dim);font-size:.8em;font-family:var(--mono)}
+.fw-drop-in small{display:block;color:var(--ink-faint);font-size:.72em;margin-top:11px;line-height:1.6}
+.fw-pick{background:none;border:0;color:var(--cyan);text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+.fw-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:9px;margin-bottom:12px}
+.fw-stat{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));border:1px solid var(--line2);
+  border-radius:9px;padding:11px 13px}
+.fw-stat b{display:block;font-family:var(--mono);font-size:1.5em;color:#fff;line-height:1.1}
+.fw-stat span{display:block;font-family:var(--mono);font-size:.62em;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-faint);margin-top:5px}
+.fw-actions{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.fw-list{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto}
+.fw-row{display:grid;grid-template-columns:52px 1fr auto auto;gap:10px;align-items:center;
+  background:rgba(15,23,48,.6);border:1px solid var(--line2);border-radius:7px;padding:7px 11px;font-size:.78em}
+.fw-row:hover{border-color:var(--line)}
+.fw-kind{font-family:var(--mono);font-size:.76em;letter-spacing:.06em;padding:2px 5px;border-radius:4px;text-align:center}
+.fw-kind.WIFI{background:rgba(34,211,238,.18);color:#22d3ee}
+.fw-kind.BLE{background:rgba(232,121,249,.18);color:#e879f9}
+.fw-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.fw-name i{color:var(--ink-faint);font-style:normal;font-family:var(--mono);font-size:.86em}
+.fw-meta{font-family:var(--mono);font-size:.82em;color:var(--ink-faint);white-space:nowrap}
+.fw-geo{color:#34d399;font-family:var(--mono);font-size:.82em}
+@media (max-width:640px){ .fw-row{grid-template-columns:48px 1fr auto} .fw-row .fw-geo{display:none} }
+
 /* ---------- mushroom body ---------- */
 .fly-wrap{display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
 #flyCanvas{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;
@@ -368,6 +396,9 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
             <button class="lyr on" data-layer="debris"><i style="background:#7c8aa5"></i>DEBRIS <b id="nDebris">0</b></button>
             <button class="lyr on" data-layer="iss"><i style="background:#a78bfa"></i>ISS</button>
           </span>
+          <span class="lyr-group" id="rfGroup" style="display:none"><b>local rf</b>
+            <button class="lyr on" data-layer="rf"><i style="background:#e879f9"></i>FIELDWATCH <b id="nRf">0</b></button>
+          </span>
           <span class="lyr-group"><b>surface</b>
             <button class="lyr on" data-layer="air"><i style="background:#22d3ee"></i>AIR <b id="nAir">0</b></button>
             <button class="lyr on" data-layer="naval"><i style="background:#34d399"></i>NAVAL <b id="nNaval">0</b></button>
@@ -434,6 +465,34 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         <div class="t-list" id="lList"></div>
         <div class="t-src">collected server-side &middot; Launch Library 2</div>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ FIELDWATCH ============ -->
+  <div class="section-band" id="fwBand">
+    <div class="band-head">
+      <h2>&#128246; Fieldwatch &mdash; Local RF</h2>
+      <div class="sub">
+        drop a log from <a href="https://github.com/OffGridPete/Fieldwatch" target="_blank" rel="noopener">Fieldwatch</a>
+        to plot what your own phone heard &middot; parsed in this browser, never uploaded
+      </div>
+    </div>
+    <div class="fw-drop" id="fwDrop">
+      <input type="file" id="fwFile" accept=".json,.jsonl,.csv,.txt,.log" multiple hidden>
+      <div class="fw-drop-in">
+        <b>Drop a Fieldwatch log here</b>
+        <span>or <button type="button" class="fw-pick" id="fwPick">choose a file</button> &middot; CSV or JSON, from Share log / Export</span>
+        <small id="fwPriv">Nothing leaves this device. The file is read in your browser and is gone when you close the tab.</small>
+      </div>
+    </div>
+    <div id="fwResult" style="display:none">
+      <div class="fw-stats" id="fwStats"></div>
+      <div class="fw-actions">
+        <button class="ev-btn" id="fwReveal">SHOW MAC ADDRESSES</button>
+        <button class="ev-btn" id="fwGlobe">SHOW ON GLOBE</button>
+        <button class="ev-btn" id="fwClear">CLEAR</button>
+      </div>
+      <div class="fw-list" id="fwList"></div>
     </div>
   </div>
 
@@ -906,8 +965,9 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 
 var G = {
   rot:[20,-15], R:0, baseR:0, zoom:1, cx:0, cy:0, spin:true, sel:null, drag:null,
-  layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true},
-  air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[]
+  layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true, rf:true},
+  air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[],
+  rf:[]   // Fieldwatch radios, loaded from a file in this browser only
 };
 
 var KIND_EXTRA = {launch:{color:'#22c55e', label:'LAUNCH PAD'}};
@@ -920,7 +980,8 @@ var KIND = {
   hazard:{color:'#f97316', label:'HAZARD'},
   air:   {color:'#22d3ee', label:'AIR CONTACT'},
   naval: {color:'#34d399', label:'VESSEL'},
-  iss:   {color:'#a78bfa', label:'ORBITAL'}
+  iss:   {color:'#a78bfa', label:'ORBITAL'},
+  rf:    {color:'#e879f9', label:'RF CONTACT'}
 };
 var SECTION_COLOR = {geopolitical:'#ef4444', technology:'#a78bfa', homeland:'#f59e0b', uap:'#22d3ee', research:'#22c55e'};
 
@@ -1138,6 +1199,10 @@ function contacts(){
   if(G.layers.naval) (FEEDS.vessels||[]).forEach(function(v,i){
     if(v.lat==null || v.lon==null || !v._mil) return;
     out.push({k:'naval', lat:v.lat, lon:v.lon, r:3, d:v, id:'v'+i, color:'#10b981'});
+  });
+  if(G.layers.rf) (G.rf||[]).forEach(function(r,i){
+    if(r.lat!=null && r.lon!=null)
+      out.push({k:'rf', lat:r.lat, lon:r.lon, r:3.2, d:r, id:'rf'+i, color:KIND.rf.color});
   });
   if(G.layers.iss && G.iss) out.push({k:'iss', lat:G.iss.lat, lon:G.iss.lon, r:5, d:G.iss, id:'iss', color:KIND.iss.color});
   return out;
@@ -1360,6 +1425,19 @@ function renderDetail(c){
     if(d.sog != null) rows.push(['SPEED', d.sog + ' kn']);
     rows.push(['HEADING', d.hdg==null ? 'not reported' : String(d.hdg).padStart(3,'0')+'\u00b0']);
     link = 'https://www.marinetraffic.com/en/ais/details/ships/mmsi:' + d.mmsi;
+  } else if(c.k==='rf'){
+    title = esc(d.name || '(unnamed radio)');
+    place = (d.kind === 'WIFI' ? 'Wi-Fi access point' : 'Bluetooth LE') + '  \u00b7  heard by your phone';
+    rows.push(['HARDWARE', d.mac ? d.mac : 'unknown']);
+    if(d.vendor) rows.push(['VENDOR', d.vendor]);
+    if(d.rssi != null) rows.push(['SIGNAL', d.rssi + ' dBm']);
+    if(d.chan) rows.push(['CHANNEL', String(d.chan) + (d.freq ? '  (' + d.freq + ' MHz)' : '')]);
+    if(d.hits) rows.push(['SIGHTINGS', String(d.hits)]);
+    if(d.ts) rows.push(['LAST HEARD', fmtTime(d.ts)]);
+    /* A randomised address is the single most load-bearing caveat on this
+       layer: it means the identifier will not be the same device tomorrow. */
+    rows.push(['ADDRESS', d.rand ? 'RANDOMISED \u2014 not a stable identity' : 'stable']);
+    if(d.hidden) rows.push(['SSID', 'hidden']);
   } else if(c.k==='iss'){
     title = 'International Space Station';
     place = 'NORAD 25544';
@@ -2517,6 +2595,203 @@ function focusGlobe(lat, lon, zoom){
 })();
 
 /* =====================================================================
+   FIELDWATCH -- your own phone's RF picture, read locally
+
+   Fieldwatch (OffGridPete/Fieldwatch, MIT) is a passive Wi-Fi AP and BLE
+   advertisement scanner for Android. It has no backend by design: logs stay
+   on the handset until the operator shares them. That constraint decides the
+   whole shape of this feature.
+
+   The log is read with FileReader and never leaves the browser. It is not
+   uploaded, not committed, and not put in localStorage. That is not caution
+   for its own sake -- a Fieldwatch log is a list of every radio near you with
+   a timestamp and, if tagging was on, your own coordinates at each sighting.
+   Committing one to a public Pages site would publish the operator's movement
+   history and their neighbours' hardware addresses. So the file is parsed in
+   memory, plotted, and gone when the tab closes. MACs are masked until asked
+   for, mirroring the app's own Privacy mode.
+
+   Both of Fieldwatch's formats are accepted because CSV is its default and
+   JSON is the other option. CSV is parsed against its header row rather than
+   by column position, so a future column insertion does not silently shift
+   latitude into longitude.
+   ===================================================================== */
+(function(){
+  var band = document.getElementById('fwBand');
+  if(!band) return;
+  var drop = document.getElementById('fwDrop'), input = document.getElementById('fwFile');
+  var revealed = false, radios = [];
+
+  function maskMac(m){
+    if(!m) return '';
+    if(revealed) return m;
+    var p = m.split(/[:-]/);
+    return p.length >= 6 ? p.slice(0,3).join(':') + ':**:**:**' : m;
+  }
+
+  /* One entry per radio, newest sighting wins, hits counted -- the same
+     reduction Fieldwatch's own LogReplay does when it re-reads a log. */
+  function add(acc, r){
+    if(!r || !r.mac) return;
+    var key = (r.kind || '?') + ':' + r.mac;
+    var e = acc[key];
+    if(!e){ acc[key] = r; r.hits = 1; return; }
+    e.hits++;
+    if(r.ts && (!e.ts || r.ts >= e.ts)){
+      e.ts = r.ts; e.rssi = r.rssi;
+      if(r.lat != null){ e.lat = r.lat; e.lon = r.lon; }
+    }
+    if(!e.name && r.name) e.name = r.name;
+    if(!e.vendor && r.vendor) e.vendor = r.vendor;
+    if(e.lat == null && r.lat != null){ e.lat = r.lat; e.lon = r.lon; }
+  }
+
+  function num(v){ var n = parseFloat(v); return isFinite(n) ? n : null; }
+
+  function fromJson(line, acc){
+    var o;
+    try { o = JSON.parse(line); } catch(_){ return false; }
+    if(!o || typeof o !== 'object' || !o.mac) return false;
+    add(acc, {kind:String(o.kind||'').toUpperCase(), mac:String(o.mac), name:String(o.name||''),
+              vendor:String(o.vendor||''), rssi:num(o.rssi), ts:num(o.ts),
+              lat:num(o.lat), lon:num(o.lon), rand:!!o.rand, hidden:!!o.hidden,
+              chan:num(o.channel), freq:num(o.freq)});
+    return true;
+  }
+
+  /* Header-driven so column order is not load-bearing. */
+  function csvRows(text, acc){
+    var lines = text.split(/\r?\n/);
+    var head = null, idx = {};
+    for(var i=0;i<lines.length;i++){
+      var ln = lines[i];
+      if(!ln.trim()) continue;
+      var cells = ln.split(',');
+      if(!head){
+        if(/(^|,)mac(,|$)/i.test(ln)){
+          head = cells.map(function(c){ return c.trim().toLowerCase(); });
+          head.forEach(function(h, j){ idx[h] = j; });
+          continue;
+        }
+        continue;                 // no header yet: not a Fieldwatch CSV line
+      }
+      var get = function(k){ var j = idx[k]; return j == null ? '' : (cells[j] || '').trim(); };
+      if(!get('mac')) continue;
+      var flags = get('flags');
+      add(acc, {kind:get('kind').toUpperCase(), mac:get('mac'), name:get('name'),
+                vendor:get('vendor'), rssi:num(get('rssi')), ts:num(get('timestamp')),
+                lat:num(get('lat')), lon:num(get('lon')),
+                rand:/RAND/i.test(flags), hidden:/HIDDEN/i.test(flags),
+                chan:num(get('channel')), freq:num(get('freq'))});
+    }
+    return !!head;
+  }
+
+  function parse(texts){
+    var acc = {}, anyJson = false, anyCsv = false;
+    texts.forEach(function(t){
+      var lines = t.split(/\r?\n/), jsonHits = 0;
+      lines.forEach(function(l){ if(l.trim().charAt(0) === '{' && fromJson(l, acc)) jsonHits++; });
+      if(jsonHits) anyJson = true;
+      else if(csvRows(t, acc)) anyCsv = true;
+    });
+    return {list:Object.keys(acc).map(function(k){ return acc[k]; }),
+            format: anyJson && anyCsv ? 'CSV + JSON' : anyJson ? 'JSON' : anyCsv ? 'CSV' : null};
+  }
+
+  function render(res){
+    radios = res.list;
+    if(!radios.length){
+      document.getElementById('fwPriv').innerHTML =
+        '<span style="color:#f87171">No Fieldwatch records found in that file.</span> ' +
+        'Expecting a CSV with a <code>mac</code> column, or JSON lines &mdash; from Share log or Export in the app.';
+      return;
+    }
+    var geo = radios.filter(function(r){ return r.lat != null && r.lon != null; });
+    var wifi = radios.filter(function(r){ return r.kind === 'WIFI'; }).length;
+    var ble  = radios.filter(function(r){ return r.kind === 'BLE'; }).length;
+    var rand = radios.filter(function(r){ return r.rand; }).length;
+    var ts = radios.map(function(r){ return r.ts; }).filter(Boolean).sort();
+    var span = ts.length > 1 ? Math.round((ts[ts.length-1] - ts[0])/60000) : 0;
+
+    document.getElementById('fwResult').style.display = '';
+    document.getElementById('fwStats').innerHTML = [
+      [radios.length.toLocaleString(), 'radios heard'],
+      [wifi.toLocaleString(), 'wi-fi'],
+      [ble.toLocaleString(), 'bluetooth le'],
+      [geo.length.toLocaleString(), 'geotagged'],
+      [rand.toLocaleString(), 'randomised mac'],
+      [span > 90 ? (span/60).toFixed(1)+' h' : span + ' min', 'log span']
+    ].map(function(p){ return '<div class="fw-stat"><b>'+esc(p[0])+'</b><span>'+p[1]+'</span></div>'; }).join('');
+
+    /* Only geotagged radios reach the globe -- one without coordinates has no
+       honest place to sit on a map. */
+    G.rf = geo;
+    document.getElementById('rfGroup').style.display = geo.length ? '' : 'none';
+    var n = document.getElementById('nRf'); if(n) n.textContent = geo.length;
+    if(window.GLOBE3D) window.GLOBE3D.rebuild();
+
+    var strongest = radios.slice().sort(function(a,b){ return (b.rssi||-999) - (a.rssi||-999); });
+    document.getElementById('fwList').innerHTML = strongest.slice(0,150).map(function(r){
+      return '<div class="fw-row">' +
+        '<span class="fw-kind '+esc(r.kind || '')+'">'+esc(r.kind || '?')+'</span>' +
+        '<span class="fw-name">' + esc(r.name || '(no name)') +
+          ' <i>' + esc(maskMac(r.mac)) + (r.vendor ? ' · ' + esc(r.vendor) : '') + '</i></span>' +
+        '<span class="fw-meta">' + (r.rssi == null ? '' : r.rssi + ' dBm') + '</span>' +
+        '<span class="fw-geo">' + (r.lat != null ? '◉' : '') + '</span>' +
+      '</div>';
+    }).join('');
+    document.getElementById('fwPriv').textContent =
+      'Read ' + radios.length.toLocaleString() + ' unique radios from ' + (res.format || 'the file') +
+      '. Nothing was uploaded — this stays in the tab.';
+  }
+
+  function readFiles(files){
+    var texts = [], pending = files.length;
+    if(!pending) return;
+    Array.prototype.forEach.call(files, function(f){
+      var fr = new FileReader();
+      fr.onload = function(){ texts.push(String(fr.result || '')); if(!--pending) render(parse(texts)); };
+      fr.onerror = function(){ if(!--pending) render(parse(texts)); };
+      fr.readAsText(f);
+    });
+  }
+
+  drop.addEventListener('click', function(e){ if(e.target.id !== 'fwPick') input.click(); });
+  document.getElementById('fwPick').addEventListener('click', function(e){ e.stopPropagation(); input.click(); });
+  input.addEventListener('change', function(){ readFiles(input.files); });
+  ['dragenter','dragover'].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function(e){
+    if(e.dataTransfer && e.dataTransfer.files) readFiles(e.dataTransfer.files);
+  });
+
+  document.getElementById('fwReveal').addEventListener('click', function(){
+    revealed = !revealed;
+    this.textContent = revealed ? 'MASK MAC ADDRESSES' : 'SHOW MAC ADDRESSES';
+    render({list:radios, format:null});
+  });
+  document.getElementById('fwGlobe').addEventListener('click', function(){
+    var geo = radios.filter(function(r){ return r.lat != null; });
+    if(!geo.length) return;
+    focusGlobe(geo[0].lat, geo[0].lon, 6);
+  });
+  document.getElementById('fwClear').addEventListener('click', function(){
+    radios = []; G.rf = []; revealed = false;
+    input.value = '';
+    document.getElementById('fwResult').style.display = 'none';
+    document.getElementById('rfGroup').style.display = 'none';
+    document.getElementById('fwPriv').textContent =
+      'Nothing leaves this device. The file is read in your browser and is gone when you close the tab.';
+    if(window.GLOBE3D) window.GLOBE3D.rebuild();
+  });
+})();
+
+/* =====================================================================
    MUSHROOM BODY -- the fly's novelty detector, drawn as it computes
 
    The circuit is the real one: ~50 projection neurons feed ~2000 Kenyon
@@ -3163,6 +3438,14 @@ async function boot(){
              TL[kind], AL[kind]||0.9, kind==='debris' ? (j*47)%360 : 0);
       }
       T.setThinning(stride, shown, total);
+    }
+    /* The operator's own radios sit slightly above the surface and use the
+       event glyph: these are the only contacts on the globe the reader put
+       there themselves, and they should be findable. */
+    if(L.rf) for(const r of (T.G.rf||[])){
+      if(i>=CAP || r.lat==null) continue;
+      push(i++, r.lat, r.lon, 0.008, K.rf.color, r.kind==='WIFI'?6.0:5.0,
+           {k:'rf', d:r, lat:r.lat, lon:r.lon}, TL.events, 0.95);
     }
     if(T.G.iss && L.iss && i<CAP)
       push(i++, T.G.iss.latitude, T.G.iss.longitude, T.G.iss.altitude/6371, K.iss.color, 11,
