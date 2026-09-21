@@ -74,6 +74,9 @@ criticism and replication status. Ignore popular-press speculation. Frequently
 quiet - one line is fine."""
 
 
+LAST_TOOL_USE = {}
+
+
 def report_tool_use(data):
     """Log what the model actually searched, from the API's own record of it.
 
@@ -118,6 +121,27 @@ def report_tool_use(data):
         if usage:
             keep = {kk: vv for kk, vv in usage.items() if isinstance(vv, int)}
             print(f"  usage: {keep}")
+
+        # Keep it somewhere small and always readable. This record only exists in
+        # the middle of a 995-line job log, and the log endpoint is size-capped
+        # from the end, so the one run that finally explained the problem nearly
+        # went unread. feed-status.json is echoed whole at the end of every run.
+        global LAST_TOOL_USE
+        queries = []
+        for item in out:
+            if 'search' in str(item.get('type', '')) or item.get('name'):
+                raw = item.get('input') or item.get('action') or {}
+                if isinstance(raw, str):
+                    try:
+                        raw = json.loads(raw)
+                    except Exception:
+                        raw = {'query': raw}
+                q = (raw or {}).get('query')
+                if q:
+                    queries.append({'tool': item.get('name') or item.get('type'),
+                                    'q': str(q)[:120]})
+        LAST_TOOL_USE = {'items': kinds, 'queries': queries,
+                         'usage': {kk: vv for kk, vv in usage.items() if isinstance(vv, int)}}
     except Exception as e:
         print(f"  (tool-use report failed: {str(e)[:90]})")
 
@@ -445,18 +469,29 @@ Search X and Reddit DIRECTLY, by topic and by place name, not only the handles l
 elsewhere - the accounts worth reading during an event are usually ones nobody put on
 a list.
 
+DO THESE SEARCHES. Not "consider", not "where relevant" - issue them.
+  - At least FOUR x_keyword_search calls, one per active theatre.
+  - At least THREE web_search calls whose query text contains site:reddit.com -
+    for example: site:reddit.com Novorossiysk port strike
+    The API record of the last run shows FIVE web searches, none of them Reddit, under
+    a written nil return claiming Reddit carried nothing. It was not searched. A nil
+    return for a search you did not run is a false statement, not a finding.
+
 SHOW YOUR SEARCHES. End this section with one line: "searched: " followed by the actual
-query strings you ran. A nil return is only credible if you can name what you ran to get
-it, and writing "no significant chatter" without that line is not a finding, it is a
-skipped step.
+query strings you ran, exactly as issued. A nil return is only credible if you can name
+what produced it.
 
 X: search the theatre names, place names, unit designations and equipment types as
-plain queries. PLAIN means plain - no since: or until: date operators, no OR chains,
-no quoted boolean strings. The tool already scopes to recent posts; those operators
-are Twitter's own advanced-search syntax and there is no guarantee this tool honours
-them, so a query built out of them may be matching them as literal text and coming
-back with nothing. "Novorossiysk port" beats
-'Ukraine drone OR Shahed since:2026-09-20 until:2026-09-22'.
+ONE SUBJECT PER QUERY. No date operators, no OR chains, no boolean strings - issue
+several narrow queries instead of one wide one.
+  BAD:  Ukraine drone OR Shahed OR Russia attack
+  GOOD: Novorossiysk port     (then) Shahed Kyiv     (then) Sumy strike
+An OR chain returns whatever is loudest across every branch at once, and that is the
+wire story every time - it is the single most reliable way to guarantee this section
+finds nothing but news reposts. Dropping the date operators already moved X citations
+from zero to three; the OR chains are what is left. The last run was told this and
+issued four OR chains anyway, so: if your query contains the word OR, split it into
+separate queries before sending it.
 Prefer the specific over the topical: a place, a unit, a ship or airframe name, a
 person, a street. Topic-level queries return news accounts because news accounts are
 what post at topic level. Search in the local language where that is where people are
@@ -1285,6 +1320,7 @@ def write_feed_status(feeds):
     status = {'fetched_at': feeds.get('fetched_at'),
               'collected': counts,
               'assets_kb': gfx,
+              'collection': LAST_TOOL_USE or None,
               'errors': feeds.get('errors') or {}}
     try:
         os.makedirs('assets', exist_ok=True)
