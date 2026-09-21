@@ -59,14 +59,14 @@ THEATRES = """- EUROPE / RUSSIA-UKRAINE: front-line movement, deep strikes, ener
   critical-mineral shocks, maritime chokepoints (Hormuz, Bab el-Mandeb, Suez, Panama,
   Malacca), shadow-fleet and insurance measures, sovereign financial stress."""
 
-SLOW_SECTIONS = """## 4. UAP/UFO
+SLOW_SECTIONS = """## 5. UAP/UFO
 Seeds: @DeptofDefense @AARO_DOD_Info @SenGillibrand @RepTimBurchett @ChrisKMellon
 @LueElizondo @rosscoulthart; web: The Black Vault, The Debrief, Liberation Times,
 AARO releases, congressional records.
 Focus: official statements, hearings, document releases, sensor data. Distinguish
 official positions from advocacy claims. Frequently quiet - one line is fine.
 
-## 5. FRONTIER AND CONSCIOUSNESS RESEARCH
+## 6. FRONTIER AND CONSCIOUSNESS RESEARCH
 Seeds: web only - Nature, Science, arXiv, PubMed, university press releases, DARPA
 and IARPA programme announcements.
 Focus: peer-reviewed publications and funded programmes. Note methodological
@@ -251,7 +251,7 @@ def previous_digest(previous):
 
 def build_prompt(window_start, window_end, prev_digest, watchlist='', deep=True):
     slow_sections = SLOW_SECTIONS if deep else (
-        '(Sections 4 and 5 - UAP and frontier research - are collected on the daily\n'
+        '(Sections 5 and 6 - UAP and frontier research - are collected on the daily\n'
         'deep run only. Do not search for or report them now.)')
     return f"""MULTI-INT COLLECTION TASKING
 
@@ -269,6 +269,11 @@ Work in this order:
             surfaced organically. The seed accounts named below are entry points, not the
             search space: most of what matters will come from sources not on any list.
             Search the theatre, not the handle.
+            Use BOTH tools on every theatre. x_search is not a fallback for when
+            web_search comes up short - a wire story is filed hours after the people
+            present started posting, so the web tells you what was published and X
+            tells you what is happening. A brief built only from news sites is a press
+            review, and you will have skipped the faster half of the collection.
 2. TRIAGE - rank by consequence, not by how loudly something was posted. A quiet policy
             change with strategic effect outranks a noisy strike that changes nothing.
 3. WRITE  - every item says what happened, who reported it, and why it matters.
@@ -284,6 +289,15 @@ Every factual claim must trace to a source you actually retrieved during THIS ta
 - Breadth is never a licence to fabricate. An empty theatre reported as empty is a
   correct answer; an empty theatre filled with invented content is the worst possible one.
 
+WHAT THIS RULE DOES NOT FORBID. Asserting an unverified claim as fact is banned.
+Reporting that an unverified claim is CIRCULATING is not -- it is a different
+statement, about the information environment rather than about the world, and you
+can verify it by reading the posts. "Russian milblogger accounts are pushing X,
+no independent confirmation, Ukrainian General Staff denies it" is true, checkable,
+and often matters more than the wire story. Say who is claiming it, roughly how
+widely, and what contradicts it. What people believe and repeat is intelligence
+even when the claim is false -- especially when the claim is false.
+
 === RULE 2: SWEEP THE WHOLE BOARD ===
 Every theatre in Section 1 gets its own heading and its own verdict, every run.
 - One theatre per heading. Never combine several under a shared heading, and never
@@ -295,6 +309,10 @@ Every theatre in Section 1 gets its own heading and its own verdict, every run.
 - A brief that reports only the loudest one or two theatres has failed this tasking even
   if every line in it is true. Going from quiet to active is itself intelligence, and you
   cannot detect that in a theatre you did not look at.
+- Every theatre that MOVED should carry at least one item that is not wire copy: an
+  official account's own post, a local report, a named analyst's read. Three Reuters
+  summaries is a press review. If Reuters is genuinely the only source that has it,
+  say so - that is a finding about coverage.
 
 === RULE 3: WHO DIDN'T POST IS NOT INTELLIGENCE ===
 Never write that an account "had no significant posts", and never list which handles
@@ -317,7 +335,7 @@ failure of collection, not a quiet day.
 
 === RULE 6: ATTRIBUTION ===
 EVERY REPORTED ITEM BEGINS with a classification tag in square brackets - every bullet
-in Sections 1 through 5. An item without one is malformed: the tag is not decoration,
+in Sections 1 through 6. An item without one is malformed: the tag is not decoration,
 it is how the reader knows whether to act on the line. After the tag: the source (handle
 or outlet), a UTC timestamp, and a working URL as a markdown link.
 
@@ -336,9 +354,18 @@ aggregator or a link roundup is a route to a source, not a source.
 CLASSIFICATION TAGS:
 [SIGINT - VERIFIED]      Official government, military or institutional account
 [HUMINT - ASSESSED]      Named journalist or analyst with a track record
-[HUMINT - CHATTER]       Unverified local or citizen report - REQUIRES CORROBORATION
+[HUMINT - CHATTER]       Unverified first-hand or local report - name the account and
+                         say plainly that it is uncorroborated. This tag EXISTS to let
+                         you report such material; it does not require corroboration
+                         before you may use it, only labelling. Reporting an
+                         uncorroborated claim as uncorroborated is not a rule breach.
+[OSINT - SOCIAL]         What is circulating on X, Reddit or Telegram, reported as
+                         circulation: who is posting, how widely, organic or pushed
 [OSINT - CONFIRMED]      Independently corroborated by two or more sources
 [OSINT - WEB]            Named publication, government portal or research institution
+
+If every item in your brief is tagged [OSINT - WEB] you have written a news digest,
+not a collection brief, and you have not used x_search at all.
 
 {watchlist}
 === SECTIONS ===
@@ -366,7 +393,36 @@ ransomware against infrastructure, state-linked operations, model or hardware re
 with substantive capability claims, and regulatory or export-control action.
 Skip routine product marketing and vendor blogs with no incident behind them.
 
-## 3. HOMELAND AND INFRASTRUCTURE
+## 3. CHATTER AND THE INFORMATION ENVIRONMENT
+This section is why you have x_search. It is not optional and it is not a summary of
+the sections above. Search X and Reddit DIRECTLY, by topic and by place name, not only
+the handles listed above - the accounts worth reading during an event are usually ones
+nobody put on a list.
+
+X: search the theatre names, place names, unit designations and equipment types as
+plain queries. Read replies and quote-posts, not only the original. Milblogger and
+local-stringer accounts on all sides. Note when an account with reach posts something
+that then propagates.
+Reddit: r/CredibleDefense, r/geopolitics, r/UkraineWarVideoReport, r/LessCredibleDefence,
+r/anime_titties, country and city subreddits, and the subreddit local to any incident.
+Read the comments under a thread, not just its title - the useful detail is usually in
+a reply from someone on the ground.
+
+Report, for each item worth carrying:
+- WHAT is being said, and by whom - name the account or subreddit
+- HOW WIDELY - rough reach: a few hundred, or everywhere. Say if you cannot tell.
+- WHETHER IT HOLDS UP - corroborated, contradicted, or still open. Where footage or a
+  photo is the evidence, say whether anyone has geolocated or dated it.
+- WHETHER IT LOOKS ORGANIC - the same wording appearing across accounts at once, brand
+  new accounts, or a claim jumping languages in minutes, is itself the finding.
+- WHAT THE OTHER SIDE SAYS - official denials, counter-claims, silence where a
+  statement would be expected.
+
+A widely circulating claim that turns out to be false still belongs here, labelled
+false. So does a notable silence. Tag these [HUMINT - CHATTER] or [OSINT - SOCIAL];
+they will not be [OSINT - WEB], and if they are you have searched the wrong thing.
+
+## 4. HOMELAND AND INFRASTRUCTURE
 Seeds: @DHSgov @FBI @TSA @CISAgov @NTSB @FAANews; web: state emergency management,
 regional press. Focus: incidents affecting civil aviation, rail, ports, power, water and
 telecoms; domestic security events; large-scale disruption. Distinguish accident from
@@ -1338,23 +1394,47 @@ def brief_quality(content):
     """
     reported, tagged, theatres = 0, 0, 0
     closing = False
+    tags = {}
     for raw in content.splitlines():
         line = raw.strip()
         if re.match(r'^[*#\s]*(INDICATORS AND WARNINGS|COLLECTION GAPS)', line, re.I):
             closing = True
         if re.match(r'^###\s+\S', line):
             theatres += 1
-        if closing or not line.startswith('- '):
+        if closing:
             continue
-        reported += 1
-        if re.match(r'^-\s*\[(SIGINT|HUMINT|OSINT)\b', line):
+        # An item is a line that opens with a bullet or straight into a tag. Runs do
+        # both -- the current one drops the bullet entirely and starts at "[OSINT -
+        # WEB]" -- and an earlier version of this check keyed on "- " alone, so it
+        # scored a fully tagged brief 0/0 and reported nothing wrong.
+        m = re.match(r'^[-*]?\s*\[((?:SIGINT|HUMINT|OSINT)[^\]]*)\]', line)
+        if m:
+            reported += 1
             tagged += 1
+            tags[m.group(1).strip()] = tags.get(m.group(1).strip(), 0) + 1
+        elif re.match(r'^[-*]\s+\S', line):
+            reported += 1
     iw = bool(re.search(r'INDICATORS AND WARNINGS', content, re.I))
     gaps = bool(re.search(r'COLLECTION GAPS', content, re.I))
     print(f"  format: {tagged}/{reported} reported items tagged, {theatres} theatre headings, "
           f"I&W {'yes' if iw else 'MISSING'}, gaps {'yes' if gaps else 'MISSING'}")
+
+    # Source mix. A brief where every citation is a news site and every tag is
+    # OSINT - WEB is a press review: x_search was available and went unused, which
+    # is invisible in the prose and obvious here.
+    urls = re.findall(r'\((https?://[^)\s]+)\)', content)
+    def hits(*needles):
+        return sum(1 for u in urls if any(n in u.lower() for n in needles))
+    social = {'x': hits('x.com/', 'twitter.com/'), 'reddit': hits('reddit.com'),
+              'telegram': hits('t.me/', 'telegram.')}
+    web_only = bool(reported) and bool(tags) and set(tags) == {'OSINT - WEB'}
+    print(f"  sources: {len(urls)} citations - X {social['x']}, Reddit {social['reddit']}, "
+          f"Telegram {social['telegram']} | tags: " +
+          (', '.join(f'{k} x{v}' for k, v in sorted(tags.items())) or 'none'))
+    if web_only or (reported and not social['x'] and not social['reddit']):
+        print("  WARNING: no social sourcing in this brief - x_search appears unused")
     return {'reported': reported, 'tagged': tagged, 'theatres': theatres,
-            'indicators': iw, 'gaps': gaps}
+            'indicators': iw, 'gaps': gaps, 'social': social, 'tags': tags}
 
 
 def update_history(events, archive_path, content, when):
