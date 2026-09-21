@@ -74,6 +74,54 @@ criticism and replication status. Ignore popular-press speculation. Frequently
 quiet - one line is fine."""
 
 
+def report_tool_use(data):
+    """Log what the model actually searched, from the API's own record of it.
+
+    Three rounds of prompt changes moved X citations 3 -> 1 -> 0 while every
+    version of the tasking demanded more of them, which is the point at which
+    editing the prose again stops being diagnosis and starts being guessing.
+    The response carries the tool calls; the parser was keeping only the
+    message items and discarding them, so there has never been any evidence
+    about whether x_search ran, what it was asked, or what came back.
+    Defensive about the schema on purpose: it logs what it finds rather than
+    assuming field names, so one run teaches us the shape.
+    """
+    try:
+        out = data.get('output') or []
+        kinds = {}
+        for item in out:
+            k = str(item.get('type', '?'))
+            kinds[k] = kinds.get(k, 0) + 1
+        print(f"  api output items: {kinds}")
+
+        for item in out:
+            k = str(item.get('type', ''))
+            if 'message' in k or 'reasoning' in k:
+                continue
+            # Pull anything that looks like a query or a result count, whatever
+            # the field happens to be called.
+            bits = []
+            for key in ('query', 'queries', 'search_query', 'input', 'arguments',
+                        'action', 'name', 'status'):
+                v = item.get(key)
+                if v:
+                    bits.append(f"{key}={json.dumps(v)[:180]}")
+            res = item.get('results') or item.get('output') or item.get('content')
+            if isinstance(res, list):
+                bits.append(f"results={len(res)}")
+            elif res:
+                bits.append(f"results~{len(json.dumps(res))}b")
+            if bits:
+                print(f"    [{k}] " + ' '.join(bits))
+
+        usage = data.get('usage') or {}
+        if usage:
+            keep = {kk: vv for kk, vv in usage.items() if isinstance(vv, int)}
+            print(f"  usage: {keep}")
+    except Exception as e:
+        print(f"  (tool-use report failed: {str(e)[:90]})")
+
+
 def generate_with_grok(prompt):
     api_key = os.environ.get('GROK_API_KEY')
     if not api_key:
@@ -125,6 +173,7 @@ def generate_with_grok(prompt):
         
         if response.status_code == 200:
             data = response.json()
+            report_tool_use(data)
             text_parts = []
             for item in data.get('output', []):
                 if item.get('type') == 'message':
@@ -402,7 +451,17 @@ it, and writing "no significant chatter" without that line is not a finding, it 
 skipped step.
 
 X: search the theatre names, place names, unit designations and equipment types as
-plain queries. Read replies and quote-posts, not only the original. Milblogger and
+plain queries. PLAIN means plain - no since: or until: date operators, no OR chains,
+no quoted boolean strings. The tool already scopes to recent posts; those operators
+are Twitter's own advanced-search syntax and there is no guarantee this tool honours
+them, so a query built out of them may be matching them as literal text and coming
+back with nothing. "Novorossiysk port" beats
+'Ukraine drone OR Shahed since:2026-09-20 until:2026-09-22'.
+Prefer the specific over the topical: a place, a unit, a ship or airframe name, a
+person, a street. Topic-level queries return news accounts because news accounts are
+what post at topic level. Search in the local language where that is where people are
+posting - Ukrainian, Russian, Hebrew, Arabic, Mandarin - not only in English.
+Read replies and quote-posts, not only the original. Milblogger and
 local-stringer accounts on all sides. Note when an account with reach posts something
 that then propagates.
 An account that reposts a wire story is not chatter - it is the wire story with a
