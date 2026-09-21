@@ -317,11 +317,20 @@ Every theatre in Section 1 gets its own heading and its own verdict, every run.
   summaries is a press review. If Reuters is genuinely the only source that has it,
   say so - that is a finding about coverage.
 
-=== RULE 3: WHO DIDN'T POST IS NOT INTELLIGENCE ===
-Never write that an account "had no significant posts", and never list which handles
-were silent. That is a report on your own search history, not on the world. Collection
-gaps are substantive questions you could not answer - "no independent confirmation of
-the damage claim at X", "casualty figures come only from one side" - not a roll call.
+=== RULE 3: A ROLL CALL IS NOT INTELLIGENCE, BUT A SILENCE CAN BE ===
+Never list which handles you checked and found quiet - "@POTUS, @SecDef and @NATO had
+no significant posts" is a report on your own search history, not on the world.
+Collection gaps are substantive questions you could not answer - "no independent
+confirmation of the damage claim at X", "casualty figures come only from one side" -
+not a roll call.
+
+The exception, and it is a real one: a source that would NORMALLY have spoken and has
+not. The Russian MoD silent eighteen hours after a strike it would usually claim to
+have intercepted, a foreign ministry that says nothing while its neighbours all issue
+statements, an official account that goes quiet mid-event. That is not your search
+history, it is a fact about the actor, and it is often the most interesting line
+available. Report it only when you can say what the normal behaviour is and why this
+departs from it - otherwise it is just a handle that did not post, and Rule 3 applies.
 
 === RULE 4: REPORT THE DELTA ===
 Already reported in the previous brief - do NOT restate these. Report only what is new,
