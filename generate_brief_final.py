@@ -265,7 +265,10 @@ You are writing a watch brief, not a news digest. The reader wants to know what 
 in the world in the last {(window_end - window_start).days * 24 + (window_end - window_start).seconds // 3600} hours, what it means, and what to watch for next.
 
 Work in this order:
-1. SWEEP  - search every standing theatre in Section 1 by name, whether or not anything
+0. LISTEN - Section 1 first. Run the social searches before the sweep, while there is
+            still effort to spend on them. Placing this last produced one vague line
+            and a nil return that named no query.
+1. SWEEP  - search every standing theatre in Section 2 by name, whether or not anything
             surfaced organically. The seed accounts named below are entry points, not the
             search space: most of what matters will come from sources not on any list.
             Search the theatre, not the handle.
@@ -302,7 +305,7 @@ widely, and what contradicts it. What people believe and repeat is intelligence
 even when the claim is false -- especially when the claim is false.
 
 === RULE 2: SWEEP THE WHOLE BOARD ===
-Every theatre in Section 1 gets its own heading and its own verdict, every run.
+Every theatre in Section 2 gets its own heading and its own verdict, every run.
 - One theatre per heading. Never combine several under a shared heading, and never
   write a single line covering five theatres at once. Batching them is the signature
   of not having searched them: if five theatres share one verdict, you guessed.
@@ -382,34 +385,21 @@ not a collection brief, and you have not used x_search at all.
 {watchlist}
 === SECTIONS ===
 
-## 1. STANDING THEATRE SWEEP
-Each theatre below gets its own `### HEADING` and its own verdict this run. Use markdown
-headings, not bold text, so the brief is navigable. Report what moved under each; give a
-theatre with nothing the heading followed by "quiet in window" and move on.
+## 1. CHATTER AND THE INFORMATION ENVIRONMENT
+This section is FIRST on purpose. It was last, and it got whatever attention was left
+after eight theatres -- one vague line and a nil return. Do this before the sweep:
+social is the fast half, the posts precede the wire story by hours, and what you find
+here tells you what to check in Section 2.
 
-{THEATRES}
+This section is why you have x_search. It is not a summary of the sections below.
+Search X and Reddit DIRECTLY, by topic and by place name, not only the handles listed
+elsewhere - the accounts worth reading during an event are usually ones nobody put on
+a list.
 
-Seed accounts (entry points only, not the search space): @POTUS @StateDept @SecDef
-@DeptofDefense @NATO @CENTCOM @INDOPACOM @AFRICOM_ @SOUTHCOM @USForcesKorea
-@ZelenskyyUa @DefenceU @IDF @IsraeliPM @MofaJapan_en @MOFA_Taiwan; analysts
-@christogrozev @RALee85 @Osinttechnical @Conflicts @sentdefender @IndoPac_Info;
-web: Reuters, AP, AFP, BBC Monitoring, Defense One, War on the Rocks, ISW
-(understandingwar.org), Al Jazeera, Nikkei Asia, SCMP, Africa Confidential, Lloyd's List.
-
-## 2. TECHNOLOGY AND CYBERSECURITY
-Seeds: @USCYBERCOM @CISAgov @FBI @NSAGov @NCSC; researchers @briankrebs
-@SwiftOnSecurity @thegrugq @vxunderground; industry @OpenAI @xAI @AnthropicAI;
-web: Ars Technica, Wired, Krebs on Security, BleepingComputer, The Record, CISA KEV.
-Focus: active exploitation and named intrusions with an identified victim or actor,
-ransomware against infrastructure, state-linked operations, model or hardware releases
-with substantive capability claims, and regulatory or export-control action.
-Skip routine product marketing and vendor blogs with no incident behind them.
-
-## 3. CHATTER AND THE INFORMATION ENVIRONMENT
-This section is why you have x_search. It is not optional and it is not a summary of
-the sections above. Search X and Reddit DIRECTLY, by topic and by place name, not only
-the handles listed above - the accounts worth reading during an event are usually ones
-nobody put on a list.
+SHOW YOUR SEARCHES. End this section with one line: "searched: " followed by the actual
+query strings you ran. A nil return is only credible if you can name what you ran to get
+it, and writing "no significant chatter" without that line is not a finding, it is a
+skipped step.
 
 X: search the theatre names, place names, unit designations and equipment types as
 plain queries. Read replies and quote-posts, not only the original. Milblogger and
@@ -420,7 +410,9 @@ retweet button, and citing it gains you nothing over citing the outlet. What you
 looking for is someone claiming something the wires do not have yet: a first-hand post,
 footage, a unit or local account, an analyst reading a primary document. If the only X
 results for a theatre are news accounts restating the headline, that is the finding -
-report it as no independent chatter, and do not dress a wire repost as social sourcing.
+report it as no independent chatter FOR THAT THEATRE, naming the query - not as a single
+sentence covering everything at once. "No significant chatter" as one line for the whole
+world is the shape of a step that was skipped, not a search that came back empty.
 Reddit is not optional, and x_search does not cover it. Run web_search restricted to
 reddit.com -- literally "site:reddit.com <topic>" -- for each theatre that moved, plus
 the subreddit local to any incident. r/CredibleDefense, r/geopolitics,
@@ -443,6 +435,29 @@ Report, for each item worth carrying:
 A widely circulating claim that turns out to be false still belongs here, labelled
 false. So does a notable silence. Tag these [HUMINT - CHATTER] or [OSINT - SOCIAL];
 they will not be [OSINT - WEB], and if they are you have searched the wrong thing.
+
+## 2. STANDING THEATRE SWEEP
+Each theatre below gets its own `### HEADING` and its own verdict this run. Use markdown
+headings, not bold text, so the brief is navigable. Report what moved under each; give a
+theatre with nothing the heading followed by "quiet in window" and move on.
+
+{THEATRES}
+
+Seed accounts (entry points only, not the search space): @POTUS @StateDept @SecDef
+@DeptofDefense @NATO @CENTCOM @INDOPACOM @AFRICOM_ @SOUTHCOM @USForcesKorea
+@ZelenskyyUa @DefenceU @IDF @IsraeliPM @MofaJapan_en @MOFA_Taiwan; analysts
+@christogrozev @RALee85 @Osinttechnical @Conflicts @sentdefender @IndoPac_Info;
+web: Reuters, AP, AFP, BBC Monitoring, Defense One, War on the Rocks, ISW
+(understandingwar.org), Al Jazeera, Nikkei Asia, SCMP, Africa Confidential, Lloyd's List.
+
+## 3. TECHNOLOGY AND CYBERSECURITY
+Seeds: @USCYBERCOM @CISAgov @FBI @NSAGov @NCSC; researchers @briankrebs
+@SwiftOnSecurity @thegrugq @vxunderground; industry @OpenAI @xAI @AnthropicAI;
+web: Ars Technica, Wired, Krebs on Security, BleepingComputer, The Record, CISA KEV.
+Focus: active exploitation and named intrusions with an identified victim or actor,
+ransomware against infrastructure, state-linked operations, model or hardware releases
+with substantive capability claims, and regulatory or export-control action.
+Skip routine product marketing and vendor blogs with no incident behind them.
 
 ## 4. HOMELAND AND INFRASTRUCTURE
 Seeds: @DHSgov @FBI @TSA @CISAgov @NTSB @FAANews; web: state emergency management,
@@ -1459,7 +1474,9 @@ def brief_quality(content):
     if web_only or (reported and not social['x'] and not social['reddit']):
         print("  WARNING: no social sourcing in this brief - x_search appears unused")
     if reported and not social['reddit']:
-        print("  note: no Reddit sourcing - Section 3 asks for it explicitly")
+        print("  note: no Reddit sourcing - Section 1 asks for it explicitly")
+    if reported and not re.search(r'^\s*searched:', content, re.I | re.M):
+        print("  note: Section 1 did not list the queries it ran")
     if aggregators:
         print(f"  WARNING: {aggregators} citation(s) point at an aggregator, which Rule 1 bans")
     return {'reported': reported, 'tagged': tagged, 'theatres': theatres,
