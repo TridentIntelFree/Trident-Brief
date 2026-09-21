@@ -288,6 +288,9 @@ Every factual claim must trace to a source you actually retrieved during THIS ta
   nothing inside the window, say so plainly rather than inventing events to fill it.
 - Breadth is never a licence to fabricate. An empty theatre reported as empty is a
   correct answer; an empty theatre filled with invented content is the worst possible one.
+- NEVER cite an aggregator as the source. A Wikipedia current-events portal, a news
+  roundup, or an account that reposts wire copy is a route TO a source, not a source.
+  Follow it to whoever did the reporting and cite them. If you cannot, drop the item.
 
 WHAT THIS RULE DOES NOT FORBID. Asserting an unverified claim as fact is banned.
 Reporting that an unverified claim is CIRCULATING is not -- it is a different
@@ -403,10 +406,20 @@ X: search the theatre names, place names, unit designations and equipment types 
 plain queries. Read replies and quote-posts, not only the original. Milblogger and
 local-stringer accounts on all sides. Note when an account with reach posts something
 that then propagates.
-Reddit: r/CredibleDefense, r/geopolitics, r/UkraineWarVideoReport, r/LessCredibleDefence,
-r/anime_titties, country and city subreddits, and the subreddit local to any incident.
-Read the comments under a thread, not just its title - the useful detail is usually in
-a reply from someone on the ground.
+An account that reposts a wire story is not chatter - it is the wire story with a
+retweet button, and citing it gains you nothing over citing the outlet. What you are
+looking for is someone claiming something the wires do not have yet: a first-hand post,
+footage, a unit or local account, an analyst reading a primary document. If the only X
+results for a theatre are news accounts restating the headline, that is the finding -
+report it as no independent chatter, and do not dress a wire repost as social sourcing.
+Reddit is not optional, and x_search does not cover it. Run web_search restricted to
+reddit.com -- literally "site:reddit.com <topic>" -- for each theatre that moved, plus
+the subreddit local to any incident. r/CredibleDefense, r/geopolitics,
+r/UkraineWarVideoReport, r/LessCredibleDefence, r/anime_titties, country and city
+subreddits. Read the comments under a thread, not just its title: the useful detail is
+usually in a reply from someone on the ground. If Reddit genuinely carried nothing on a
+theatre, say that in one line rather than silently omitting it - a previous run listed
+these subreddits and searched none of them, and the omission was invisible in the output.
 
 Report, for each item worth carrying:
 - WHAT is being said, and by whom - name the account or subreddit
@@ -1427,14 +1440,22 @@ def brief_quality(content):
         return sum(1 for u in urls if any(n in u.lower() for n in needles))
     social = {'x': hits('x.com/', 'twitter.com/'), 'reddit': hits('reddit.com'),
               'telegram': hits('t.me/', 'telegram.')}
+    # Aggregators the tasking bans outright; seeing one means an item was cited to
+    # a route rather than a source, and it has happened twice.
+    aggregators = hits('wikipedia.org', 'news.google.', 'flipboard.', 'msn.com/')
     web_only = bool(reported) and bool(tags) and set(tags) == {'OSINT - WEB'}
     print(f"  sources: {len(urls)} citations - X {social['x']}, Reddit {social['reddit']}, "
           f"Telegram {social['telegram']} | tags: " +
           (', '.join(f'{k} x{v}' for k, v in sorted(tags.items())) or 'none'))
     if web_only or (reported and not social['x'] and not social['reddit']):
         print("  WARNING: no social sourcing in this brief - x_search appears unused")
+    if reported and not social['reddit']:
+        print("  note: no Reddit sourcing - Section 3 asks for it explicitly")
+    if aggregators:
+        print(f"  WARNING: {aggregators} citation(s) point at an aggregator, which Rule 1 bans")
     return {'reported': reported, 'tagged': tagged, 'theatres': theatres,
-            'indicators': iw, 'gaps': gaps, 'social': social, 'tags': tags}
+            'indicators': iw, 'gaps': gaps, 'social': social, 'tags': tags,
+            'aggregators': aggregators}
 
 
 def update_history(events, archive_path, content, when):
