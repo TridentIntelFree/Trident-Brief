@@ -124,6 +124,27 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .content a.cite:hover{background:rgba(59,130,246,.4);color:#fff;border-color:var(--blue)}
 @media print{ .content a.cite{color:#333;background:none;border-color:#999} }
 
+/* ---------- box select ---------- */
+#boxOut{margin-top:12px;background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));
+  border:1px solid var(--line2);border-radius:10px;padding:13px;text-align:left}
+.bx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px;margin-bottom:10px}
+.bx-head b{color:#fff;font-size:.95em}
+.bx-head span{font-family:var(--mono);font-size:.68em;color:var(--ink-faint);letter-spacing:.06em}
+.bx-tally{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px}
+.bx-tally i{font-style:normal;font-family:var(--mono);font-size:.66em;letter-spacing:.06em;
+  padding:3px 8px;border-radius:5px;background:rgba(30,41,73,.8);color:var(--ink-dim)}
+.bx-tally i b{margin-right:5px}
+.bx-list{display:flex;flex-direction:column;gap:3px;max-height:290px;overflow-y:auto}
+.bx-row{display:grid;grid-template-columns:76px 1fr auto;gap:10px;align-items:center;font-size:.76em;
+  padding:5px 9px;border-radius:6px;background:rgba(15,23,48,.55);cursor:pointer;border:0;color:inherit;
+  font-family:inherit;text-align:left;width:100%}
+.bx-row:hover{background:rgba(59,130,246,.18)}
+.bx-k{font-family:var(--mono);font-size:.74em;letter-spacing:.05em}
+.bx-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.bx-d{font-family:var(--mono);font-size:.82em;color:var(--ink-faint);white-space:nowrap}
+.bx-more{font-family:var(--mono);font-size:.68em;color:var(--ink-faint);padding:8px 2px 0}
+#globe.boxing,#globe3d.boxing{cursor:crosshair}
+
 /* ---------- terrain ---------- */
 .tr-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 #trCoord{flex:1 1 220px;min-width:0;background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:7px;
@@ -134,7 +155,13 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .tr-hint{font-family:var(--mono);font-size:.7em;color:var(--ink-faint);letter-spacing:.05em}
 .tr-wrap{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
 .tr-mapcol{min-width:0}
-#trMap{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;background:#05091a;cursor:crosshair}
+/* user-select:none because reading elevation means holding the pointer over the
+   canvas, and a press-and-move on a canvas still starts a text selection in the
+   surrounding block -- hovering to read a height highlighted the whole panel. */
+#trMap{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;background:#05091a;cursor:crosshair;
+  user-select:none;-webkit-user-select:none;-ms-user-select:none;-webkit-touch-callout:none}
+#terrainBand .tr-wrap,#terrainBand .tr-legend,#terrainBand .globe-hint{user-select:none;-webkit-user-select:none}
+#terrainBand .tr-read,#terrainBand .tr-los{user-select:text;-webkit-user-select:text}
 .tr-legend{display:flex;align-items:center;gap:9px;margin-top:8px;font-family:var(--mono);font-size:.66em;color:var(--ink-faint)}
 .tr-legend b{color:var(--ink);font-weight:600}
 .tr-ramp{flex:1;height:7px;border-radius:4px;
@@ -410,6 +437,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
           </span>
           <span class="lyr-group"><b>view</b>
             <button class="lyr on" id="spinBtn">&#8635; SPIN</button>
+            <button class="lyr" id="boxBtn" title="Drag a box around a cluster to list what is in it">&#9723; SELECT</button>
             <button class="lyr" id="zoomOut" title="Zoom out">&minus;</button>
             <button class="lyr" id="zoomLabelBtn" title="Reset zoom"><b id="zoomLabel">1.0&times;</b></button>
             <button class="lyr" id="zoomIn" title="Zoom in">+</button>
@@ -418,6 +446,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         </div>
         <div class="globe-hint">Drag to rotate &middot; scroll or pinch to zoom &middot; click any contact to expand it</div>
         <div class="globe-hint" id="thinNote" style="display:none;color:var(--amber);opacity:.8"></div>
+        <div id="boxOut" style="display:none"></div>
       </div>
       <div class="detail-col">
         <div id="detailPanel"><div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div></div>
@@ -1303,7 +1332,10 @@ function evtPos(e){
   var src = (e.touches && e.touches[0]) ? e.touches[0] : e;
   return {x:src.clientX-r.left, y:src.clientY-r.top};
 }
-function onDown(e){ G.drag = {p:evtPos(e), rot:G.rot.slice(), moved:false}; cv.classList.add('drag'); }
+function onDown(e){
+  if(BOX.on) return;                 // boxing owns the drag
+  G.drag = {p:evtPos(e), rot:G.rot.slice(), moved:false}; cv.classList.add('drag');
+}
 function onMove(e){
   if(!G.drag){ if(!e.touches) hoverTest(evtPos(e)); return; }
   var p=evtPos(e), dx=p.x-G.drag.p.x, dy=p.y-G.drag.p.y;
@@ -1465,6 +1497,179 @@ function renderDetail(c){
   if(wantsChip){ basemap(); drawChip(el.querySelector('canvas.ev-chip')); }
 }
 
+/* =====================================================================
+   BOX SELECT -- name everything inside a dragged rectangle
+
+   Clicking one contact answers "what is this". A cluster of forty ships off
+   a coast asks a different question -- what are they, collectively -- and
+   clicking forty times to find out is not an answer. Drag a box, get the
+   list.
+
+   The two renderers project contacts to the screen by completely different
+   routes, so each supplies its own hit list and this holds only the parts
+   that are the same: the drag rectangle, the tally, the list, and going back
+   to a contact from a row.
+   ===================================================================== */
+var BOX = {on:false, drag:null, rect:null};
+
+function boxLabel(c){
+  var d = c.d || {};
+  if(c.k === 'naval') return d.name || ('MMSI ' + (d.mmsi == null ? '?' : d.mmsi));
+  if(c.k === 'air')   return (String(d.flight || d.r || d.hex || '').trim() || 'unknown callsign');
+  if(c.k === 'events')return d.headline || d.place || 'reported event';
+  if(c.k === 'quake') return 'M' + Number(d.mag).toFixed(1) + '  ' + (d.place || '');
+  if(c.k === 'hazard')return d.event || d.name || 'hazard';
+  if(c.k === 'launch')return d.name || 'launch';
+  if(c.k === 'iss')   return 'International Space Station';
+  if(c.k === 'rf')    return d.name || d.mac || 'radio';
+  if(d.s) return d.s[0] || ('NORAD ' + d.s[1]);       // orbital object
+  return c.k;
+}
+function boxDetail(c){
+  var d = c.d || {};
+  if(c.k === 'naval') return (d.kind || 'vessel') + (d.sog != null ? '  ' + d.sog + ' kn' : '');
+  if(c.k === 'air')   return (d.t || 'aircraft') +
+      (d.alt_baro != null ? '  ' + (d.alt_baro === 'ground' ? 'ground'
+        : Math.round(d.alt_baro).toLocaleString() + ' ft') : '');
+  if(d.s) return Math.round(d.alt).toLocaleString() + ' km';
+  return '';
+}
+
+/* Ships and aircraft are what this was asked for, so they lead; the rest
+   follow rather than being hidden, because a box over a coast catching a
+   priority event as well as the shipping is worth knowing about. */
+var BOX_ORDER = ['events','naval','air','hazard','quake','launch','iss','rf','sats','rocket','debris'];
+
+function boxReport(hits, kmAcross){
+  var out = document.getElementById('boxOut');
+  if(!out) return;
+  if(!hits.length){
+    out.style.display = '';
+    out.innerHTML = '<div class="bx-head"><b>Nothing in that box.</b>' +
+      '<span>try a bigger area, or turn a layer back on</span></div>';
+    return;
+  }
+  var tally = {};
+  hits.forEach(function(h){ tally[h.k] = (tally[h.k] || 0) + 1; });
+  var kinds = BOX_ORDER.filter(function(k){ return tally[k]; })
+    .concat(Object.keys(tally).filter(function(k){ return BOX_ORDER.indexOf(k) < 0; }));
+
+  var sorted = [];
+  kinds.forEach(function(k){
+    hits.filter(function(h){ return h.k === k; })
+        .sort(function(a,b){ return boxLabel(a).localeCompare(boxLabel(b)); })
+        .forEach(function(h){ sorted.push(h); });
+  });
+
+  var CAP = 250, shown = sorted.slice(0, CAP);
+  out.style.display = '';
+  out.innerHTML =
+    '<div class="bx-head"><b>' + hits.length.toLocaleString() + ' contact' +
+      (hits.length === 1 ? '' : 's') + ' in the box</b>' +
+      '<span>' + (kmAcross ? '↔ ' + kmAcross : '') + '</span></div>' +
+    '<div class="bx-tally">' + kinds.map(function(k){
+        var K = (KIND[k] || KIND_EXTRA[k] || {label:k, color:'#94a3b8'});
+        return '<i><b style="color:' + K.color + '">' + tally[k] + '</b>' + esc(K.label) + '</i>';
+      }).join('') + '</div>' +
+    '<div class="bx-list">' + shown.map(function(h, i){
+        var K = (KIND[h.k] || KIND_EXTRA[h.k] || {label:h.k, color:'#94a3b8'});
+        return '<button class="bx-row" data-box="' + i + '">' +
+          '<span class="bx-k" style="color:' + K.color + '">' + esc(K.label) + '</span>' +
+          '<span class="bx-n">' + esc(boxLabel(h)) + '</span>' +
+          '<span class="bx-d">' + esc(boxDetail(h)) + '</span></button>';
+      }).join('') + '</div>' +
+    (sorted.length > CAP
+      ? '<div class="bx-more">showing the first ' + CAP.toLocaleString() + ' of ' +
+        sorted.length.toLocaleString() + ' — draw a smaller box to narrow it</div>' : '');
+
+  out.querySelectorAll('[data-box]').forEach(function(b){
+    b.onclick = function(){
+      var h = shown[+b.dataset.box];
+      G.sel = h; renderDetail(h);
+      document.getElementById('detailPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+    };
+  });
+}
+
+function boxSpanKm(rect){
+  /* Report the box in kilometres on the ground, taken from two contacts inside
+     it rather than from the screen rectangle -- the globe is a sphere under a
+     projection, so pixels do not convert to distance at a fixed rate. */
+  return null;
+}
+
+function setBoxMode(on){
+  BOX.on = !!on;
+  BOX.drag = null; BOX.rect = null;
+  var b = document.getElementById('boxBtn');
+  if(b) b.classList.toggle('on', BOX.on);
+  ['globe','globe3d'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.classList.toggle('boxing', BOX.on);
+  });
+  boxOverlay();
+  if(!BOX.on){ var o = document.getElementById('boxOut'); if(o) o.style.display = 'none'; }
+}
+
+function boxPointer(el, onFinish){
+  /* Shared drag handling. Returns the rectangle in the element's own pixel
+     space; each renderer decides what falls inside it. */
+  function pos(e){
+    var r = el.getBoundingClientRect();
+    var t = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
+    return {x:t.clientX - r.left, y:t.clientY - r.top, w:r.width, h:r.height};
+  }
+  /* Both renderers register here, and the mouseup listener is on the window, so
+     without an owner the first registration to fire would claim every drag --
+     nulling the shared state and running its own hit test against whichever
+     globe is hidden. The drag records which canvas started it. */
+  el.addEventListener('mousedown', function(e){
+    if(!BOX.on || !el.offsetParent) return;        // offsetParent: this globe is the visible one
+    e.preventDefault(); e.stopPropagation();
+    BOX.drag = pos(e); BOX.drag.el = el; BOX.rect = null;
+  }, true);
+  addEventListener('mousemove', function(e){
+    if(!BOX.on || !BOX.drag || BOX.drag.el !== el) return;
+    var p = pos(e);
+    BOX.rect = {x0:Math.min(BOX.drag.x,p.x), y0:Math.min(BOX.drag.y,p.y),
+                x1:Math.max(BOX.drag.x,p.x), y1:Math.max(BOX.drag.y,p.y), w:p.w, h:p.h};
+    boxOverlay();
+  });
+  addEventListener('mouseup', function(e){
+    if(!BOX.on || !BOX.drag || BOX.drag.el !== el) return;
+    var r = BOX.rect;
+    BOX.drag = null;
+    if(!r || (r.x1-r.x0) < 6 || (r.y1-r.y0) < 6){ BOX.rect = null; boxOverlay(); return; }
+    onFinish(r);
+    BOX.rect = null; boxOverlay();
+  });
+}
+
+/* The rectangle is a positioned div rather than something painted into a
+   canvas: one globe is 2D canvas and the other is three.js, and a div sits
+   over either without each renderer needing its own overlay pass. */
+var BOXEL = null;
+function boxOverlay(){
+  if(!BOXEL){
+    BOXEL = document.createElement('div');
+    BOXEL.style.cssText = 'position:absolute;pointer-events:none;display:none;z-index:6;' +
+      'border:1.5px solid rgba(34,211,238,.95);background:rgba(34,211,238,.10);border-radius:2px';
+    var host = document.querySelector('.globe-col');
+    if(host){ host.style.position = 'relative'; host.appendChild(BOXEL); }
+  }
+  var r = BOX.rect;
+  if(!BOX.on || !r){ BOXEL.style.display = 'none'; return; }
+  var live = document.getElementById('globe3d');
+  if(!live || getComputedStyle(live).display === 'none') live = document.getElementById('globe');
+  var host = BOXEL.parentNode;
+  if(!live || !host) return;
+  var lb = live.getBoundingClientRect(), hb = host.getBoundingClientRect();
+  BOXEL.style.display = 'block';
+  BOXEL.style.left   = (lb.left - hb.left + r.x0) + 'px';
+  BOXEL.style.top    = (lb.top  - hb.top  + r.y0) + 'px';
+  BOXEL.style.width  = (r.x1 - r.x0) + 'px';
+  BOXEL.style.height = (r.y1 - r.y0) + 'px';
+}
+
 /* ---- layer buttons ---- */
 document.querySelectorAll('.lyr[data-layer]').forEach(function(b){
   b.addEventListener('click', function(){
@@ -1501,6 +1706,56 @@ function hoverPause(on){
   el.addEventListener('mouseenter', function(){ hoverPause(true); });
   el.addEventListener('mouseleave', function(){ hoverPause(false); });
 });
+
+document.getElementById('boxBtn').addEventListener('click', function(){ setBoxMode(!BOX.on); });
+
+/* 2D: contacts already carry screen coords from the last frame, and the
+   satellite catalogue is walked the same way picking does. */
+boxPointer(cv, function(r){
+  var sx = cv.width / (r.w || cv.width), sy = cv.height / (r.h || cv.height);
+  var X0 = r.x0*sx, X1 = r.x1*sx, Y0 = r.y0*sy, Y1 = r.y1*sy;
+  var hits = [];
+  (G._hit || []).forEach(function(c){
+    if(c.sx >= X0 && c.sx <= X1 && c.sy >= Y0 && c.sy <= Y1) hits.push(c);
+  });
+  var S = G.satsRaw;
+  if(S && G.satOk){
+    var D2 = Math.PI/180, rot0 = G.rot[0]*D2, p0 = G.rot[1]*D2;
+    var cp0 = Math.cos(p0), sp0 = Math.sin(p0);
+    for(var i=0;i<S.length;i++){
+      if(!G.satOk[i]) continue;
+      var kind = KIND_OF[S[i][9]] || 'debris';
+      if(!G.layers[kind]) continue;
+      var la = G.satLat[i]*D2, lo = G.satLon[i]*D2 + rot0, cpp = Math.cos(la);
+      if(sp0*Math.sin(la) + cp0*cpp*Math.cos(lo) <= 0) continue;
+      var x = G.cx + G.R*(cpp*Math.sin(lo));
+      var y = G.cy - G.R*(cp0*Math.sin(la) - sp0*cpp*Math.cos(lo));
+      if(x >= X0 && x <= X1 && y >= Y0 && y <= Y1)
+        hits.push({k:kind, lat:G.satLat[i], lon:G.satLon[i], color:KIND[kind].color,
+                   id:'sat'+i, d:{s:S[i], alt:G.satAlt[i]}});
+    }
+  }
+  boxReport(hits, boxExtent(hits));
+});
+
+/* Box width on the ground, from the contacts themselves: the globe is a sphere
+   under a projection, so screen pixels do not convert to kilometres at any
+   fixed rate. */
+function kmBetween(la1, lo1, la2, lo2){
+  var R = 6371, D = Math.PI/180;
+  var dla = (la2-la1)*D, dlo = (lo2-lo1)*D;
+  var a = Math.sin(dla/2)*Math.sin(dla/2) +
+          Math.cos(la1*D)*Math.cos(la2*D)*Math.sin(dlo/2)*Math.sin(dlo/2);
+  return 2*R*Math.asin(Math.min(1, Math.sqrt(a)));
+}
+function boxExtent(hits){
+  if(hits.length < 2) return null;
+  var la = hits.map(function(h){ return h.lat; }), lo = hits.map(function(h){ return h.lon; });
+  var km = kmBetween(Math.min.apply(null,la), Math.min.apply(null,lo),
+                     Math.max.apply(null,la), Math.max.apply(null,lo));
+  if(!isFinite(km)) return null;
+  return km >= 10 ? Math.round(km).toLocaleString() + ' km' : km.toFixed(1) + ' km';
+}
 
 document.getElementById('spinBtn').addEventListener('click', function(){
   G.spin=!G.spin; this.classList.toggle('on', G.spin);
@@ -2139,6 +2394,11 @@ window.TB = {
   setSpin: function(on){ setSpin(on); },
   stopCanvasGlobe: function(){ G.stopped = true; },
   clearThinning: function(){ var el = document.getElementById('thinNote'); if(el) el.style.display = 'none'; },
+  boxPointer: function(el, fn){ return boxPointer(el, fn); },
+  boxReport:  function(h, km){ return boxReport(h, km); },
+  boxExtent:  function(h){ return boxExtent(h); },
+  boxOn:      function(){ return BOX.on; },
+  boxRect:    function(){ return BOX.rect; },
   /* The 3D renderer draws only a sample of the orbital catalogue when zoomed
      out. A display that quietly shows one object in five while the layer button
      reads 18,741 is telling the reader something false, so it says which ratio
@@ -2926,6 +3186,9 @@ function focusGlobe(lat, lon, zoom){
   }
   function row(k, v){ return '<div class="d-row"><span>'+k+'</span><span>'+esc(String(v))+'</span></div>'; }
 
+  // a mousedown that begins a drag is what seeds the selection; refuse it here
+  mapC.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  mapC.addEventListener('selectstart', function(e){ e.preventDefault(); });
   mapC.addEventListener('mousemove', function(e){
     if(!GRID) return;
     var r = mapC.getBoundingClientRect();
@@ -3689,7 +3952,9 @@ async function boot(){
     renderer.setSize(w, w, false);
     camera.aspect = 1; camera.updateProjectionMatrix();
   }
-  cv.addEventListener('mousedown', e => { drag = {x:e.clientX, y:e.clientY, rx:rotX, ry:rotY, moved:false}; cv.classList.add('drag'); });
+  cv.addEventListener('mousedown', e => {
+    if(window.TB.boxOn()) return;              // boxing owns the drag
+    drag = {x:e.clientX, y:e.clientY, rx:rotX, ry:rotY, moved:false}; cv.classList.add('drag'); });
   addEventListener('mousemove', e => {
     if(!drag) return;
     const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
@@ -3735,7 +4000,9 @@ async function boot(){
     const n = cg.drawRange.count;
     for(let i=0;i<n;i++){
       if(!meta[i]) continue;
-      v3.set(cPos[i*3], cPos[i*3+1], cPos[i*3+2]).applyMatrix4(world.matrixWorld).project(camera);
+      _wp.set(cPos[i*3], cPos[i*3+1], cPos[i*3+2]).applyMatrix4(world.matrixWorld);
+      if(occluded(_wp)) continue;                  // never pick through the planet
+      v3.copy(_wp).project(camera);
       if(v3.z > 1) continue;
       const sx = (v3.x*0.5+0.5)*r.width, sy = (-v3.y*0.5+0.5)*r.height;
       const dd = (sx-px)*(sx-px) + (sy-py)*(sy-py);
@@ -3753,6 +4020,47 @@ async function boot(){
     window.TB.G.sel = best;
     window.TB.renderDetail(best);
   }
+
+  /* Is this contact hidden behind the globe? Projecting to screen is not enough:
+     a point in Taiwan projects into a box drawn over the Baltic because the
+     projection does not care which side of the sphere it sits on, and depth
+     testing hides it on screen while leaving it in the hit list. So the ray
+     from the camera to the point is tested against the unit globe, and anything
+     the globe stands in front of is dropped. Without this a box over the Baltic
+     reported 16,386 km across and included a contact in the Taiwan Strait. */
+  const _wp = new THREE.Vector3(), _dir = new THREE.Vector3(), _cp = new THREE.Vector3();
+  function occluded(wp){
+    _dir.copy(wp).sub(camera.position);
+    const len = _dir.length();
+    if(len < 1e-6) return false;
+    _dir.divideScalar(len);
+    const t = -camera.position.dot(_dir);          // nearest approach along the ray
+    if(t <= 0 || t >= len) return false;           // globe is behind us, or past the point
+    _cp.copy(camera.position).addScaledVector(_dir, t);
+    return _cp.length() < 0.999;                   // the ray passes through the earth
+  }
+
+  /* Box select: same projection walk as nearest(), but collecting instead of
+     ranking. meta[] is parallel to the drawn points, so a thinned catalogue
+     reports only what is actually on screen -- which is the honest answer to
+     "what is in this box" for a view that is showing one payload in five. */
+  window.TB.boxPointer(cv, function(r){
+    const hits = [], n = cg.drawRange.count;
+    const rect = cv.getBoundingClientRect();
+    const sx = rect.width  ? rect.width  : cv.clientWidth;
+    const sy = rect.height ? rect.height : cv.clientHeight;
+    for(let i=0;i<n;i++){
+      if(!meta[i]) continue;
+      _wp.set(cPos[i*3], cPos[i*3+1], cPos[i*3+2]).applyMatrix4(world.matrixWorld);
+      if(occluded(_wp)) continue;
+      v3.copy(_wp).project(camera);
+      if(v3.z > 1) continue;
+      const px = (v3.x*0.5+0.5)*sx, py = (-v3.y*0.5+0.5)*sy;
+      if(px >= r.x0 && px <= r.x1 && py >= r.y0 && py <= r.y1)
+        hits.push(Object.assign({}, meta[i], {color:'#'+col.fromArray(cCol, i*3).getHexString()}));
+    }
+    window.TB.boxReport(hits, window.TB.boxExtent(hits));
+  });
 
   /* Cursor feedback. Throttled because nearest() projects every drawn point;
      at ~8k points that is well under a millisecond, but not at 60Hz. */

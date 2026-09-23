@@ -124,6 +124,27 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .content a.cite:hover{background:rgba(59,130,246,.4);color:#fff;border-color:var(--blue)}
 @media print{ .content a.cite{color:#333;background:none;border-color:#999} }
 
+/* ---------- box select ---------- */
+#boxOut{margin-top:12px;background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));
+  border:1px solid var(--line2);border-radius:10px;padding:13px;text-align:left}
+.bx-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px;margin-bottom:10px}
+.bx-head b{color:#fff;font-size:.95em}
+.bx-head span{font-family:var(--mono);font-size:.68em;color:var(--ink-faint);letter-spacing:.06em}
+.bx-tally{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px}
+.bx-tally i{font-style:normal;font-family:var(--mono);font-size:.66em;letter-spacing:.06em;
+  padding:3px 8px;border-radius:5px;background:rgba(30,41,73,.8);color:var(--ink-dim)}
+.bx-tally i b{margin-right:5px}
+.bx-list{display:flex;flex-direction:column;gap:3px;max-height:290px;overflow-y:auto}
+.bx-row{display:grid;grid-template-columns:76px 1fr auto;gap:10px;align-items:center;font-size:.76em;
+  padding:5px 9px;border-radius:6px;background:rgba(15,23,48,.55);cursor:pointer;border:0;color:inherit;
+  font-family:inherit;text-align:left;width:100%}
+.bx-row:hover{background:rgba(59,130,246,.18)}
+.bx-k{font-family:var(--mono);font-size:.74em;letter-spacing:.05em}
+.bx-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.bx-d{font-family:var(--mono);font-size:.82em;color:var(--ink-faint);white-space:nowrap}
+.bx-more{font-family:var(--mono);font-size:.68em;color:var(--ink-faint);padding:8px 2px 0}
+#globe.boxing,#globe3d.boxing{cursor:crosshair}
+
 /* ---------- terrain ---------- */
 .tr-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 #trCoord{flex:1 1 220px;min-width:0;background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:7px;
@@ -134,7 +155,13 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .tr-hint{font-family:var(--mono);font-size:.7em;color:var(--ink-faint);letter-spacing:.05em}
 .tr-wrap{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
 .tr-mapcol{min-width:0}
-#trMap{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;background:#05091a;cursor:crosshair}
+/* user-select:none because reading elevation means holding the pointer over the
+   canvas, and a press-and-move on a canvas still starts a text selection in the
+   surrounding block -- hovering to read a height highlighted the whole panel. */
+#trMap{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;background:#05091a;cursor:crosshair;
+  user-select:none;-webkit-user-select:none;-ms-user-select:none;-webkit-touch-callout:none}
+#terrainBand .tr-wrap,#terrainBand .tr-legend,#terrainBand .globe-hint{user-select:none;-webkit-user-select:none}
+#terrainBand .tr-read,#terrainBand .tr-los{user-select:text;-webkit-user-select:text}
 .tr-legend{display:flex;align-items:center;gap:9px;margin-top:8px;font-family:var(--mono);font-size:.66em;color:var(--ink-faint)}
 .tr-legend b{color:var(--ink);font-weight:600}
 .tr-ramp{flex:1;height:7px;border-radius:4px;
@@ -363,7 +390,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
   <div class="header">
     <div class="badge">OPEN-SOURCE COLLECTION &middot; PUBLIC SOURCES ONLY</div>
     <h1>&#9876;&#65039; THE TRIDENT BRIEF &#9876;&#65039;</h1>
-    <div class="meta">Collection Period: 2026-09-23 03:01 UTC &nbsp;|&nbsp; Source: CACHE-RENDER</div>
+    <div class="meta">Collection Period: 2026-09-23 04:15 UTC &nbsp;|&nbsp; Source: CACHE-RENDER</div>
     <div class="sigint">MULTI-INT FUSION | SIGINT + HUMINT + OSINT-WEB + CHATTER MONITORING</div>
     <div class="pills">
       <span class="pill"><span class="dot live" id="freshDot"></span><b id="freshAge">--</b>&nbsp;since collection</span>
@@ -410,6 +437,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
           </span>
           <span class="lyr-group"><b>view</b>
             <button class="lyr on" id="spinBtn">&#8635; SPIN</button>
+            <button class="lyr" id="boxBtn" title="Drag a box around a cluster to list what is in it">&#9723; SELECT</button>
             <button class="lyr" id="zoomOut" title="Zoom out">&minus;</button>
             <button class="lyr" id="zoomLabelBtn" title="Reset zoom"><b id="zoomLabel">1.0&times;</b></button>
             <button class="lyr" id="zoomIn" title="Zoom in">+</button>
@@ -418,6 +446,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         </div>
         <div class="globe-hint">Drag to rotate &middot; scroll or pinch to zoom &middot; click any contact to expand it</div>
         <div class="globe-hint" id="thinNote" style="display:none;color:var(--amber);opacity:.8"></div>
+        <div id="boxOut" style="display:none"></div>
       </div>
       <div class="detail-col">
         <div id="detailPanel"><div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div></div>
@@ -633,7 +662,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
    Data injected at build time
    ===================================================================== */
 const BRIEF_MD   = "**BLUF:** Russian Shahed and missile strikes hit Ukrainian cities overnight 22-23 Sep, with Ukrainian air defenses (including F-16 cannon fire) engaging jet-powered variants over Kyiv and reported civilian casualties plus retaliatory Ukrainian refinery strikes in Russia. Houthi forces advanced near Bab al-Mandeb with disputed ballistic missile activity and Mocha port control, prompting a UK RAF Voyager tanker deployment for Saudi defensive support. Taiwan MND reported elevated PLA activity with multiple median-line crossings. DPRK's 21 Sep East Sea launch saw limited new recirculation. Most other theatres remained quiet in the narrow window.\n\n## 1. CHATTER AND THE INFORMATION ENVIRONMENT\n\nLocal Ukrainian accounts and analysts posted videos and reports of air-defense activity and Shahed intercepts over Kyiv on the night of 22 Sep, including footage and commentary on F-16 engagements with jet-powered drones.[[1]](https://x.com/xosintel/status/2102447438359302341)[[2]](https://x.com/MargoGontar/status/2102409381543313536)\n\nAccounts circulated details of Ukrainian strikes on Bashneft-UNPZ refinery in Ufa and Kuibyshev plant in Samara as retaliation, alongside reports of Russian strikes causing civilian deaths in Dnipro, Kyiv, and Mykolaiv regions.[[3]](https://x.com/worldexpresnews/status/2102403656444190935)\n\nHouthi-related posts discussed advances around Bab al-Mandeb, Mocha port capture, and a disputed ballistic missile strike near Ras al-Arah/Kahboub, with recirculation of the UK Voyager tanker deployment for Saudi defensive refueling.[[4]](https://x.com/srijanpalsingh/status/2102391382103237013)[[5]](https://x.com/MissOnjoSimson/status/2102388516198265232)\n\nTaiwan MND and monitoring accounts posted official detections of PLA aircraft (including median-line crossings), PLAN vessels, and official ships in the latest 24-hour periods.[[6]](https://x.com/MoNDefense/status/2102563600581992705)[[7]](https://x.com/mna_roc/status/2102245528906203504)\n\nDPRK East Sea launch (~450 km on 21 Sep) saw sparse recirculation with no major new first-hand claims.[[8]](https://x.com/HEAD_POST_EN/status/2102062314987868548)\n\nReddit threads on Ukraine Shahed activity and Houthi Red Sea/Bab al-Mandeb developments largely recirculated older incidents or background analysis rather than real-time local reporting in the window.[[9]](https://www.reddit.com/r/UkraineWarVideoReport/comments/1sbfu51/all_animals_dead_afterrussian_drone_strike_on_vet/)[[10]](https://www.reddit.com/r/geopolitics/comments/1wdcssx/iranbacked_houthis_take_effective_control_of_bab/)\n\nsearched: Shahed Kyiv; Novorossiysk port; Houthi Saudi OR Bab al-Mandeb; Taiwan median line PLA; DPRK missile East Sea; site:reddit.com Ukraine Shahed Kyiv; site:reddit.com Houthi Red Sea OR Bab al-Mandeb; site:reddit.com Taiwan PLA activity; site:reddit.com DPRK missile launch\n\n## 2. STANDING THEATRE SWEEP\n\n### EUROPE / RUSSIA-UKRAINE\n[OSINT - SOCIAL] Ukrainian and international accounts reported continued Russian Shahed and missile strikes (Onyx, Iskander, Kalibr, Banderol, \u003e200 Shaheds) overnight 22-23 Sep targeting Dnipro, Kyiv, Zaporizhzhia and other cities, with air defenses claiming 186 intercepts but breakthroughs causing civilian casualties (e.g., Dnipro industrial site, Kyiv residential building, Mykolaiv child).[[3]](https://x.com/worldexpresnews/status/2102403656444190935)\n\n[OSINT - SOCIAL] Ukrainian forces struck Bashneft-UNPZ oil refinery in Ufa and Kuibyshev plant in Samara, causing fires; framed as retaliation against fuel supplies for Russian forces.[[3]](https://x.com/worldexpresnews/status/2102403656444190935)\n\n[OSINT - SOCIAL] Novorossiysk port discussions focused on ongoing Ukrainian drone pressure, CPC pipeline exposure, and Russian oil export volumes (up significantly in Sep).[[11]](https://x.com/griffbos/status/2102492877352058986)[[12]](https://x.com/Moke1966758/status/2102437854429516219)\n\n### MIDDLE EAST\n[OSINT - SOCIAL] Houthi forces maintained control of Mocha port and strategic Red Sea islands near Bab al-Mandeb; fighting intensified around Kahboub with a disputed ballistic missile strike reported in Ras al-Arah area.[[4]](https://x.com/srijanpalsingh/status/2102391382103237013)\n\n[OSINT - SOCIAL] UK time-limited RAF Voyager tanker deployment for defensive air-to-air refueling support to Saudi jets against Houthi threats entered discussion, with Saudi-flagged vessels rerouting around Cape of Good Hope.[[5]](https://x.com/MissOnjoSimson/status/2102388516198265232)\n\n### INDO-PACIFIC\n[SIGINT - VERIFIED] Taiwan MND reported 10 PLA aircraft sorties (9 crossing median line into ADIZ), 6 PLAN vessels and 6 official ships in the 24 hours to ~0600 UTC+8 on 23 Sep; earlier 24-hour period to 22 Sep showed 4 aircraft (all crossing), 6 vessels, 3 ships.[[6]](https://x.com/MoNDefense/status/2102563600581992705)[[7]](https://x.com/mna_roc/status/2102245528906203504)\n\n### SOUTH AND CENTRAL ASIA\nQuiet in window. No verifiable new developments retrieved.\n\n### AFRICA\nQuiet in window. No verifiable new developments retrieved matching focus criteria (JNIM/Mali recirculation only of prior Dioura claims).\n\n### AMERICAS\nQuiet in window. No verifiable new developments retrieved.\n\n### STRATEGIC AND SPACE\nQuiet in window beyond DPRK 21 Sep East Sea launch recirculation; no fresh first-hand verification of additional launches or posture changes.\n\n### ECONOMIC AND ENERGY PRESSURE\nQuiet in window beyond Novorossiysk export and Middle East shipping rerouting notes above; no new chokepoint or sanctions developments.\n\n## 3. TECHNOLOGY AND CYBERSECURITY\nQuiet in window. No verifiable active exploitation or state-linked incidents retrieved.\n\n## 4. HOMELAND AND INFRASTRUCTURE\nQuiet in window. No verifiable incidents affecting critical infrastructure.\n\n## 5. UAP/UFO\nQuiet in window. No official statements or releases retrieved.\n\n## 6. FRONTIER AND CONSCIOUSNESS RESEARCH\nQuiet in window. No peer-reviewed publications or programme announcements retrieved.\n\n**Assessment:** Ukrainian air defenses demonstrated improved cost-exchange against massed Shaheds (including jet-powered variants) but remain under sustained pressure, while Ukrainian deep strikes on Russian energy infrastructure signal continued escalation in the fuel-war dimension. Houthi consolidation near Bab al-Mandeb raises sustained shipping risk and draws limited external support (UK tanker), tilting leverage toward Iran-aligned actors without immediate coalition kinetic response. Taiwan's median-line activity remains routine but consistent, providing Beijing a low-cost signal of presence. No theatre showed decisive breakthrough or de-escalation.\n\n**INDICATORS AND WARNINGS**\n- Additional jet-powered Shahed or mothership variants over Kyiv \u2192 Ukrainian air-defence strain and possible F-16 tasking changes \u2192 first visible in Ukrainian Air Force or Kyiv oblast accounts.\n- Confirmed Houthi ballistic/drone salvo toward Saudi targets or Bab al-Mandeb shipping \u2192 insurance spikes or coalition response \u2192 first in Lloyd\u2019s List or CENTCOM releases.\n- DPRK follow-on launch or nuclear-related statement \u2192 ROK/Japan/US consultations \u2192 first in JCS or MOD releases.\n- Surge in PLA sorties east of median line (\u003e20 platforms/24h) \u2192 Taiwan MND daily report escalation signal.\n- Independent verification or denial of Dioura casualty figures and ground control \u2192 Malian or JNIM statements or Sahel analyst assessments.\n\n**COLLECTION GAPS**\n- Exact damage and casualties from ongoing Kyiv Shahed activity beyond initial local footage.\n- Confirmation of mothership Shahed claims and any geolocated impact sites.\n- Precise effects or follow-on Houthi activity around Bab al-Mandab.\n- Independent assessment of Dioura ground situation and Africa Corps involvement.";
-const BUILT_AT   = "2026-09-23T03:01:46.925612+00:00";
+const BUILT_AT   = "2026-09-23T04:15:29.683869+00:00";
 const IS_STALE   = true;
 const ARCHIVE    = [{"date": "23 SEP 2026 00:59Z", "path": "archive/2026-09-23-0059.md"}, {"date": "22 SEP 2026 15:12Z", "path": "archive/2026-09-22-1512.md"}, {"date": "22 SEP 2026 01:19Z", "path": "archive/2026-09-22-0119.md"}, {"date": "21 SEP 2026 16:40Z", "path": "archive/2026-09-21-1640.md"}, {"date": "21 SEP 2026 15:17Z", "path": "archive/2026-09-21-1517.md"}, {"date": "21 SEP 2026 15:10Z", "path": "archive/2026-09-21-1510.md"}, {"date": "21 SEP 2026 14:35Z", "path": "archive/2026-09-21-1435.md"}, {"date": "21 SEP 2026 01:02Z", "path": "archive/2026-09-21-0102.md"}, {"date": "21 SEP 2026 00:36Z", "path": "archive/2026-09-21-0036.md"}, {"date": "20 SEP 2026 14:22Z", "path": "archive/2026-09-20-1422.md"}, {"date": "20 SEP 2026 00:28Z", "path": "archive/2026-09-20-0028.md"}, {"date": "19 SEP 2026 14:01Z", "path": "archive/2026-09-19-1401.md"}, {"date": "19 SEP 2026 00:44Z", "path": "archive/2026-09-19-0044.md"}, {"date": "18 SEP 2026 14:41Z", "path": "archive/2026-09-18-1441.md"}, {"date": "18 SEP 2026 00:52Z", "path": "archive/2026-09-18-0052.md"}, {"date": "17 SEP 2026 15:21Z", "path": "archive/2026-09-17-1521.md"}, {"date": "17 SEP 2026 00:56Z", "path": "archive/2026-09-17-0056.md"}, {"date": "16 SEP 2026 15:11Z", "path": "archive/2026-09-16-1511.md"}, {"date": "16 SEP 2026 00:52Z", "path": "archive/2026-09-16-0052.md"}, {"date": "15 SEP 2026 15:19Z", "path": "archive/2026-09-15-1519.md"}, {"date": "15 SEP 2026 01:02Z", "path": "archive/2026-09-15-0102.md"}, {"date": "14 SEP 2026 16:39Z", "path": "archive/2026-09-14-1639.md"}, {"date": "14 SEP 2026 00:30Z", "path": "archive/2026-09-14-0030.md"}, {"date": "13 SEP 2026 14:43Z", "path": "archive/2026-09-13-1443.md"}, {"date": "13 SEP 2026 00:28Z", "path": "archive/2026-09-13-0028.md"}, {"date": "12 SEP 2026 13:47Z", "path": "archive/2026-09-12-1347.md"}, {"date": "12 SEP 2026 00:45Z", "path": "archive/2026-09-12-0045.md"}, {"date": "11 SEP 2026 20:52Z", "path": "archive/2026-09-11-2052.md"}, {"date": "11 SEP 2026 19:59Z", "path": "archive/2026-09-11-1959.md"}, {"date": "11 SEP 2026 14:40Z", "path": "archive/2026-09-11-1440.md"}, {"date": "11 SEP 2026 00:38Z", "path": "archive/2026-09-11-0038.md"}, {"date": "10 SEP 2026 14:41Z", "path": "archive/2026-09-10-1441.md"}, {"date": "10 SEP 2026 00:41Z", "path": "archive/2026-09-10-0041.md"}, {"date": "09 SEP 2026", "path": "archive/2026-09-09.md"}, {"date": "09 SEP 2026 16:12Z", "path": "archive/2026-09-09-1612.md"}, {"date": "09 SEP 2026 15:38Z", "path": "archive/2026-09-09-1538.md"}, {"date": "09 SEP 2026 15:33Z", "path": "archive/2026-09-09-1533.md"}, {"date": "09 SEP 2026 15:25Z", "path": "archive/2026-09-09-1525.md"}, {"date": "09 SEP 2026 15:02Z", "path": "archive/2026-09-09-1502.md"}, {"date": "09 SEP 2026 14:57Z", "path": "archive/2026-09-09-1457.md"}, {"date": "24 FEB 2026", "path": "archive/2026-02-24.md"}, {"date": "23 FEB 2026", "path": "archive/2026-02-23.md"}, {"date": "22 FEB 2026", "path": "archive/2026-02-22.md"}, {"date": "21 FEB 2026", "path": "archive/2026-02-21.md"}, {"date": "20 FEB 2026", "path": "archive/2026-02-20.md"}, {"date": "19 FEB 2026", "path": "archive/2026-02-19.md"}, {"date": "18 FEB 2026", "path": "archive/2026-02-18.md"}, {"date": "17 FEB 2026", "path": "archive/2026-02-17.md"}, {"date": "16 FEB 2026", "path": "archive/2026-02-16.md"}, {"date": "15 FEB 2026", "path": "archive/2026-02-15.md"}, {"date": "14 FEB 2026", "path": "archive/2026-02-14.md"}, {"date": "13 FEB 2026", "path": "archive/2026-02-13.md"}, {"date": "12 FEB 2026", "path": "archive/2026-02-12.md"}, {"date": "11 FEB 2026", "path": "archive/2026-02-11.md"}, {"date": "10 FEB 2026", "path": "archive/2026-02-10.md"}, {"date": "09 FEB 2026", "path": "archive/2026-02-09.md"}, {"date": "08 FEB 2026", "path": "archive/2026-02-08.md"}, {"date": "07 FEB 2026", "path": "archive/2026-02-07.md"}, {"date": "06 FEB 2026", "path": "archive/2026-02-06.md"}, {"date": "05 FEB 2026", "path": "archive/2026-02-05.md"}];
 const EVENTS     = [{"lat": 50.45, "lon": 30.52, "priority": 4, "place": "Kyiv, Ukraine", "headline": "Shahed intercepts and civilian damage reported overnight", "section": "geopolitical", "classification": "OSINT - SOCIAL", "confidence": "medium", "url": "https://x.com/MargoGontar/status/2102409381543313536", "novelty": 0.112, "fly": {"kc": [30, 40, 43, 80, 85, 97, 113, 137, 143, 155, 167, 168, 171, 175, 184, 196, 205, 210, 216, 241, 243, 244, 258, 271, 275, 285, 298, 303, 304, 309, 318, 322, 336, 339, 344, 355, 360, 365, 367, 380, 382, 402, 411, 419, 431, 434, 440, 464, 473, 481, 492, 494, 496, 503, 512, 533, 543, 559, 566, 578, 579, 610, 615, 636, 700, 726, 737, 743, 809, 952, 976, 987, 1047, 1074, 1097, 1110, 1177, 1192, 1235, 1241, 1245, 1276, 1314, 1324, 1326, 1341, 1344, 1355, 1363, 1382, 1458, 1460, 1466, 1711, 1714, 1728, 1773, 1872, 1955, 1969], "pn": [0.0, 0.0, 0.0, 5.56, 0.0, 0.0, 0.0, 0.0, 0.0, 5.56, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.56, 11.11, 0.0, 5.56, 0.0, 5.56, 5.56, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.56, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "warm": [30, 40, 43, 80, 85, 97, 113, 137, 143, 155, 167, 168, 171, 175, 184, 196, 205, 210, 216, 241, 243, 244, 258, 271, 275, 285, 298, 303, 304, 309, 318, 322, 336, 339, 344, 355, 360, 365, 367, 380, 382, 402, 411, 419, 431, 434, 440, 464, 473, 481, 492, 494, 496, 503, 512, 533, 543, 559, 578, 579, 610, 615, 636, 700, 726, 737, 743, 809, 952, 976, 987, 1047, 1074, 1097, 1110, 1177, 1192, 1235, 1241, 1245, 1276, 1314, 1324, 1341, 1344, 1355, 1363, 1382, 1458, 1460, 1466, 1711, 1714, 1728, 1773, 1872, 1955, 1969], "seen": 0.888}}, {"lat": 48.46, "lon": 35.04, "priority": 4, "place": "Dnipro, Ukraine", "headline": "Russian strike kills workers at Interpipe enterprise", "section": "geopolitical", "classification": "OSINT - SOCIAL", "confidence": "medium", "url": "https://x.com/worldexpresnews/status/2102403656444190935", "novelty": 0.069, "fly": {"kc": [0, 14, 39, 71, 75, 94, 97, 113, 114, 136, 181, 191, 192, 194, 195, 205, 208, 209, 218, 243, 252, 274, 282, 306, 322, 333, 349, 356, 359, 371, 372, 383, 386, 388, 389, 390, 398, 411, 418, 419, 434, 441, 444, 457, 458, 471, 482, 495, 500, 525, 528, 541, 542, 548, 549, 553, 559, 560, 570, 574, 609, 624, 631, 637, 643, 645, 655, 665, 698, 724, 731, 757, 758, 761, 883, 924, 945, 986, 1005, 1015, 1066, 1220, 1270, 1321, 1345, 1371, 1433, 1486, 1548, 1625, 1648, 1703, 1716, 1721, 1768, 1802, 1852, 1858, 1903, 1933], "pn": [12.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.25, 0.0, 0.0, 6.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.25, 0.0, 0.0, 0.0, 6.25, 0.0, 0.0, 6.25, 0.0, 6.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "warm": [0, 14, 39, 71, 75, 94, 97, 113, 114, 136, 181, 191, 192, 194, 195, 205, 208, 209, 218, 243, 252, 274, 282, 306, 322, 333, 349, 356, 359, 371, 372, 383, 386, 388, 389, 390, 398, 411, 418, 419, 434, 441, 444, 457, 458, 471, 482, 495, 500, 525, 528, 541, 542, 548, 549, 553, 559, 560, 570, 574, 609, 624, 631, 637, 643, 645, 655, 665, 698, 724, 731, 757, 758, 761, 883, 924, 945, 986, 1005, 1015, 1066, 1220, 1270, 1321, 1345, 1371, 1433, 1486, 1548, 1625, 1648, 1703, 1716, 1721, 1768, 1852, 1858, 1903, 1933], "seen": 0.931}}, {"lat": 54.74, "lon": 55.96, "priority": 3, "place": "Ufa, Russia", "headline": "Ukrainian strike causes fire at Bashneft-UNPZ refinery", "section": "geopolitical", "classification": "OSINT - SOCIAL", "confidence": "medium", "url": "https://x.com/worldexpresnews/status/2102403656444190935", "novelty": 0.083, "fly": {"kc": [10, 16, 34, 77, 87, 98, 117, 129, 130, 131, 138, 161, 162, 169, 175, 183, 188, 190, 192, 193, 194, 195, 202, 204, 218, 224, 232, 245, 247, 254, 258, 262, 275, 292, 300, 307, 318, 350, 373, 376, 380, 382, 396, 411, 425, 459, 486, 499, 503, 512, 533, 542, 575, 583, 595, 603, 608, 613, 632, 645, 657, 680, 682, 707, 721, 742, 747, 751, 791, 794, 795, 817, 879, 891, 1002, 1026, 1055, 1203, 1220, 1267, 1292, 1312, 1431, 1479, 1498, 1513, 1545, 1581, 1584, 1631, 1684, 1701, 1759, 1763, 1787, 1794, 1932, 1937, 1973, 1976], "pn": [0.0, 0.0, 0.0, 0.0, 11.11, 5.56, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.56, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.56, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.56, 0.0, 5.56, 0.0, 0.0, 5.56, 0.0, 0.0, 0.0, 0.0, 5.56, 0.0, 0.0], "warm": [10, 16, 34, 77, 87, 98, 117, 129, 130, 131, 138, 161, 162, 169, 175, 183, 188, 190, 192, 193, 194, 195, 202, 204, 218, 224, 232, 245, 247, 254, 258, 262, 275, 292, 300, 307, 318, 350, 373, 376, 380, 382, 396, 411, 425, 459, 486, 499, 503, 512, 533, 542, 575, 583, 595, 603, 608, 613, 632, 645, 657, 680, 682, 707, 721, 742, 747, 751, 791, 794, 795, 817, 879, 891, 1002, 1026, 1055, 1203, 1220, 1267, 1292, 1431, 1479, 1498, 1513, 1581, 1584, 1631, 1684, 1701, 1759, 1763, 1787, 1794, 1932, 1937, 1973, 1976], "seen": 0.917}}, {"lat": 12.85, "lon": 43.25, "priority": 4, "place": "Bab al-Mandeb area, Yemen", "headline": "Disputed ballistic missile strike near Ras al-Arah", "section": "geopolitical", "classification": "OSINT - SOCIAL", "confidence": "low", "url": "https://x.com/srijanpalsingh/status/2102391382103237013", "novelty": 0.073, "fly": {"kc": [8, 10, 11, 26, 28, 46, 53, 64, 68, 70, 79, 95, 139, 147, 173, 175, 176, 179, 184, 207, 214, 236, 254, 259, 282, 289, 296, 301, 330, 343, 352, 357, 389, 402, 403, 412, 417, 425, 428, 448, 469, 476, 483, 488, 504, 513, 534, 540, 544, 555, 561, 564, 571, 576, 578, 595, 618, 634, 635, 660, 676, 708, 799, 824, 846, 935, 975, 990, 1001, 1036, 1063, 1070, 1152, 1171, 1172, 1221, 1247, 1253, 1304, 1354, 1366, 1464, 1557, 1572, 1585, 1587, 1589, 1600, 1643, 1645, 1725, 1753, 1771, 1793, 1805, 1832, 1886, 1890, 1927, 1986], "pn": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 9.09, 4.55, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.55, 0.0, 4.55, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.55, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 13.64, 0.0, 0.0, 4.55, 0.0, 0.0, 0.0, 4.55, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "warm": [8, 10, 11, 26, 28, 46, 53, 64, 68, 70, 79, 95, 139, 147, 173, 175, 176, 179, 184, 207, 214, 236, 254, 259, 282, 289, 296, 301, 330, 343, 352, 357, 389, 402, 403, 412, 417, 425, 428, 448, 469, 476, 483, 488, 504, 513, 534, 540, 544, 555, 561, 564, 571, 576, 578, 595, 618, 634, 635, 660, 676, 708, 799, 824, 846, 935, 975, 990, 1001, 1036, 1063, 1070, 1152, 1171, 1172, 1221, 1247, 1253, 1304, 1354, 1366, 1464, 1557, 1572, 1585, 1587, 1589, 1600, 1643, 1645, 1725, 1753, 1771, 1793, 1805, 1832, 1886, 1890, 1927, 1986], "seen": 0.927}}, {"lat": 25.0, "lon": 121.5, "priority": 3, "place": "Taiwan ADIZ", "headline": "PLA aircraft median-line crossings detected", "section": "geopolitical", "classification": "SIGINT - VERIFIED", "confidence": "high", "url": "https://x.com/MoNDefense/status/2102563600581992705", "novelty": 0.09, "fly": {"kc": [13, 38, 68, 101, 123, 128, 137, 156, 163, 171, 187, 229, 243, 253, 266, 275, 281, 295, 306, 356, 380, 383, 393, 397, 399, 406, 413, 436, 440, 471, 472, 513, 516, 517, 527, 539, 563, 569, 585, 616, 644, 647, 654, 726, 729, 770, 787, 788, 811, 839, 884, 892, 898, 913, 940, 976, 980, 994, 1107, 1109, 1112, 1126, 1138, 1161, 1168, 1182, 1241, 1245, 1268, 1272, 1277, 1293, 1301, 1340, 1348, 1350, 1365, 1375, 1382, 1391, 1393, 1398, 1400, 1458, 1466, 1472, 1480, 1481, 1501, 1505, 1512, 1537, 1538, 1554, 1578, 1588, 1590, 1821, 1906, 1972], "pn": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.25, 0.0, 0.0, 0.0, 0.0, 6.25, 0.0, 6.25, 0.0, 0.0, 6.25, 6.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.25, 0.0, 6.25, 0.0, 0.0, 0.0, 6.25, 0.0, 0.0, 0.0, 0.0, 0.0], "warm": [13, 38, 68, 101, 123, 128, 137, 156, 163, 171, 187, 229, 243, 253, 266, 275, 281, 295, 306, 356, 380, 383, 393, 397, 399, 406, 413, 436, 440, 471, 472, 513, 516, 517, 527, 539, 563, 569, 585, 616, 644, 647, 654, 726, 729, 770, 787, 788, 811, 839, 884, 892, 898, 913, 940, 976, 980, 994, 1107, 1109, 1112, 1126, 1138, 1161, 1168, 1182, 1241, 1245, 1272, 1277, 1293, 1301, 1340, 1348, 1350, 1365, 1375, 1382, 1391, 1393, 1398, 1400, 1458, 1466, 1472, 1480, 1481, 1501, 1505, 1512, 1537, 1538, 1554, 1578, 1588, 1590, 1821, 1906, 1972], "seen": 0.91}}];
@@ -1303,7 +1332,10 @@ function evtPos(e){
   var src = (e.touches && e.touches[0]) ? e.touches[0] : e;
   return {x:src.clientX-r.left, y:src.clientY-r.top};
 }
-function onDown(e){ G.drag = {p:evtPos(e), rot:G.rot.slice(), moved:false}; cv.classList.add('drag'); }
+function onDown(e){
+  if(BOX.on) return;                 // boxing owns the drag
+  G.drag = {p:evtPos(e), rot:G.rot.slice(), moved:false}; cv.classList.add('drag');
+}
 function onMove(e){
   if(!G.drag){ if(!e.touches) hoverTest(evtPos(e)); return; }
   var p=evtPos(e), dx=p.x-G.drag.p.x, dy=p.y-G.drag.p.y;
@@ -1465,6 +1497,179 @@ function renderDetail(c){
   if(wantsChip){ basemap(); drawChip(el.querySelector('canvas.ev-chip')); }
 }
 
+/* =====================================================================
+   BOX SELECT -- name everything inside a dragged rectangle
+
+   Clicking one contact answers "what is this". A cluster of forty ships off
+   a coast asks a different question -- what are they, collectively -- and
+   clicking forty times to find out is not an answer. Drag a box, get the
+   list.
+
+   The two renderers project contacts to the screen by completely different
+   routes, so each supplies its own hit list and this holds only the parts
+   that are the same: the drag rectangle, the tally, the list, and going back
+   to a contact from a row.
+   ===================================================================== */
+var BOX = {on:false, drag:null, rect:null};
+
+function boxLabel(c){
+  var d = c.d || {};
+  if(c.k === 'naval') return d.name || ('MMSI ' + (d.mmsi == null ? '?' : d.mmsi));
+  if(c.k === 'air')   return (String(d.flight || d.r || d.hex || '').trim() || 'unknown callsign');
+  if(c.k === 'events')return d.headline || d.place || 'reported event';
+  if(c.k === 'quake') return 'M' + Number(d.mag).toFixed(1) + '  ' + (d.place || '');
+  if(c.k === 'hazard')return d.event || d.name || 'hazard';
+  if(c.k === 'launch')return d.name || 'launch';
+  if(c.k === 'iss')   return 'International Space Station';
+  if(c.k === 'rf')    return d.name || d.mac || 'radio';
+  if(d.s) return d.s[0] || ('NORAD ' + d.s[1]);       // orbital object
+  return c.k;
+}
+function boxDetail(c){
+  var d = c.d || {};
+  if(c.k === 'naval') return (d.kind || 'vessel') + (d.sog != null ? '  ' + d.sog + ' kn' : '');
+  if(c.k === 'air')   return (d.t || 'aircraft') +
+      (d.alt_baro != null ? '  ' + (d.alt_baro === 'ground' ? 'ground'
+        : Math.round(d.alt_baro).toLocaleString() + ' ft') : '');
+  if(d.s) return Math.round(d.alt).toLocaleString() + ' km';
+  return '';
+}
+
+/* Ships and aircraft are what this was asked for, so they lead; the rest
+   follow rather than being hidden, because a box over a coast catching a
+   priority event as well as the shipping is worth knowing about. */
+var BOX_ORDER = ['events','naval','air','hazard','quake','launch','iss','rf','sats','rocket','debris'];
+
+function boxReport(hits, kmAcross){
+  var out = document.getElementById('boxOut');
+  if(!out) return;
+  if(!hits.length){
+    out.style.display = '';
+    out.innerHTML = '<div class="bx-head"><b>Nothing in that box.</b>' +
+      '<span>try a bigger area, or turn a layer back on</span></div>';
+    return;
+  }
+  var tally = {};
+  hits.forEach(function(h){ tally[h.k] = (tally[h.k] || 0) + 1; });
+  var kinds = BOX_ORDER.filter(function(k){ return tally[k]; })
+    .concat(Object.keys(tally).filter(function(k){ return BOX_ORDER.indexOf(k) < 0; }));
+
+  var sorted = [];
+  kinds.forEach(function(k){
+    hits.filter(function(h){ return h.k === k; })
+        .sort(function(a,b){ return boxLabel(a).localeCompare(boxLabel(b)); })
+        .forEach(function(h){ sorted.push(h); });
+  });
+
+  var CAP = 250, shown = sorted.slice(0, CAP);
+  out.style.display = '';
+  out.innerHTML =
+    '<div class="bx-head"><b>' + hits.length.toLocaleString() + ' contact' +
+      (hits.length === 1 ? '' : 's') + ' in the box</b>' +
+      '<span>' + (kmAcross ? '↔ ' + kmAcross : '') + '</span></div>' +
+    '<div class="bx-tally">' + kinds.map(function(k){
+        var K = (KIND[k] || KIND_EXTRA[k] || {label:k, color:'#94a3b8'});
+        return '<i><b style="color:' + K.color + '">' + tally[k] + '</b>' + esc(K.label) + '</i>';
+      }).join('') + '</div>' +
+    '<div class="bx-list">' + shown.map(function(h, i){
+        var K = (KIND[h.k] || KIND_EXTRA[h.k] || {label:h.k, color:'#94a3b8'});
+        return '<button class="bx-row" data-box="' + i + '">' +
+          '<span class="bx-k" style="color:' + K.color + '">' + esc(K.label) + '</span>' +
+          '<span class="bx-n">' + esc(boxLabel(h)) + '</span>' +
+          '<span class="bx-d">' + esc(boxDetail(h)) + '</span></button>';
+      }).join('') + '</div>' +
+    (sorted.length > CAP
+      ? '<div class="bx-more">showing the first ' + CAP.toLocaleString() + ' of ' +
+        sorted.length.toLocaleString() + ' — draw a smaller box to narrow it</div>' : '');
+
+  out.querySelectorAll('[data-box]').forEach(function(b){
+    b.onclick = function(){
+      var h = shown[+b.dataset.box];
+      G.sel = h; renderDetail(h);
+      document.getElementById('detailPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+    };
+  });
+}
+
+function boxSpanKm(rect){
+  /* Report the box in kilometres on the ground, taken from two contacts inside
+     it rather than from the screen rectangle -- the globe is a sphere under a
+     projection, so pixels do not convert to distance at a fixed rate. */
+  return null;
+}
+
+function setBoxMode(on){
+  BOX.on = !!on;
+  BOX.drag = null; BOX.rect = null;
+  var b = document.getElementById('boxBtn');
+  if(b) b.classList.toggle('on', BOX.on);
+  ['globe','globe3d'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.classList.toggle('boxing', BOX.on);
+  });
+  boxOverlay();
+  if(!BOX.on){ var o = document.getElementById('boxOut'); if(o) o.style.display = 'none'; }
+}
+
+function boxPointer(el, onFinish){
+  /* Shared drag handling. Returns the rectangle in the element's own pixel
+     space; each renderer decides what falls inside it. */
+  function pos(e){
+    var r = el.getBoundingClientRect();
+    var t = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e);
+    return {x:t.clientX - r.left, y:t.clientY - r.top, w:r.width, h:r.height};
+  }
+  /* Both renderers register here, and the mouseup listener is on the window, so
+     without an owner the first registration to fire would claim every drag --
+     nulling the shared state and running its own hit test against whichever
+     globe is hidden. The drag records which canvas started it. */
+  el.addEventListener('mousedown', function(e){
+    if(!BOX.on || !el.offsetParent) return;        // offsetParent: this globe is the visible one
+    e.preventDefault(); e.stopPropagation();
+    BOX.drag = pos(e); BOX.drag.el = el; BOX.rect = null;
+  }, true);
+  addEventListener('mousemove', function(e){
+    if(!BOX.on || !BOX.drag || BOX.drag.el !== el) return;
+    var p = pos(e);
+    BOX.rect = {x0:Math.min(BOX.drag.x,p.x), y0:Math.min(BOX.drag.y,p.y),
+                x1:Math.max(BOX.drag.x,p.x), y1:Math.max(BOX.drag.y,p.y), w:p.w, h:p.h};
+    boxOverlay();
+  });
+  addEventListener('mouseup', function(e){
+    if(!BOX.on || !BOX.drag || BOX.drag.el !== el) return;
+    var r = BOX.rect;
+    BOX.drag = null;
+    if(!r || (r.x1-r.x0) < 6 || (r.y1-r.y0) < 6){ BOX.rect = null; boxOverlay(); return; }
+    onFinish(r);
+    BOX.rect = null; boxOverlay();
+  });
+}
+
+/* The rectangle is a positioned div rather than something painted into a
+   canvas: one globe is 2D canvas and the other is three.js, and a div sits
+   over either without each renderer needing its own overlay pass. */
+var BOXEL = null;
+function boxOverlay(){
+  if(!BOXEL){
+    BOXEL = document.createElement('div');
+    BOXEL.style.cssText = 'position:absolute;pointer-events:none;display:none;z-index:6;' +
+      'border:1.5px solid rgba(34,211,238,.95);background:rgba(34,211,238,.10);border-radius:2px';
+    var host = document.querySelector('.globe-col');
+    if(host){ host.style.position = 'relative'; host.appendChild(BOXEL); }
+  }
+  var r = BOX.rect;
+  if(!BOX.on || !r){ BOXEL.style.display = 'none'; return; }
+  var live = document.getElementById('globe3d');
+  if(!live || getComputedStyle(live).display === 'none') live = document.getElementById('globe');
+  var host = BOXEL.parentNode;
+  if(!live || !host) return;
+  var lb = live.getBoundingClientRect(), hb = host.getBoundingClientRect();
+  BOXEL.style.display = 'block';
+  BOXEL.style.left   = (lb.left - hb.left + r.x0) + 'px';
+  BOXEL.style.top    = (lb.top  - hb.top  + r.y0) + 'px';
+  BOXEL.style.width  = (r.x1 - r.x0) + 'px';
+  BOXEL.style.height = (r.y1 - r.y0) + 'px';
+}
+
 /* ---- layer buttons ---- */
 document.querySelectorAll('.lyr[data-layer]').forEach(function(b){
   b.addEventListener('click', function(){
@@ -1501,6 +1706,56 @@ function hoverPause(on){
   el.addEventListener('mouseenter', function(){ hoverPause(true); });
   el.addEventListener('mouseleave', function(){ hoverPause(false); });
 });
+
+document.getElementById('boxBtn').addEventListener('click', function(){ setBoxMode(!BOX.on); });
+
+/* 2D: contacts already carry screen coords from the last frame, and the
+   satellite catalogue is walked the same way picking does. */
+boxPointer(cv, function(r){
+  var sx = cv.width / (r.w || cv.width), sy = cv.height / (r.h || cv.height);
+  var X0 = r.x0*sx, X1 = r.x1*sx, Y0 = r.y0*sy, Y1 = r.y1*sy;
+  var hits = [];
+  (G._hit || []).forEach(function(c){
+    if(c.sx >= X0 && c.sx <= X1 && c.sy >= Y0 && c.sy <= Y1) hits.push(c);
+  });
+  var S = G.satsRaw;
+  if(S && G.satOk){
+    var D2 = Math.PI/180, rot0 = G.rot[0]*D2, p0 = G.rot[1]*D2;
+    var cp0 = Math.cos(p0), sp0 = Math.sin(p0);
+    for(var i=0;i<S.length;i++){
+      if(!G.satOk[i]) continue;
+      var kind = KIND_OF[S[i][9]] || 'debris';
+      if(!G.layers[kind]) continue;
+      var la = G.satLat[i]*D2, lo = G.satLon[i]*D2 + rot0, cpp = Math.cos(la);
+      if(sp0*Math.sin(la) + cp0*cpp*Math.cos(lo) <= 0) continue;
+      var x = G.cx + G.R*(cpp*Math.sin(lo));
+      var y = G.cy - G.R*(cp0*Math.sin(la) - sp0*cpp*Math.cos(lo));
+      if(x >= X0 && x <= X1 && y >= Y0 && y <= Y1)
+        hits.push({k:kind, lat:G.satLat[i], lon:G.satLon[i], color:KIND[kind].color,
+                   id:'sat'+i, d:{s:S[i], alt:G.satAlt[i]}});
+    }
+  }
+  boxReport(hits, boxExtent(hits));
+});
+
+/* Box width on the ground, from the contacts themselves: the globe is a sphere
+   under a projection, so screen pixels do not convert to kilometres at any
+   fixed rate. */
+function kmBetween(la1, lo1, la2, lo2){
+  var R = 6371, D = Math.PI/180;
+  var dla = (la2-la1)*D, dlo = (lo2-lo1)*D;
+  var a = Math.sin(dla/2)*Math.sin(dla/2) +
+          Math.cos(la1*D)*Math.cos(la2*D)*Math.sin(dlo/2)*Math.sin(dlo/2);
+  return 2*R*Math.asin(Math.min(1, Math.sqrt(a)));
+}
+function boxExtent(hits){
+  if(hits.length < 2) return null;
+  var la = hits.map(function(h){ return h.lat; }), lo = hits.map(function(h){ return h.lon; });
+  var km = kmBetween(Math.min.apply(null,la), Math.min.apply(null,lo),
+                     Math.max.apply(null,la), Math.max.apply(null,lo));
+  if(!isFinite(km)) return null;
+  return km >= 10 ? Math.round(km).toLocaleString() + ' km' : km.toFixed(1) + ' km';
+}
 
 document.getElementById('spinBtn').addEventListener('click', function(){
   G.spin=!G.spin; this.classList.toggle('on', G.spin);
@@ -2139,6 +2394,11 @@ window.TB = {
   setSpin: function(on){ setSpin(on); },
   stopCanvasGlobe: function(){ G.stopped = true; },
   clearThinning: function(){ var el = document.getElementById('thinNote'); if(el) el.style.display = 'none'; },
+  boxPointer: function(el, fn){ return boxPointer(el, fn); },
+  boxReport:  function(h, km){ return boxReport(h, km); },
+  boxExtent:  function(h){ return boxExtent(h); },
+  boxOn:      function(){ return BOX.on; },
+  boxRect:    function(){ return BOX.rect; },
   /* The 3D renderer draws only a sample of the orbital catalogue when zoomed
      out. A display that quietly shows one object in five while the layer button
      reads 18,741 is telling the reader something false, so it says which ratio
@@ -2926,6 +3186,9 @@ function focusGlobe(lat, lon, zoom){
   }
   function row(k, v){ return '<div class="d-row"><span>'+k+'</span><span>'+esc(String(v))+'</span></div>'; }
 
+  // a mousedown that begins a drag is what seeds the selection; refuse it here
+  mapC.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  mapC.addEventListener('selectstart', function(e){ e.preventDefault(); });
   mapC.addEventListener('mousemove', function(e){
     if(!GRID) return;
     var r = mapC.getBoundingClientRect();
@@ -3689,7 +3952,9 @@ async function boot(){
     renderer.setSize(w, w, false);
     camera.aspect = 1; camera.updateProjectionMatrix();
   }
-  cv.addEventListener('mousedown', e => { drag = {x:e.clientX, y:e.clientY, rx:rotX, ry:rotY, moved:false}; cv.classList.add('drag'); });
+  cv.addEventListener('mousedown', e => {
+    if(window.TB.boxOn()) return;              // boxing owns the drag
+    drag = {x:e.clientX, y:e.clientY, rx:rotX, ry:rotY, moved:false}; cv.classList.add('drag'); });
   addEventListener('mousemove', e => {
     if(!drag) return;
     const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
@@ -3735,7 +4000,9 @@ async function boot(){
     const n = cg.drawRange.count;
     for(let i=0;i<n;i++){
       if(!meta[i]) continue;
-      v3.set(cPos[i*3], cPos[i*3+1], cPos[i*3+2]).applyMatrix4(world.matrixWorld).project(camera);
+      _wp.set(cPos[i*3], cPos[i*3+1], cPos[i*3+2]).applyMatrix4(world.matrixWorld);
+      if(occluded(_wp)) continue;                  // never pick through the planet
+      v3.copy(_wp).project(camera);
       if(v3.z > 1) continue;
       const sx = (v3.x*0.5+0.5)*r.width, sy = (-v3.y*0.5+0.5)*r.height;
       const dd = (sx-px)*(sx-px) + (sy-py)*(sy-py);
@@ -3753,6 +4020,47 @@ async function boot(){
     window.TB.G.sel = best;
     window.TB.renderDetail(best);
   }
+
+  /* Is this contact hidden behind the globe? Projecting to screen is not enough:
+     a point in Taiwan projects into a box drawn over the Baltic because the
+     projection does not care which side of the sphere it sits on, and depth
+     testing hides it on screen while leaving it in the hit list. So the ray
+     from the camera to the point is tested against the unit globe, and anything
+     the globe stands in front of is dropped. Without this a box over the Baltic
+     reported 16,386 km across and included a contact in the Taiwan Strait. */
+  const _wp = new THREE.Vector3(), _dir = new THREE.Vector3(), _cp = new THREE.Vector3();
+  function occluded(wp){
+    _dir.copy(wp).sub(camera.position);
+    const len = _dir.length();
+    if(len < 1e-6) return false;
+    _dir.divideScalar(len);
+    const t = -camera.position.dot(_dir);          // nearest approach along the ray
+    if(t <= 0 || t >= len) return false;           // globe is behind us, or past the point
+    _cp.copy(camera.position).addScaledVector(_dir, t);
+    return _cp.length() < 0.999;                   // the ray passes through the earth
+  }
+
+  /* Box select: same projection walk as nearest(), but collecting instead of
+     ranking. meta[] is parallel to the drawn points, so a thinned catalogue
+     reports only what is actually on screen -- which is the honest answer to
+     "what is in this box" for a view that is showing one payload in five. */
+  window.TB.boxPointer(cv, function(r){
+    const hits = [], n = cg.drawRange.count;
+    const rect = cv.getBoundingClientRect();
+    const sx = rect.width  ? rect.width  : cv.clientWidth;
+    const sy = rect.height ? rect.height : cv.clientHeight;
+    for(let i=0;i<n;i++){
+      if(!meta[i]) continue;
+      _wp.set(cPos[i*3], cPos[i*3+1], cPos[i*3+2]).applyMatrix4(world.matrixWorld);
+      if(occluded(_wp)) continue;
+      v3.copy(_wp).project(camera);
+      if(v3.z > 1) continue;
+      const px = (v3.x*0.5+0.5)*sx, py = (-v3.y*0.5+0.5)*sy;
+      if(px >= r.x0 && px <= r.x1 && py >= r.y0 && py <= r.y1)
+        hits.push(Object.assign({}, meta[i], {color:'#'+col.fromArray(cCol, i*3).getHexString()}));
+    }
+    window.TB.boxReport(hits, window.TB.boxExtent(hits));
+  });
 
   /* Cursor feedback. Throttled because nearest() projects every drawn point;
      at ~8k points that is well under a millisecond, but not at 60Hz. */
