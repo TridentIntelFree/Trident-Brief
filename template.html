@@ -124,6 +124,31 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .content a.cite:hover{background:rgba(59,130,246,.4);color:#fff;border-color:var(--blue)}
 @media print{ .content a.cite{color:#333;background:none;border-color:#999} }
 
+/* ---------- terrain ---------- */
+.tr-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+#trCoord{flex:1 1 220px;min-width:0;background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:7px;
+  color:var(--ink);font-family:var(--mono);font-size:.82em;padding:8px 11px}
+#trCoord:focus{outline:none;border-color:var(--blue)}
+#trSpan{background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:7px;color:var(--ink-dim);
+  font-family:var(--mono);font-size:.76em;padding:8px 9px}
+.tr-hint{font-family:var(--mono);font-size:.7em;color:var(--ink-faint);letter-spacing:.05em}
+.tr-wrap{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
+.tr-mapcol{min-width:0}
+#trMap{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;background:#05091a;cursor:crosshair}
+.tr-legend{display:flex;align-items:center;gap:9px;margin-top:8px;font-family:var(--mono);font-size:.66em;color:var(--ink-faint)}
+.tr-legend b{color:var(--ink);font-weight:600}
+.tr-ramp{flex:1;height:7px;border-radius:4px;
+  background:linear-gradient(90deg,#1e3a5f,#2d6a4f,#74a942,#c9b458,#a0642e,#8a6a5c,#e8eefc)}
+.tr-scale{white-space:nowrap}
+.tr-side{min-width:0}
+.tr-read{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));border:1px solid var(--line2);
+  border-radius:9px;padding:13px;margin-bottom:10px;min-height:104px}
+#trProfile{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:9px;background:rgba(7,13,30,.8)}
+.tr-los{margin-top:10px;font-family:var(--mono);font-size:.72em;line-height:1.7;color:var(--ink-dim)}
+.tr-los b{color:#fff}
+.tr-los .ok{color:#34d399}.tr-los .no{color:#f87171}
+@media (max-width:860px){ .tr-wrap{grid-template-columns:1fr} }
+
 /* ---------- mushroom body ---------- */
 .fly-wrap{display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
 #flyCanvas{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:10px;
@@ -440,6 +465,50 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         <div class="t-sub" id="lSub">Loading manifest&hellip;</div>
         <div class="t-list" id="lList"></div>
         <div class="t-src">collected server-side &middot; Launch Library 2</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TERRAIN ============ -->
+  <div class="section-band" id="terrainBand">
+    <div class="band-head">
+      <h2>&#9968;&#65039; Terrain &mdash; Analyse Ground</h2>
+      <div class="sub">
+        click any contact on the globe and choose ANALYSE TERRAIN, or enter coordinates &middot;
+        elevation from <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">AWS Terrain Tiles</a>
+        (public domain, no key)
+      </div>
+    </div>
+
+    <div class="tr-ctl">
+      <input type="text" id="trCoord" placeholder="lat, lon  e.g.  44.720, 37.770" autocomplete="off" spellcheck="false">
+      <select id="trSpan">
+        <option value="5">5 km across</option>
+        <option value="12" selected>12 km across</option>
+        <option value="30">30 km across</option>
+        <option value="80">80 km across</option>
+      </select>
+      <button class="ev-btn" id="trGo">ANALYSE</button>
+      <span class="tr-hint" id="trHint">nothing loaded</span>
+    </div>
+
+    <div id="trResult" style="display:none">
+      <div class="tr-wrap">
+        <div class="tr-mapcol">
+          <canvas id="trMap"></canvas>
+          <div class="tr-legend">
+            <span><b id="trLo">&mdash;</b> low</span>
+            <i class="tr-ramp"></i>
+            <span><b id="trHi">&mdash;</b> high</span>
+            <span class="tr-scale" id="trScale"></span>
+          </div>
+          <div class="globe-hint">hover to read elevation &middot; click twice to draw a line of sight</div>
+        </div>
+        <div class="tr-side">
+          <div class="tr-read" id="trRead"></div>
+          <canvas id="trProfile"></canvas>
+          <div class="tr-los" id="trLos"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1387,7 +1456,11 @@ function renderDetail(c){
     (wantsChip ? '<div class="ev-chip-wrap" style="margin-bottom:13px"><canvas class="ev-chip" data-lat="'+c.lat+
        '" data-lon="'+c.lon+'" data-tint="'+esc(c.color)+'"></canvas></div>' : '') +
     '<div class="d-rows">'+rows.map(function(r){ return '<div class="d-row"><span>'+r[0]+'</span><span>'+esc(String(r[1]))+'</span></div>'; }).join('')+'</div>' +
-    (link ? '<a class="d-link" href="'+esc(link)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '');
+    (link ? '<a class="d-link" href="'+esc(link)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '') +
+    /* Every contact on this globe has coordinates, which is the whole input the
+       terrain tool needs -- no geocoder, no place-name lookup, no third-party
+       host that has to be reachable. Click a thing, look at the ground under it. */
+    '<button class="d-link" style="cursor:pointer;margin-left:7px" data-terrain="'+c.lat+','+c.lon+'">ANALYSE TERRAIN</button>';
 
   if(wantsChip){ basemap(); drawChip(el.querySelector('canvas.ev-chip')); }
 }
@@ -2520,6 +2593,419 @@ function focusGlobe(lat, lon, zoom){
       ' \u00b7 max priority '+(p.maxPriority||'-')+'</div>';
     b.onclick = function(){ focusGlobe(p.lat, p.lon, 3); };
     list.appendChild(b);
+  });
+})();
+
+/* =====================================================================
+   TERRAIN -- read the ground under a contact
+
+   Elevation comes from the AWS Terrain Tiles open dataset: XYZ PNG tiles,
+   public domain, no key, and served with Access-Control-Allow-Origin: *,
+   which is the part that matters. A static page can only fetch what sends
+   CORS headers, and this project has lost feeds to that rule repeatedly, so
+   the source was picked by testing it rather than by reputation. Decode was
+   checked against known ground before any of this was written: Death Valley
+   came back -83 m against a true -86, Minneapolis 262 against ~265, and the
+   mid-Atlantic tile returns -3287 m, so the bathymetry is in there too.
+
+   Terrarium packs metres into RGB: (R*256 + G + B/256) - 32768. Reading it
+   back needs canvas getImageData, which taints on a cross-origin image unless
+   crossOrigin is set AND the host sends the header -- both true here, and the
+   reason this works at all.
+
+   Resolution is the honest limit. The underlying data is roughly 30 m where
+   it comes from SRTM and better over the US; zooming past that interpolates
+   rather than reveals, so the readout states the metres per pixel actually in
+   play instead of implying detail the source does not carry.
+   ===================================================================== */
+(function(){
+  var band = document.getElementById('terrainBand');
+  if(!band) return;
+
+  var TILE = 256, MAXTILES = 36;
+  var mapC = document.getElementById('trMap'), mapX = mapC.getContext('2d');
+  var profC = document.getElementById('trProfile'), profX = profC.getContext('2d');
+  var GRID = null;      // {w,h,z,lat,lon,mpp,el:Float32Array,min,max,west,north,lonSpan,latSpan}
+  var picks = [];
+
+  function lon2x(lon, z){ return (lon + 180) / 360 * Math.pow(2, z); }
+  function lat2y(lat, z){
+    var r = lat * Math.PI / 180;
+    return (1 - Math.log(Math.tan(r) + 1/Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z);
+  }
+  function x2lon(x, z){ return x / Math.pow(2, z) * 360 - 180; }
+  function y2lat(y, z){
+    var n = Math.PI - 2*Math.PI*y/Math.pow(2, z);
+    return 180/Math.PI * Math.atan(0.5*(Math.exp(n) - Math.exp(-n)));
+  }
+  function mppAt(lat, z){ return 156543.03392 * Math.cos(lat*Math.PI/180) / Math.pow(2, z); }
+
+  function loadTile(z, x, y){
+    return new Promise(function(res){
+      var n = Math.pow(2, z);
+      var xx = ((x % n) + n) % n;                      // wrap the antimeridian
+      if(y < 0 || y >= n) return res(null);             // past the poles: no tile
+      var im = new Image(), done = false;
+      im.crossOrigin = 'anonymous';                    // required before getImageData
+      function settle(v){ if(done) return; done = true; clearTimeout(t); res(v); }
+      /* An image that fires neither load nor error -- a stalled connection, a
+         captive portal, a TLS failure the browser handles quietly -- would leave
+         Promise.all pending forever and the panel reading "loading tiles" with
+         no way out. Every tile gets its own deadline so a missing one degrades
+         into a no-data patch, which the renderer already draws honestly. */
+      var t = setTimeout(function(){ settle(null); }, 12000);
+      im.onload  = function(){ settle({im:im, x:x, y:y}); };
+      im.onerror = function(){ settle(null); };
+      im.src = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/' +
+               z + '/' + xx + '/' + y + '.png';
+    });
+  }
+
+  /* Fetch enough tiles to cover kmAcross around a point and decode to metres. */
+  function build(lat, lon, kmAcross, onDone, onFail){
+    var target = 640;                                   // working raster width
+    var mppWant = kmAcross * 1000 / target;
+    var z = Math.round(Math.log2(156543.03392 * Math.cos(lat*Math.PI/180) / mppWant));
+    z = Math.max(1, Math.min(14, z));                   // terrarium tops out at 15
+    var mpp = mppAt(lat, z);
+    var pxAcross = Math.round(kmAcross * 1000 / mpp);
+
+    var cx = lon2x(lon, z), cy = lat2y(lat, z);
+    var half = pxAcross / 2 / TILE;
+    var x0 = Math.floor(cx - half), x1 = Math.floor(cx + half);
+    var y0 = Math.floor(cy - half), y1 = Math.floor(cy + half);
+    var nx = x1 - x0 + 1, ny = y1 - y0 + 1;
+    if(nx*ny > MAXTILES) return onFail('area too large for this zoom');
+
+    var jobs = [];
+    for(var ty = y0; ty <= y1; ty++)
+      for(var tx = x0; tx <= x1; tx++) jobs.push(loadTile(z, tx, ty));
+
+    Promise.all(jobs).then(function(tiles){
+      var got = tiles.filter(Boolean);
+      if(!got.length) return onFail('no terrain tiles returned');
+      var W = nx*TILE, H = ny*TILE;
+      var cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      var g = cv.getContext('2d', {willReadFrequently:true});
+      got.forEach(function(t){ g.drawImage(t.im, (t.x-x0)*TILE, (t.y-y0)*TILE); });
+
+      var d;
+      try { d = g.getImageData(0, 0, W, H).data; }
+      catch(e){ return onFail('tile canvas tainted: ' + e.message); }
+
+      /* A tile that failed to load leaves transparent pixels, and transparent
+         decodes to (0,0,0) -> -32768, which is also terrarium's own no-data
+         value. Left in, one missing tile drags the minimum to -32768, flattens
+         the colour ramp onto the real terrain and pushes the contour interval
+         to 2 km. Both readings are nonsense, and neither looks like an error.
+         So no-data is tracked separately and excluded from everything. */
+      var el = new Float32Array(W*H), ok = new Uint8Array(W*H);
+      var mn = Infinity, mx = -Infinity, nodata = 0;
+      for(var i=0, q=0; i<el.length; i++, q+=4){
+        var v = (d[q]*256 + d[q+1] + d[q+2]/256) - 32768;
+        if(d[q+3] === 0 || v <= -20000){ el[i] = NaN; nodata++; continue; }
+        el[i] = v; ok[i] = 1;
+        if(v < mn) mn = v;
+        if(v > mx) mx = v;
+      }
+      if(!nodata || nodata === el.length){ /* nothing to say */ }
+      if(mn === Infinity) return onFail('tiles decoded to no-data everywhere');
+      GRID = {w:W, h:H, z:z, mpp:mpp, el:el, ok:ok, min:mn, max:mx,
+              lat:lat, lon:lon, tx0:x0, ty0:y0, nodata:nodata,
+              tiles:got.length, asked:nx*ny};
+      onDone(GRID);
+    });
+  }
+
+  function elAt(px, py){
+    if(!GRID) return null;
+    var x = Math.max(0, Math.min(GRID.w-1, Math.round(px)));
+    var y = Math.max(0, Math.min(GRID.h-1, Math.round(py)));
+    var i = y*GRID.w + x;
+    return GRID.ok[i] ? GRID.el[i] : null;
+  }
+  function pxToLL(px, py){
+    var z = GRID.z;
+    return {lat: y2lat(GRID.ty0 + py/TILE, z), lon: x2lon(GRID.tx0 + px/TILE, z)};
+  }
+
+  /* Hillshade (Horn) plus a hypsometric ramp. The shading is what makes relief
+     legible; the ramp alone reads as a blur. */
+  var RAMP = [[0,'#14304f'],[0.12,'#1e5f52'],[0.3,'#3f7d3a'],[0.5,'#8e9a3c'],
+              [0.68,'#b08a46'],[0.84,'#8a6a5c'],[1,'#e8eefc']];
+  function ramp(t){
+    for(var i=1;i<RAMP.length;i++){
+      if(t <= RAMP[i][0]){
+        var a = RAMP[i-1], b = RAMP[i];
+        var f = (t - a[0]) / (b[0] - a[0] || 1);
+        var pa = parseInt(a[1].slice(1),16), pb = parseInt(b[1].slice(1),16);
+        return [ (pa>>16&255) + ((pb>>16&255)-(pa>>16&255))*f,
+                 (pa>>8&255)  + ((pb>>8&255) -(pa>>8&255)) *f,
+                 (pa&255)     + ((pb&255)    -(pa&255))    *f ];
+      }
+    }
+    return [232,238,252];
+  }
+
+  function render(){
+    var W = GRID.w, H = GRID.h;
+    mapC.width = W; mapC.height = H;
+    mapC.style.aspectRatio = W + ' / ' + H;
+    var img = mapX.createImageData(W, H), o = img.data;
+    var el = GRID.el, mn = GRID.min, mx = GRID.max, span = (mx - mn) || 1;
+    var az = 315 * Math.PI/180, alt = 45 * Math.PI/180, zf = 2.2;
+    var cellsz = GRID.mpp;
+
+    for(var y=0; y<H; y++){
+      for(var x=0; x<W; x++){
+        var i = y*W + x;
+        var xm = x>0 ? x-1 : x, xp = x<W-1 ? x+1 : x;
+        var ym = y>0 ? y-1 : y, yp = y<H-1 ? y+1 : y;
+        var dzdx = (el[y*W+xp] - el[y*W+xm]) / ((xp-xm) * cellsz);
+        var dzdy = (el[yp*W+x] - el[ym*W+x]) / ((yp-ym) * cellsz);
+        if(!GRID.ok[i]){ var q0 = i*4;
+          o[q0] = 18; o[q0+1] = 22; o[q0+2] = 34; o[q0+3] = 255; continue; }
+        var slope = Math.atan(zf * Math.hypot(dzdx, dzdy));
+        var aspect = Math.atan2(dzdy, -dzdx);
+        var sh = Math.cos(alt)*Math.cos(slope) + Math.sin(alt)*Math.sin(slope)*Math.cos(az - aspect);
+        sh = Math.max(0.15, Math.min(1.25, sh));
+        var c = ramp((el[i] - mn) / span);
+        var p = i*4;
+        o[p]   = Math.min(255, c[0]*sh);
+        o[p+1] = Math.min(255, c[1]*sh);
+        o[p+2] = Math.min(255, c[2]*sh);
+        o[p+3] = 255;
+      }
+    }
+    mapX.putImageData(img, 0, 0);
+    drawContours();
+    drawPicks();
+  }
+
+  /* Contours at a step chosen from the relief, so a floodplain and a mountain
+     range both come back readable instead of solid black or blank. */
+  function contourStep(relief){
+    var steps = [5,10,20,25,50,100,200,250,500,1000];
+    for(var i=0;i<steps.length;i++) if(relief/steps[i] <= 14) return steps[i];
+    return 2000;
+  }
+  function drawContours(){
+    var W = GRID.w, H = GRID.h, el = GRID.el;
+    var step = contourStep(GRID.max - GRID.min);
+    GRID.step = step;
+    mapX.strokeStyle = 'rgba(0,0,0,.30)';
+    mapX.lineWidth = 1;
+    mapX.beginPath();
+    for(var y=1; y<H; y++){
+      for(var x=1; x<W; x++){
+        var i0 = y*W+x, i1 = y*W+x-1, i2 = (y-1)*W+x;
+        if(!GRID.ok[i0] || !GRID.ok[i1] || !GRID.ok[i2]) continue;
+        var a = el[i0], b = el[i1], c = el[i2];
+        if(Math.floor(a/step) !== Math.floor(b/step)){ mapX.moveTo(x, y); mapX.lineTo(x, y+1); }
+        if(Math.floor(a/step) !== Math.floor(c/step)){ mapX.moveTo(x, y); mapX.lineTo(x+1, y); }
+      }
+    }
+    mapX.stroke();
+  }
+
+  function drawPicks(){
+    if(!picks.length) return;
+    mapX.save();
+    picks.forEach(function(p, i){
+      mapX.strokeStyle = i === 0 ? '#22d3ee' : '#f59e0b';
+      mapX.lineWidth = 2.5;
+      mapX.beginPath(); mapX.arc(p.x, p.y, 7, 0, Math.PI*2); mapX.stroke();
+      mapX.beginPath(); mapX.moveTo(p.x-12, p.y); mapX.lineTo(p.x+12, p.y);
+      mapX.moveTo(p.x, p.y-12); mapX.lineTo(p.x, p.y+12); mapX.stroke();
+    });
+    if(picks.length === 2){
+      mapX.strokeStyle = 'rgba(255,255,255,.85)';
+      mapX.setLineDash([6,4]); mapX.lineWidth = 2;
+      mapX.beginPath(); mapX.moveTo(picks[0].x, picks[0].y);
+      mapX.lineTo(picks[1].x, picks[1].y); mapX.stroke();
+      mapX.setLineDash([]);
+    }
+    mapX.restore();
+  }
+
+  /* Line of sight. Walk the straight line between two points, compare the ground
+     against the sight line, and report the first thing that gets in the way. An
+     observer and a target both stand 1.7 m above the ground; without that a
+     ridge you are standing on blocks your own view. Earth curvature and
+     refraction are included -- over 30 km they are worth tens of metres, which
+     is the difference between seeing a port and not. */
+  function profile(){
+    var A = picks[0], B = picks[1];
+    var n = Math.max(48, Math.round(Math.hypot(B.x-A.x, B.y-A.y)));
+    var pts = [], EYE = 1.7, R = 6371000, K = 0.13;   // K: standard refraction
+    for(var i=0;i<=n;i++){
+      var t = i/n;
+      var px = A.x + (B.x-A.x)*t, py = A.y + (B.y-A.y)*t;
+      var zz = elAt(px, py);
+      if(zz == null) continue;                 // a gap cannot block or clear a view
+      pts.push({t:t, d:t * n * GRID.mpp, z:zz});
+    }
+    if(pts.length < 3) return null;
+    var total = pts[pts.length-1].d;
+    var z0 = pts[0].z + EYE, z1 = pts[pts.length-1].z + EYE;
+    var blocked = null;
+    for(var j=1;j<pts.length-1;j++){
+      var p = pts[j];
+      var sight = z0 + (z1 - z0) * p.t;
+      // drop of the earth's surface away from the observer, eased by refraction
+      var drop = (p.d * (total - p.d)) / (2 * R / (1 - K));
+      p.sight = sight;
+      p.drop = drop;
+      if(p.z > sight + drop){ if(!blocked || p.z - (sight+drop) > blocked.by){
+        blocked = {at:p.d, by:p.z - (sight+drop), z:p.z}; } }
+    }
+    return {pts:pts, total:total, blocked:blocked, z0:pts[0].z, z1:pts[pts.length-1].z};
+  }
+
+  function drawProfile(pr){
+    var W = 300, H = 120, dpr = Math.min(devicePixelRatio||1, 2);
+    profC.width = W*dpr; profC.height = H*dpr;
+    profC.style.aspectRatio = W + ' / ' + H;
+    var g = profX; g.setTransform(dpr,0,0,dpr,0,0);
+    g.clearRect(0,0,W,H);
+    if(!pr){ g.fillStyle='rgba(148,163,184,.4)'; g.font='9px ui-monospace,monospace';
+             g.textAlign='center'; g.fillText('click two points for a profile', W/2, H/2); return; }
+    var zs = pr.pts.map(function(p){ return p.z; });
+    var lo = Math.min.apply(null, zs), hi = Math.max.apply(null, zs);
+    var pad = (hi-lo)*0.15 + 5; lo -= pad; hi += pad;
+    var X = function(d){ return 6 + d/pr.total * (W-12); };
+    var Y = function(z){ return H-16 - (z-lo)/(hi-lo) * (H-28); };
+    // ground
+    g.beginPath(); g.moveTo(X(0), H-16);
+    pr.pts.forEach(function(p){ g.lineTo(X(p.d), Y(p.z)); });
+    g.lineTo(X(pr.total), H-16); g.closePath();
+    g.fillStyle = 'rgba(56,120,90,.5)'; g.fill();
+    g.strokeStyle = '#74a942'; g.lineWidth = 1.2; g.beginPath();
+    pr.pts.forEach(function(p,i){ i?g.lineTo(X(p.d),Y(p.z)):g.moveTo(X(p.d),Y(p.z)); });
+    g.stroke();
+    // sight line, curvature-corrected
+    g.strokeStyle = pr.blocked ? '#f87171' : '#34d399';
+    g.setLineDash([5,3]); g.lineWidth = 1.4; g.beginPath();
+    pr.pts.forEach(function(p,i){
+      var s = (p.sight != null ? p.sight - p.drop : (i ? pr.z1 : pr.z0) + 1.7);
+      i?g.lineTo(X(p.d),Y(s)):g.moveTo(X(p.d),Y(s));
+    });
+    g.stroke(); g.setLineDash([]);
+    if(pr.blocked){
+      g.strokeStyle = '#f87171'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(X(pr.blocked.at), 6); g.lineTo(X(pr.blocked.at), H-16); g.stroke();
+    }
+    g.fillStyle = 'rgba(148,163,184,.75)';
+    g.font = '8px ui-monospace,SFMono-Regular,monospace';
+    g.textAlign='left';  g.fillText(Math.round(lo)+' m', 4, 9);
+    g.textAlign='right'; g.fillText(fmtKm(pr.total), W-4, H-5);
+  }
+
+  function fmtKm(m){ return m >= 1000 ? (m/1000).toFixed(2)+' km' : Math.round(m)+' m'; }
+
+  function readout(px, py){
+    var ll = pxToLL(px, py), z = elAt(px, py);
+    if(z == null){
+      document.getElementById('trRead').innerHTML =
+        '<div class="fly-label">under cursor</div><div class="d-rows" style="margin:9px 0 0">' +
+        row('ELEVATION', 'no data here') +
+        row('POSITION', Math.abs(ll.lat).toFixed(4)+'\u00b0'+(ll.lat>=0?'N':'S')+'  '+
+                        Math.abs(ll.lon).toFixed(4)+'\u00b0'+(ll.lon>=0?'E':'W')) + '</div>';
+      return;
+    }
+    document.getElementById('trRead').innerHTML =
+      '<div class="fly-label">under cursor</div>' +
+      '<div class="d-rows" style="margin:9px 0 0">' +
+        row('ELEVATION', Math.round(z).toLocaleString() + ' m  (' + Math.round(z*3.28084).toLocaleString() + ' ft)') +
+        row('POSITION', Math.abs(ll.lat).toFixed(4)+'\u00b0'+(ll.lat>=0?'N':'S')+'  '+
+                        Math.abs(ll.lon).toFixed(4)+'\u00b0'+(ll.lon>=0?'E':'W')) +
+        row('RELIEF HERE', Math.round(GRID.min)+' to '+Math.round(GRID.max)+' m') +
+        row('SAMPLE', Math.round(GRID.mpp)+' m/px  \u00b7  contours '+GRID.step+' m') +
+      '</div>';
+  }
+  function row(k, v){ return '<div class="d-row"><span>'+k+'</span><span>'+esc(String(v))+'</span></div>'; }
+
+  mapC.addEventListener('mousemove', function(e){
+    if(!GRID) return;
+    var r = mapC.getBoundingClientRect();
+    readout((e.clientX-r.left)/r.width*GRID.w, (e.clientY-r.top)/r.height*GRID.h);
+  });
+  mapC.addEventListener('click', function(e){
+    if(!GRID) return;
+    var r = mapC.getBoundingClientRect();
+    var p = {x:(e.clientX-r.left)/r.width*GRID.w, y:(e.clientY-r.top)/r.height*GRID.h};
+    if(picks.length >= 2) picks = [];
+    picks.push(p);
+    render();
+    if(picks.length === 2){
+      var pr = profile();
+      drawProfile(pr);
+      if(!pr){ document.getElementById('trLos').innerHTML =
+        '<b>No elevation data</b> along that line.'; return; }
+      var b = pr.blocked;
+      document.getElementById('trLos').innerHTML =
+        '<b>Line of sight</b> over ' + fmtKm(pr.total) + '<br>' +
+        'A ' + Math.round(pr.z0) + ' m &rarr; B ' + Math.round(pr.z1) + ' m<br>' +
+        (b ? '<span class="no">&#9679; BLOCKED</span> &mdash; ground rises ' + Math.round(b.by) +
+             ' m above the sight line at ' + fmtKm(b.at) + ' out'
+           : '<span class="ok">&#9679; CLEAR</span> &mdash; nothing breaks the line') +
+        '<br><span style="color:var(--ink-faint)">eye height 1.7 m both ends; earth curvature and refraction included</span>';
+    } else {
+      drawProfile(null);
+      document.getElementById('trLos').innerHTML =
+        '<b>Point A set.</b> Click a second point for line of sight and an elevation profile.';
+    }
+  });
+
+  function go(lat, lon, km){
+    var hint = document.getElementById('trHint');
+    hint.textContent = 'loading tiles\u2026';
+    picks = [];
+    build(lat, lon, km, function(G){
+      document.getElementById('trResult').style.display = '';
+      render();
+      drawProfile(null);
+      document.getElementById('trLos').innerHTML =
+        '<b>Click two points</b> on the map to test line of sight between them.';
+      document.getElementById('trLo').textContent = Math.round(G.min) + ' m';
+      document.getElementById('trHi').textContent = Math.round(G.max) + ' m';
+      document.getElementById('trScale').textContent =
+        '\u2194 ' + (G.w*G.mpp/1000).toFixed(1) + ' km';
+      readout(G.w/2, G.h/2);
+      hint.textContent = G.tiles + ' of ' + G.asked + ' tiles \u00b7 z' + G.z +
+                         ' \u00b7 ' + Math.round(G.mpp) + ' m/px' +
+                         (G.nodata ? ' \u00b7 ' + (G.nodata/(G.w*G.h)*100).toFixed(0) + '% no data' : '');
+    }, function(err){
+      hint.innerHTML = '<span style="color:#f87171">' + esc(err) + '</span>';
+    });
+  }
+
+  document.getElementById('trGo').addEventListener('click', function(){
+    var v = (document.getElementById('trCoord').value || '').trim();
+    var m = v.match(/(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)/);
+    if(!m){ document.getElementById('trHint').innerHTML =
+      '<span style="color:#f87171">enter coordinates as  lat, lon</span>'; return; }
+    var la = parseFloat(m[1]), lo = parseFloat(m[2]);
+    if(Math.abs(la) > 85 || Math.abs(lo) > 180){
+      document.getElementById('trHint').innerHTML =
+        '<span style="color:#f87171">out of range (lat \u00b185, lon \u00b1180)</span>'; return; }
+    go(la, lo, parseFloat(document.getElementById('trSpan').value));
+  });
+  document.getElementById('trCoord').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') document.getElementById('trGo').click();
+  });
+
+  /* the detail panel's ANALYSE TERRAIN button, wherever it is rebuilt */
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-terrain]');
+    if(!b) return;
+    var parts = b.dataset.terrain.split(',');
+    var la = parseFloat(parts[0]), lo = parseFloat(parts[1]);
+    if(!isFinite(la) || !isFinite(lo)) return;
+    document.getElementById('trCoord').value = la.toFixed(4) + ', ' + lo.toFixed(4);
+    band.scrollIntoView({behavior:'smooth', block:'start'});
+    go(la, lo, parseFloat(document.getElementById('trSpan').value));
   });
 })();
 
