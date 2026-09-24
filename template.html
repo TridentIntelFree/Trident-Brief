@@ -152,6 +152,8 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .tr-lyr:hover{border-color:var(--blue);color:var(--ink)}
 .tr-lyr.on{background:rgba(59,130,246,.22);border-color:var(--blue);color:#fff}
 .tr-lyr:disabled{opacity:.4;cursor:default;border-style:dashed}
+.tr-shot{background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:6px;color:var(--ink-dim);
+  font-family:var(--mono);font-size:.66em;letter-spacing:.04em;padding:5px 7px;max-width:210px}
 .tr-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 #trCoord{flex:1 1 220px;min-width:0;background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:7px;
   color:var(--ink);font-family:var(--mono);font-size:.82em;padding:8px 11px}
@@ -535,12 +537,17 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
             <button class="tr-lyr" data-lyr="slope">SLOPE</button>
             <button class="tr-lyr" data-lyr="view">VIEWSHED</button>
             <button class="tr-lyr" data-lyr="act">ACTIVITY</button>
+            <button class="tr-lyr" data-lyr="img">IMAGERY</button>
+            <select id="trShot" class="tr-shot" style="display:none" title="which satellite pass to draw"></select>
           </div>
           <canvas id="trMap"></canvas>
           <div class="tr-legend">
-            <span><b id="trLo">&mdash;</b> low</span>
-            <i class="tr-ramp"></i>
-            <span><b id="trHi">&mdash;</b> high</span>
+            <span id="trElev" style="display:contents">
+              <span><b id="trLo">&mdash;</b> low</span>
+              <i class="tr-ramp"></i>
+              <span><b id="trHi">&mdash;</b> high</span>
+            </span>
+            <span id="trCap" style="display:none;flex:1"></span>
             <span class="tr-scale" id="trScale"></span>
           </div>
           <div class="globe-hint">hover to read elevation &middot; click twice to draw a line of sight</div>
@@ -3121,6 +3128,20 @@ function focusGlobe(lat, lon, zoom){
     mapC.width = W; mapC.height = H;
     mapC.style.aspectRatio = W + ' / ' + H;
     var img = mapX.createImageData(W, H), o = img.data;
+    /* Imagery is not derived from the elevation grid -- it is pixels off a
+       satellite -- so it skips the hillshade loop entirely and paints itself. */
+    if(MODE === 'img'){
+      for(var ii=0; ii<W*H; ii++){
+        var pi = ii*4;
+        if(S2.got && S2.got[ii]){
+          o[pi] = S2.rgb[ii*3]; o[pi+1] = S2.rgb[ii*3+1]; o[pi+2] = S2.rgb[ii*3+2];
+        } else { o[pi] = 10; o[pi+1] = 14; o[pi+2] = 26; }
+        o[pi+3] = 255;
+      }
+      mapX.putImageData(img, 0, 0);
+      drawPicks();
+      return;
+    }
     var el = GRID.el, mn = GRID.min, mx = GRID.max, span = (mx - mn) || 1;
     var az = 315 * Math.PI/180, alt = 45 * Math.PI/180, zf = 2.2;
     var cellsz = GRID.mpp;
@@ -3409,6 +3430,7 @@ function focusGlobe(lat, lon, zoom){
     build(lat, lon, km, function(G){
       document.getElementById('trResult').style.display = '';
       VIS = null; SMOOTH = null;
+      s2Reset();
       setLayer('topo');
       drawProfile(null);
       document.getElementById('trLos').innerHTML =
@@ -3426,13 +3448,575 @@ function focusGlobe(lat, lon, zoom){
     });
   }
 
+  /* =====================================================================
+     IMAGERY -- Sentinel-2 L2A true colour, read out of the COGs directly
+
+     There is no tile server behind this and no key. The scenes sit as Cloud
+     Optimized GeoTIFFs in a public S3 bucket that answers HTTP range
+     requests and sends Access-Control-Allow-Origin: *, so the page reads a
+     file's own header, works out which of its internal tiles cover the
+     ground on screen, and pulls only those -- a few hundred kilobytes out
+     of a file that is hundreds of megabytes.
+
+     Two facts made this possible without a decoding library. The TCI (true
+     colour) images are Deflate-compressed with a horizontal predictor,
+     which DecompressionStream handles natively, and the scene path is
+     derivable from latitude and longitude by MGRS arithmetic, so the STAC
+     search API -- which this page cannot reach anyway -- is not needed to
+     find a scene.
+
+     Cloud is the real limit here, not resolution. Over one 100 km square in
+     a single month the cover ran from 0.00% to 99.92%, so this reads every
+     candidate's metadata, picks the clearest recent scene, and hands you
+     the rest in a list rather than grabbing the newest and showing you a
+     picture of weather.
+     ===================================================================== */
+  var S2 = {
+    base: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/',
+    root: 'sentinel-s2-l2a-cogs/',
+    scenes: null,   // every candidate over the centre square, for the picker
+    chosen: null,   // the scene id currently drawn
+    rgb: null,      // Uint8Array(w*h*3), already in this panel's grid
+    got: null,      // Uint8Array(w*h), 1 where a scene actually covered it
+    key: null,      // which area the raster belongs to
+    busy: false,
+    gen: 0,         // bumped whenever the ground changes, to orphan a stale load
+    note: '',
+    hdr: {}         // TCI url -> parsed IFD chain, so a re-pick is cheap
+  };
+  function s2Key(){ return GRID ? GRID.z+'/'+GRID.tx0+'/'+GRID.ty0+'/'+GRID.w+'x'+GRID.h : ''; }
+  /* A load in flight belongs to the ground it started on. Analysing a new
+     area mid-fetch left S2.busy stuck true against ground that no longer
+     existed, and the imagery layer would then never load again -- silently,
+     because the path that would have reported it was the one being skipped.
+     The generation counter orphans the old chain instead. */
+  function s2Reset(){
+    S2.gen++;
+    S2.busy = false;
+    S2.scenes = null; S2.chosen = null; S2.rgb = null; S2.got = null;
+    S2.key = null; S2.note = ''; S2.summary = '';
+    var s = document.getElementById('trShot');
+    if(s){ s.style.display = 'none'; s.innerHTML = ''; s.disabled = false; }
+  }
+
+  /* Forward transverse Mercator, WGS84. Sentinel-2 is delivered in UTM, one
+     zone per granule, so every pixel on this panel has to be carried into
+     the granule's own zone before it can be looked up. */
+  function utmFwd(lat, lon, zone){
+    var a = 6378137, f = 1/298.257223563, k0 = 0.9996;
+    var e2 = f*(2-f), ep2 = e2/(1-e2);
+    var p = lat*Math.PI/180;
+    var l0 = ((zone-1)*6 - 180 + 3)*Math.PI/180;
+    var sp = Math.sin(p), cp = Math.cos(p), tp = Math.tan(p);
+    var N = a/Math.sqrt(1 - e2*sp*sp);
+    var T = tp*tp, C = ep2*cp*cp, A = cp*(lon*Math.PI/180 - l0);
+    var A2 = A*A, A3 = A2*A, A4 = A2*A2, A5 = A4*A, A6 = A4*A2;
+    var M = a*((1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256)*p
+             - (3*e2/8 + 3*e2*e2/32 + 45*e2*e2*e2/1024)*Math.sin(2*p)
+             + (15*e2*e2/256 + 45*e2*e2*e2/1024)*Math.sin(4*p)
+             - (35*e2*e2*e2/3072)*Math.sin(6*p));
+    var E = k0*N*(A + (1-T+C)*A3/6 + (5-18*T+T*T+72*C-58*ep2)*A5/120) + 500000;
+    var Nn = k0*(M + N*tp*(A2/2 + (5-T+9*C+4*C*C)*A4/24
+             + (61-58*T+T*T+600*C-330*ep2)*A6/720));
+    if(lat < 0) Nn += 10000000;
+    return {E:E, N:Nn};
+  }
+  var MG_BAND = 'CDEFGHJKLMNPQRSTUVWX';
+  var MG_COL  = ['ABCDEFGH','JKLMNPQR','STUVWXYZ'];
+  /* Which 100 km MGRS square a point falls in -- and so, which granule.
+     The zone is the usual 6-degree slice apart from the two places the
+     grid was bent by hand: southwest Norway and Svalbard. Without those
+     the panel would fetch a real granule that simply does not contain the
+     point, which looks like working software and is not. */
+  function mgrsTile(lat, lon){
+    var z = Math.floor((lon+180)/6) + 1;
+    if(lat >= 56 && lat < 64 && lon >= 3 && lon < 12) z = 32;
+    if(lat >= 72 && lat < 84){
+      if(lon >= 0  && lon < 9)  z = 31;
+      else if(lon >= 9  && lon < 21) z = 33;
+      else if(lon >= 21 && lon < 33) z = 35;
+      else if(lon >= 33 && lon < 42) z = 37;
+    }
+    if(lat < -80 || lat >= 84) return null;            // UPS, not UTM
+    var u = utmFwd(lat, lon, z);
+    var band = MG_BAND.charAt(Math.floor((lat+80)/8));
+    var ci = Math.floor(u.E/100000) - 1;
+    var col = (ci >= 0 && ci < 8) ? MG_COL[(z-1)%3].charAt(ci) : '';
+    var rows = (z%2) ? 'ABCDEFGHJKLMNPQRSTUV' : 'FGHJKLMNPQRSTUVABCDE';
+    var row = rows.charAt(Math.floor(u.N/100000) % 20);
+    if(!band || !col || !row) return null;
+    return {id: z+band+col+row, zone:z, band:band, sq: col+row};
+  }
+
+  /* run promises a few at a time; a browser will happily open 60 sockets
+     and then serve none of them in useful order */
+  function pool(items, n, fn){
+    var out = new Array(items.length), i = 0;
+    function next(){
+      if(i >= items.length) return Promise.resolve();
+      var k = i++;
+      return Promise.resolve(fn(items[k])).then(function(v){ out[k] = v; return next(); });
+    }
+    var run = [];
+    for(var j=0; j<Math.min(n, items.length); j++) run.push(next());
+    return Promise.all(run).then(function(){ return out; });
+  }
+
+  function s2Months(n){
+    var out = [], now = new Date();
+    for(var i=0; i<n; i++){
+      var d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth()-i, 1));
+      out.push({y:d.getUTCFullYear(), m:d.getUTCMonth()+1});
+    }
+    return out;
+  }
+  function s2List(tile, months){
+    return pool(months, 3, function(mo){
+      var pfx = S2.root + tile.zone + '/' + tile.band + '/' + tile.sq + '/' + mo.y + '/' + mo.m + '/';
+      return fetch(S2.base + '?list-type=2&delimiter=/&prefix=' + encodeURIComponent(pfx))
+        .then(function(r){ return r.ok ? r.text() : ''; })
+        .then(function(x){
+          var out = [], re = /<Prefix>([^<]+)<\/Prefix>/g, m;
+          while((m = re.exec(x))){
+            var id = m[1].replace(/\/$/, '').split('/').pop();
+            if(/_L2A$/.test(id)) out.push({pfx:m[1], id:id, tile:tile.id});
+          }
+          return out;
+        })
+        .catch(function(){ return []; });
+    }).then(function(lists){
+      var all = [];
+      lists.forEach(function(l){ all = all.concat(l); });
+      return all;
+    });
+  }
+  function s2Meta(s){
+    return fetch(S2.base + s.pfx + s.id + '.json')
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(j){
+        var p = j.properties || {};
+        return {
+          id: s.id, pfx: s.pfx, tile: s.tile,
+          date: p.datetime || '',
+          cloud: (p['eo:cloud_cover'] == null ? 100 : p['eo:cloud_cover']),
+          blank: (p['s2:nodata_pixel_percentage'] == null ? 0 : p['s2:nodata_pixel_percentage']),
+          epsg: p['proj:epsg'] || 0,
+          bbox: j.bbox || null
+        };
+      })
+      .catch(function(){ return null; });
+  }
+  function s2Age(m){ return (Date.now() - Date.parse(m.date)) / 86400000; }
+  /* Clear beats recent, but not without limit: a spotless scene from three
+     months ago is the wrong answer when last week's is only lightly clouded. */
+  function s2Score(m){ return m.cloud + s2Age(m)*0.5 + (m.blank > 40 ? 500 : m.blank*0.4); }
+
+  /* ---- the COG itself ---- */
+  var TIFF_SZ = {1:1,2:1,3:2,4:4,5:8,6:1,7:1,8:2,9:4,10:8,11:4,12:8};
+  function cogHeader(url){
+    if(S2.hdr[url]) return Promise.resolve(S2.hdr[url]);
+    return fetch(url, {headers:{Range:'bytes=0-65535'}})
+      .then(function(r){
+        if(r.status !== 206 && r.status !== 200) throw new Error('imagery header HTTP ' + r.status);
+        return r.arrayBuffer();
+      })
+      .then(function(buf){ S2.hdr[url] = parseIFDs(buf); return S2.hdr[url]; });
+  }
+  /* A COG keeps its whole IFD chain -- full resolution plus every overview,
+     with their tile offset tables -- at the front of the file, ahead of any
+     pixels, so one small read describes the entire pyramid. */
+  function parseIFDs(buf){
+    var dv = new DataView(buf);
+    var le = (dv.getUint8(0) === 0x49);
+    if(dv.getUint16(2, le) !== 42) throw new Error('imagery is not a classic TIFF');
+    function vals(t){
+      var sz = (TIFF_SZ[t.typ]||1) * t.cnt;
+      if(t.off + sz > buf.byteLength) return null;    // header read was too short
+      var out = new Array(t.cnt), u = TIFF_SZ[t.typ]||1;
+      for(var i=0; i<t.cnt; i++){
+        var o = t.off + i*u;
+        out[i] = t.typ === 3  ? dv.getUint16(o, le)
+               : t.typ === 4  ? dv.getUint32(o, le)
+               : t.typ === 12 ? dv.getFloat64(o, le)
+               : t.typ === 11 ? dv.getFloat32(o, le)
+               : dv.getUint8(o);
+      }
+      return out;
+    }
+    var off = dv.getUint32(4, le), levels = [], guard = 0, geo = null;
+    while(off && guard < 12){
+      guard++;
+      var n = dv.getUint16(off, le), tags = {};
+      for(var i=0; i<n; i++){
+        var p = off + 2 + i*12;
+        var tag = dv.getUint16(p, le), typ = dv.getUint16(p+2, le), c = dv.getUint32(p+4, le);
+        tags[tag] = {typ:typ, cnt:c, off: ((TIFF_SZ[typ]||1)*c <= 4) ? p+8 : dv.getUint32(p+8, le)};
+      }
+      var g = function(t){ return tags[t] ? vals(tags[t]) : null; };
+      var lv = {
+        w: (g(256)||[0])[0], h: (g(257)||[0])[0],
+        comp: (g(259)||[1])[0], pred: (g(317)||[1])[0], samples: (g(277)||[1])[0],
+        tw: (g(322)||[0])[0], th: (g(323)||[0])[0],
+        toff: g(324), tlen: g(325)
+      };
+      if(guard === 1){
+        var ps = g(33550), tp = g(33922);
+        if(ps && tp) geo = {sx:ps[0], ox:tp[3], oy:tp[4], w:lv.w};
+      }
+      if(lv.w && lv.h && lv.tw && lv.toff && lv.tlen) levels.push(lv);
+      off = dv.getUint32(off + 2 + n*12, le);
+    }
+    if(!geo || !levels.length) throw new Error('imagery header did not parse');
+    levels.forEach(function(l){
+      l.mpp = geo.sx * (geo.w / l.w);      // overviews cover the same ground
+      l.ox = geo.ox; l.oy = geo.oy;
+      l.across = Math.ceil(l.w / l.tw);
+    });
+    return levels;
+  }
+  function inflate(buf){
+    if(typeof DecompressionStream === 'undefined')
+      return Promise.reject(new Error('this browser has no DecompressionStream'));
+    var s = new Blob([buf]).stream().pipeThrough(new DecompressionStream('deflate'));
+    return new Response(s).arrayBuffer().then(function(a){ return new Uint8Array(a); });
+  }
+  /* Predictor 2 stores each sample as the difference from its left-hand
+     neighbour, per row, per channel. Undo it in place before the bytes mean
+     anything. */
+  function unpredict(u, w, h, s){
+    for(var y=0; y<h; y++){
+      var o = y*w*s;
+      for(var x=1; x<w; x++)
+        for(var k=0; k<s; k++)
+          u[o + x*s + k] = (u[o + x*s + k] + u[o + (x-1)*s + k]) & 255;
+    }
+  }
+  function cogTile(url, lv, idx){
+    var off = lv.toff[idx], len = lv.tlen[idx];
+    if(!len) return Promise.resolve(null);
+    return fetch(url, {headers:{Range:'bytes=' + off + '-' + (off+len-1)}})
+      .then(function(r){ return r.arrayBuffer(); })
+      .then(function(b){
+        if(lv.comp === 8) return inflate(b);
+        if(lv.comp === 1) return new Uint8Array(b);
+        throw new Error('imagery tile uses compression ' + lv.comp + ', which this page cannot read');
+      })
+      .then(function(u){
+        if(!u) return null;
+        if(lv.pred === 2) unpredict(u, lv.tw, lv.th, lv.samples);
+        return u;
+      })
+      .catch(function(){ return null; });
+  }
+
+  /* Carry the panel's grid into a granule's UTM zone. Doing the projection
+     at every pixel is a few million trig calls; doing it on an 8 px lattice
+     and interpolating between is indistinguishable at these spans, because
+     transverse Mercator has no structure that fine. */
+  function utmLattice(zone, step){
+    var nx = Math.ceil(GRID.w/step), ny = Math.ceil(GRID.h/step);
+    var E = new Float64Array((nx+1)*(ny+1)), N = new Float64Array((nx+1)*(ny+1));
+    var eMin = Infinity, eMax = -Infinity, nMin = Infinity, nMax = -Infinity;
+    for(var j=0; j<=ny; j++){
+      var la = y2lat(GRID.ty0 + (j*step)/TILE, GRID.z);
+      for(var i=0; i<=nx; i++){
+        var lo = x2lon(GRID.tx0 + (i*step)/TILE, GRID.z);
+        var u = utmFwd(la, lo, zone), q = j*(nx+1)+i;
+        E[q] = u.E; N[q] = u.N;
+        if(u.E < eMin) eMin = u.E;
+        if(u.E > eMax) eMax = u.E;
+        if(u.N < nMin) nMin = u.N;
+        if(u.N > nMax) nMax = u.N;
+      }
+    }
+    return {nx:nx, ny:ny, step:step, E:E, N:N, eMin:eMin, eMax:eMax, nMin:nMin, nMax:nMax};
+  }
+
+  /* What one level would cost: which of its internal tiles the panel needs,
+     and exactly how many bytes they are. */
+  function s2Plan(lv, LT){
+    var c0 = Math.max(0, Math.floor((LT.eMin - lv.ox)/lv.mpp));
+    var c1 = Math.min(lv.w-1, Math.ceil((LT.eMax - lv.ox)/lv.mpp));
+    var r0 = Math.max(0, Math.floor((lv.oy - LT.nMax)/lv.mpp));
+    var r1 = Math.min(lv.h-1, Math.ceil((lv.oy - LT.nMin)/lv.mpp));
+    if(c1 < c0 || r1 < r0) return null;
+    var jobs = [], bytes = 0;
+    for(var ty=Math.floor(r0/lv.th); ty<=Math.floor(r1/lv.th); ty++){
+      for(var tx=Math.floor(c0/lv.tw); tx<=Math.floor(c1/lv.tw); tx++){
+        var idx = ty*lv.across + tx;
+        jobs.push({tx:tx, ty:ty, idx:idx});
+        bytes += (lv.tlen[idx] || 0);
+      }
+    }
+    return {lv:lv, c0:c0, c1:c1, r0:r0, r1:r1, jobs:jobs, bytes:bytes};
+  }
+
+  /* Read one granule into this panel's grid, filling only where nothing has
+     been filled yet, and report how much of the ground it covered. */
+  function s2Paint(meta, onSay){
+    var url = S2.base + meta.pfx + 'TCI.tif';
+    var zone = (meta.epsg > 32600 && meta.epsg < 32661) ? meta.epsg - 32600
+             : (meta.epsg > 32700 && meta.epsg < 32761) ? meta.epsg - 32700 : 0;
+    if(!zone) return Promise.resolve({filled:0, bytes:0, err:'granule is not in a UTM zone'});
+    return cogHeader(url).then(function(levels){
+      var LT = utmLattice(zone, 8);
+      /* Pick the level by what the screen can actually show, not by what the
+         grid holds: the panel is drawn a good deal smaller than the raster
+         behind it, so matching the raster would download four times the
+         pixels for detail no monitor ever renders. Then step coarser while
+         the download is unreasonable -- and the cost of each level is known
+         in advance, because a COG's tile byte counts are in the header that
+         has already been read. */
+      var shown = Math.max(320, (mapC.clientWidth || 640) * (window.devicePixelRatio || 1));
+      var dispMpp = GRID.w * GRID.mpp / shown;
+      var li = 0;
+      for(var i=0; i<levels.length; i++) if(levels[i].mpp <= dispMpp*1.3) li = i;
+      var plan = null;
+      for(; li < levels.length; li++){
+        var p = s2Plan(levels[li], LT);
+        if(!p) return {filled:0, bytes:0, err:'that ground is outside this granule'};
+        plan = p;
+        if(p.bytes <= 12*1048576 && p.jobs.length <= 12) break;
+      }
+      var lv = plan.lv, c0 = plan.c0, c1 = plan.c1, r0 = plan.r0, r1 = plan.r1;
+      var sw = c1-c0+1, sh = r1-r0+1;
+      var src = new Uint8Array(sw*sh*3), have = new Uint8Array(sw*sh);
+      var jobs = plan.jobs, bytes = plan.bytes;
+      if(onSay) onSay(jobs.length + ' image tiles at ' + Math.round(lv.mpp) + ' m, ' +
+                      (bytes/1048576).toFixed(1) + ' MB');
+      return pool(jobs, 4, function(t){
+        return cogTile(url, lv, t.idx).then(function(u){
+          if(!u) return;
+          var bx = t.tx*lv.tw, by = t.ty*lv.th, S = lv.samples;
+          var y0 = Math.max(r0, by), y1 = Math.min(r1, by+lv.th-1);
+          var x0 = Math.max(c0, bx), x1 = Math.min(c1, bx+lv.tw-1);
+          for(var y=y0; y<=y1; y++){
+            var so = ((y-by)*lv.tw)*S, dofs = ((y-r0)*sw);
+            for(var x=x0; x<=x1; x++){
+              var s = so + (x-bx)*S, d = dofs + (x-c0);
+              var R = u[s], G2 = u[s+1], B = u[s+2];
+              if(!R && !G2 && !B) continue;          // granule edge fill
+              src[d*3] = R; src[d*3+1] = G2; src[d*3+2] = B; have[d] = 1;
+            }
+          }
+        });
+      }).then(function(){
+        // resample into the panel grid, nearest neighbour through the lattice
+        var W = GRID.w, H = GRID.h, nx = LT.nx, filled = 0;
+        for(var y=0; y<H; y++){
+          var fy = y/LT.step, j0 = fy|0, ay = fy-j0, ra = j0*(nx+1), rb = ra+nx+1;
+          for(var x=0; x<W; x++){
+            var i = y*W + x;
+            if(S2.got[i]) continue;
+            var fx = x/LT.step, i0 = fx|0, ax = fx-i0;
+            var qa = ra+i0, qb = rb+i0;
+            var E = (LT.E[qa]*(1-ax) + LT.E[qa+1]*ax)*(1-ay) + (LT.E[qb]*(1-ax) + LT.E[qb+1]*ax)*ay;
+            var N = (LT.N[qa]*(1-ax) + LT.N[qa+1]*ax)*(1-ay) + (LT.N[qb]*(1-ax) + LT.N[qb+1]*ax)*ay;
+            var sc = Math.round((E - lv.ox)/lv.mpp) - c0;
+            var sr = Math.round((lv.oy - N)/lv.mpp) - r0;
+            if(sc < 0 || sr < 0 || sc >= sw || sr >= sh) continue;
+            var d = sr*sw + sc;
+            if(!have[d]) continue;
+            S2.rgb[i*3] = src[d*3]; S2.rgb[i*3+1] = src[d*3+1]; S2.rgb[i*3+2] = src[d*3+2];
+            S2.got[i] = 1; filled++;
+          }
+        }
+        return {filled:filled, bytes:bytes, mpp:lv.mpp, tiles:jobs.length};
+      });
+    }).catch(function(e){ return {filled:0, bytes:0, err:e.message || 'granule unreadable'}; });
+  }
+
+  function imgSay(html){
+    if(MODE === 'img'){ var n = document.getElementById('trLos'); if(n) n.innerHTML = html; }
+  }
+  function imgLoad(wantId){
+    if(!GRID || S2.busy) return;
+    S2.busy = true;
+    var key = s2Key(), gen = S2.gen;
+    function alive(){ return S2.gen === gen; }
+    function step(){ if(!alive()) throw new Error('__stale'); }
+    function say(html){ if(alive()) imgSay(html); }
+    var sel = document.getElementById('trShot');
+    if(sel) sel.disabled = true;
+    say('<b>Imagery</b><br>looking for scenes over this ground…');
+
+    /* Which 100 km squares does this panel touch? Sample the grid rather
+       than assume one: at 80 km across, a box almost never sits inside a
+       single granule, and the neighbours can be in a different UTM zone. */
+    var centre = pxToLL(GRID.w/2, GRID.h/2);
+    var ct = mgrsTile(centre.lat, centre.lon);
+    if(!ct){ S2.busy = false; return say('<b>No imagery.</b><br>Sentinel-2 does not cover the poles.'); }
+    var seen = {}, tiles = [ct];
+    seen[ct.id] = 1;
+    for(var a=0; a<=4; a++) for(var b=0; b<=4; b++){
+      var ll = pxToLL(a/4*(GRID.w-1), b/4*(GRID.h-1));
+      var t = mgrsTile(ll.lat, ll.lon);
+      if(t && !seen[t.id]){ seen[t.id] = 1; tiles.push(t); }
+    }
+    tiles = tiles.slice(0, 4);
+
+    var months = s2Months(3);
+    s2List(ct, months).then(function(cands){
+      if(!cands.length) throw new Error('no Sentinel-2 scenes are published for square ' + ct.id);
+      cands.sort(function(p, q){ return p.id < q.id ? 1 : -1; });
+      cands = cands.slice(0, 30);
+      say('<b>Imagery</b><br>reading cloud cover on ' + cands.length + ' scenes…');
+      return pool(cands, 6, s2Meta);
+    }).then(function(metas){
+      step();
+      var ok = metas.filter(function(m){ return m && m.epsg && m.blank < 90; });
+      if(!ok.length) throw new Error('no usable scene metadata came back');
+      ok.sort(function(p, q){ return Date.parse(q.date) - Date.parse(p.date); });
+      S2.scenes = ok;
+      var pick = null;
+      if(wantId) for(var i=0;i<ok.length;i++) if(ok[i].id === wantId) pick = ok[i];
+      if(!pick){
+        pick = ok[0];
+        ok.forEach(function(m){ if(s2Score(m) < s2Score(pick)) pick = m; });
+      }
+      S2.chosen = pick;
+      fillShots();
+      imgCap();
+
+      /* The neighbouring squares need a scene too, and it should be from
+         about the same day or the seams show as different seasons. */
+      var others = tiles.filter(function(t){ return t.id !== ct.id; });
+      return pool(others, 2, function(t){
+        return s2List(t, months).then(function(list){
+          var near = list.filter(function(s){
+            var d = (s.id.match(/_(\d{8})_/) || [])[1];
+            if(!d) return false;
+            var iso = d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);
+            return Math.abs(Date.parse(iso) - Date.parse(pick.date)) < 7*86400000;
+          }).slice(0, 6);
+          return pool(near, 4, s2Meta).then(function(ms){
+            var good = ms.filter(function(m){ return m && m.epsg && m.blank < 90; });
+            if(!good.length) return null;
+            /* Weight the date hard. Two granules from different overpasses
+               meet in a visible seam -- different sun angle, different
+               weather, sometimes a different week of harvest -- so a
+               same-day granule is worth taking even when it is cloudier
+               than one from three days off. */
+            function fit(m){
+              return m.cloud + Math.abs(Date.parse(m.date) - Date.parse(pick.date))/86400000 * 12;
+            }
+            good.sort(function(p, q){ return fit(p) - fit(q); });
+            return good[0];
+          });
+        });
+      }).then(function(extra){
+        return [pick].concat(extra.filter(Boolean));
+      });
+    }).then(function(list){
+      step();
+      S2.rgb = new Uint8Array(GRID.w*GRID.h*3);
+      S2.got = new Uint8Array(GRID.w*GRID.h);
+      var done = [], n = 0;
+      return pool(list, 1, function(m){
+        n++;
+        say('<b>Imagery</b><br>' + esc(m.id) + '<br>granule ' + n + ' of ' + list.length +
+               ' — fetching…');
+        return s2Paint(m, function(t){
+          say('<b>Imagery</b><br>' + esc(m.id) + '<br>granule ' + n + ' of ' + list.length +
+                 ' — ' + esc(t));
+        }).then(function(r){ done.push({m:m, r:r}); return r; });
+      }).then(function(){ return done; });
+    }).then(function(done){
+      step();
+      S2.key = key;
+      S2.busy = false;
+      if(sel) sel.disabled = false;
+      var px = GRID.w*GRID.h, cov = 0;
+      for(var i=0;i<S2.got.length;i++) if(S2.got[i]) cov++;
+      var bytes = 0, mpp = 0;
+      done.forEach(function(d){ bytes += d.r.bytes||0; if(d.r.mpp) mpp = Math.max(mpp, d.r.mpp); });
+      S2.note = cov ? null : 'nothing painted';
+      if(!cov) throw new Error('the granules returned no pixels over this ground');
+      var main = S2.chosen;
+      var days = {};
+      done.forEach(function(d){ if(d.r.filled) days[String(d.m.date).slice(0,10)] = 1; });
+      var spread = Object.keys(days).sort();
+      S2.summary =
+        '<b>Sentinel-2 L2A</b>, true colour<br>' +
+        '<span style="color:var(--ink)">' + esc(String(main.date).slice(0,10)) + '</span> · ' +
+        main.cloud.toFixed(1) + '% cloud over the whole granule<br>' +
+        Math.round(mpp) + ' m/px · ' + done.length + ' granule' + (done.length>1?'s':'') +
+        ' · ' + (bytes/1048576).toFixed(1) + ' MB read<br>' +
+        (cov < px*0.995
+          ? '<span class="no">&#9679; ' + (100 - cov/px*100).toFixed(0) + '% of this ground ' +
+            'is not covered</span><br>'
+          : '') +
+        (spread.length > 1
+          ? '<span class="no">&#9679; mosaic spans ' + spread.length + ' passes</span> (' +
+            esc(spread[0]) + ' to ' + esc(spread[spread.length-1]) + ') — the join ' +
+            'between granules is a different day, not a change on the ground<br>'
+          : '') +
+        '<span style="color:var(--ink-faint)">read straight from the public COGs by range ' +
+        'request — no tile server, no key. That cloud figure is for the whole 100 km ' +
+        'granule; cover over this ground can be far worse, or clear. Pick another pass ' +
+        'above.</span>';
+      say(S2.summary);
+      if(MODE === 'img') render();
+    }).catch(function(e){
+      if(!alive()) return;                       // a newer area has taken over
+      S2.busy = false; S2.rgb = null; S2.got = null; S2.key = null;
+      if(sel) sel.disabled = false;
+      say('<b>No imagery drawn.</b><br><span class="no">' + esc(e.message || String(e)) +
+             '</span><br><span style="color:var(--ink-faint)">Sentinel-2 covers land and coast ' +
+             'between 84°N and 80°S; open ocean and the poles are not imaged.</span>');
+    });
+  }
+
+  function imgCap(){
+    var cap = document.getElementById('trCap');
+    if(!cap || MODE !== 'img') return;
+    cap.innerHTML = S2.chosen
+      ? 'Sentinel-2 ' + esc(String(S2.chosen.date).slice(0,10)) + ' \u00b7 ' +
+        S2.chosen.cloud.toFixed(0) + '% cloud'
+      : 'Sentinel-2 true colour';
+  }
+  function fillShots(){
+    var sel = document.getElementById('trShot');
+    if(!sel || !S2.scenes) return;
+    sel.innerHTML = S2.scenes.map(function(m){
+      return '<option value="' + esc(m.id) + '"' + (S2.chosen && m.id === S2.chosen.id ? ' selected' : '') +
+             '>' + esc(String(m.date).slice(0,10)) + ' · ' + m.cloud.toFixed(0) + '% cloud</option>';
+    }).join('');
+    sel.style.display = (MODE === 'img') ? '' : 'none';
+  }
+
   function setLayer(m){
     MODE = m;
     if(m === 'slope' && GRID && !SMOOTH) buildSmooth();
     Array.prototype.forEach.call(document.querySelectorAll('.tr-lyr'), function(b){
       b.classList.toggle('on', b.dataset.lyr === m);
     });
+    var shot = document.getElementById('trShot');
+    if(shot) shot.style.display = (m === 'img' && S2.scenes) ? '' : 'none';
+    /* The hypsometric ramp reads heights. It says nothing about a slope
+       angle, a viewshed or a satellite pass, so it is only shown where it
+       is actually the key to what is on screen. */
+    var elev = document.getElementById('trElev'), cap = document.getElementById('trCap');
+    if(elev && cap){
+      var ramp = (m === 'topo' || m === 'act');
+      elev.style.display = ramp ? 'contents' : 'none';
+      cap.style.display = ramp ? 'none' : '';
+      cap.innerHTML = m === 'slope' ? 'slope angle, 0\u00b0 to 45\u00b0+'
+                    : m === 'view'  ? 'green: in sight of the observer'
+                    : m === 'img'   ? (S2.chosen
+                        ? 'Sentinel-2 ' + esc(String(S2.chosen.date).slice(0,10)) +
+                          ' \u00b7 ' + S2.chosen.cloud.toFixed(0) + '% cloud'
+                        : 'Sentinel-2 true colour')
+                    : '';
+    }
     if(!GRID) return;
+    if(m === 'img'){
+      if(S2.busy){ render(); return; }
+      if(!S2.got || S2.key !== s2Key()){ render(); imgLoad(); return; }
+      render();
+      document.getElementById('trLos').innerHTML = S2.summary || '';
+      return;
+    }
     if(m === 'view'){
       var o = picks.length ? picks[0] : {x:GRID.w/2, y:GRID.h/2};
       VIS = viewshed(Math.round(o.x), Math.round(o.y));
@@ -3476,6 +4060,16 @@ function focusGlobe(lat, lon, zoom){
   Array.prototype.forEach.call(document.querySelectorAll('.tr-lyr'), function(b){
     b.addEventListener('click', function(){ setLayer(b.dataset.lyr); });
   });
+  (function(){
+    var sel = document.getElementById('trShot');
+    if(!sel) return;
+    sel.addEventListener('change', function(){
+      if(S2.busy || !GRID) return;
+      S2.gen++;
+      S2.rgb = null; S2.got = null; S2.key = null;
+      imgLoad(sel.value);
+    });
+  })();
 
   document.getElementById('trGo').addEventListener('click', function(){
     var v = (document.getElementById('trCoord').value || '').trim();
