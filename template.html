@@ -146,6 +146,12 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 #globe.boxing,#globe3d.boxing{cursor:crosshair}
 
 /* ---------- terrain ---------- */
+.tr-layers{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
+.tr-lyr{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);cursor:pointer;
+  font-family:var(--mono);font-size:.66em;letter-spacing:.09em;padding:5px 11px;border-radius:6px;transition:.15s}
+.tr-lyr:hover{border-color:var(--blue);color:var(--ink)}
+.tr-lyr.on{background:rgba(59,130,246,.22);border-color:var(--blue);color:#fff}
+.tr-lyr:disabled{opacity:.4;cursor:default;border-style:dashed}
 .tr-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 #trCoord{flex:1 1 220px;min-width:0;background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:7px;
   color:var(--ink);font-family:var(--mono);font-size:.82em;padding:8px 11px}
@@ -524,6 +530,12 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
     <div id="trResult" style="display:none">
       <div class="tr-wrap">
         <div class="tr-mapcol">
+          <div class="tr-layers" id="trLayers">
+            <button class="tr-lyr on" data-lyr="topo">TOPOGRAPHY</button>
+            <button class="tr-lyr" data-lyr="slope">SLOPE</button>
+            <button class="tr-lyr" data-lyr="view">VIEWSHED</button>
+            <button class="tr-lyr" data-lyr="act">ACTIVITY</button>
+          </div>
           <canvas id="trMap"></canvas>
           <div class="tr-legend">
             <span><b id="trLo">&mdash;</b> low</span>
@@ -2992,6 +3004,42 @@ function focusGlobe(lat, lon, zoom){
 
   /* Hillshade (Horn) plus a hypsometric ramp. The shading is what makes relief
      legible; the ramp alone reads as a blur. */
+  var VIS = null, SMOOTH = null;
+  /* A 3x3 mean of the elevation, used only for slope. The relief itself keeps
+     the raw grid -- smoothing that would invent detail -- but differentiating
+     an upsampled DEM turns its interpolation stair-steps into visible speckle,
+     and a slope map covered in noise cannot be read. */
+  function buildSmooth(){
+    var W = GRID.w, H = GRID.h, el = GRID.el, ok = GRID.ok;
+    var sm = new Float32Array(W*H);
+    for(var y=0; y<H; y++) for(var x=0; x<W; x++){
+      var i = y*W+x;
+      if(!ok[i]){ sm[i] = el[i]; continue; }
+      var sum = 0, n = 0;
+      for(var dy=-1; dy<=1; dy++) for(var dx=-1; dx<=1; dx++){
+        var yy = y+dy, xx = x+dx;
+        if(yy<0||xx<0||yy>=H||xx>=W) continue;
+        var j = yy*W+xx;
+        if(ok[j]){ sum += el[j]; n++; }
+      }
+      sm[i] = n ? sum/n : el[i];
+    }
+    SMOOTH = sm;
+  }
+  /* Thresholds people actually use: under 5 deg is trafficable for wheels,
+     15 tracks, 30 is a scramble, past 45 is climbing. */
+  function slopeRamp(deg){
+    var stops = [[0,[30,58,90]],[5,[45,120,95]],[15,[160,170,60]],
+                 [30,[210,130,50]],[45,[200,60,60]],[70,[240,230,240]]];
+    for(var i=1;i<stops.length;i++){
+      if(deg <= stops[i][0]){
+        var a=stops[i-1], b=stops[i], f=(deg-a[0])/((b[0]-a[0])||1);
+        return [a[1][0]+(b[1][0]-a[1][0])*f, a[1][1]+(b[1][1]-a[1][1])*f, a[1][2]+(b[1][2]-a[1][2])*f];
+      }
+    }
+    return [240,230,240];
+  }
+
   var RAMP = [[0,'#14304f'],[0.12,'#1e5f52'],[0.3,'#3f7d3a'],[0.5,'#8e9a3c'],
               [0.68,'#b08a46'],[0.84,'#8a6a5c'],[1,'#e8eefc']];
   function ramp(t){
@@ -3006,6 +3054,66 @@ function focusGlobe(lat, lon, zoom){
       }
     }
     return [232,238,252];
+  }
+
+  var MODE = 'topo';
+
+  /* Slope in degrees, from the same grid the relief came from. Steepness is a
+     different question from height -- a 40 m rise matters completely
+     differently over 100 m than over 2 km -- and it is already in the data. */
+  function slopeAt(x, y, W, H, el, cell){
+    var xm = x>0?x-1:x, xp = x<W-1?x+1:x, ym = y>0?y-1:y, yp = y<H-1?y+1:y;
+    var dzdx = (el[y*W+xp] - el[y*W+xm]) / ((xp-xm)*cell);
+    var dzdy = (el[yp*W+x] - el[ym*W+x]) / ((yp-ym)*cell);
+    return Math.atan(Math.hypot(dzdx, dzdy)) * 180/Math.PI;
+  }
+
+  /* Viewshed by radial sweep: walk rays out from the observer keeping the
+     steepest angle seen so far, and a cell is visible when it rises above it.
+     Testing every cell against its own line to the observer would be ~120
+     million steps on this grid and would lock the tab; this is about 600k. */
+  function viewshed(ox, oy, eye){
+    var W = GRID.w, H = GRID.h, el = GRID.el, ok = GRID.ok, cell = GRID.mpp;
+    var vis = new Uint8Array(W*H), hit = new Uint8Array(W*H);
+    var oz = (ok[oy*W+ox] ? el[oy*W+ox] : 0) + (eye == null ? 1.7 : eye);
+    var R = Math.ceil(Math.hypot(Math.max(ox, W-ox), Math.max(oy, H-oy)));
+    var rays = Math.max(720, Math.min(2880, Math.round(2*Math.PI*R)));
+    var Re = 6371000, K = 0.13;
+    for(var a=0; a<rays; a++){
+      var th = a/rays*2*Math.PI, dx = Math.cos(th), dy = Math.sin(th), best = -Infinity;
+      for(var r=1; r<=R; r++){
+        var x = Math.round(ox + dx*r), y = Math.round(oy + dy*r);
+        if(x<0 || y<0 || x>=W || y>=H) break;
+        var i = y*W+x;
+        if(!ok[i]) continue;
+        hit[i] = 1;
+        var d = r*cell;
+        // curvature and refraction drop the far ground away from the observer
+        var z = el[i] - (d*d)/(2*Re/(1-K));
+        var ang = (z - oz)/d;
+        if(ang >= best){ best = ang; vis[i] = 1; }
+      }
+    }
+    /* Rays diverge, so beyond a few hundred cells they stop covering every
+       pixel and leave gaps the sweep never tested. Untested is not the same as
+       not visible, and painting it as dead ground put radial streaks through
+       the result. Cells no ray reached take the verdict of the neighbours that
+       were tested. */
+    var out = new Uint8Array(vis);
+    for(var y=1; y<H-1; y++){
+      for(var x=1; x<W-1; x++){
+        var i = y*W+x;
+        if(hit[i] || !ok[i]) continue;
+        var seen = 0, tested = 0;
+        for(var dy=-1; dy<=1; dy++) for(var dx2=-1; dx2<=1; dx2++){
+          var j = (y+dy)*W + (x+dx2);
+          if(hit[j]){ tested++; if(vis[j]) seen++; }
+        }
+        if(tested && seen*2 > tested) out[i] = 1;
+      }
+    }
+    out[oy*W+ox] = 1;
+    return out;
   }
 
   function render(){
@@ -3027,6 +3135,28 @@ function focusGlobe(lat, lon, zoom){
         if(!GRID.ok[i]){ var q0 = i*4;
           o[q0] = 18; o[q0+1] = 22; o[q0+2] = 34; o[q0+3] = 255; continue; }
         var slope = Math.atan(zf * Math.hypot(dzdx, dzdy));
+        if(MODE === 'slope'){
+          var p3 = i*4;
+          var deg3 = SMOOTH ? slopeAt(x, y, W, H, SMOOTH, cellsz) : 0;
+          var sh3 = Math.max(0.3, Math.min(1.1,
+            Math.cos(alt)*Math.cos(slope) + Math.sin(alt)*Math.sin(slope)*Math.cos(az - Math.atan2(dzdy, -dzdx))));
+          var c3 = slopeRamp(deg3);
+          o[p3] = c3[0]*sh3; o[p3+1] = c3[1]*sh3; o[p3+2] = c3[2]*sh3; o[p3+3] = 255;
+          continue;
+        }
+        if(MODE === 'view'){
+          var p2 = i*4, sh2 = Math.max(0.25, Math.min(1.15,
+            Math.cos(alt)*Math.cos(slope) + Math.sin(alt)*Math.sin(slope)*Math.cos(az - Math.atan2(dzdy, -dzdx))));
+          {
+            var seen = VIS && VIS[i];
+            // visible ground keeps its shading in green; dead ground goes cold and flat
+            o[p2]   = seen ? 60*sh2  : 26*sh2;
+            o[p2+1] = seen ? 200*sh2 : 34*sh2;
+            o[p2+2] = seen ? 120*sh2 : 56*sh2;
+            o[p2+3] = 255;
+          }
+          continue;
+        }
         var aspect = Math.atan2(dzdy, -dzdx);
         var sh = Math.cos(alt)*Math.cos(slope) + Math.sin(alt)*Math.sin(slope)*Math.cos(az - aspect);
         sh = Math.max(0.15, Math.min(1.25, sh));
@@ -3039,7 +3169,8 @@ function focusGlobe(lat, lon, zoom){
       }
     }
     mapX.putImageData(img, 0, 0);
-    drawContours();
+    if(MODE === 'topo' || MODE === 'act') drawContours();
+    if(MODE === 'act') drawActivity();
     drawPicks();
   }
 
@@ -3164,6 +3295,50 @@ function focusGlobe(lat, lon, zoom){
 
   function fmtKm(m){ return m >= 1000 ? (m/1000).toFixed(2)+' km' : Math.round(m)+' m'; }
 
+  /* Everything the page already holds that falls inside this ground. No new
+     fetch: the collector gathers NWS alerts, GDACS disasters, quakes, vessels
+     and aircraft every run, and they all carry coordinates. */
+  function areaBounds(){
+    var z = GRID.z, n = Math.pow(2, z);
+    return {w: x2lon(GRID.tx0, z), e: x2lon(GRID.tx0 + GRID.w/TILE, z),
+            n: y2lat(GRID.ty0, z), s: y2lat(GRID.ty0 + GRID.h/TILE, z)};
+  }
+  function activityHere(){
+    var b = areaBounds(), out = [];
+    function take(list, kind){
+      (list || []).forEach(function(d){
+        if(d.lat == null || d.lon == null) return;
+        if(d.lat <= b.n && d.lat >= b.s && d.lon >= b.w && d.lon <= b.e)
+          out.push({k:kind, lat:d.lat, lon:d.lon, d:d});
+      });
+    }
+    take(EVENTS, 'events');
+    take((FEEDS||{}).alerts, 'hazard');
+    take((FEEDS||{}).disasters, 'hazard');
+    take((FEEDS||{}).quakes, 'quake');
+    take((FEEDS||{}).vessels, 'naval');
+    take(G.air, 'air');
+    return out;
+  }
+  function llToPx(lat, lon){
+    var z = GRID.z;
+    return {x: (lon2x(lon, z) - GRID.tx0) * TILE, y: (lat2y(lat, z) - GRID.ty0) * TILE};
+  }
+  function drawActivity(){
+    var acts = activityHere();
+    GRID.acts = acts;
+    acts.forEach(function(a){
+      var p = llToPx(a.lat, a.lon);
+      if(p.x < 0 || p.y < 0 || p.x > GRID.w || p.y > GRID.h) return;
+      var K = (KIND[a.k] || KIND_EXTRA[a.k] || {color:'#fff'});
+      mapX.beginPath(); mapX.arc(p.x, p.y, 7, 0, Math.PI*2);
+      mapX.fillStyle = 'rgba(0,0,0,.45)'; mapX.fill();
+      mapX.beginPath(); mapX.arc(p.x, p.y, 5, 0, Math.PI*2);
+      mapX.fillStyle = K.color; mapX.fill();
+      mapX.strokeStyle = 'rgba(255,255,255,.9)'; mapX.lineWidth = 1.4; mapX.stroke();
+    });
+  }
+
   function readout(px, py){
     var ll = pxToLL(px, py), z = elAt(px, py);
     if(z == null){
@@ -3198,6 +3373,12 @@ function focusGlobe(lat, lon, zoom){
     if(!GRID) return;
     var r = mapC.getBoundingClientRect();
     var p = {x:(e.clientX-r.left)/r.width*GRID.w, y:(e.clientY-r.top)/r.height*GRID.h};
+    if(MODE === 'view'){
+      picks = [p];
+      VIS = viewshed(Math.round(p.x), Math.round(p.y));
+      setLayer('view');
+      return;
+    }
     if(picks.length >= 2) picks = [];
     picks.push(p);
     render();
@@ -3227,7 +3408,8 @@ function focusGlobe(lat, lon, zoom){
     picks = [];
     build(lat, lon, km, function(G){
       document.getElementById('trResult').style.display = '';
-      render();
+      VIS = null; SMOOTH = null;
+      setLayer('topo');
       drawProfile(null);
       document.getElementById('trLos').innerHTML =
         '<b>Click two points</b> on the map to test line of sight between them.';
@@ -3243,6 +3425,57 @@ function focusGlobe(lat, lon, zoom){
       hint.innerHTML = '<span style="color:#f87171">' + esc(err) + '</span>';
     });
   }
+
+  function setLayer(m){
+    MODE = m;
+    if(m === 'slope' && GRID && !SMOOTH) buildSmooth();
+    Array.prototype.forEach.call(document.querySelectorAll('.tr-lyr'), function(b){
+      b.classList.toggle('on', b.dataset.lyr === m);
+    });
+    if(!GRID) return;
+    if(m === 'view'){
+      var o = picks.length ? picks[0] : {x:GRID.w/2, y:GRID.h/2};
+      VIS = viewshed(Math.round(o.x), Math.round(o.y));
+      var seen = 0; for(var i=0;i<VIS.length;i++) if(VIS[i]) seen++;
+      document.getElementById('trLos').innerHTML =
+        '<b>Viewshed</b> from ' + (picks.length ? 'point A' : 'the centre') +
+        ', eye 1.7 m<br><span class="ok">&#9679; ' + (seen/VIS.length*100).toFixed(1) +
+        '%</span> of this ground is visible from there<br>' +
+        '<span style="color:var(--ink-faint)">click the map to move the observer &middot; ' +
+        'curvature and refraction included</span>';
+    }
+    render();
+    if(m === 'act'){
+      var acts = GRID.acts || [];
+      var tal = {};
+      acts.forEach(function(a){ tal[a.k] = (tal[a.k]||0)+1; });
+      document.getElementById('trLos').innerHTML = acts.length
+        ? '<b>' + acts.length + ' in this area</b><br>' +
+          Object.keys(tal).map(function(k){
+            var K = (KIND[k]||KIND_EXTRA[k]||{label:k,color:'#fff'});
+            return '<span style="color:'+K.color+'">&#9679;</span> ' + tal[k] + ' ' + esc(K.label.toLowerCase());
+          }).join('<br>') +
+          '<br><span style="color:var(--ink-faint)">from the collection already on this page, ' +
+          'not a live query</span>'
+        : '<b>Nothing on file here.</b><br><span style="color:var(--ink-faint)">no events, alerts, ' +
+          'quakes, vessels or aircraft from this collection fall inside this ground</span>';
+    }
+    if(m === 'slope'){
+      document.getElementById('trLos').innerHTML =
+        '<b>Slope</b>, degrees from horizontal<br>' +
+        '<span style="color:#2d5a5f">&#9679;</span> under 5\u00b0 wheeled &nbsp;' +
+        '<span style="color:#a0aa3c">&#9679;</span> 15\u00b0 tracked<br>' +
+        '<span style="color:#d28232">&#9679;</span> 30\u00b0 foot &nbsp;' +
+        '<span style="color:#c83c3c">&#9679;</span> 45\u00b0+ climbing';
+    }
+    if(m === 'topo' && picks.length < 2){
+      document.getElementById('trLos').innerHTML =
+        '<b>Click two points</b> on the map to test line of sight between them.';
+    }
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.tr-lyr'), function(b){
+    b.addEventListener('click', function(){ setLayer(b.dataset.lyr); });
+  });
 
   document.getElementById('trGo').addEventListener('click', function(){
     var v = (document.getElementById('trCoord').value || '').trim();
