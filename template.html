@@ -512,14 +512,16 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       <h2>&#9968;&#65039; Terrain &mdash; Analyse Ground</h2>
       <div class="sub">
         click any contact on the globe and choose ANALYSE TERRAIN, or enter coordinates &middot;
-        elevation from <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">AWS Terrain Tiles</a>
-        (public domain, no key)
+        elevation from <a href="https://www.usgs.gov/3d-elevation-program" target="_blank" rel="noopener">USGS 3DEP</a>
+        where it reaches, <a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">AWS Terrain Tiles</a>
+        elsewhere &mdash; both public domain, no key
       </div>
     </div>
 
     <div class="tr-ctl">
       <input type="text" id="trCoord" placeholder="lat, lon  e.g.  44.720, 37.770" autocomplete="off" spellcheck="false">
       <select id="trSpan">
+        <option value="2">2 km across</option>
         <option value="5">5 km across</option>
         <option value="12" selected>12 km across</option>
         <option value="30">30 km across</option>
@@ -2941,7 +2943,7 @@ function focusGlobe(lat, lon, zoom){
   }
 
   /* Fetch enough tiles to cover kmAcross around a point and decode to metres. */
-  function build(lat, lon, kmAcross, onDone, onFail){
+  function build(lat, lon, kmAcross, onDone, onFail, onSay){
     var target = 640;                                   // working raster width
     var mppWant = kmAcross * 1000 / target;
     var z = Math.round(Math.log2(156543.03392 * Math.cos(lat*Math.PI/180) / mppWant));
@@ -2956,6 +2958,18 @@ function focusGlobe(lat, lon, zoom){
     var nx = x1 - x0 + 1, ny = y1 - y0 + 1;
     if(nx*ny > MAXTILES) return onFail('area too large for this zoom');
 
+    /* Ask the USGS first. Over the US it has published the ground directly
+       and the global tiles are an interpolated re-encoding of it; everywhere
+       else the square does not exist and this costs one failed request. */
+    var geom = {z:z, mpp:mpp, tx0:x0, ty0:y0, nx:nx, ny:ny,
+                W:nx*TILE, H:ny*TILE, lat:lat, lon:lon};
+    depBuild(geom, onSay).catch(function(){ return null; }).then(function(G){
+      if(G){ GRID = G; return onDone(GRID); }
+      terrarium();
+    });
+
+    function terrarium(){
+    if(onSay) onSay('global terrain tiles');
     var jobs = [];
     for(var ty = y0; ty <= y1; ty++)
       for(var tx = x0; tx <= x1; tx++) jobs.push(loadTile(z, tx, ty));
@@ -2980,21 +2994,89 @@ function focusGlobe(lat, lon, zoom){
          to 2 km. Both readings are nonsense, and neither looks like an error.
          So no-data is tracked separately and excluded from everything. */
       var el = new Float32Array(W*H), ok = new Uint8Array(W*H);
-      var mn = Infinity, mx = -Infinity, nodata = 0;
+      var nodata = 0;
       for(var i=0, q=0; i<el.length; i++, q+=4){
         var v = (d[q]*256 + d[q+1] + d[q+2]/256) - 32768;
         if(d[q+3] === 0 || v <= -20000){ el[i] = NaN; nodata++; continue; }
         el[i] = v; ok[i] = 1;
-        if(v < mn) mn = v;
-        if(v > mx) mx = v;
       }
-      if(!nodata || nodata === el.length){ /* nothing to say */ }
+      /* Some terrarium tiles carry corrupt cells: scattered pixels reading
+         -1846 m in Minnesota and -4379 m in 7 km of Black Sea coast, about
+         0.02% of a tile. They pass the no-data test because they are
+         ordinary-looking RGB, and one of them is enough to wreck the panel
+         -- it drags the range, flattens the colour ramp onto the real
+         terrain and pushes the contour interval to 500 m, so the map goes
+         blank and nothing about it looks like an error.
+
+         They come singly and in short runs down one column, so a cell is
+         tested against its two horizontal neighbours and its two vertical
+         ones separately: a vertical run is still an outlier left-to-right,
+         and a horizontal one top-to-bottom. Failing either, by more than
+         300 m, throws the cell out. Real ground cannot do that in a single
+         step at any zoom this panel offers -- the steepest walls on earth
+         manage a fraction of it -- while a cliff edge lies between its
+         neighbours and is kept. */
+      var SPIKE = 300, bad = new Uint8Array(W*H);
+      for(var y=0; y<H; y++){
+        for(var x=0; x<W; x++){
+          var c = y*W + x;
+          if(!ok[c]) continue;
+          var v = el[c], spike = false;
+          if(x > 0 && x < W-1 && ok[c-1] && ok[c+1]){
+            var a = el[c-1], b2 = el[c+1];
+            if(v > Math.max(a,b2) + SPIKE || v < Math.min(a,b2) - SPIKE) spike = true;
+          }
+          if(!spike && y > 0 && y < H-1 && ok[c-W] && ok[c+W]){
+            var u = el[c-W], d2 = el[c+W];
+            if(v > Math.max(u,d2) + SPIKE || v < Math.min(u,d2) - SPIKE) spike = true;
+          }
+          if(spike) bad[c] = 1;
+        }
+      }
+      /* Marked first, removed after. Clearing cells as the scan runs hides
+         the next one: these come in blocks two or three columns wide, and a
+         neighbour struck out a moment ago stops being available to judge the
+         cell beside it, which is how a -1846 m reading in Minnesota survived
+         the first version of this. */
+      for(var c2=0; c2<bad.length; c2++)
+        if(bad[c2]){ ok[c2] = 0; el[c2] = NaN; nodata++; }
+      var mn = Infinity, mx = -Infinity, nok = 0;
+      for(var j=0; j<el.length; j++){
+        if(!ok[j]) continue;
+        nok++;
+        if(el[j] < mn) mn = el[j];
+        if(el[j] > mx) mx = el[j];
+      }
       if(mn === Infinity) return onFail('tiles decoded to no-data everywhere');
+      /* The spike filter catches what stands out from its neighbours, but
+         these tiles also carry corrupt patches wide enough to vouch for each
+         other, and one of those is still enough to flatten the ramp. So the
+         range that drives the colours, the contours and the readout is
+         trimmed to the outer 0.05% at each end.
+
+         The cost is real and worth naming: on Rainier it reads the summit
+         46 m low out of 4,392. The alternative was reading Minneapolis as
+         -448 to 673 m instead of 201 to 360. This trim is applied only
+         here, never to the USGS data, which carries its no-data explicitly
+         and needs no guessing. */
+      if(nok > 20000 && mx > mn){
+        var BINS = 4096, hist = new Int32Array(BINS), sc = (BINS-1)/(mx-mn);
+        for(var k=0; k<el.length; k++)
+          if(ok[k]) hist[((el[k]-mn)*sc)|0]++;
+        var trim = Math.floor(nok*0.0005), run = 0, b0 = 0, b1 = BINS-1;
+        for(var bI=0; bI<BINS; bI++){ run += hist[bI]; if(run > trim){ b0 = bI; break; } }
+        run = 0;
+        for(var bJ=BINS-1; bJ>=0; bJ--){ run += hist[bJ]; if(run > trim){ b1 = bJ; break; } }
+        if(b1 > b0){ var lo = mn + b0/sc, hi = mn + b1/sc; mn = lo; mx = hi; }
+      }
       GRID = {w:W, h:H, z:z, mpp:mpp, el:el, ok:ok, min:mn, max:mx,
               lat:lat, lon:lon, tx0:x0, ty0:y0, nodata:nodata,
-              tiles:got.length, asked:nx*ny};
+              tiles:got.length, asked:nx*ny,
+              src:'AWS Terrain Tiles', srcRes:0,
+              srcNote:'global terrain tiles'};
       onDone(GRID);
     });
+    }
   }
 
   function elAt(px, py){
@@ -3181,7 +3263,8 @@ function focusGlobe(lat, lon, zoom){
         var aspect = Math.atan2(dzdy, -dzdx);
         var sh = Math.cos(alt)*Math.cos(slope) + Math.sin(alt)*Math.sin(slope)*Math.cos(az - aspect);
         sh = Math.max(0.15, Math.min(1.25, sh));
-        var c = ramp((el[i] - mn) / span);
+        // the range is trimmed, so a few cells sit outside it: hold the ends
+        var c = ramp(Math.max(0, Math.min(1, (el[i] - mn) / span)));
         var p = i*4;
         o[p]   = Math.min(255, c[0]*sh);
         o[p+1] = Math.min(255, c[1]*sh);
@@ -3378,6 +3461,7 @@ function focusGlobe(lat, lon, zoom){
                         Math.abs(ll.lon).toFixed(4)+'\u00b0'+(ll.lon>=0?'E':'W')) +
         row('RELIEF HERE', Math.round(GRID.min)+' to '+Math.round(GRID.max)+' m') +
         row('SAMPLE', Math.round(GRID.mpp)+' m/px  \u00b7  contours '+GRID.step+' m') +
+        row('SOURCE', GRID.src + (GRID.srcRes ? '  \u00b7  ' + GRID.srcRes.toFixed(1) + ' m posts' : '')) +
       '</div>';
   }
   function row(k, v){ return '<div class="d-row"><span>'+k+'</span><span>'+esc(String(v))+'</span></div>'; }
@@ -3425,7 +3509,7 @@ function focusGlobe(lat, lon, zoom){
 
   function go(lat, lon, km){
     var hint = document.getElementById('trHint');
-    hint.textContent = 'loading tiles\u2026';
+    hint.textContent = 'reading the ground\u2026';
     picks = [];
     build(lat, lon, km, function(G){
       document.getElementById('trResult').style.display = '';
@@ -3440,12 +3524,13 @@ function focusGlobe(lat, lon, zoom){
       document.getElementById('trScale').textContent =
         '\u2194 ' + (G.w*G.mpp/1000).toFixed(1) + ' km';
       readout(G.w/2, G.h/2);
-      hint.textContent = G.tiles + ' of ' + G.asked + ' tiles \u00b7 z' + G.z +
-                         ' \u00b7 ' + Math.round(G.mpp) + ' m/px' +
-                         (G.nodata ? ' \u00b7 ' + (G.nodata/(G.w*G.h)*100).toFixed(0) + '% no data' : '');
+      hint.textContent = (G.srcNote || '') + ' \u00b7 z' + G.z +
+                         ' \u00b7 ' + Math.round(G.mpp) + ' m/px grid' +
+                         (G.nodata > G.w*G.h*0.005
+                           ? ' \u00b7 ' + (G.nodata/(G.w*G.h)*100).toFixed(0) + '% no data' : '');
     }, function(err){
       hint.innerHTML = '<span style="color:#f87171">' + esc(err) + '</span>';
-    });
+    }, function(note){ hint.textContent = note + '\u2026'; });
   }
 
   /* =====================================================================
@@ -3628,7 +3713,7 @@ function focusGlobe(lat, lon, zoom){
   function parseIFDs(buf){
     var dv = new DataView(buf);
     var le = (dv.getUint8(0) === 0x49);
-    if(dv.getUint16(2, le) !== 42) throw new Error('imagery is not a classic TIFF');
+    if(dv.getUint16(2, le) !== 42) throw new Error('not a classic TIFF');
     function vals(t){
       var sz = (TIFF_SZ[t.typ]||1) * t.cnt;
       if(t.off + sz > buf.byteLength) return null;    // header read was too short
@@ -3656,19 +3741,24 @@ function focusGlobe(lat, lon, zoom){
       var lv = {
         w: (g(256)||[0])[0], h: (g(257)||[0])[0],
         comp: (g(259)||[1])[0], pred: (g(317)||[1])[0], samples: (g(277)||[1])[0],
+        bits: (g(258)||[8])[0], fmt: (g(339)||[1])[0],
         tw: (g(322)||[0])[0], th: (g(323)||[0])[0],
         toff: g(324), tlen: g(325)
       };
       if(guard === 1){
         var ps = g(33550), tp = g(33922);
-        if(ps && tp) geo = {sx:ps[0], ox:tp[3], oy:tp[4], w:lv.w};
+        if(ps && tp) geo = {sx:ps[0], sy:ps[1], ox:tp[3], oy:tp[4], w:lv.w, h:lv.h};
       }
       if(lv.w && lv.h && lv.tw && lv.toff && lv.tlen) levels.push(lv);
       off = dv.getUint32(off + 2 + n*12, le);
     }
-    if(!geo || !levels.length) throw new Error('imagery header did not parse');
+    if(!geo || !levels.length) throw new Error('this file has no usable header');
     levels.forEach(function(l){
-      l.mpp = geo.sx * (geo.w / l.w);      // overviews cover the same ground
+      /* Overviews cover the same ground, so their scale follows from the
+         full-resolution one. Units are whatever the file is in -- metres for
+         a UTM granule, degrees for a 3DEP square. */
+      l.mpp  = geo.sx * (geo.w / l.w);
+      l.mppY = (geo.sy || geo.sx) * (geo.h / l.h);
       l.ox = geo.ox; l.oy = geo.oy;
       l.across = Math.ceil(l.w / l.tw);
     });
@@ -3691,19 +3781,25 @@ function focusGlobe(lat, lon, zoom){
           u[o + x*s + k] = (u[o + x*s + k] + u[o + (x-1)*s + k]) & 255;
     }
   }
-  function cogTile(url, lv, idx){
+  function cogTile(url, lv, idx, expect){
     var off = lv.toff[idx], len = lv.tlen[idx];
     if(!len) return Promise.resolve(null);
-    return fetch(url, {headers:{Range:'bytes=' + off + '-' + (off+len-1)}})
+    /* no-store because these are many different byte ranges of one URL, and
+       a cache that hands back the body it kept for a different range yields
+       a tile that decodes to garbage rather than an error */
+    return fetch(url, {cache:'no-store', headers:{Range:'bytes=' + off + '-' + (off+len-1)}})
       .then(function(r){ return r.arrayBuffer(); })
       .then(function(b){
+        if(b.byteLength !== len) throw new Error('short range response');
         if(lv.comp === 8) return inflate(b);
+        if(lv.comp === 5) return lzwDecode(b, expect || (lv.tw*lv.th*lv.samples*(lv.bits/8)));
         if(lv.comp === 1) return new Uint8Array(b);
-        throw new Error('imagery tile uses compression ' + lv.comp + ', which this page cannot read');
+        throw new Error('tile uses compression ' + lv.comp + ', which this page cannot read');
       })
       .then(function(u){
         if(!u) return null;
         if(lv.pred === 2) unpredict(u, lv.tw, lv.th, lv.samples);
+        else if(lv.pred === 3) unpredictFloat(u, lv.tw, lv.th, (lv.bits/8)|0, lv.samples);
         return u;
       })
       .catch(function(){ return null; });
@@ -3732,13 +3828,15 @@ function focusGlobe(lat, lon, zoom){
     return {nx:nx, ny:ny, step:step, E:E, N:N, eMin:eMin, eMax:eMax, nMin:nMin, nMax:nMax};
   }
 
-  /* What one level would cost: which of its internal tiles the panel needs,
-     and exactly how many bytes they are. */
-  function s2Plan(lv, LT){
-    var c0 = Math.max(0, Math.floor((LT.eMin - lv.ox)/lv.mpp));
-    var c1 = Math.min(lv.w-1, Math.ceil((LT.eMax - lv.ox)/lv.mpp));
-    var r0 = Math.max(0, Math.floor((lv.oy - LT.nMax)/lv.mpp));
-    var r1 = Math.min(lv.h-1, Math.ceil((lv.oy - LT.nMin)/lv.mpp));
+  /* What one level would cost: which of its internal tiles are needed, and
+     exactly how many bytes they are. Bounds come in the file's own units --
+     metres for a UTM granule, degrees for a 3DEP square -- so the same
+     planner serves both. */
+  function planTiles(lv, b){
+    var c0 = Math.max(0, Math.floor((b.x0 - lv.ox)/lv.mpp));
+    var c1 = Math.min(lv.w-1, Math.ceil((b.x1 - lv.ox)/lv.mpp));
+    var r0 = Math.max(0, Math.floor((lv.oy - b.y1)/lv.mppY));
+    var r1 = Math.min(lv.h-1, Math.ceil((lv.oy - b.y0)/lv.mppY));
     if(c1 < c0 || r1 < r0) return null;
     var jobs = [], bytes = 0;
     for(var ty=Math.floor(r0/lv.th); ty<=Math.floor(r1/lv.th); ty++){
@@ -3773,7 +3871,7 @@ function focusGlobe(lat, lon, zoom){
       for(var i=0; i<levels.length; i++) if(levels[i].mpp <= dispMpp*1.3) li = i;
       var plan = null;
       for(; li < levels.length; li++){
-        var p = s2Plan(levels[li], LT);
+        var p = planTiles(levels[li], {x0:LT.eMin, x1:LT.eMax, y0:LT.nMin, y1:LT.nMax});
         if(!p) return {filled:0, bytes:0, err:'that ground is outside this granule'};
         plan = p;
         if(p.bytes <= 12*1048576 && p.jobs.length <= 12) break;
@@ -3824,6 +3922,252 @@ function focusGlobe(lat, lon, zoom){
         return {filled:filled, bytes:bytes, mpp:lv.mpp, tiles:jobs.length};
       });
     }).catch(function(e){ return {filled:0, bytes:0, err:e.message || 'granule unreadable'}; });
+  }
+
+  /* =====================================================================
+     3DEP -- the ground as the USGS actually measured it, over the US
+
+     The terrarium tiles this panel falls back on are global and free, which
+     is why they are the default, but over the US they are a re-encoding of
+     3DEP and the tile pyramid interpolates above about z13: zooming in past
+     that invents samples rather than revealing them. That was measured, not
+     assumed -- the mean difference against the next zoom halves exactly at
+     each step (0.861, 0.440, 0.200, 0.063 m), which is what interpolation
+     looks like and what real data does not.
+
+     So where the USGS has published the ground directly, read that instead.
+     The 1/3 arc-second DEM is a Cloud Optimized GeoTIFF per 1-degree square
+     in the same public bucket the imagery uses, range-requestable and CORS
+     open. One point was checked against known ground before any of this was
+     written: downtown Minneapolis comes back 254.81 m, and it took 714 KB
+     out of a 421 MB file to get it.
+
+     Two differences from the imagery path matter. These files are LZW, not
+     Deflate, so the decompressor is written out below -- browsers do not
+     carry one. And they are float32 with predictor 3, which shuffles the
+     bytes of each row into planes before differencing them; miss that and
+     the elevations come back as 3.4e38 rather than metres.
+
+     Coverage is CONUS, Hawaii and parts of Alaska. Everywhere else the
+     square simply does not exist, and the panel falls back without comment
+     beyond naming the source it used.
+     ===================================================================== */
+  var DEP = {
+    base: 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/',
+    budget: 20*1048576,           // the most this is worth spending on one view
+    miss: {}                      // squares already known not to exist
+  };
+  function depSquare(lat, lon){
+    var n = Math.ceil(lat - 1e-9), w = Math.ceil(-lon - 1e-9);
+    if(n < 1 || n > 89 || w < 1 || w > 179) return null;      // product is N/W only
+    return 'n' + (n < 10 ? '0' : '') + n + 'w' + (w < 100 ? '0' : '') + (w < 10 ? '0' : '') + w;
+  }
+
+  /* TIFF LZW. MSB-first, codes of 9 to 12 bits, 256 clears the table, 257
+     ends it, and the width grows one code early -- the quirk that makes this
+     not quite the LZW everyone remembers. Written as a prefix/suffix trie
+     rather than a string table so a 1 MB tile decodes without allocating a
+     million short arrays. */
+  function lzwDecode(buf, expect){
+    var src = new Uint8Array(buf);
+    var out = new Uint8Array(expect), op = 0;
+    var pfx = new Int32Array(4096), suf = new Uint8Array(4096), first = new Uint8Array(4096);
+    for(var i=0; i<256; i++){ pfx[i] = -1; suf[i] = i; first[i] = i; }
+    var stack = new Uint8Array(4096);
+    var next = 258, bits = 9, prev = -1;
+    /* A stream that stops short leaves the rest of `out` as zeros, and zero
+       is a perfectly ordinary elevation, so the caller cannot tell a failed
+       tile from sea level. It has to be caught here: this returns null
+       rather than a half-filled buffer. */
+    var bit = 0, end = src.length*8;
+    while(bit + bits <= end){
+      var q = bit >> 3, sh = bit & 7;
+      var win = (src[q] << 16) | ((src[q+1]||0) << 8) | (src[q+2]||0);
+      var code = (win >> (24 - sh - bits)) & ((1 << bits) - 1);
+      bit += bits;
+      if(code === 257) break;
+      if(code === 256){ next = 258; bits = 9; prev = -1; continue; }
+      var sp = 0, c;
+      if(code < next) c = code;
+      else if(code === next && prev >= 0){ stack[sp++] = first[prev]; c = prev; }
+      else break;                                  // corrupt stream; stop clean
+      while(c >= 0 && sp < 4096){ stack[sp++] = suf[c]; c = pfx[c]; }
+      var run = sp;
+      if(op + run > expect) run = expect - op;
+      for(var k=0; k<run; k++) out[op++] = stack[--sp];
+      if(op >= expect) break;
+      if(prev >= 0 && next < 4096){
+        pfx[next] = prev;
+        suf[next] = out[op - run];                    // first byte of what was just emitted
+        first[next] = first[prev];
+        next++;
+        if(next + 1 >= (1 << bits) && bits < 12) bits++;
+      }
+      prev = code;
+    }
+    return op === expect ? out : null;
+  }
+
+  /* Predictor 3, the floating-point one. Each row was byte-shuffled into
+     planes -- all the high bytes, then the next, and so on -- and then
+     horizontally differenced. Undo the differencing first, then put the
+     bytes back together in little-endian order. */
+  function unpredictFloat(u, w, h, bps, samples){
+    var cc = w * bps * samples, wc = w * samples;
+    var tmp = new Uint8Array(cc);
+    for(var y=0; y<h; y++){
+      var o = y*cc;
+      for(var i=samples; i<cc; i++) u[o+i] = (u[o+i] + u[o+i-samples]) & 255;
+      tmp.set(u.subarray(o, o+cc));
+      for(var c=0; c<wc; c++)
+        for(var b=0; b<bps; b++)
+          u[o + bps*c + b] = tmp[(bps - b - 1)*wc + c];
+    }
+  }
+
+  /* Read the panel's ground out of one 1-degree square, at full resolution.
+
+     Only the top level of the pyramid is ever used, and that is a decision
+     rather than an oversight. The global tiles this falls back to are, over
+     the US, a re-encoding of this very dataset, so a 3DEP overview at 20 or
+     40 m buys nothing over the free tiles while costing megabytes. The
+     native 1/3 arc-second posts are the one thing the fallback cannot give,
+     because above about z13 its pyramid interpolates. So: native or nothing.
+     ===================================================================== */
+  function depRead(h, plan, geom, el, ok){
+    var lv = plan.lv, c0 = plan.c0, r0 = plan.r0;
+    var sw = plan.c1-c0+1, sh = plan.r1-r0+1;
+    var src = new Float32Array(sw*sh), have = new Uint8Array(sw*sh);
+    var expect = lv.tw * lv.th * lv.samples * (lv.bits/8);
+    return pool(plan.jobs, 4, function(t){
+      return cogTile(h.url, lv, t.idx, expect).then(function(u){
+        if(!u) return;
+        var f = new Float32Array(u.buffer, u.byteOffset, (u.byteLength/4)|0);
+        var bx = t.tx*lv.tw, by = t.ty*lv.th;
+        var ya = Math.max(r0, by), yb = Math.min(plan.r1, by+lv.th-1);
+        var xa = Math.max(c0, bx), xb = Math.min(plan.c1, bx+lv.tw-1);
+        for(var y=ya; y<=yb; y++){
+          var so = (y-by)*lv.tw, dofs = (y-r0)*sw;
+          for(var x=xa; x<=xb; x++){
+            var v = f[so + (x-bx)];
+            if(!(v > -99999 && v < 30000)) continue;      // -999999 is no data
+            src[dofs + (x-c0)] = v; have[dofs + (x-c0)] = 1;
+          }
+        }
+      });
+    }).then(function(){
+      /* The square is in degrees, so mapping it into a web-mercator grid is
+         one lookup per row and one per column -- no projection maths at all,
+         which is the one place this is simpler than the imagery. */
+      var W = geom.W, H = geom.H, filled = 0;
+      var COL = new Float64Array(W), ROW = new Float64Array(H);
+      for(var x=0; x<W; x++)
+        COL[x] = (x2lon(geom.tx0 + x/TILE, geom.z) - lv.ox)/lv.mpp - 0.5 - c0;
+      for(var y=0; y<H; y++)
+        ROW[y] = (lv.oy - y2lat(geom.ty0 + y/TILE, geom.z))/lv.mppY - 0.5 - r0;
+      /* Bilinear, not nearest. The posts are 10.3 m and this grid can be 8,
+         so nearest neighbour repeats cells in a regular pattern, and the
+         hillshade differentiates that pattern into a checkerboard across the
+         whole panel -- texture that is not on the ground. Interpolating
+         between posts removes it without inventing anything the samples do
+         not already imply. */
+      for(var yy=0; yy<H; yy++){
+        /* Hold the edge post for the half cell that falls past the last
+           one, so the panel does not end in an unfilled line -- but only
+           that half cell. Clamping any position that lands outside the
+           window smears a square's bottom row across everything below it,
+           and with two squares racing to fill the same grid the smear wins
+           often enough to move the reported minimum by 30 m. */
+        var fy = ROW[yy];
+        if(sh < 2 || fy < -0.5 || fy > sh - 0.5) continue;
+        var ry = Math.floor(fy), ay = fy - ry;
+        if(ry < 0){ ry = 0; ay = 0; }
+        else if(ry + 1 >= sh){ ry = sh - 2; ay = 1; }
+        var ra = ry*sw, rb = ra + sw, o = yy*W;
+        for(var xx=0; xx<W; xx++){
+          if(ok[o+xx]) continue;
+          var fx = COL[xx];
+          if(sw < 2 || fx < -0.5 || fx > sw - 0.5) continue;
+          var rx = Math.floor(fx), ax = fx - rx;
+          if(rx < 0){ rx = 0; ax = 0; }
+          else if(rx + 1 >= sw){ rx = sw - 2; ax = 1; }
+          var q00 = ra+rx, q10 = q00+1, q01 = rb+rx, q11 = q01+1;
+          if(!have[q00] || !have[q10] || !have[q01] || !have[q11]) continue;
+          el[o+xx] = (src[q00]*(1-ax) + src[q10]*ax)*(1-ay) +
+                     (src[q01]*(1-ax) + src[q11]*ax)*ay;
+          ok[o+xx] = 1; filled++;
+        }
+      }
+      return filled;
+    });
+  }
+
+  /* Try 3DEP across every 1-degree square this panel touches. Resolves with
+     a finished grid, or with null to mean "use the global fallback". */
+  function depBuild(geom, onSay){
+    var seen = {}, order = [];
+    for(var a=0; a<=2; a++) for(var c=0; c<=2; c++){
+      var la = y2lat(geom.ty0 + (c/2*geom.H)/TILE, geom.z);
+      var lo = x2lon(geom.tx0 + (a/2*geom.W)/TILE, geom.z);
+      var sq = depSquare(la, lo);
+      if(sq && !seen[sq] && !DEP.miss[sq]){ seen[sq] = 1; order.push(sq); }
+    }
+    if(!order.length) return Promise.resolve(null);
+    order = order.slice(0, 4);
+    if(onSay) onSay('asking the USGS');
+    return pool(order, 3, function(sq){
+      var url = DEP.base + sq + '/USGS_13_' + sq + '.tif';
+      return cogHeader(url)
+        .then(function(levels){ return {sq:sq, url:url, lv:levels[0]}; })
+        .catch(function(){ DEP.miss[sq] = 1; return null; });   // no such square
+    }).then(function(hs){
+      var heads = hs.filter(Boolean);
+      if(!heads.length) return null;
+      var b = {
+        x0: x2lon(geom.tx0, geom.z),            x1: x2lon(geom.tx0 + geom.nx, geom.z),
+        y0: y2lat(geom.ty0 + geom.ny, geom.z),  y1: y2lat(geom.ty0, geom.z)
+      };
+      /* Price the whole read before starting it -- every square together,
+         not one at a time, because a panel that straddles a degree line pays
+         for both. The tile byte counts are already in the headers, so this
+         costs nothing and is exact. */
+      var plans = [], total = 0;
+      heads.forEach(function(h){
+        var p = planTiles(h.lv, b);
+        if(!p) return;
+        plans.push({h:h, p:p}); total += p.bytes;
+      });
+      if(!plans.length) return null;
+      if(total > DEP.budget) return null;         // too dear for what it adds
+      if(onSay) onSay('USGS 3DEP, ' + (total/1048576).toFixed(1) + ' MB');
+      var el = new Float32Array(geom.W*geom.H), ok = new Uint8Array(geom.W*geom.H);
+      return pool(plans, 2, function(pl){
+        return depRead(pl.h, pl.p, geom, el, ok).catch(function(){ return 0; });
+      }).then(function(counts){
+        var used = 0;
+        counts.forEach(function(n){ if(n) used++; });
+        if(!used) return null;
+        var mn = Infinity, mx = -Infinity, nodata = 0;
+        for(var i=0; i<el.length; i++){
+          if(!ok[i]){ el[i] = NaN; nodata++; continue; }
+          if(el[i] < mn) mn = el[i];
+          if(el[i] > mx) mx = el[i];
+        }
+        if(mn === Infinity) return null;
+        /* Partial coverage is worse than none: half a grid from 3DEP and
+           half missing reads as a cliff along a line of latitude. The
+           fallback is global, so hand back to it unless this covered
+           essentially all of the ground. */
+        if(nodata > el.length*0.12) return null;
+        var res = plans[0].p.lv.mppY * 111320;
+        return {w:geom.W, h:geom.H, z:geom.z, mpp:geom.mpp, el:el, ok:ok, min:mn, max:mx,
+                lat:geom.lat, lon:geom.lon, tx0:geom.tx0, ty0:geom.ty0, nodata:nodata,
+                tiles:used, asked:plans.length,
+                src:'USGS 3DEP', srcRes:res,
+                srcNote:'USGS 3DEP 1/3\u2033 \u00b7 ' + res.toFixed(1) + ' m posts \u00b7 ' +
+                        (total/1048576).toFixed(1) + ' MB'};
+      });
+    });
   }
 
   function imgSay(html){

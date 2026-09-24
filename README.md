@@ -39,11 +39,27 @@ client-side:
 
 | Layer | Source | What it answers |
 |---|---|---|
-| Topography | AWS Terrain Tiles (terrarium PNG, public domain) | height, relief, contours, line of sight |
+| Topography | USGS 3DEP where it exists, AWS Terrain Tiles elsewhere | height, relief, contours, line of sight |
 | Slope | derived | where wheels, tracks and feet can go |
 | Viewshed | derived, radial sweep with curvature and refraction | what an observer at a point can see |
 | Activity | this page's own collection | what has been reported inside this ground |
 | Imagery | Sentinel-2 L2A true colour, `sentinel-cogs` on S3 | what is actually there |
+
+Elevation comes from the USGS directly wherever the USGS has published it.
+The 1/3 arc-second 3DEP DEM is a Cloud Optimized GeoTIFF per 1-degree square
+in the same bucket the imagery uses, so the panel reads the header, pulls only
+the internal tiles it needs, and decodes LZW with a floating-point predictor in
+the page. Downtown Minneapolis comes back 254.81 m, checked against an
+independent decode of the same bytes.
+
+Only the native level is ever used, and that is deliberate rather than an
+oversight: over the US the global tiles are themselves a re-encoding of 3DEP,
+so an overview at 20 or 40 m buys nothing over the free tiles while costing
+megabytes. What the fallback cannot give is the native posting, because above
+about z13 its pyramid interpolates — measured, not assumed: the mean difference
+against the next zoom halves exactly at each step (0.861, 0.440, 0.200,
+0.063 m). So the panel takes 3DEP when the whole read fits a 20 MB budget, and
+falls back otherwise. Either way the readout names the source and the posting.
 
 The imagery layer has no tile server behind it. Sentinel-2 scenes are Cloud
 Optimized GeoTIFFs in a public bucket that answers HTTP range requests with
