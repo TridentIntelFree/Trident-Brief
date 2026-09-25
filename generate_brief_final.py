@@ -2244,11 +2244,17 @@ def _overpass(q, timeout=120):
     if _APP_T0[0] and time.time() - _APP_T0[0] > APP_BUDGET_S:
         return None, 'time budget spent'
     for url in OVERPASS:
-        if _OVERPASS_BAD.get(url, 0) >= 2:
-            continue                   # this server has failed twice this run
+        if _OVERPASS_BAD.get(url, 0) >= 3:
+            continue                   # this server has failed three times this run
         try:
             r = requests.post(url, data={'data': q}, timeout=timeout,
                               headers={'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'})
+            if r.status_code == 429:
+                # "Too many requests" is a queue, not a refusal: wait our turn once.
+                print(f"    overpass: {url.split('/')[2]} busy (429); waiting 60s")
+                time.sleep(60)
+                r = requests.post(url, data={'data': q}, timeout=timeout,
+                                  headers={'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'})
             if r.status_code == 200:
                 _OVERPASS_BAD[url] = 0
                 return r.json(), None
@@ -2305,21 +2311,20 @@ def _enc(pts):
     return out
 
 
-def _at_path(ways):
+def _at_path(edges):
     """Order the trail from Springer to Katahdin as the shortest route through the
     relation's ways, so every point along it has a trail mile. Alternates and
-    side routes in the relation fall off the shortest path by themselves."""
+    side routes in the relation fall off the shortest path by themselves.
+    edges: (first node id, last node id, [(lat, lon), ...]) per way."""
     import heapq
     adj, geo = {}, {}
-    for w in ways:
-        n, g = w.get('nodes') or [], w.get('geometry') or []
-        if len(n) < 2 or len(n) != len(g):
+    for n0, n1, pts in edges:
+        if len(pts) < 2 or n0 == n1:
             continue
-        pts = [(p['lat'], p['lon']) for p in g]
         L = sum(_m(pts[i - 1], pts[i]) for i in range(1, len(pts)))
-        geo[n[0]], geo[n[-1]] = pts[0], pts[-1]
-        adj.setdefault(n[0], []).append((n[-1], L, pts))
-        adj.setdefault(n[-1], []).append((n[0], L, pts[::-1]))
+        geo[n0], geo[n1] = pts[0], pts[-1]
+        adj.setdefault(n0, []).append((n1, L, pts))
+        adj.setdefault(n1, []).append((n0, L, pts[::-1]))
     if not adj:
         return None
     # Bridge small breaks: two dangling ends within 300 m that OpenStreetMap
@@ -2367,60 +2372,131 @@ def _at_path(ways):
     return path, dist[end] / 1609.344
 
 
-def _app_sections():
-    """Every relation that makes up the trail: the top one and its descendants."""
+APP_CACHE = 'data/trail_sections.json'
+APP_PACE_S = 12             # pause between Overpass requests
+
+
+def _dec(a):
+    out, la, lo = [], 0, 0
+    for i in range(0, len(a) - 1, 2):
+        la += a[i]; lo += a[i + 1]
+        out.append((la / 1e5, lo / 1e5))
+    return out
+
+
+def _app_sections(cache):
+    """Every relation that makes up the trail: the top one and its descendants.
+    Remembered in the cache, so a run where the search fails still knows them."""
+    t = _wire_time(cache.get('rels_at'))
+    if cache.get('rels') and t and datetime.now(timezone.utc) - t < timedelta(days=APP_MAX_AGE_DAYS):
+        return cache['rels']
     found, err = _overpass(APP_FIND_Q, timeout=90)
-    # The name search scans every hiking route on Earth; if that is what the
-    # server refuses, start from the trail's own relation instead.
-    level = [e['id'] for e in (found or {}).get('elements', []) if e.get('type') == 'relation'] or [APP_AT_RELATION]
-    if found is None:
+    level = [e['id'] for e in (found or {}).get('elements', []) if e.get('type') == 'relation']
+    if not level:
         print(f"  appalachia: name search failed ({err}); starting from relation {APP_AT_RELATION}")
-    rels, depth = list(level), 0
+        level = [APP_AT_RELATION]
+    rels, depth, ok = list(level), 0, found is not None
     while level and depth < 3:
-        time.sleep(2)
+        time.sleep(APP_PACE_S)
         kids, err = _overpass(APP_KIDS_Q.format(ids=','.join(map(str, level))), timeout=90)
         if kids is None:
-            break                      # the parents alone still carry their own ways
+            ok = False
+            break
         level = [e['id'] for e in kids.get('elements', []) if e.get('type') == 'relation' and e['id'] not in rels]
         rels += level
         depth += 1
-    return (rels, None) if rels else (None, 'no Appalachian Trail relation found')
+    if ok:
+        cache['rels'], cache['rels_at'] = rels, datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    elif cache.get('rels'):
+        return cache['rels']
+    return rels
 
 
-def build_appalachia():
+def _save_cache(cache):
+    os.makedirs(os.path.dirname(APP_CACHE), exist_ok=True)
+    with open(APP_CACHE, 'w', encoding='utf-8') as f:
+        json.dump(cache, f, separators=(',', ':'))
+
+
+def build_appalachia(cache=None):
+    """Build the trail file from the per-section cache, fetching only the sections
+    that are missing or a month old. Every section fetched is saved at once, so a
+    run cut short by a struggling Overpass still keeps what it got, and the next
+    run carries on from there."""
     t0 = time.time()
     _APP_T0[0] = t0
-    rels, err = _app_sections()
-    if rels is None:
-        return None, 'finding the trail: ' + err
-    ways, have, failed, with_ways = [], set(), [], []
+    cache = cache if cache is not None else {}
+    cache.setdefault('sec', {})
+    now = datetime.now(timezone.utc)
+    stamp = now.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def fresh(at):
+        t = _wire_time(at)
+        return bool(t and now - t < timedelta(days=APP_MAX_AGE_DAYS))
+
+    rels = _app_sections(cache)
+    asked = 0
     for rid in rels:
-        time.sleep(2)
+        sec = cache['sec'].setdefault(str(rid), {})
+        if sec.get('ways') is not None and fresh(sec.get('at')):
+            continue
+        if asked:
+            time.sleep(APP_PACE_S)
+        asked += 1
         got, err = _overpass(APP_LINE_Q.format(rid=rid))
         if got is None:
-            failed.append(rid)
             continue
-        n = 0
+        ws = []
         for e in got.get('elements', []):
-            if e.get('type') == 'way' and e.get('geometry') and e['id'] not in have:
-                have.add(e['id'])
-                ways.append(e)
-                n += 1
-        if n:
-            with_ways.append(rid)
-    print(f"  appalachia: {len(rels)} relations, {len(with_ways)} with ways, {len(ways)} ways"
-          + (f", {len(failed)} failed" if failed else ''))
-    if len(ways) < 50:
-        return None, f'trail line: only {len(ways)} ways came back' + (f' ({len(failed)} sections failed)' if failed else '')
-    segs, npts = [], 0
-    for w in ways:
-        pts = _rdp([(p['lat'], p['lon']) for p in w['geometry']], 8)
-        npts += len(pts)
-        segs.append(_enc(pts))
-    out = {'v': APP_VERSION, 'built_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+            n, g = e.get('nodes') or [], e.get('geometry') or []
+            if e.get('type') == 'way' and len(n) >= 2 and len(n) == len(g):
+                pts = _rdp([(p['lat'], p['lon']) for p in g], 8)
+                ws.append([e['id'], n[0], n[-1], _enc(pts)])
+        sec.update(ways=ws, at=stamp)
+        _save_cache(cache)
+    for rid in rels:
+        sec = cache['sec'][str(rid)]
+        if not sec.get('ways') or (sec.get('pois') is not None and fresh(sec.get('pois_at'))):
+            continue
+        if asked:
+            time.sleep(APP_PACE_S)
+        asked += 1
+        got, err = _overpass(APP_POI_Q.format(rid=rid))
+        if got is None:
+            continue
+        rows = []
+        for e in got.get('elements', []):
+            t = e.get('tags') or {}
+            k = _poi_kind(t)
+            la = e.get('lat', (e.get('center') or {}).get('lat'))
+            lo = e.get('lon', (e.get('center') or {}).get('lon'))
+            if not k or la is None or lo is None:
+                continue
+            ele = re.match(r'^\s*(-?\d+(?:\.\d+)?)', str(t.get('ele') or ''))
+            rows.append([round(la, 5), round(lo, 5), k, (t.get('name') or '').strip()[:60],
+                         round(float(ele.group(1))) if ele else None])
+        sec.update(pois=rows, pois_at=stamp)
+        _save_cache(cache)
+
+    # Assemble whatever the cache now holds.
+    edges, have = [], set()
+    for rid in rels:
+        for wid, n0, n1, enc in cache['sec'].get(str(rid), {}).get('ways') or []:
+            if wid not in have:
+                have.add(wid)
+                edges.append((n0, n1, _dec(enc)))
+    lines_ok = sum(1 for r in rels if cache['sec'].get(str(r), {}).get('ways') is not None)
+    with_ways = [r for r in rels if cache['sec'].get(str(r), {}).get('ways')]
+    pois_ok = sum(1 for r in with_ways if cache['sec'][str(r)].get('pois') is not None)
+    print(f"  appalachia: {asked} Overpass requests this run; sections with line {lines_ok}/{len(rels)}, "
+          f"with points {pois_ok}/{len(with_ways)}; {len(edges)} ways")
+    if len(edges) < 50:
+        return None, f'only {len(edges)} ways so far ({lines_ok}/{len(rels)} sections)'
+    out = {'v': APP_VERSION, 'built_at': stamp,
            'source': 'OpenStreetMap contributors (ODbL), via Overpass',
-           'ways': len(ways), 'segs': segs, 'pois': []}
-    pp = _at_path(ways)
+           'ways': len(edges), 'segs': [_enc(e[2]) for e in edges], 'pois': [],
+           'sections': {'total': len(rels), 'lines': lines_ok, 'points': pois_ok, 'with_ways': len(with_ways)}}
+    pp = _at_path(edges)
     cum = None
     if pp:
         path, miles = pp
@@ -2437,27 +2513,13 @@ def build_appalachia():
             path_pts = coarse
         print(f"  appalachia: shortest route {miles:.0f} mi "
               f"({'miles kept' if cum else 'outside 2050-2350, miles not published'})")
-
-    seen, poi_failed = set(), []
-    for rid in with_ways:
-        time.sleep(2)
-        pois, perr = _overpass(APP_POI_Q.format(rid=rid))
-        if pois is None:
-            poi_failed.append(rid)
-            continue
-        for e in pois.get('elements', []):
-            t = e.get('tags') or {}
-            k = _poi_kind(t)
-            la = e.get('lat', (e.get('center') or {}).get('lat'))
-            lo = e.get('lon', (e.get('center') or {}).get('lon'))
-            if not k or la is None or lo is None:
-                continue
-            name = (t.get('name') or '').strip()[:60]
+    seen = set()
+    for r in with_ways:
+        for la, lo, k, name, ele in cache['sec'][str(r)].get('pois') or []:
             key = (k, round(la, 4), round(lo, 4))
             if key in seen:
                 continue
             seen.add(key)
-            row = [round(la, 5), round(lo, 5), k, name]
             mile = None
             if cum:
                 # nearest vertex of the ordered route -- good to a few hundred metres
@@ -2468,20 +2530,13 @@ def build_appalachia():
                     if d < best:
                         best, bi = d, i
                 mile = round(cum[bi], 1)
-            row.append(mile)
-            ele = re.match(r'^\s*(-?\d+(?:\.\d+)?)', str(t.get('ele') or ''))
-            row.append(round(float(ele.group(1))) if ele else None)
-            out['pois'].append(row)
-    # Complete means every section's line and points came back and the route
-    # measured as the whole trail; anything less is rebuilt the next day.
-    out['complete'] = not failed and not poi_failed and cum is not None
-    if failed or poi_failed:
-        out['missing'] = {'line': failed, 'pois': poi_failed}
+            out['pois'].append([la, lo, k, name, mile, ele])
+    out['complete'] = lines_ok == len(rels) and pois_ok == len(with_ways) and cum is not None
     kinds = {}
     for r in out['pois']:
         kinds[r[2]] = kinds.get(r[2], 0) + 1
-    print(f"  appalachia: built in {time.time() - t0:.0f}s - {len(ways)} ways, {npts} points, "
-          f"POIs {kinds}{'' if out['complete'] else ' (incomplete, retried tomorrow)'}")
+    print(f"  appalachia: built in {time.time() - t0:.0f}s - POIs {kinds}"
+          f"{'' if out['complete'] else ' (incomplete; the next run fetches only what is missing)'}")
     return out, None
 
 
@@ -2493,43 +2548,49 @@ def appalachia_status():
             d = json.load(f)
     except Exception:
         return None
-    return {'built_at': d.get('built_at'), 'complete': d.get('complete'), 'ways': d.get('ways'),
+    return {'built_at': d.get('built_at'), 'complete': d.get('complete'), 'sections': d.get('sections'), 'ways': d.get('ways'),
             'pois': len(d.get('pois') or []), 'path_mi': d.get('path_mi'),
             'kb': os.path.getsize(APP_FILE) // 1024}
 
 
 def build_trail_data():
-    """--trail-data: rebuild assets/appalachia.json from Overpass, in its own job.
+    """--trail-data: bring assets/appalachia.json up to date, in its own job.
 
-    The first attempt ran inside the half-hourly feed refresh and held the site
-    deploy for a quarter of an hour while Overpass was slow. The trail is
-    static, so it is now built weekly by .github/workflows/trail-data.yml and
-    committed; every deploy then carries the committed file. A complete build
-    less than APP_MAX_AGE_DAYS old is left alone, and a new build replaces the
-    old one only if it is at least as complete."""
-    old = None
+    Run daily by .github/workflows/trail-data.yml. With a complete build under a
+    month old it returns at once without touching Overpass; otherwise it fetches
+    only the sections still missing from data/trail_sections.json, then rebuilds
+    the page's file from everything cached. An incomplete result never replaces
+    a complete one."""
+    old = cache = None
     try:
         with open(APP_FILE, encoding='utf-8') as f:
             old = json.load(f)
     except Exception:
         pass
+    try:
+        with open(APP_CACHE, encoding='utf-8') as f:
+            cache = json.load(f)
+    except Exception:
+        cache = {}
     if old and old.get('complete') and os.environ.get('TRAIL_FORCE') != '1':
         t = _wire_time(old.get('built_at'))
         if t and datetime.now(timezone.utc) - t < timedelta(days=APP_MAX_AGE_DAYS):
             print(f"Trail data is complete and recent (built {old.get('built_at')}); nothing to do.")
             return
-    data, err = build_appalachia()
+    if os.environ.get('TRAIL_FORCE') == '1':
+        cache = {}
+    data, err = build_appalachia(cache)
     if data is None:
-        print(f"Trail data build failed: {err}")
+        print(f"Trail data not built yet: {err}")
         return
-    if old and old.get('segs') and old.get('complete') and not data.get('complete'):
+    if old and old.get('complete') and not data.get('complete'):
         print('New build is incomplete and the committed one is complete; keeping the committed one.')
         return
     os.makedirs('assets', exist_ok=True)
     with open(APP_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, separators=(',', ':'))
     print(f"Wrote {APP_FILE} ({os.path.getsize(APP_FILE) // 1024} KB), "
-          f"{'complete' if data.get('complete') else 'incomplete: ' + json.dumps(data.get('missing'))}")
+          f"{'complete' if data.get('complete') else 'incomplete: ' + json.dumps(data.get('sections'))}")
 
 
 def fetch_server_feeds(leads=None):
