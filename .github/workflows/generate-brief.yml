@@ -44,6 +44,9 @@ jobs:
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         # Collection window, matched to the twice-daily cadence above.
         COLLECTION_WINDOW_HOURS: '12'
+        # Searches the model is told it may spend per run. Searches are most of
+        # the xAI bill (~2 cents each, results included); see README, "What a run costs".
+        SEARCH_BUDGET: '8'
       run: python3 generate_brief_final.py
 
     # Commit the brief text back to the repo on every run.

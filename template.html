@@ -130,6 +130,8 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .d-kind{font-size:.64em;letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono);margin-bottom:10px;display:flex;align-items:center;gap:7px}
 .d-title{font-size:1.05em;color:#fff;font-weight:700;line-height:1.4;margin-bottom:10px}
 .d-place{color:var(--cyan);font-family:var(--mono);font-size:.8em;margin-bottom:12px}
+.d-note{font-family:var(--mono);font-size:.72em;line-height:1.55;color:var(--ink-dim);background:rgba(9,15,33,.6);
+  border:1px solid var(--line2);border-radius:7px;padding:9px 11px;margin:-4px 0 14px;max-height:170px;overflow:auto}
 .d-rows{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
 .d-row{display:flex;gap:10px;font-size:.78em;border-bottom:1px solid var(--line2);padding-bottom:6px}
 .d-row span:first-child{color:var(--ink-faint);font-family:var(--mono);min-width:92px;letter-spacing:.05em;font-size:.9em}
@@ -518,6 +520,10 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
         <div class="globe-ctl">
           <span class="lyr-group"><b>brief</b>
             <button class="lyr on" data-layer="events"><i style="background:#ef4444"></i>EVENTS <b id="nEvents">0</b></button>
+          </span>
+          <span class="lyr-group"><b>leads</b>
+            <button class="lyr on" data-layer="conflict" title="GDELT armed-conflict hotspots: machine-coded from news, a place to look, not a source"><i style="background:#f472b6"></i>CONFLICT <b id="nConflict">0</b></button>
+            <button class="lyr on" data-layer="navwarn" title="NGA navigational warnings from the last 45 days: missile firings, launch debris, live fire, ordnance"><i style="background:#a3e635"></i>NAV WARN <b id="nNavwarn">0</b></button>
           </span>
           <span class="lyr-group"><b>orbital</b>
             <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
@@ -1112,7 +1118,19 @@ function contactWhen(c){
     if(isFinite(t)) return {date:new Date(t - 12*3600e3).toISOString().slice(0,10), basis:'brief'};
   }
   if(c.k === 'quake' && d.time) return {date:new Date(d.time).toISOString().slice(0,10), basis:'source'};
+  if(c.k === 'navwarn' && d.issued){
+    var m = /^(\d{2})\d{4}Z\s+([A-Z]{3})\s+(\d{4})/.exec(String(d.issued).toUpperCase());
+    var mo = m ? 'JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC'.indexOf(m[2]) / 3 : -1;
+    if(m && mo >= 0) return {date:m[3] + '-' + String(mo+1).padStart(2,'0') + '-' + m[1], basis:'notice'};
+  }
+  if(c.k === 'conflict'){
+    var lt = (FEEDS.gdelt_meta || {}).latest;
+    if(lt) return {date:String(lt).slice(0,10), basis:'feed'};
+  }
   return null;
+}
+function hostOf(u){
+  try { return new URL(u).hostname.replace(/^www\./, ''); } catch(_){ return String(u).slice(0, 40); }
 }
 function terrainAttrs(c){
   var w = contactWhen(c);
@@ -1164,7 +1182,8 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 
 var G = {
   rot:[20,-15], R:0, baseR:0, zoom:1, cx:0, cy:0, spin:true, sel:null, drag:null,
-  layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true},
+  layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true,
+          conflict:true, navwarn:true},
   air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[]
 };
 
@@ -1178,7 +1197,9 @@ var KIND = {
   hazard:{color:'#f97316', label:'HAZARD'},
   air:   {color:'#22d3ee', label:'AIR CONTACT'},
   naval: {color:'#34d399', label:'VESSEL'},
-  iss:   {color:'#a78bfa', label:'ORBITAL'}
+  iss:   {color:'#a78bfa', label:'ORBITAL'},
+  conflict:{color:'#f472b6', label:'CONFLICT HOTSPOT'},
+  navwarn: {color:'#a3e635', label:'NAV WARNING'}
 };
 var SECTION_COLOR = {geopolitical:'#ef4444', technology:'#a78bfa', homeland:'#f59e0b', uap:'#22d3ee', research:'#22c55e'};
 
@@ -1362,6 +1383,61 @@ function project(lon, lat){
   return {x:G.cx + G.R*x, y:G.cy - G.R*y, z:z};
 }
 
+/* ---- navigational-warning areas ----
+   A warning names an area, a track or a radius, not a point; the centroid
+   marker is only where to tap. The shapes are parsed by the collector from
+   the warning's own coordinates, and drawn here following the surface. */
+function densifyLL(pts){
+  var out = [pts[0].slice()];
+  for(var i=1; i<pts.length; i++){
+    var a = out[out.length-1], b = pts[i].slice();
+    while(b[1] - a[1] > 180) b[1] -= 360;           // the short way across the antimeridian
+    while(a[1] - b[1] > 180) b[1] += 360;
+    var n = Math.max(1, Math.ceil(Math.max(Math.abs(b[0]-a[0]), Math.abs(b[1]-a[1]))));
+    for(var k=1; k<=n; k++) out.push([a[0] + (b[0]-a[0])*k/n, a[1] + (b[1]-a[1])*k/n]);
+  }
+  return out;
+}
+function navRings(){
+  if(navRings.cache) return navRings.cache;
+  var out = [];
+  (FEEDS.navwarn || []).forEach(function(w, wi){
+    (w.shapes || []).forEach(function(s){
+      var pts = s.p || [];
+      if(!pts.length) return;
+      if(s.t === 'circle' || s.t === 'pt'){
+        var c = pts[0], r = (s.t === 'circle' ? s.r : 3) * 1.852 / 111.32, ring = [];
+        for(var k=0; k<=48; k++){
+          var a = k/48*2*Math.PI;
+          ring.push([c[0] + r*Math.sin(a), c[1] + r*Math.cos(a)/Math.max(0.05, Math.cos(c[0]*D))]);
+        }
+        out.push({w:wi, pts:ring});
+      } else if(pts.length >= 2){
+        out.push({w:wi, pts:densifyLL(s.t === 'poly' ? pts.concat([pts[0]]) : pts)});
+      }
+    });
+  });
+  return (navRings.cache = out);
+}
+function drawNavAreas(){
+  if(!G.layers.navwarn) return;
+  var rings = navRings();
+  if(!rings.length) return;
+  ctx.save();
+  ctx.strokeStyle = KIND.navwarn.color; ctx.lineWidth = 1.3; ctx.globalAlpha = .85;
+  rings.forEach(function(r){
+    ctx.beginPath();
+    var on = false;
+    for(var i=0; i<r.pts.length; i++){
+      var q = project(r.pts[i][1], r.pts[i][0]);
+      if(q.z <= 0){ on = false; continue; }
+      if(on) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); on = true; }
+    }
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
 function contacts(){
   var out=[];
   if(G.layers.events) EVENTS.forEach(function(e,i){
@@ -1393,6 +1469,15 @@ function contacts(){
       if(x.lat!=null) out.push({k:'launch', lat:x.lat, lon:x.lon, r:4, d:x, id:'L'+i, color:'#22c55e'});
     });
   }
+  if(G.layers.conflict) (FEEDS.gdelt||[]).forEach(function(h,i){
+    if(h.lat==null) return;
+    out.push({k:'conflict', lat:h.lat, lon:h.lon, r:3 + Math.min(4, (h.outlets||3)/3), d:h, id:'c'+i,
+              color:KIND.conflict.color});
+  });
+  if(G.layers.navwarn) (FEEDS.navwarn||[]).forEach(function(w,i){
+    if(w.lat==null) return;
+    out.push({k:'navwarn', lat:w.lat, lon:w.lon, r:3.6, d:w, id:'n'+i, color:KIND.navwarn.color});
+  });
   if(G.layers.naval) (FEEDS.vessels||[]).forEach(function(v,i){
     if(v.lat==null || v.lon==null || !v._mil) return;
     out.push({k:'naval', lat:v.lat, lon:v.lon, r:3, d:v, id:'v'+i, color:'#10b981'});
@@ -1440,6 +1525,8 @@ function draw(){
 
   drawShading();     /* night falls on the map, not on the contacts */
   drawSats();
+
+  drawNavAreas();
 
   /* contacts, far side first so near side draws on top */
   var pts = contacts().map(function(c){ var q=project(c.lon,c.lat); c.sx=q.x; c.sy=q.y; c.z=q.z; return c; })
@@ -1576,7 +1663,7 @@ function fmtTime(ts){ try{ return new Date(ts).toISOString().replace('T',' ').sl
 function renderDetail(c){
   var el = document.getElementById('detailPanel');
   if(!c){ el.innerHTML = '<div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div>'; selCard(null); return; }
-  var d=c.d, rows=[], title='', place='', link='';
+  var d=c.d, rows=[], title='', place='', link='', note='';
 
   if(c.k==='events'){
     title = d.headline || 'Reported event';
@@ -1611,6 +1698,25 @@ function renderDetail(c){
     rows.push(['ECCENTRICITY', d.s[5].toFixed(5)]);
     rows.push(['ELEMENT EPOCH', fmtTime(d.s[2]*1000)]);
     link = 'https://www.n2yo.com/satellite/?s=' + d.s[1];
+  } else if(c.k==='navwarn'){
+    title = esc(d.id || 'Navigational warning');
+    place = String(d.text || '').split('.')[0].slice(0, 80);
+    rows.push(['TYPE', String(d.kind || '').toUpperCase()]);
+    if(d.issued)    rows.push(['ISSUED', d.issued + (d.age_days != null ? '  (' + d.age_days + 'd ago)' : '')]);
+    if(d.authority) rows.push(['AUTHORITY', d.authority]);
+    if(d.shapes && d.shapes.length) rows.push(['DRAWN', d.shapes.length + ' area' + (d.shapes.length > 1 ? 's' : '') + ' on the globe']);
+    note = d.text || '';
+    link = 'https://msi.nga.mil/NavWarnings';
+  } else if(c.k==='conflict'){
+    title = esc(d.place || 'Conflict hotspot');
+    place = 'GDELT \u00b7 machine-coded from news';
+    rows.push(['EVENTS', d.events]);
+    rows.push(['OUTLETS', d.outlets + ' separate']);
+    if(d.what && d.what.length) rows.push(['CODED AS', d.what.join(', ')]);
+    (d.urls || []).forEach(function(u, j){ rows.push([j ? '' : 'REPORTED BY', hostOf(u)]); });
+    note = 'A lead, not a finding: software coded these from news reports and it miscodes often. ' +
+           'Read the reporting before relying on it.';
+    link = (d.urls || [])[0] || '';
   } else if(c.k==='hazard'){
     title = esc(d.event || d.name || 'Hazard');
     place = d.area || d.kind || '';
@@ -1643,7 +1749,7 @@ function renderDetail(c){
 
   /* Surface contacts get a locator chip too: knowing a vessel is at 12.4N 43.2E
      is nearly useless without seeing that it is in the Bab-el-Mandeb. */
-  var wantsChip = ['events','quake','hazard','naval','air','launch'].indexOf(c.k) > -1;
+  var wantsChip = ['events','quake','hazard','naval','air','launch','navwarn','conflict'].indexOf(c.k) > -1;
 
   el.innerHTML =
     '<div class="d-kind" style="color:'+c.color+'"><span class="dot" style="background:'+c.color+'"></span>'+((KIND[c.k]||KIND_EXTRA[c.k])||{}).label+'</div>' +
@@ -1652,6 +1758,7 @@ function renderDetail(c){
     (wantsChip ? '<div class="ev-chip-wrap" style="margin-bottom:13px"><canvas class="ev-chip" data-lat="'+c.lat+
        '" data-lon="'+c.lon+'" data-tint="'+esc(c.color)+'"></canvas></div>' : '') +
     '<div class="d-rows">'+rows.map(function(r){ return '<div class="d-row"><span>'+r[0]+'</span><span>'+esc(String(r[1]))+'</span></div>'; }).join('')+'</div>' +
+    (note ? '<div class="d-note">'+esc(note)+'</div>' : '') +
     (link ? '<a class="d-link" href="'+esc(link)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '') +
     /* Every contact on this globe has coordinates, which is the whole input the
        terrain tool needs -- no geocoder, no place-name lookup, no third-party
@@ -1685,6 +1792,8 @@ function boxLabel(c){
   if(c.k === 'events')return d.headline || d.place || 'reported event';
   if(c.k === 'quake') return 'M' + Number(d.mag).toFixed(1) + '  ' + (d.place || '');
   if(c.k === 'hazard')return d.event || d.name || 'hazard';
+  if(c.k === 'navwarn') return (d.id || 'nav warning') + '  ' + (d.kind || '');
+  if(c.k === 'conflict')return d.place || 'conflict hotspot';
   if(c.k === 'launch')return d.name || 'launch';
   if(c.k === 'iss')   return 'International Space Station';
   if(c.k === 'rf')    return d.name || d.mac || 'radio';
@@ -1698,13 +1807,15 @@ function boxDetail(c){
       (d.alt_baro != null ? '  ' + (d.alt_baro === 'ground' ? 'ground'
         : Math.round(d.alt_baro).toLocaleString() + ' ft') : '');
   if(d.s) return Math.round(d.alt).toLocaleString() + ' km';
+  if(c.k === 'conflict') return (d.outlets || 0) + ' outlets';
+  if(c.k === 'navwarn')  return d.age_days != null ? d.age_days + 'd ago' : '';
   return '';
 }
 
 /* Ships and aircraft are what this was asked for, so they lead; the rest
    follow rather than being hidden, because a box over a coast catching a
    priority event as well as the shipping is worth knowing about. */
-var BOX_ORDER = ['events','naval','air','hazard','quake','launch','iss','rf','sats','rocket','debris'];
+var BOX_ORDER = ['events','naval','air','navwarn','conflict','hazard','quake','launch','iss','rf','sats','rocket','debris'];
 
 function boxReport(hits, kmAcross){
   var out = document.getElementById('boxOut');
@@ -2370,6 +2481,8 @@ function paintBaked(){
 
   document.getElementById('nHaz').textContent =
     plottable(FEEDS.alerts) + plottable(FEEDS.disasters) + plottable(FEEDS.launches);
+  document.getElementById('nConflict').textContent = plottable(FEEDS.gdelt);
+  document.getElementById('nNavwarn').textContent = plottable(FEEDS.navwarn);
 }
 
 
@@ -2667,6 +2780,7 @@ window.TB = {
   renderDetail: function(c){ return renderDetail(c); },
   selMark: function(cv, x, y, c){ return selMark(cv, x, y, c); },
   selMiss: function(cv, x, y){ return selMiss(cv, x, y); },
+  navRings: function(){ return navRings(); },
   setZoomLabel: function(z){ var e=document.getElementById('zoomLabel'); if(e) e.textContent = z.toFixed(1)+'\u00d7'; },
   setSpin: function(on){ setSpin(on); },
   stopCanvasGlobe: function(){ G.stopped = true; },
@@ -3703,6 +3817,8 @@ function focusGlobe(lat, lon, zoom){
     take(EVENTS, 'events');
     take((FEEDS||{}).alerts, 'hazard');
     take((FEEDS||{}).disasters, 'hazard');
+    take((FEEDS||{}).gdelt, 'conflict');
+    take((FEEDS||{}).navwarn, 'navwarn');
     take((FEEDS||{}).quakes, 'quake');
     take((FEEDS||{}).vessels, 'naval');
     take(G.air, 'air');
@@ -4830,6 +4946,8 @@ function focusGlobe(lat, lon, zoom){
     }
     if(S2.evt) out += '<span style="color:var(--ink-faint)">event date ' + esc(S2.evt.date) +
                       (S2.evt.basis === 'source' ? ' (from the source)'
+                       : S2.evt.basis === 'notice' ? ' (the day the warning was issued; what it announces may fall later)'
+                       : S2.evt.basis === 'feed' ? ' (the day GDELT coded it from news)'
                        : S2.evt.basis === 'brief' ? ' (the source gave no date: start of the collection ' +
                          'window of the brief that reported it, so nothing labelled before can post-date it)'
                        : ' (entered)') + '</span><br>';
@@ -5582,6 +5700,27 @@ async function boot(){
   }));
   world.add(cloud);
 
+  /* Navigational-warning areas as line segments a hair above the surface.
+     The earth writes depth, so the far side of the planet hides them without
+     any occlusion test of our own. Built once: the warnings are baked into
+     the page and do not change until it is rebuilt. */
+  const navLines = (function(){
+    const rings = window.TB.navRings ? window.TB.navRings() : [];
+    if(!rings.length) return null;
+    const pos = [];
+    for(const r of rings){
+      for(let k=1; k<r.pts.length; k++){
+        const a = ll2v(r.pts[k-1][0], r.pts[k-1][1], 0.003), b = ll2v(r.pts[k][0], r.pts[k][1], 0.003);
+        pos.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+      }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({color:0xa3e635, transparent:true, opacity:.9}));
+    world.add(l);
+    return l;
+  })();
+
   const meta = [];   // parallel to the point cloud, for click resolution
   const col = new THREE.Color();
   function ll2v(lat, lon, alt){
@@ -5644,6 +5783,12 @@ async function boot(){
       for(const x of (T.FEEDS.launches||[])) if(x.lat!=null && i<CAP)
         push(i++, x.lat, x.lon, 0.006, '#22c55e', 7.2, {k:'launch', d:x, lat:x.lat, lon:x.lon}, TL.rocket, 1);
     }
+    if(L.conflict) for(const h of (T.FEEDS.gdelt||[])) if(h.lat!=null && i<CAP)
+      push(i++, h.lat, h.lon, 0.006, K.conflict.color, 6 + Math.min(4, (h.outlets||3)/3),
+           {k:'conflict', d:h, lat:h.lat, lon:h.lon}, TL.events, 0.95);
+    if(L.navwarn) for(const w of (T.FEEDS.navwarn||[])) if(w.lat!=null && i<CAP)
+      push(i++, w.lat, w.lon, 0.006, K.navwarn.color, 7, {k:'navwarn', d:w, lat:w.lat, lon:w.lon}, TL.hazard, 1);
+    if(navLines) navLines.visible = !!L.navwarn;
     const S = T.G.satsRaw, ok = T.G.satOk;
     if(S && ok){
       const KO = T.KIND_OF;

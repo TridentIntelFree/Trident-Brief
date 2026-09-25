@@ -18,6 +18,22 @@ to work through: active NGA maritime navigational warnings (missile firings,
 rocket debris areas, live fire) and GDELT armed-conflict hotspots. Each run also
 scores the previous brief's indicators and warnings against what happened.
 
+It also reads about 25 outlets' own RSS feeds (world desks, theatre outlets,
+defence, maritime, space, cyber, US homeland, and four defence subreddits) plus
+CISA's Known Exploited Vulnerabilities list, and hands the model the headlines
+from the collection window. Those cost nothing, so the model's paid searches go
+to X and to detail rather than to finding stories a feed already had.
+
+## What a run costs
+
+xAI bills per search as well as per token, and the searches are most of it: on
+25 Sep 2026 two runs of 10 and 12 searches cost $0.19 and $0.21, of which the
+prompt and the written brief were a few cents. Every run now logs its cost in
+dollars and its search count against `SEARCH_BUDGET` (default 8, set as an
+environment variable in the workflow), and both land in
+`assets/feed-status.json` under `collection`. The brief's usage is also on the
+xAI console, where the figures are per day.
+
 ## God's Eye live signal layer
 
 The page carries a live panel of free, keyless public feeds, an approach adapted
@@ -97,7 +113,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.1.1) and appears in the page
+The build version lives in `VERSION` (currently 1.3.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).

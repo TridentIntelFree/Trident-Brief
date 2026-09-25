@@ -4,6 +4,64 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.3.0 — 2026-09-25
+
+### Brief
+- **Free headlines, fewer paid searches.** Searches were most of the bill
+  (about $0.20 a run; the prompt and the written brief were a few cents), and
+  most web searches were finding what an outlet's RSS feed publishes anyway.
+  The pipeline now reads about 25 feeds and CISA's Known Exploited
+  Vulnerabilities list before the model starts and hands it the headlines from
+  the window -- grouped by theatre, with a story several outlets carried merged
+  into one line naming all of them. The model cites those directly and spends
+  its searches on X and on detail.
+- **A search budget.** The tasking asked for roughly twenty searches a run
+  (both tools on every theatre, three Reddit searches, two per section for 3
+  and 4); it now states a budget of about eight, mostly X. The five or six
+  `site:reddit.com` searches per run, which produced no Reddit citation in any
+  recent brief, are gone: four defence subreddits come in through their feeds
+  instead, when Reddit lets the runner in.
+- **X search limited to the window.** Posts from before the collection window
+  are no longer returned, so each X search spends its results on usable posts.
+  If the API rejects the date limit, the run retries once without it.
+- **Cost in the log.** Each run prints its cost in dollars and its search count
+  against the budget; both are in `assets/feed-status.json`. A feed that fails
+  is named there under `wire_detail`.
+
+## 1.2.0 — 2026-09-25
+
+### Globe
+- **Leads layers.** The navigational warnings and conflict hotspots the
+  collector hands the model are now on the globe too, under a new LEADS group.
+  Conflict hotspots (pink) are sized by how many separate outlets reported them.
+  Navigational warnings (lime) show a marker plus the area the warning actually
+  names -- its outline, track line or radius -- drawn on the surface and parsed
+  from the warning's own coordinates, with each lettered area kept separate.
+  Both open in the detail panel (full warning text; the outlets behind a
+  hotspot), work with box-select, show in the terrain panel's activity layer, and
+  offer BEFORE / AFTER imagery. A warning's date is the day it was issued, and
+  the panel says the activity it announces may fall later.
+
+### Brief
+- **Navigational warnings were stale.** The first live run kept 24 of 386
+  "active" warnings, and the newest of them was 868 days old -- permanent
+  ranges, old ordnance reports, cable-laying ships. The collector now asks NGA
+  several ways and keeps the freshest answer, logging what each returned; drops
+  warnings issued more than 45 days ago; drops routine commercial survey and
+  cable work; and if the newest warning of all is over three weeks old, reports
+  the feed as frozen rather than passing old notices off as news. "Submarine
+  volcanic activity" is no longer filed as a military exercise, and unexploded
+  ordnance is labelled as such rather than as live fire.
+- **Sections 3 and 4 must be searched.** The first brief under 1.1.1 issued no
+  search at all for Technology/Cyber or Homeland, then called both quiet. Each
+  now needs its searches and a "searched:" line before a quiet verdict, and the
+  run log warns when a section is called quiet without one.
+
+### What the first 1.1.1 brief did well
+It scored all four of the previous brief's calls with mixed verdicts, gave every
+new indicator a probability term and every assessment a confidence, and followed
+a GDELT lead to Ethiopia -- outside its usual theatres -- noting it as unverified.
+
 ## 1.1.1 — 2026-09-25
 
 The first numbered build. It rolls up everything shipped to date, plus this
