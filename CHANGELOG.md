@@ -47,6 +47,16 @@ release's changes.
   next run as items it had already reported.
 
 ### Page
+- **You can see what you selected.** Tapping a contact puts a lock-on reticle
+  on it, in its own colour, which follows it as the globe turns or as a
+  satellite moves. A card on the globe names it, with DETAILS to jump to the
+  full panel and × to clear. A tap that hits nothing shows a brief ring, so a
+  miss is distinguishable from a hit. Before this, the 3D globe drew no mark at
+  all, and on a phone the only feedback was a panel below the fold.
+- **SHOW ON GLOBE turns the 3D globe.** It, and every other jump-to-place
+  button, only ever rotated the 2D globe, so on the 3D view it selected an
+  event and left it on the far side of the planet. It now flies the event to
+  the centre of the view.
 - Appalachian Intel named as publisher; tridents replace the swords.
 - The header shows when the brief was actually collected. It had been showing
   the half-hourly feed refresh, which reported "0m since collection" on briefs

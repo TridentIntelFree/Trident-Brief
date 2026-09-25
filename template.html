@@ -166,6 +166,47 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .bx-more{font-family:var(--mono);font-size:.68em;color:var(--ink-faint);padding:8px 2px 0}
 #globe.boxing,#globe3d.boxing{cursor:crosshair}
 
+/* ---------- selection feedback ---------- */
+.sel-ret{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:5;display:none;color:#22d3ee;
+  will-change:transform}
+.sel-ret::before,.sel-ret::after{content:"";position:absolute;left:-16px;top:-16px;width:32px;height:32px;border-radius:50%}
+.sel-ret::before{border:2px solid currentColor;box-shadow:0 0 10px currentColor,inset 0 0 6px currentColor}
+.sel-ret::after{border:1.5px solid currentColor;animation:selPulse 1.8s ease-out infinite}
+.sel-ret i{position:absolute;background:currentColor;border-radius:1px;box-shadow:0 0 4px currentColor}
+.sel-ret i:nth-child(1){left:-1px;top:-26px;width:2px;height:8px}
+.sel-ret i:nth-child(2){left:-1px;top:18px;width:2px;height:8px}
+.sel-ret i:nth-child(3){left:-26px;top:-1px;width:8px;height:2px}
+.sel-ret i:nth-child(4){left:18px;top:-1px;width:8px;height:2px}
+.sel-ret.lock::before{animation:selLock .45s cubic-bezier(.2,.9,.3,1.25)}
+@keyframes selLock{0%{transform:scale(2.6);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes selPulse{0%{transform:scale(1);opacity:.85}100%{transform:scale(2);opacity:0}}
+.sel-ripple{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:5}
+.sel-ripple::before{content:"";position:absolute;left:-13px;top:-13px;width:26px;height:26px;border-radius:50%;
+  border:1.5px solid rgba(203,213,225,.75);animation:selMissAnim .55s ease-out forwards}
+@keyframes selMissAnim{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.7);opacity:0}}
+.sel-card{position:absolute;z-index:6;display:flex;align-items:center;gap:9px;padding:7px 7px 7px 10px;
+  background:rgba(6,11,26,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border:1px solid var(--line2);border-left:3px solid var(--c,#22d3ee);border-radius:9px;
+  box-shadow:0 10px 26px -10px rgba(0,0,0,.85);animation:scIn .22s ease-out}
+.sel-card[hidden]{display:none}
+@keyframes scIn{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:none}}
+.sc-dot{flex:none;width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.sc-txt{flex:1;min-width:0;line-height:1.25}
+.sc-kind{font-family:var(--mono);font-size:.58em;font-weight:700;letter-spacing:.11em;color:var(--c,#22d3ee);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-title{font-size:.84em;font-weight:700;color:var(--ink);overflow:hidden;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.sc-sub{font-family:var(--mono);font-size:.64em;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-go,.sc-x{flex:none;background:rgba(15,23,48,.9);border:1px solid var(--line2);color:var(--ink-dim);cursor:pointer;
+  font-family:var(--mono);font-size:.62em;letter-spacing:.08em;border-radius:6px;padding:7px 9px;min-height:32px}
+.sc-go:hover,.sc-x:hover{border-color:var(--c,#22d3ee);color:#fff}
+.sc-x{font-size:.95em;line-height:1;padding:6px 10px}
+#detailPanel.flash{animation:dpFlash 1.1s ease-out}
+@keyframes dpFlash{0%{box-shadow:0 0 0 2px var(--cyan),0 0 22px rgba(34,211,238,.35)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){
+  .sel-ret::after,.sel-ret.lock::before,.sel-ripple::before,.sel-card,#detailPanel.flash{animation:none}
+}
+
 /* ---------- terrain ---------- */
 .tr-layers{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
 .tr-lyr{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);cursor:pointer;
@@ -1417,6 +1458,15 @@ function draw(){
       ctx.strokeStyle=c.color; ctx.lineWidth=isSel?2:1; ctx.globalAlpha=isSel?1:.5; ctx.stroke(); ctx.globalAlpha=1;
     }
   });
+  /* the selection reticle: contacts by id, satellites by catalogue index so a
+     moving one is followed, anything else by its position */
+  var sp = null, sid = G.sel && String(G.sel.id || '');
+  if(G.sel){
+    for(var si=0; si<pts.length; si++) if(pts[si].id === G.sel.id){ sp = {x:pts[si].sx, y:pts[si].sy}; break; }
+    if(!sp && /^sat\d+$/.test(sid)) sp = pickSatProbe(+sid.slice(3));
+    if(!sp && !/^sat/.test(sid) && G.sel.lat != null){ var sq = project(G.sel.lon, G.sel.lat); if(sq.z > 0) sp = sq; }
+  }
+  selMark(cv, sp ? sp.x : null, sp ? sp.y : null, G.sel && G.sel.color);
 
   drawLimb();
 
@@ -1500,6 +1550,7 @@ function pick(p){
   if(!best) best = pickSat(p.x, p.y);
   // Having picked something out, you want to read it, not watch it rotate away.
   if(best && G.spin) setSpin(false);
+  if(!best) selMiss(cv, p.x, p.y);
   G.sel = best; renderDetail(best);
 }
 
@@ -1524,7 +1575,7 @@ function fmtTime(ts){ try{ return new Date(ts).toISOString().replace('T',' ').sl
 
 function renderDetail(c){
   var el = document.getElementById('detailPanel');
-  if(!c){ el.innerHTML = '<div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div>'; return; }
+  if(!c){ el.innerHTML = '<div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div>'; selCard(null); return; }
   var d=c.d, rows=[], title='', place='', link='';
 
   if(c.k==='events'){
@@ -1609,6 +1660,7 @@ function renderDetail(c){
       (contactWhen(c) ? 'BEFORE / AFTER' : 'ANALYSE TERRAIN') + '</button>';
 
   if(wantsChip){ basemap(); drawChip(el.querySelector('canvas.ev-chip')); }
+  selCard(c);
 }
 
 /* =====================================================================
@@ -1761,6 +1813,115 @@ function boxPointer(el, onFinish){
 /* The rectangle is a positioned div rather than something painted into a
    canvas: one globe is 2D canvas and the other is three.js, and a div sits
    over either without each renderer needing its own overlay pass. */
+/* =====================================================================
+   SELECTION FEEDBACK -- show what was picked, where it was picked
+
+   A tap on the globe used to change nothing on the globe itself. The 3D
+   renderer drew no mark on the selected contact at all, and on a phone the
+   detail panel sits below the globe, so the only sign that anything had
+   happened was off-screen: tap, scroll down, check, scroll back up, try
+   again. Now the contact is marked where it sits and named where you are
+   already looking, and a tap that hits nothing says so as well -- telling a
+   miss from a hit is half of what was missing.
+   ===================================================================== */
+var SELUI = {ret:null, card:null, side:'bottom'};
+function selCanvas(){
+  var g3 = document.getElementById('globe3d');
+  return (g3 && g3.style.display !== 'none') ? g3 : document.getElementById('globe');
+}
+function selBuild(){
+  if(SELUI.ret) return;
+  var host = document.querySelector('.globe-col');
+  if(!host) return;
+  SELUI.ret = document.createElement('div');
+  SELUI.ret.className = 'sel-ret';
+  SELUI.ret.innerHTML = '<i></i><i></i><i></i><i></i>';
+  host.appendChild(SELUI.ret);
+  SELUI.card = document.createElement('div');
+  SELUI.card.className = 'sel-card';
+  SELUI.card.hidden = true;
+  // announced to screen readers, which had no way to know a pick landed either
+  SELUI.card.setAttribute('role', 'status');
+  SELUI.card.setAttribute('aria-live', 'polite');
+  SELUI.card.innerHTML =
+    '<span class="sc-dot"></span>' +
+    '<div class="sc-txt"><div class="sc-kind"></div><div class="sc-title"></div><div class="sc-sub"></div></div>' +
+    '<button class="sc-go" type="button">DETAILS</button>' +
+    '<button class="sc-x" type="button" aria-label="Clear selection" title="Clear selection">&times;</button>';
+  host.appendChild(SELUI.card);
+  SELUI.card.querySelector('.sc-go').onclick = function(){
+    var p = document.getElementById('detailPanel');
+    p.scrollIntoView({behavior:'smooth', block:'nearest'});
+    p.classList.remove('flash'); void p.offsetWidth; p.classList.add('flash');
+  };
+  SELUI.card.querySelector('.sc-x').onclick = function(){ G.sel = null; renderDetail(null); };
+  addEventListener('resize', function(){ if(!SELUI.card.hidden) selPlace(SELUI.side); });
+}
+/* Dock the card along the bottom of the globe, or the top when the contact
+   itself is low on the disc -- the card must never cover what it names. */
+function selPlace(side){
+  var cv = selCanvas(), card = SELUI.card;
+  if(!cv || !card) return;
+  SELUI.side = side;
+  card.style.left = (cv.offsetLeft + 8) + 'px';
+  card.style.width = Math.max(200, cv.offsetWidth - 16) + 'px';
+  card.style.top = (side === 'top' ? cv.offsetTop + 8
+                                   : cv.offsetTop + cv.offsetHeight - card.offsetHeight - 8) + 'px';
+}
+/* Each renderer calls this every frame with the selected contact's position
+   in canvas pixels, or null when it is off the visible face of the globe. */
+function selMark(cv, x, y, color){
+  selBuild();
+  var r = SELUI.ret;
+  if(!r) return;
+  if(x == null || !G.sel){ if(r.style.display !== 'none') r.style.display = 'none'; return; }
+  r.style.display = 'block';
+  r.style.transform = 'translate(' + (cv.offsetLeft + x).toFixed(1) + 'px,' + (cv.offsetTop + y).toFixed(1) + 'px)';
+  if(color && r._c !== color){ r.style.color = color; r._c = color; }
+  if(SELUI.card && !SELUI.card.hidden){
+    var h = cv.offsetHeight, want = y > h*0.62 ? 'top' : (y < h*0.38 ? 'bottom' : SELUI.side);
+    if(want !== SELUI.side) selPlace(want);
+  }
+}
+/* the card reads the detail panel renderDetail has just written, so the two
+   can never disagree about what is selected */
+function selCard(c){
+  selBuild();
+  var card = SELUI.card;
+  if(!card) return;
+  if(!c){ card.hidden = true; if(SELUI.ret) SELUI.ret.style.display = 'none'; return; }
+  var p = document.getElementById('detailPanel');
+  function txt(q){ var e = p.querySelector(q); return e ? e.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  var col = c.color || '#22d3ee';
+  card.style.setProperty('--c', col);
+  card.querySelector('.sc-dot').style.background = col;
+  card.querySelector('.sc-dot').style.color = col;
+  card.querySelector('.sc-kind').textContent = txt('.d-kind');
+  card.querySelector('.sc-title').textContent = txt('.d-title') || 'Selected contact';
+  card.querySelector('.sc-sub').textContent = txt('.d-place') ||
+    (c.lat != null ? Math.abs(c.lat).toFixed(2) + '°' + (c.lat >= 0 ? 'N' : 'S') + '  ' +
+                     Math.abs(c.lon).toFixed(2) + '°' + (c.lon >= 0 ? 'E' : 'W') : '');
+  card.hidden = false;
+  // side by side, the panel is already in view; stacked, it is below the globe
+  var cv = selCanvas();
+  var below = cv && p.getBoundingClientRect().top > cv.getBoundingClientRect().bottom - 4;
+  card.querySelector('.sc-go').innerHTML = 'DETAILS ' + (below ? '&darr;' : '&rarr;');
+  selPlace(SELUI.side);
+  // lock-on: the reticle snaps in, and a side-by-side panel pulses once
+  if(SELUI.ret){ SELUI.ret.classList.remove('lock'); void SELUI.ret.offsetWidth; SELUI.ret.classList.add('lock'); }
+  if(!below){ p.classList.remove('flash'); void p.offsetWidth; p.classList.add('flash'); }
+}
+/* a tap that landed on nothing: a brief ring where it landed */
+function selMiss(cv, x, y){
+  var host = document.querySelector('.globe-col');
+  if(!host || !cv) return;
+  var d = document.createElement('div');
+  d.className = 'sel-ripple';
+  d.style.transform = 'translate(' + (cv.offsetLeft + x) + 'px,' + (cv.offsetTop + y) + 'px)';
+  host.appendChild(d);
+  setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 600);
+}
+
 var BOXEL = null;
 function boxOverlay(){
   if(!BOXEL){
@@ -2504,6 +2665,8 @@ window.TB = {
   get KIND(){ return KIND; },     get SECTION_COLOR(){ return SECTION_COLOR; },
   get G(){ return G; },           get KIND_OF(){ return KIND_OF; },
   renderDetail: function(c){ return renderDetail(c); },
+  selMark: function(cv, x, y, c){ return selMark(cv, x, y, c); },
+  selMiss: function(cv, x, y){ return selMiss(cv, x, y); },
   setZoomLabel: function(z){ var e=document.getElementById('zoomLabel'); if(e) e.textContent = z.toFixed(1)+'\u00d7'; },
   setSpin: function(on){ setSpin(on); },
   stopCanvasGlobe: function(){ G.stopped = true; },
@@ -2804,6 +2967,9 @@ function drawChip(cv){
 function focusGlobe(lat, lon, zoom){
   G.rot = [-lon, lat]; setSpin(false);
   setZoom(Math.max(G.zoom, zoom || 3));
+  var g3 = document.getElementById('globe3d');
+  if(window.GLOBE3D && window.GLOBE3D.focus && g3 && g3.style.display !== 'none')
+    window.GLOBE3D.focus(lat, lon, zoom || 3);
   document.getElementById('godseye').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
@@ -5534,7 +5700,7 @@ async function boot(){
      covered 97% of the frame -- the globe was pressed against every edge and
      the additive blue shell was most of what you saw. 4.2 gives 2.89, putting
      the earth at 69% with proper margin, matching the 2D globe's framing. */
-  let rotY = -0.35, rotX = -0.26, dist = D0, drag = null;
+  let rotY = -0.35, rotX = -0.26, dist = D0, drag = null, fly = null;
   /* MIN is not just a comfort limit: it sets how far the glyph threshold can be
      crossed. 4.2/1.6 = 2.6x, which is what lifts a 2.4px debris shard past the
      6px mark on a non-HiDPI display. Closer than 1.6 and the 1.035 atmosphere
@@ -5547,7 +5713,7 @@ async function boot(){
   }
   cv.addEventListener('mousedown', e => {
     if(window.TB.boxOn()) return;              // boxing owns the drag
-    drag = {x:e.clientX, y:e.clientY, rx:rotX, ry:rotY, moved:false}; cv.classList.add('drag'); });
+    fly = null; drag = {x:e.clientX, y:e.clientY, rx:rotX, ry:rotY, moved:false}; cv.classList.add('drag'); });
   addEventListener('mousemove', e => {
     if(!drag) return;
     const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
@@ -5565,7 +5731,7 @@ async function boot(){
   let pinch = null;
   cv.addEventListener('touchstart', e => {
     if(e.touches.length===2){ pinch = {d:Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY), z:dist}; drag=null; }
-    else if(e.touches.length===1) drag = {x:e.touches[0].clientX, y:e.touches[0].clientY, rx:rotX, ry:rotY, moved:false};
+    else if(e.touches.length===1){ fly = null; drag = {x:e.touches[0].clientX, y:e.touches[0].clientY, rx:rotX, ry:rotY, moved:false}; }
   }, {passive:true});
   cv.addEventListener('touchmove', e => {
     if(pinch && e.touches.length===2){
@@ -5610,6 +5776,7 @@ async function boot(){
       : Object.assign({}, meta[i], {color:'#'+col.fromArray(cCol, i*3).getHexString()});
     // stop the rotation once something is selected, so it stays under the cursor
     if(best && window.TB.G.spin) window.TB.setSpin(false);
+    if(!best){ const r = cv.getBoundingClientRect(); window.TB.selMiss(cv, ev.clientX - r.left, ev.clientY - r.top); }
     window.TB.G.sel = best;
     window.TB.renderDetail(best);
   }
@@ -5676,8 +5843,54 @@ async function boot(){
 
   const sunV = earthMat.uniforms.sunDir.value;
   let lastRebuild = 0, lastSun = 0;
+
+  /* Where the selected contact is on screen this frame. The point cloud is
+     rebuilt every 700 ms as satellites and aircraft move, so the index is
+     re-found by the contact's underlying record -- which survives a rebuild --
+     and a moving satellite stays under its reticle. Hidden behind the globe,
+     it returns null and the reticle goes with it. */
+  let selI = -1;
+  const _sp = new THREE.Vector3(), _sq = new THREE.Vector3();
+
+  /* Turn the globe to face a point. "SHOW ON GLOBE" and the other jump-to
+     buttons used to rotate only the 2D globe's state, so on this renderer --
+     the one nearly everyone sees -- they selected a contact and left it on the
+     far side of the planet. The world is rotated X-then-Y, so the Y turn
+     swings the point into the x=0 plane facing the camera and the X tilt
+     lifts it to the centre; the flight takes the short way round. */
+  function focus(lat, lon, zoom){
+    const v = ll2v(lat, lon, 0);
+    const ty = Math.atan2(-v[0], v[2]);
+    const tx = Math.max(-1.45, Math.min(1.45, Math.atan2(v[1], Math.hypot(v[0], v[2]))));
+    const td = zoom ? Math.max(MIN, Math.min(dist, D0/zoom)) : dist;
+    const dy = (((ty - rotY) % (2*Math.PI)) + 3*Math.PI) % (2*Math.PI) - Math.PI;
+    fly = {t0: performance.now(), x0: rotX, y0: rotY, d0: dist, dx: tx - rotX, dy: dy, dd: td - dist};
+  }
+  function selScreen(){
+    const sel = window.TB.G.sel;
+    if(!sel) return null;
+    const n = cg.drawRange.count;
+    if(!(selI >= 0 && selI < n && meta[selI] && meta[selI].d === sel.d)){
+      selI = -1;
+      if(sel.d) for(let i=0;i<n;i++) if(meta[i] && meta[i].d === sel.d){ selI = i; break; }
+    }
+    if(selI >= 0) _sp.set(cPos[selI*3], cPos[selI*3+1], cPos[selI*3+2]);
+    else if(sel.lat != null){ const v = ll2v(sel.lat, sel.lon, sel.d && sel.d.alt ? sel.d.alt/6371 : 0); _sp.set(v[0], v[1], v[2]); }
+    else return null;
+    _sp.applyMatrix4(world.matrixWorld);
+    if(occluded(_sp)) return null;
+    _sq.copy(_sp).project(camera);
+    if(_sq.z > 1) return null;
+    return {x:(_sq.x*0.5+0.5)*cv.clientWidth, y:(-_sq.y*0.5+0.5)*cv.clientHeight};
+  }
   function frame(t){
-    if(window.TB.G.spin && !drag && !window.TB.G.hover) rotY += 0.00022 * 16;
+    if(fly){
+      const k = Math.min(1, (performance.now() - fly.t0) / 700), e = 1 - Math.pow(1 - k, 3);
+      rotX = fly.x0 + fly.dx*e; rotY = fly.y0 + fly.dy*e; dist = fly.d0 + fly.dd*e;
+      window.TB.setZoomLabel(D0/dist);
+      if(k >= 1) fly = null;
+    }
+    if(window.TB.G.spin && !drag && !window.TB.G.hover && !fly) rotY += 0.00022 * 16;
     world.rotation.set(rotX, rotY, 0);
     camera.position.set(0, 0, dist); camera.lookAt(0,0,0);
     if(t - lastSun > 30000 || !lastSun){
@@ -5692,10 +5905,12 @@ async function boot(){
     }
     if(t - lastRebuild > 700){ rebuild(); lastRebuild = t; }
     renderer.render(scene, camera);
+    const sp = selScreen();
+    window.TB.selMark(cv, sp ? sp.x : null, sp ? sp.y : null, window.TB.G.sel && window.TB.G.sel.color);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  window.GLOBE3D = {rebuild, renderer, scene, camera,
+  window.GLOBE3D = {rebuild, renderer, scene, camera, focus,
                     get count(){ return cg.drawRange.count; },
                     get dist(){ return dist; }, setDist(d){ dist = d; }};
   window.TB.onWebglReady();
