@@ -34,8 +34,10 @@ panel shows the site's weather from Open-Meteo. None of these calls a model.
 
 The trail-map section at the bottom of the page (`assets/appalachistan.js`,
 with Leaflet 1.9.4 vendored under `assets/leaflet/`, BSD-2). Its trail data,
-`assets/appalachia.json`, is built from OpenStreetMap through Overpass by the
-pipeline and re-read from the live site between monthly rebuilds. `sw.js` is
+`assets/appalachia.json`, is built from OpenStreetMap through Overpass by its
+own workflow (`.github/workflows/trail-data.yml`, weekly and on demand) and
+committed; a complete build under 30 days old is left alone. Run it by hand from
+the Actions tab (Build Trail Data -> Run workflow) to rebuild sooner. `sw.js` is
 the service worker that keeps the page, the map and saved USGS tiles on the
 device so the section works with no signal. Tiles from OpenTopoMap,
 OpenStreetMap, Esri and Waymarked Trails are never stored, as their terms
@@ -130,7 +132,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.5.1) and appears in the page
+The build version lives in `VERSION` (currently 1.5.2) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).

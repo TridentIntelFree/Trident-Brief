@@ -2212,8 +2212,6 @@ way(r)->.w;
 );
 out center tags qt;"""
 APP_AT_RELATION = 156553   # OpenStreetMap's Appalachian Trail relation
-APP_RETRY_HOURS = 3        # after a failed build, leave Overpass alone this long
-APP_PARTIAL_DAYS = 1       # an incomplete build is retried daily
 
 
 def _poi_kind(t):
@@ -2236,17 +2234,28 @@ def _poi_kind(t):
     return None
 
 
-def _overpass(q, timeout=200):
+APP_BUDGET_S = 3600          # the whole trail build, in its own job
+_APP_T0 = [None]
+_OVERPASS_BAD = {}
+
+
+def _overpass(q, timeout=120):
     last = 'no server tried'
+    if _APP_T0[0] and time.time() - _APP_T0[0] > APP_BUDGET_S:
+        return None, 'time budget spent'
     for url in OVERPASS:
+        if _OVERPASS_BAD.get(url, 0) >= 2:
+            continue                   # this server has failed twice this run
         try:
             r = requests.post(url, data={'data': q}, timeout=timeout,
                               headers={'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'})
             if r.status_code == 200:
+                _OVERPASS_BAD[url] = 0
                 return r.json(), None
             last = f'{url.split("/")[2]} HTTP {r.status_code}'
         except Exception as e:
             last = f'{url.split("/")[2]} {str(e)[:80]}'
+        _OVERPASS_BAD[url] = _OVERPASS_BAD.get(url, 0) + 1
         print(f"    overpass: {last}")
     return None, last
 
@@ -2380,6 +2389,7 @@ def _app_sections():
 
 def build_appalachia():
     t0 = time.time()
+    _APP_T0[0] = t0
     rels, err = _app_sections()
     if rels is None:
         return None, 'finding the trail: ' + err
@@ -2475,46 +2485,51 @@ def build_appalachia():
     return out, None
 
 
-def fetch_appalachia():
-    """Keep assets/appalachia.json on the site: reuse the deployed copy while it is
-    fresh, rebuild from Overpass when it is missing, incomplete or a month old.
+def appalachia_status():
+    """What trail data this deploy carries, for feed-status. Reads the committed
+    file only: the half-hourly refresh never queries Overpass."""
+    try:
+        with open(APP_FILE, encoding='utf-8') as f:
+            d = json.load(f)
+    except Exception:
+        return None
+    return {'built_at': d.get('built_at'), 'complete': d.get('complete'), 'ways': d.get('ways'),
+            'pois': len(d.get('pois') or []), 'path_mi': d.get('path_mi'),
+            'kb': os.path.getsize(APP_FILE) // 1024}
 
-    A failed build leaves a small marker in its place, so the half-hourly
-    refresh does not spend minutes re-querying Overpass every thirty minutes
-    while the servers are struggling: it waits APP_RETRY_HOURS first."""
+
+def build_trail_data():
+    """--trail-data: rebuild assets/appalachia.json from Overpass, in its own job.
+
+    The first attempt ran inside the half-hourly feed refresh and held the site
+    deploy for a quarter of an hour while Overpass was slow. The trail is
+    static, so it is now built weekly by .github/workflows/trail-data.yml and
+    committed; every deploy then carries the committed file. A complete build
+    less than APP_MAX_AGE_DAYS old is left alone, and a new build replaces the
+    old one only if it is at least as complete."""
     old = None
     try:
-        r = requests.get(_pages_asset('appalachia.json'), timeout=30, headers={'Cache-Control': 'no-cache'})
-        if r.status_code == 200:
-            old = r.json()
-    except Exception as e:
-        print(f"  appalachia: no deployed copy ({str(e)[:60]})")
-    now, fresh = datetime.now(timezone.utc), False
-    if old and old.get('v') == APP_VERSION:
-        t = _wire_time(old.get('built_at') or old.get('failed_at'))
-        age = now - t if t else timedelta(days=999)
-        if old.get('segs'):
-            fresh = age < timedelta(days=APP_MAX_AGE_DAYS if old.get('complete') else APP_PARTIAL_DAYS)
-        else:
-            fresh = age < timedelta(hours=APP_RETRY_HOURS)
-    if fresh:
-        data, err = old, None
-    else:
-        data, err = build_appalachia()
-        if data is None and old and old.get('segs'):
-            data = old
-            print(f"  appalachia: rebuild failed ({err}); keeping the deployed copy")
-        elif data is None:
-            data = {'v': APP_VERSION, 'failed_at': now.strftime('%Y-%m-%dT%H:%M:%SZ'), 'error': str(err)[:160]}
-            print(f"  appalachia: not available ({err}); next attempt in {APP_RETRY_HOURS}h")
+        with open(APP_FILE, encoding='utf-8') as f:
+            old = json.load(f)
+    except Exception:
+        pass
+    if old and old.get('complete') and os.environ.get('TRAIL_FORCE') != '1':
+        t = _wire_time(old.get('built_at'))
+        if t and datetime.now(timezone.utc) - t < timedelta(days=APP_MAX_AGE_DAYS):
+            print(f"Trail data is complete and recent (built {old.get('built_at')}); nothing to do.")
+            return
+    data, err = build_appalachia()
+    if data is None:
+        print(f"Trail data build failed: {err}")
+        return
+    if old and old.get('segs') and old.get('complete') and not data.get('complete'):
+        print('New build is incomplete and the committed one is complete; keeping the committed one.')
+        return
     os.makedirs('assets', exist_ok=True)
     with open(APP_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, separators=(',', ':'))
-    if fresh:
-        print(f"  appalachia: reused deployed copy ({'built ' + str(data.get('built_at')) if data.get('segs') else 'last build failed ' + str(data.get('failed_at')) + ', waiting to retry'})")
-    return {'built_at': data.get('built_at'), 'failed_at': data.get('failed_at'), 'error': data.get('error'),
-            'complete': data.get('complete'), 'ways': data.get('ways'), 'pois': len(data.get('pois') or []),
-            'path_mi': data.get('path_mi'), 'kb': os.path.getsize(APP_FILE) // 1024}
+    print(f"Wrote {APP_FILE} ({os.path.getsize(APP_FILE) // 1024} KB), "
+          f"{'complete' if data.get('complete') else 'incomplete: ' + json.dumps(data.get('missing'))}")
 
 
 def fetch_server_feeds(leads=None):
@@ -2609,11 +2624,7 @@ def fetch_server_feeds(leads=None):
     else:
         feeds['satcounts'] = sats
 
-    try:
-        feeds['appalachia'] = fetch_appalachia()
-    except Exception as e:
-        errors['appalachia'] = str(e)[:160]
-        print(f"  appalachia failed: {e}")
+    feeds['appalachia'] = appalachia_status()
 
     dis, err = fetch_disasters()
     if dis is None:
@@ -3200,6 +3211,10 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
 def main():
     now = datetime.now(timezone.utc)
     timestamp = now.strftime('%Y-%m-%d %H:%M UTC')
+
+    if '--trail-data' in sys.argv:
+        build_trail_data()
+        return
 
     if '--feeds-only' in sys.argv:
         # Refresh the live layers and redeploy without calling any LLM, so a

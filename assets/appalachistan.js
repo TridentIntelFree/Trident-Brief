@@ -306,6 +306,7 @@ function decode(a){
 }
 function loadData(){
   fetch('assets/appalachia.json').then(function(r){
+    if(r.status === 404) throw new Error('not built yet');
     if(!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(d){
