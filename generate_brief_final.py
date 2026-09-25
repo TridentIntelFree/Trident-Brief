@@ -98,6 +98,7 @@ quiet - one line is fine."""
 
 
 LAST_TOOL_USE = {}
+LAST_GPSJAM = None
 
 
 def report_tool_use(data):
@@ -942,6 +943,92 @@ AIR_ANCHORS = [
 ]
 
 
+# GPS interference. The hub anchors above sit where airliners are, which is not
+# where GPS is jammed. These add the regions where jamming and spoofing are
+# persistent enough to show in a half-hour sample: the Baltic and Gulf of
+# Finland, the Kola border, the Black Sea, the eastern Mediterranean and the
+# Levant, Iraq, the Caucasus, and the India-Pakistan border.
+JAM_ANCHORS = [
+    (55.0, 20.5), (59.4, 25.5), (68.5, 29.0), (44.8, 33.5), (34.8, 33.0),
+    (32.8, 35.5), (33.3, 44.4), (40.3, 46.5), (31.0, 73.5),
+]
+JAM_HOURS = 6          # rolling window the layer aggregates over
+JAM_MIN_SIGHTINGS = 5  # a cell needs this many aircraft sightings to be judged
+JAM_MIN_AIRCRAFT = 2   # ...and degraded GPS from this many different aircraft,
+                       # so one airframe with a faulty receiver is not "jamming"
+
+
+def _gps_degraded(a):
+    """(checked, degraded) for one ADS-B row, gpsjam.org's signal.
+
+    An aircraft broadcasts how accurate it believes its own position is (NACp)
+    and how far it trusts it (NIC). Jamming shows up as those collapsing for
+    every aircraft in an area at once. Only airborne civil ADS-B counts: MLAT
+    and TIS-B positions are computed on the ground, and some military
+    transponders report low accuracy on purpose.
+    """
+    if str(a.get('type') or 'adsb_icao')[:4] not in ('adsb', 'adsr'):
+        return False, False
+    alt = a.get('alt_baro')
+    if alt is None or alt == 'ground' or a.get('version') == 0:
+        return False, False
+    nacp, nic = a.get('nac_p'), a.get('nic')
+    if nacp is None and nic is None and 'gpsOkBefore' not in a:
+        return False, False
+    bad = (isinstance(nacp, int) and nacp < 8) or (isinstance(nic, int) and nic < 7) \
+        or 'gpsOkBefore' in a
+    return True, bool(bad)
+
+
+def _pages_asset(name):
+    repo = os.environ.get('GITHUB_REPOSITORY', 'TridentIntelFree/Trident-Brief')
+    owner, _, rname = repo.partition('/')
+    return f'https://{owner.lower()}.github.io/{rname}/assets/{name}'
+
+
+def gps_jam_layer(cells_now):
+    """Fold this run's per-cell sample into the rolling window and summarise it.
+
+    The feed refresh does not commit, so the window's earlier samples are read
+    back from the copy already deployed on the live site. If that is not
+    reachable the layer simply starts again from this run.
+    """
+    now = datetime.now(timezone.utc)
+    runs = []
+    try:
+        r = requests.get(_pages_asset('gpsjam.json'), timeout=10,
+                         headers={'Cache-Control': 'no-cache'})
+        if r.status_code == 200:
+            runs = r.json().get('runs') or []
+    except Exception as e:
+        print(f"  gpsjam: no earlier samples ({str(e)[:60]})")
+    keep = []
+    for run in runs:
+        t = _wire_time(run.get('at'))
+        if t and now - t <= timedelta(hours=JAM_HOURS) and isinstance(run.get('c'), dict):
+            keep.append(run)
+    keep.append({'at': now.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                 'c': {k: [v[0], v[1], sorted(v[2])[:40]] for k, v in cells_now.items()}})
+    os.makedirs('assets', exist_ok=True)
+    with open('assets/gpsjam.json', 'w', encoding='utf-8') as f:
+        json.dump({'hours': JAM_HOURS, 'runs': keep}, f, separators=(',', ':'))
+
+    agg = {}
+    for run in keep:
+        for k, (n, bad, hexes) in run['c'].items():
+            a = agg.setdefault(k, [0, 0, set()])
+            a[0] += n; a[1] += bad; a[2].update(hexes)
+    out, checked = [], 0
+    for k, (n, bad, hexes) in agg.items():
+        checked += n
+        if n >= JAM_MIN_SIGHTINGS and len(hexes) >= JAM_MIN_AIRCRAFT and bad / n >= 0.02:
+            la, lo = (int(x) for x in k.split(','))
+            out.append([la, lo, n, bad, len(hexes)])
+    out.sort(key=lambda c: -c[3] / c[2])
+    return {'at': keep[-1]['at'], 'hours': JAM_HOURS, 'runs': len(keep), 'checked': checked,
+            'cells_seen': len(agg), 'cells': out[:400]}
+
+
 # airplanes.live answers 403 to every unregistered request ("Please contact us
 # at contact@airplanes.live"), so it is tried last rather than first: putting it
 # ahead of the others cost a wasted round-trip on all seventeen queries.
@@ -960,7 +1047,8 @@ def fetch_aircraft():
     the picture is collected server-side and served same-origin, where nothing
     can refuse it. It is a snapshot, not a live feed, and the page says so.
     """
-    seen, out = set(), []
+    global LAST_GPSJAM
+    seen, out, jam = set(), [], {}
 
     def take(rows, mil=False):
         for a in rows or []:
@@ -971,6 +1059,15 @@ def fetch_aircraft():
             if not key or key in seen:
                 continue
             seen.add(key)
+            is_mil = mil or bool(a.get('dbFlags') and int(a['dbFlags']) & 1)
+            if not is_mil:
+                ok, bad = _gps_degraded(a)
+                if ok:
+                    c = jam.setdefault(f'{math.floor(lat)},{math.floor(lon)}', [0, 0, set()])
+                    c[0] += 1
+                    if bad:
+                        c[1] += 1
+                        c[2].add(str(key))
             rec = {'hex': key, 'flight': (a.get('flight') or '').strip()[:10],
                    't': (a.get('t') or '')[:8], 'lat': round(lat, 3), 'lon': round(lon, 3)}
             alt = a.get('alt_baro')
@@ -1004,7 +1101,7 @@ def fetch_aircraft():
         take(d.get('ac') or d.get('aircraft'), mil=True)
     mil_n = len(out)
 
-    for i, (lat, lon) in enumerate(AIR_ANCHORS):
+    for i, (lat, lon) in enumerate(AIR_ANCHORS + JAM_ANCHORS):
         if i:
             time.sleep(0.4)   # one anchor drew a 429 when fired back to back
         d, _ = _try(_ac_urls(lat, lon), timeout=20)
@@ -1013,6 +1110,14 @@ def fetch_aircraft():
 
     if not out:
         return None, 'no provider answered from the runner either'
+
+    try:
+        LAST_GPSJAM = gps_jam_layer(jam)
+        j = LAST_GPSJAM
+        print(f"  gpsjam: {sum(v[0] for v in jam.values())} sightings with accuracy fields this run; "
+              f"{j['runs']} run(s) in {JAM_HOURS}h, {j['cells_seen']} cells, {len(j['cells'])} flagged")
+    except Exception as e:
+        print(f"  gpsjam failed: {e}")
 
     out = out[:5000]
     os.makedirs('assets', exist_ok=True)
@@ -1803,7 +1908,9 @@ def parse_feed(xml_bytes):
                 f['time'] = _wire_time(ch.text)
             elif k in ('description', 'summary', 'content') and not f['summary']:
                 f['summary'] = _wire_text(''.join(ch.itertext()), 150)
-        if f['title'] and f['url']:
+        # Feed content is someone else's: a link that is not plain http(s) could
+        # run script when the page renders it, so it never gets that far.
+        if f['title'] and re.match(r'https?://', f['url'] or '', re.I):
             out.append(f)
     return out
 
@@ -1896,6 +2003,21 @@ def fetch_wire(hours):
     return merged, detail
 
 
+def wire_for_page(items, cap=160):
+    """The headlines in the page's own compact shape, newest first."""
+    rows = sorted(items, key=lambda i: (i['time'] or datetime.min.replace(tzinfo=timezone.utc)),
+                  reverse=True)
+    out = []
+    for i in rows[:cap]:
+        r = {'s': i['src'], 'd': i['desk'], 't': i['title'], 'u': i['url']}
+        if i['time']:
+            r['at'] = i['time'].strftime('%Y-%m-%dT%H:%M:%SZ')
+        if i.get('summary') and i['desk'] != 'reddit':
+            r['m'] = i['summary']
+        out.append(r)
+    return out
+
+
 def wire_lines(items, cap=WIRE_MAX):
     """Group by desk, most-corroborated first, and fit the cap fairly across desks."""
     by = {d: [] for d, _ in WIRE_DESKS}
@@ -1929,7 +2051,7 @@ def wire_lines(items, cap=WIRE_MAX):
     return out
 
 
-def fetch_primary_leads(hours):
+def fetch_primary_leads(hours, wire_hours=None):
     leads, errors = {}, {}
     nw, err = fetch_navwarnings()
     if nw is None:
@@ -1945,7 +2067,7 @@ def fetch_primary_leads(hours):
         leads['gdelt'] = gd
         leads['gdelt_meta'] = meta
     try:
-        wire, detail = fetch_wire(hours)
+        wire, detail = fetch_wire(wire_hours or hours)
         leads['wire'], leads['wire_detail'] = wire, detail
         bad = [k for k, v in detail.items() if isinstance(v, str)]
         print(f"  wire: {len(wire)} stories from {len(detail) - len(bad)}/{len(detail)} feeds"
@@ -2062,10 +2184,14 @@ def fetch_server_feeds(leads=None):
     # fetches a short window of its own, which is also what exercises both
     # collectors every half hour without spending anything on the model.
     if leads is None:
-        leads = fetch_primary_leads(LEAD_REFRESH_HOURS)
+        # The headline panel on the page shows the whole collection window, so
+        # the wire keeps it even on the short-window feeds-only run.
+        leads = fetch_primary_leads(LEAD_REFRESH_HOURS, wire_hours=WINDOW_HOURS)
     for k in ('navwarn', 'gdelt', 'gdelt_meta', 'wire_detail'):
         if k in leads:
             feeds[k] = leads[k]
+    if leads.get('wire'):
+        feeds['wire'] = wire_for_page(leads['wire'])
     errors.update(leads.get('errors') or {})
 
     # all_day carries every recorded event (~250-400/day) rather than the ~30
@@ -2126,6 +2252,8 @@ def fetch_server_feeds(leads=None):
         print(f"  aircraft failed: {err}")
     else:
         feeds['aircount'] = ac
+        if LAST_GPSJAM:
+            feeds['gpsjam'] = LAST_GPSJAM
 
     sats, err = fetch_skywatch()
     if sats is None:
@@ -2161,8 +2289,12 @@ def write_feed_status(feeds):
     for k in ('quakes', 'launches', 'alerts', 'disasters', 'vessels', 'navwarn', 'gdelt'):
         counts[k] = len(feeds[k]) if isinstance(feeds.get(k), list) else None
     counts['gdelt_detail'] = feeds.get('gdelt_meta')
+    counts['wire'] = len(feeds['wire']) if isinstance(feeds.get('wire'), list) else None
     counts['wire_detail'] = feeds.get('wire_detail')
     counts['aircraft'] = feeds.get('aircount')
+    gj = feeds.get('gpsjam') or {}
+    counts['gpsjam'] = {k: gj.get(k) for k in ('runs', 'checked', 'cells_seen')} | \
+        {'flagged': len(gj.get('cells') or [])} if gj else None
     counts['satellites'] = feeds.get('satcounts')
     # Which basemap actually reached the page. The globe silently degrades to the
     # older, lower-contrast three.js texture if the Blue Marble mirror is down,

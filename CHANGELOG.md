@@ -4,6 +4,36 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.4.0 — 2026-09-25
+
+### Page
+- **Wire panel.** The headlines the pipeline reads for the brief -- about 30
+  outlets' own feeds plus four defence subreddits and CISA's exploited
+  vulnerabilities list -- are now on the page too, under WIRE. The half-hourly
+  feed refresh re-reads them, so the panel stays current while the brief ages:
+  anything published since the brief was collected is marked NEW, and the
+  header shows how many. Filter by theatre, by what came in since the brief, or
+  by stories two or more outlets carried. Headlines only, each linked to its
+  outlet; links that are not plain http(s) are dropped. Costs nothing.
+- **GPS JAM layer.** Aircraft broadcast how accurate they believe their own GPS
+  position is; when that collapses for many aircraft in one area at once, the
+  usual cause is jamming or spoofing. The collector now reads that from the
+  ADS-B picture it already gathers -- with nine extra sample points over the
+  Baltic, the Kola border, the Black Sea, the eastern Mediterranean, the
+  Levant, Iraq, the Caucasus and the India-Pakistan border -- and marks 1-degree
+  squares where over 2% (amber) or 10% (red) of airborne civil aircraft report
+  degraded GPS over the last six hours. A cell needs five sightings and two
+  different aircraft, so one bad receiver is not "jamming"; military
+  transponders, MLAT and aircraft on the ground are left out. On both globes,
+  with a detail panel, box-select and the terrain activity layer. The same
+  signal gpsjam.org maps daily. Costs nothing.
+- **Weather at the site.** The terrain panel now shows the weather where you
+  are looking, from Open-Meteo (free, no key): conditions, wind and gusts in
+  knots, visibility, cloud, precipitation, and the next 24 hours' worst gust,
+  rain chance and lowest visibility, with sunrise and sunset in UTC. Gusts over
+  25 kn and visibility under 5 km are highlighted. A model forecast, and
+  labelled as one.
+
 ## 1.3.2 — 2026-09-25
 
 ### Brief
