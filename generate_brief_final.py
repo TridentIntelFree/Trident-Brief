@@ -2212,6 +2212,7 @@ way(r)->.w;
 );
 out center tags qt;"""
 APP_AT_RELATION = 156553   # OpenStreetMap's Appalachian Trail relation
+APP_SPRINGER = (34.6267, -84.1938)    # southern terminus, where trail miles start
 
 
 def _poi_kind(t):
@@ -2349,7 +2350,13 @@ def _at_path(edges):
         if bk is not None:
             adj[k].append((bk, best, [geo[k], geo[bk]]))
             adj[bk].append((k, best, [geo[bk], geo[k]]))
-    start = min(adj, key=lambda k: geo[k][0])          # southern terminus
+    # Start from the trail end nearest Springer Mountain's summit. The
+    # southernmost point in the data is not it: the first real build's was a
+    # two-node fragment south of Springer, and the route measured 0 miles.
+    ends = [k for k in adj if len(adj[k]) == 1] or list(adj)
+    start = min(ends, key=lambda k: _m(geo[k], APP_SPRINGER))
+    if _m(geo[start], APP_SPRINGER) > 5000:
+        start = min(adj, key=lambda k: _m(geo[k], APP_SPRINGER))
     dist, prev = {start: 0.0}, {}
     pq = [(0.0, start)]
     while pq:
@@ -2405,11 +2412,15 @@ def _app_sections(cache):
         level = [e['id'] for e in kids.get('elements', []) if e.get('type') == 'relation' and e['id'] not in rels]
         rels += level
         depth += 1
+    # Keep every relation ever found, so a run whose search fails still knows
+    # the whole list; mark it current only when the full search succeeded.
+    known = list(cache.get('rels') or [])
+    known += [r for r in rels if r not in known]
+    known += [int(r) for r in cache.get('sec', {}) if int(r) not in known]
+    cache['rels'] = known
     if ok:
-        cache['rels'], cache['rels_at'] = rels, datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-    elif cache.get('rels'):
-        return cache['rels']
-    return rels
+        cache['rels_at'] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    return known
 
 
 def _save_cache(cache):

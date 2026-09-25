@@ -4,6 +4,19 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.4 — 2026-09-25
+
+### Appalachistan
+- **Trail miles start at Springer.** The second build brought in 12 of the
+  trail's 14 sections -- 293 shelters, 131 water sources, 212 campsites, 460
+  peaks, 307 viewpoints, 117 waterfalls, 43 trailheads and 122 trail towns --
+  but measured the route as 0 miles: it started from the southernmost point in
+  the data, which with Georgia still missing was the Approach Trail's lone
+  stretch at Amicalola Falls. The route now starts from the trail end nearest
+  Springer Mountain's summit.
+- Every section relation found is remembered, even when part of the search
+  fails, so later runs never lose track of one.
+
 ## 1.5.3 — 2026-09-25
 
 ### Appalachistan
