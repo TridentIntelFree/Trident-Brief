@@ -4,6 +4,19 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.2 — 2026-09-25
+
+### Appalachistan
+- **The trail build has its own workflow.** Even section by section, a slow
+  Overpass held the half-hourly feed refresh -- and with it every site deploy,
+  the evening brief included -- for a quarter of an hour, and the run was
+  cancelled. The trail data is static, so it no longer belongs in that job:
+  *Build Trail Data* runs weekly and on demand, builds the file and commits it,
+  and every deploy carries the committed copy. The feed refresh never contacts
+  Overpass. Each request is capped at two minutes, a server that fails twice is
+  skipped for the rest of the run, and the whole build stops after an hour; an
+  incomplete build never replaces a complete one.
+
 ## 1.5.1 — 2026-09-25
 
 ### Appalachistan

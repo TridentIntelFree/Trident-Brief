@@ -1,0 +1,60 @@
+name: Build Trail Data
+
+# Appalachistan's trail line and points, from OpenStreetMap via Overpass.
+# Built here, in its own job, and committed -- never inside the half-hourly
+# feed refresh, where a slow Overpass held the site deploy for fifteen minutes.
+# Weekly: a complete build under 30 days old is left alone, so Overpass is
+# actually queried about once a month, or when a build came back incomplete.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Rebuild even if the committed data is complete and recent'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '17 6 * * 1'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trail-data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install requests
+
+      - name: Build trail data
+        env:
+          TRAIL_FORCE: ${{ inputs.force && '1' || '0' }}
+        run: python3 generate_brief_final.py --trail-data
+
+      - name: Commit trail data
+        run: |
+          git config user.name "Trident Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/appalachia.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No trail data changes to commit"
+            exit 0
+          fi
+          git commit -m "Trail data $(date -u +'%Y-%m-%d %H:%M UTC')"
+          for i in 1 2 3; do
+            git push origin HEAD:main && break
+            echo "Push failed (attempt $i); refreshing and retrying"
+            git pull --rebase origin main || true
+            sleep $((i * 5))
+          done
