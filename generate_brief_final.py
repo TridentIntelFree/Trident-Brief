@@ -2181,13 +2181,24 @@ APP_MAX_AGE_DAYS = 30
 OVERPASS = ['https://overpass-api.de/api/interpreter',
             'https://overpass.kumi.systems/api/interpreter',
             'https://overpass.private.coffee/api/interpreter']
-_AT_RELS = """rel["route"="hiking"]["name"~"^Appalachian (National Scenic )?Trail"]["name"!~"International"]->.top;
-rel(r.top)["route"="hiking"]->.kids;
-rel(r.kids)["route"="hiking"]->.grand;
-(.top;.kids;.grand;)->.rels;
-way(r.rels)->.w;"""
-APP_LINE_Q = '[out:json][timeout:240];\n' + _AT_RELS + '\n.w out geom qt;'
-APP_POI_Q = '[out:json][timeout:300];\n' + _AT_RELS + """
+# One request for the whole trail and everything near it timed out on every
+# public Overpass server (HTTP 504, 25 Sep). So the trail is fetched the way it
+# is mapped: find the relation and its section relations with two tiny queries,
+# then each section's line and nearby points in a request of its own.
+APP_FIND_Q = """[out:json][timeout:60];
+rel["route"="hiking"]["name"~"^Appalachian (National Scenic )?Trail"]["name"!~"International"];
+out ids tags;"""
+APP_KIDS_Q = """[out:json][timeout:60];
+rel(id:{ids});
+rel(r)["route"="hiking"];
+out ids tags;"""
+APP_LINE_Q = """[out:json][timeout:120];
+rel({rid});
+way(r);
+out geom qt;"""
+APP_POI_Q = """[out:json][timeout:150];
+rel({rid});
+way(r)->.w;
 (
   nwr(around.w:1200)["amenity"="shelter"];
   nwr(around.w:1200)["tourism"~"^(wilderness_hut|alpine_hut|camp_site)$"];
@@ -2200,6 +2211,9 @@ APP_POI_Q = '[out:json][timeout:300];\n' + _AT_RELS + """
   node(around.w:5000)["place"~"^(town|village)$"];
 );
 out center tags qt;"""
+APP_AT_RELATION = 156553   # OpenStreetMap's Appalachian Trail relation
+APP_RETRY_HOURS = 3        # after a failed build, leave Overpass alone this long
+APP_PARTIAL_DAYS = 1       # an incomplete build is retried daily
 
 
 def _poi_kind(t):
@@ -2222,7 +2236,7 @@ def _poi_kind(t):
     return None
 
 
-def _overpass(q, timeout=330):
+def _overpass(q, timeout=200):
     last = 'no server tried'
     for url in OVERPASS:
         try:
@@ -2344,14 +2358,50 @@ def _at_path(ways):
     return path, dist[end] / 1609.344
 
 
+def _app_sections():
+    """Every relation that makes up the trail: the top one and its descendants."""
+    found, err = _overpass(APP_FIND_Q, timeout=90)
+    # The name search scans every hiking route on Earth; if that is what the
+    # server refuses, start from the trail's own relation instead.
+    level = [e['id'] for e in (found or {}).get('elements', []) if e.get('type') == 'relation'] or [APP_AT_RELATION]
+    if found is None:
+        print(f"  appalachia: name search failed ({err}); starting from relation {APP_AT_RELATION}")
+    rels, depth = list(level), 0
+    while level and depth < 3:
+        time.sleep(2)
+        kids, err = _overpass(APP_KIDS_Q.format(ids=','.join(map(str, level))), timeout=90)
+        if kids is None:
+            break                      # the parents alone still carry their own ways
+        level = [e['id'] for e in kids.get('elements', []) if e.get('type') == 'relation' and e['id'] not in rels]
+        rels += level
+        depth += 1
+    return (rels, None) if rels else (None, 'no Appalachian Trail relation found')
+
+
 def build_appalachia():
     t0 = time.time()
-    line, err = _overpass(APP_LINE_Q)
-    if line is None:
-        return None, 'trail line: ' + err
-    ways = [e for e in line.get('elements', []) if e.get('type') == 'way' and e.get('geometry')]
+    rels, err = _app_sections()
+    if rels is None:
+        return None, 'finding the trail: ' + err
+    ways, have, failed, with_ways = [], set(), [], []
+    for rid in rels:
+        time.sleep(2)
+        got, err = _overpass(APP_LINE_Q.format(rid=rid))
+        if got is None:
+            failed.append(rid)
+            continue
+        n = 0
+        for e in got.get('elements', []):
+            if e.get('type') == 'way' and e.get('geometry') and e['id'] not in have:
+                have.add(e['id'])
+                ways.append(e)
+                n += 1
+        if n:
+            with_ways.append(rid)
+    print(f"  appalachia: {len(rels)} relations, {len(with_ways)} with ways, {len(ways)} ways"
+          + (f", {len(failed)} failed" if failed else ''))
     if len(ways) < 50:
-        return None, f'trail line: only {len(ways)} ways came back'
+        return None, f'trail line: only {len(ways)} ways came back' + (f' ({len(failed)} sections failed)' if failed else '')
     segs, npts = [], 0
     for w in ways:
         pts = _rdp([(p['lat'], p['lon']) for p in w['geometry']], 8)
@@ -2378,11 +2428,13 @@ def build_appalachia():
         print(f"  appalachia: shortest route {miles:.0f} mi "
               f"({'miles kept' if cum else 'outside 2050-2350, miles not published'})")
 
-    pois, perr = _overpass(APP_POI_Q)
-    if pois is None:
-        out['poi_error'] = perr
-    else:
-        seen = set()
+    seen, poi_failed = set(), []
+    for rid in with_ways:
+        time.sleep(2)
+        pois, perr = _overpass(APP_POI_Q.format(rid=rid))
+        if pois is None:
+            poi_failed.append(rid)
+            continue
         for e in pois.get('elements', []):
             t = e.get('tags') or {}
             k = _poi_kind(t)
@@ -2410,17 +2462,26 @@ def build_appalachia():
             ele = re.match(r'^\s*(-?\d+(?:\.\d+)?)', str(t.get('ele') or ''))
             row.append(round(float(ele.group(1))) if ele else None)
             out['pois'].append(row)
+    # Complete means every section's line and points came back and the route
+    # measured as the whole trail; anything less is rebuilt the next day.
+    out['complete'] = not failed and not poi_failed and cum is not None
+    if failed or poi_failed:
+        out['missing'] = {'line': failed, 'pois': poi_failed}
     kinds = {}
     for r in out['pois']:
         kinds[r[2]] = kinds.get(r[2], 0) + 1
-    print(f"  appalachia: built from Overpass in {time.time() - t0:.0f}s - {len(ways)} ways, "
-          f"{npts} points, POIs {kinds or out.get('poi_error')}")
+    print(f"  appalachia: built in {time.time() - t0:.0f}s - {len(ways)} ways, {npts} points, "
+          f"POIs {kinds}{'' if out['complete'] else ' (incomplete, retried tomorrow)'}")
     return out, None
 
 
 def fetch_appalachia():
     """Keep assets/appalachia.json on the site: reuse the deployed copy while it is
-    fresh, rebuild from Overpass when it is missing or a month old."""
+    fresh, rebuild from Overpass when it is missing, incomplete or a month old.
+
+    A failed build leaves a small marker in its place, so the half-hourly
+    refresh does not spend minutes re-querying Overpass every thirty minutes
+    while the servers are struggling: it waits APP_RETRY_HOURS first."""
     old = None
     try:
         r = requests.get(_pages_asset('appalachia.json'), timeout=30, headers={'Cache-Control': 'no-cache'})
@@ -2428,24 +2489,31 @@ def fetch_appalachia():
             old = r.json()
     except Exception as e:
         print(f"  appalachia: no deployed copy ({str(e)[:60]})")
-    fresh = False
+    now, fresh = datetime.now(timezone.utc), False
     if old and old.get('v') == APP_VERSION:
-        t = _wire_time(old.get('built_at'))
-        fresh = bool(t and datetime.now(timezone.utc) - t < timedelta(days=APP_MAX_AGE_DAYS)
-                     and old.get('pois'))
-    data, err = (old, None) if fresh else build_appalachia()
-    if data is None and old:
-        data = old
-        print(f"  appalachia: rebuild failed ({err}); keeping the deployed copy")
-    if data is None:
-        print(f"  appalachia: not available ({err})")
-        return None
+        t = _wire_time(old.get('built_at') or old.get('failed_at'))
+        age = now - t if t else timedelta(days=999)
+        if old.get('segs'):
+            fresh = age < timedelta(days=APP_MAX_AGE_DAYS if old.get('complete') else APP_PARTIAL_DAYS)
+        else:
+            fresh = age < timedelta(hours=APP_RETRY_HOURS)
+    if fresh:
+        data, err = old, None
+    else:
+        data, err = build_appalachia()
+        if data is None and old and old.get('segs'):
+            data = old
+            print(f"  appalachia: rebuild failed ({err}); keeping the deployed copy")
+        elif data is None:
+            data = {'v': APP_VERSION, 'failed_at': now.strftime('%Y-%m-%dT%H:%M:%SZ'), 'error': str(err)[:160]}
+            print(f"  appalachia: not available ({err}); next attempt in {APP_RETRY_HOURS}h")
     os.makedirs('assets', exist_ok=True)
     with open(APP_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, separators=(',', ':'))
     if fresh:
-        print(f"  appalachia: reused deployed copy built {data.get('built_at')}")
-    return {'built_at': data.get('built_at'), 'ways': data.get('ways'), 'pois': len(data.get('pois') or []),
+        print(f"  appalachia: reused deployed copy ({'built ' + str(data.get('built_at')) if data.get('segs') else 'last build failed ' + str(data.get('failed_at')) + ', waiting to retry'})")
+    return {'built_at': data.get('built_at'), 'failed_at': data.get('failed_at'), 'error': data.get('error'),
+            'complete': data.get('complete'), 'ways': data.get('ways'), 'pois': len(data.get('pois') or []),
             'path_mi': data.get('path_mi'), 'kb': os.path.getsize(APP_FILE) // 1024}
 
 
