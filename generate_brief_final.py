@@ -8,7 +8,7 @@ import re
 import sys
 import time
 from datetime import datetime, timedelta, timezone
-from html import escape
+from html import escape, unescape
 
 import requests
 
@@ -21,6 +21,11 @@ WINDOW_HOURS = int(os.environ.get('COLLECTION_WINDOW_HOURS', '12'))
 # brevity was coming from the prompt, not the budget. This is headroom for a full
 # sweep, not a target: Rule 5 tells the model length follows the world.
 MAX_OUTPUT_TOKENS = int(os.environ.get('MAX_OUTPUT_TOKENS', '10000'))
+# Searches are most of the bill: a run of ~11 searches cost ~$0.20, of which the
+# prompt and the written brief were a few cents. The headlines the pipeline reads
+# for free cover the web's discovery work, so the paid searches go to X and to
+# detail. Stated to the model as a budget; the run log compares it with the count.
+SEARCH_BUDGET = int(os.environ.get('SEARCH_BUDGET', '8'))
 WATCHLIST_FILE = 'watchlist.json'
 
 
@@ -136,9 +141,17 @@ def report_tool_use(data):
                 print(f"    [{k}] " + ' '.join(bits))
 
         usage = data.get('usage') or {}
+        cost = None
         if usage:
             keep = {kk: vv for kk, vv in usage.items() if isinstance(vv, int)}
             print(f"  usage: {keep}")
+            # xAI bills in ticks of 1e-10 USD. The two runs of 25 Sep logged
+            # 1.94e9 and 2.14e9 ticks, and the console showed $0.41 for the day.
+            if isinstance(usage.get('cost_in_usd_ticks'), int):
+                cost = round(usage['cost_in_usd_ticks'] / 1e10, 4)
+                print(f"  cost: ${cost:.3f} this run - "
+                      f"{usage.get('num_server_side_tools_used', '?')} searches "
+                      f"(budget {SEARCH_BUDGET})")
 
         # Keep it somewhere small and always readable. This record only exists in
         # the middle of a 995-line job log, and the log endpoint is size-capped
@@ -159,60 +172,53 @@ def report_tool_use(data):
                     queries.append({'tool': item.get('name') or item.get('type'),
                                     'q': str(q)[:120]})
         LAST_TOOL_USE = {'items': kinds, 'queries': queries,
-                         'usage': {kk: vv for kk, vv in usage.items() if isinstance(vv, int)}}
+                         'usage': {kk: vv for kk, vv in usage.items() if isinstance(vv, int)},
+                         'cost_usd': cost, 'search_budget': SEARCH_BUDGET}
     except Exception as e:
         print(f"  (tool-use report failed: {str(e)[:90]})")
 
 
-def generate_with_grok(prompt):
+def generate_with_grok(prompt, since=None):
     api_key = os.environ.get('GROK_API_KEY')
     if not api_key:
         return None, "No Grok API key"
-    
-    try:
-        response = requests.post(
-            'https://api.x.ai/v1/responses',
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {api_key}'
-            },
-            json={
-                'model': 'grok-4-1-fast-reasoning',
-                'input': [
-                    {
-                        'role': 'system',
-                        'content': SYSTEM_PROMPT
-                    },
-                    {
-                        'role': 'user',
-                        'content': prompt
-                    }
-                ],
-                'tools': [
-                    {'type': 'x_search'},
-                    {'type': 'web_search'}
-                ],
-                'temperature': 0.6,
-                'max_output_tokens': MAX_OUTPUT_TOKENS
-            },
-            timeout=180
-        )
 
-        # A reasoning model with no ceiling is an open-ended bill. If this
-        # deployment rejects the cap, retry once uncapped rather than lose the run.
-        if response.status_code == 400 and 'max_output_tokens' in response.text:
-            print('  max_output_tokens rejected; retrying uncapped')
+    # x_search limited to the window: every post it returns is one the brief can
+    # use, instead of the loudest post of the last month on the same subject.
+    xs = {'type': 'x_search'}
+    if since is not None:
+        xs['from_date'] = since.strftime('%Y-%m-%d')
+    base = {'model': 'grok-4-1-fast-reasoning',
+            'input': [{'role': 'system', 'content': SYSTEM_PROMPT},
+                      {'role': 'user', 'content': prompt}],
+            'tools': [xs, {'type': 'web_search'}],
+            'temperature': 0.6,
+            # A reasoning model with no ceiling is an open-ended bill.
+            'max_output_tokens': MAX_OUTPUT_TOKENS}
+    try:
+        response = None
+        # Each fallback drops one optional field, so a deployment that rejects it
+        # costs a retry rather than the run. Only a 400 naming the field retries.
+        for attempt in range(3):
             response = requests.post(
                 'https://api.x.ai/v1/responses',
                 headers={'Content-Type': 'application/json',
                          'Authorization': f'Bearer {api_key}'},
-                json={'model': 'grok-4-1-fast-reasoning',
-                      'input': [{'role': 'system', 'content': SYSTEM_PROMPT},
-                                {'role': 'user', 'content': prompt}],
-                      'tools': [{'type': 'x_search'}, {'type': 'web_search'}],
-                      'temperature': 0.6},
-                timeout=180)
-        
+                json=base, timeout=180)
+            if response.status_code != 400:
+                break
+            body = response.text
+            # from_date is dropped on any 400: whatever the message names, a run
+            # without it is the one that worked before it was added.
+            if 'from_date' in base['tools'][0]:
+                print(f'  400 with x_search from_date ({body[:120]}); retrying without it')
+                base['tools'][0] = {'type': 'x_search'}
+            elif 'max_output_tokens' in body and 'max_output_tokens' in base:
+                print('  max_output_tokens rejected; retrying uncapped')
+                base.pop('max_output_tokens')
+            else:
+                break
+
         if response.status_code == 200:
             data = response.json()
             report_tool_use(data)
@@ -414,6 +420,22 @@ Today's date is {window_end:%d %B %Y}. This brief runs twice a day.
 
 You have x_search and web_search. Use them before writing anything.
 
+=== SEARCH BUDGET: about {SEARCH_BUDGET} searches this run ===
+Every search is billed; the HEADLINES list below was collected for free and already
+covers what the main outlets published in the window. So spend searches where no feed
+reaches:
+  - x_search, most of the budget: the fast half, first-hand posts, local-language
+    accounts, reaction to a headline. One subject per query, aimed at a theatre, a
+    hotspot or a headline where people on the ground would add something.
+  - web_search, two or three at most: detail or confirmation for an item you will
+    carry at high priority, a GDELT hotspot or navigational warning with no headline
+    behind it, or a theatre with nothing in the headlines that you are about to call
+    quiet.
+  - Never search for a story that is already in the headlines just to cite it - cite
+    the headline. Never repeat a search in other words.
+A theatre is swept when you have read its headlines and run one X query on it. With
+nothing in either, it is quiet in window.
+
 === HOW TO WORK THIS TASKING ===
 You are writing a watch brief, not a news digest. The reader wants to know what changed
 in the world in the last {(window_end - window_start).days * 24 + (window_end - window_start).seconds // 3600} hours, what it means, and what to watch for next.
@@ -426,11 +448,9 @@ Work in this order:
             surfaced organically. The seed accounts named below are entry points, not the
             search space: most of what matters will come from sources not on any list.
             Search the theatre, not the handle.
-            Use BOTH tools on every theatre. x_search is not a fallback for when
-            web_search comes up short - a wire story is filed hours after the people
-            present started posting, so the web tells you what was published and X
-            tells you what is happening. A brief built only from news sites is a press
-            review, and you will have skipped the faster half of the collection.
+            The headlines tell you what was published; X tells you what is happening,
+            hours before the wire files. A brief built only from the headlines is a
+            press review, and you will have skipped the faster half of the collection.
 2. TRIAGE - rank by consequence, not by how loudly something was posted. A quiet policy
             change with strategic effect outranks a noisy strike that changes nothing.
 3. WRITE  - every item says what happened, who reported it, and why it matters.
@@ -548,17 +568,12 @@ social is the fast half, the posts precede the wire story by hours, and what you
 here tells you what to check in Section 2.
 
 This section is why you have x_search. It is not a summary of the sections below.
-Search X and Reddit DIRECTLY, by topic and by place name, not only the handles listed
-elsewhere - the accounts worth reading during an event are usually ones nobody put on
-a list.
+Search X DIRECTLY, by topic and by place name, not only the handles listed elsewhere -
+the accounts worth reading during an event are usually ones nobody put on a list.
 
 DO THESE SEARCHES. Not "consider", not "where relevant" - issue them.
-  - At least FOUR x_keyword_search calls, one per active theatre.
-  - At least THREE web_search calls whose query text contains site:reddit.com -
-    for example: site:reddit.com Novorossiysk port strike
-    The API record of the last run shows FIVE web searches, none of them Reddit, under
-    a written nil return claiming Reddit carried nothing. It was not searched. A nil
-    return for a search you did not run is a false statement, not a finding.
+  - At least FOUR x_keyword_search calls, one per active theatre. A nil return for a
+    search you did not run is a false statement, not a finding.
 
 SHOW YOUR SEARCHES. End this section with one line: "searched: " followed by the actual
 query strings you ran, exactly as issued. A nil return is only credible if you can name
@@ -590,14 +605,11 @@ results for a theatre are news accounts restating the headline, that is the find
 report it as no independent chatter FOR THAT THEATRE, naming the query - not as a single
 sentence covering everything at once. "No significant chatter" as one line for the whole
 world is the shape of a step that was skipped, not a search that came back empty.
-Reddit is not optional, and x_search does not cover it. Run web_search restricted to
-reddit.com -- literally "site:reddit.com <topic>" -- for each theatre that moved, plus
-the subreddit local to any incident. r/CredibleDefense, r/geopolitics,
-r/UkraineWarVideoReport, r/LessCredibleDefence, r/anime_titties, country and city
-subreddits. Read the comments under a thread, not just its title: the useful detail is
-usually in a reply from someone on the ground. If Reddit genuinely carried nothing on a
-theatre, say that in one line rather than silently omitting it - a previous run listed
-these subreddits and searched none of them, and the omission was invisible in the output.
+Reddit comes to you free: the REDDIT lines in the headlines are the newest posts in
+r/CredibleDefense, r/geopolitics, r/UkraineWarVideoReport and r/LessCredibleDefence.
+Work those. Do not run site:reddit.com web searches - the last several runs spent five
+or six searches each on them and carried no Reddit thread at all. The one exception: a
+major incident with a city or country subreddit of its own, worth one search at most.
 
 Report, for each item worth carrying:
 - WHAT is being said, and by whom - name the account or subreddit
@@ -635,22 +647,23 @@ Focus: active exploitation and named intrusions with an identified victim or act
 ransomware against infrastructure, state-linked operations, model or hardware releases
 with substantive capability claims, and regulatory or export-control action.
 Skip routine product marketing and vendor blogs with no incident behind them.
-SEARCH THIS SECTION before judging it. The last run issued no search at all for this
-section and for Section 4, then wrote "quiet in window" for both - a statement about
-the world made without looking at it. Run at least two web_search calls here (for
-example: CISA known exploited vulnerabilities added this week; ransomware attack
-hospital OR utility this week - one subject per query) and one x_keyword_search, and
-end the section with a "searched:" line naming them, as in Section 1. In a 12-hour
-window something is almost always being actively exploited somewhere; "quiet" here
-should be rare, and it is only credible with the queries beside it.
+WORK THIS SECTION before judging it. The CYBER headlines include what CISA added to
+its Known Exploited Vulnerabilities catalog in the last three days - active
+exploitation, confirmed by the government, already retrieved. Read those, then run
+one x_keyword_search on the most consequential item (researchers post details before
+the write-ups), and a web_search only if the CYBER headlines are empty. End the section
+with a "searched:" line naming the headline desk and the queries, as in Section 1. In
+a 12-hour window something is almost always being actively exploited somewhere;
+"quiet" here should be rare, and it is only credible with the work beside it.
 
 ## 4. HOMELAND AND INFRASTRUCTURE
 Seeds: @DHSgov @FBI @TSA @CISAgov @NTSB @FAANews; web: state emergency management,
 regional press. Focus: incidents affecting civil aviation, rail, ports, power, water and
 telecoms; domestic security events; large-scale disruption. Distinguish accident from
 attack, and say when the distinction is not yet established.
-Same rule as Section 3: at least two searches before a verdict, and a "searched:" line
-at the end of the section. No searched line means the verdict was not earned.
+Same rule as Section 3: read the US HOMELAND headlines, run one X query, and a
+web_search only if the headlines are empty - then a "searched:" line at the end of the
+section. No searched line means the verdict was not earned.
 
 {slow_sections}
 
@@ -1676,6 +1689,232 @@ def fetch_gdelt(hours):
     return out[:30], meta, None
 
 
+# The wire. Every web_search costs money, and most of what the model paid to
+# find with them was headline-level: what happened, who reported it, when. That
+# is exactly what an RSS feed publishes, for nothing. So the pipeline reads the
+# outlets' own feeds before the model starts, and the model's paid searches go
+# where no feed reaches -- X, and the detail behind a lead. A feed that fails is
+# skipped and named; the brief never depends on any one of them.
+WIRE_FEEDS = [
+    # (label, desk, url)
+    ('BBC', 'world', 'https://feeds.bbci.co.uk/news/world/rss.xml'),
+    ('Al Jazeera', 'world', 'https://www.aljazeera.com/xml/rss/all.xml'),
+    ('Guardian', 'world', 'https://www.theguardian.com/world/rss'),
+    ('DW', 'world', 'https://rss.dw.com/rdf/rss-en-world'),
+    ('France 24', 'world', 'https://www.france24.com/en/rss'),
+    ('NPR', 'world', 'https://feeds.npr.org/1004/rss.xml'),
+    ('Kyiv Independent', 'europe', 'https://kyivindependent.com/news-archive/rss/'),
+    ('ISW', 'europe', 'https://www.understandingwar.org/rss.xml'),
+    ('Times of Israel', 'mideast', 'https://www.timesofisrael.com/feed/'),
+    ('The Diplomat', 'indopac', 'https://thediplomat.com/feed/'),
+    ('NK News', 'indopac', 'https://www.nknews.org/feed/'),
+    ('Focus Taiwan', 'indopac', 'https://focustaiwan.tw/rss/aall.xml'),
+    ('Africanews', 'africa', 'https://www.africanews.com/feed/rss'),
+    ('USNI News', 'defense', 'https://news.usni.org/feed'),
+    ('The War Zone', 'defense', 'https://www.twz.com/feed'),
+    ('Breaking Defense', 'defense', 'https://breakingdefense.com/feed/'),
+    ('Defense News', 'defense', 'https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml'),
+    ('gCaptain', 'maritime', 'https://gcaptain.com/feed/'),
+    ('SpaceNews', 'space', 'https://spacenews.com/feed/'),
+    ('BleepingComputer', 'cyber', 'https://www.bleepingcomputer.com/feed/'),
+    ('The Record', 'cyber', 'https://therecord.media/feed'),
+    ('Krebs', 'cyber', 'https://krebsonsecurity.com/feed/'),
+    ('CISA advisories', 'cyber', 'https://www.cisa.gov/cybersecurity-advisories/all.xml'),
+    ('NPR US', 'homeland', 'https://feeds.npr.org/1003/rss.xml'),
+    # Reddit often refuses datacenter IPs. When it does, the brief says so and
+    # moves on -- it is not worth a paid search per subreddit to get around it.
+    ('r/CredibleDefense', 'reddit', 'https://www.reddit.com/r/CredibleDefense/new/.rss?limit=25'),
+    ('r/geopolitics', 'reddit', 'https://www.reddit.com/r/geopolitics/new/.rss?limit=25'),
+    ('r/UkraineWarVideoReport', 'reddit', 'https://www.reddit.com/r/UkraineWarVideoReport/new/.rss?limit=25'),
+    ('r/LessCredibleDefence', 'reddit', 'https://www.reddit.com/r/LessCredibleDefence/new/.rss?limit=25'),
+]
+WIRE_KEV = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+WIRE_KEV_PAGE = 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'
+WIRE_PER_FEED = 8        # newest items kept from any one feed
+WIRE_MAX = 70            # lines handed to the model (~4k tokens, a fraction of one search)
+WIRE_DESKS = [('europe', 'EUROPE / RUSSIA-UKRAINE'), ('mideast', 'MIDDLE EAST'),
+              ('indopac', 'INDO-PACIFIC'), ('africa', 'AFRICA'), ('world', 'WORLD DESKS'),
+              ('defense', 'DEFENCE'), ('maritime', 'MARITIME'), ('space', 'SPACE'),
+              ('cyber', 'CYBER'), ('homeland', 'US HOMELAND'), ('reddit', 'REDDIT')]
+_TAG = re.compile(r'<[^>]+>')
+_WORD = re.compile(r'[a-z0-9]+')
+_STOP = set('the a an of in on to for and or at by with from as is are was were be after '
+            'over into amid says said new its his her their it this that than up out'.split())
+
+
+def _local(tag):
+    return tag.rsplit('}', 1)[-1].lower()
+
+
+def _wire_time(s):
+    s = (s or '').strip()
+    if not s:
+        return None
+    try:
+        from email.utils import parsedate_to_datetime
+        t = parsedate_to_datetime(s)
+    except Exception:
+        try:
+            t = datetime.fromisoformat(s.replace('Z', '+00:00'))
+        except Exception:
+            return None
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=timezone.utc)
+    return t.astimezone(timezone.utc)
+
+
+def _wire_text(s, n):
+    s = unescape(_TAG.sub(' ', unescape(s or '')))
+    s = ' '.join(s.split())
+    return s if len(s) <= n else s[:n - 1].rsplit(' ', 1)[0] + '…'
+
+
+def parse_feed(xml_bytes):
+    """RSS 2.0, RSS 1.0 (RDF) or Atom -> [{title, url, time, summary}]."""
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(xml_bytes)
+    out = []
+    for el in root.iter():
+        if _local(el.tag) not in ('item', 'entry'):
+            continue
+        f = {'title': '', 'url': '', 'time': None, 'summary': ''}
+        for ch in el:
+            k = _local(ch.tag)
+            if k == 'title':
+                f['title'] = _wire_text(''.join(ch.itertext()), 180)
+            elif k == 'link':
+                href = ch.get('href')
+                if href and ch.get('rel', 'alternate') == 'alternate':
+                    f['url'] = href
+                elif not href and (ch.text or '').strip():
+                    f['url'] = ch.text.strip()
+            elif k in ('pubdate', 'published', 'updated', 'date') and not f['time']:
+                f['time'] = _wire_time(ch.text)
+            elif k in ('description', 'summary', 'content') and not f['summary']:
+                f['summary'] = _wire_text(''.join(ch.itertext()), 150)
+        if f['title'] and f['url']:
+            out.append(f)
+    return out
+
+
+def _wire_one(label, url, since):
+    r = requests.get(url, timeout=12, headers={
+        'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)',
+        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'})
+    if r.status_code != 200:
+        raise RuntimeError(f'HTTP {r.status_code}')
+    items = [i for i in parse_feed(r.content) if i['time'] and i['time'] >= since]
+    items.sort(key=lambda i: i['time'], reverse=True)
+    return items[:WIRE_PER_FEED]
+
+
+def _wire_kev(since_days=3):
+    d = _get(WIRE_KEV, timeout=20)
+    cut = (datetime.now(timezone.utc) - timedelta(days=since_days)).date().isoformat()
+    out = []
+    for v in d.get('vulnerabilities') or []:
+        if str(v.get('dateAdded', '')) >= cut:
+            ransom = ' | used in ransomware' if str(v.get('knownRansomwareCampaignUse', '')).lower() == 'known' else ''
+            out.append({'title': f"KEV added {v.get('dateAdded')}: {v.get('cveID')} "
+                                 f"{v.get('vendorProject', '')} {v.get('product', '')} - "
+                                 f"{v.get('vulnerabilityName', '')}{ransom}",
+                        'url': WIRE_KEV_PAGE, 'time': None, 'summary': ''})
+    return out
+
+
+def _wire_key(title):
+    return frozenset(w for w in _WORD.findall(title.lower()) if w not in _STOP and len(w) > 2)
+
+
+def fetch_wire(hours):
+    """Headlines from the outlets' own feeds, inside the window. Costs nothing.
+
+    Returns (items, detail) where detail maps each feed to its count or its error.
+    Stories carried by several outlets are merged into one line naming all of them.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    detail, got = {}, []
+
+    def run(feed):
+        label, desk, url = feed
+        try:
+            return feed, _wire_one(label, url, since), None
+        except Exception as e:
+            return feed, None, str(e)[:80]
+
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        for (label, desk, url), items, err in ex.map(run, WIRE_FEEDS):
+            if items is None:
+                detail[label] = 'ERR ' + err
+                continue
+            detail[label] = len(items)
+            for i in items:
+                i.update(src=[label], desk=desk)
+                got.append(i)
+    try:
+        kev = _wire_kev()
+        detail['CISA KEV'] = len(kev)
+        for i in kev:
+            i.update(src=['CISA KEV'], desk='cyber')
+        got = kev + got
+    except Exception as e:
+        detail['CISA KEV'] = 'ERR ' + str(e)[:80]
+
+    # One story, several outlets: merge on shared headline words. Corroboration
+    # across outlets is itself worth showing, and it saves the duplicate lines.
+    merged = []
+    for i in got:
+        k = _wire_key(i['title'])
+        hit = None
+        if i['desk'] != 'reddit' and len(k) >= 4:
+            for m in merged:
+                if m['desk'] != 'reddit' and len(k & m['key']) / max(1, len(k | m['key'])) >= 0.5:
+                    hit = m
+                    break
+        if hit:
+            if i['src'][0] not in hit['src']:
+                hit['src'].append(i['src'][0])
+            continue
+        i['key'] = k
+        merged.append(i)
+    for m in merged:
+        m.pop('key', None)
+    return merged, detail
+
+
+def wire_lines(items, cap=WIRE_MAX):
+    """Group by desk, most-corroborated first, and fit the cap fairly across desks."""
+    by = {d: [] for d, _ in WIRE_DESKS}
+    for i in items:
+        by.setdefault(i['desk'], []).append(i)
+    for d in by:
+        by[d].sort(key=lambda i: (-len(i['src']), -(i['time'] or datetime.max.replace(
+            tzinfo=timezone.utc)).timestamp()))
+    # Round-robin so one busy desk cannot crowd out a quiet theatre's only story.
+    keep, rank = {d: [] for d in by}, 0
+    while sum(len(v) for v in keep.values()) < cap:
+        moved = False
+        for d in by:
+            if rank < len(by[d]) and sum(len(v) for v in keep.values()) < cap:
+                keep[d].append(by[d][rank])
+                moved = True
+        if not moved:
+            break
+        rank += 1
+    out = []
+    for d, name in WIRE_DESKS:
+        if not keep.get(d):
+            continue
+        out.append(f'{name}:')
+        for i in keep[d]:
+            when = i['time'].strftime('%d %b %H:%MZ') if i['time'] else ''
+            src = ', '.join(i['src'])
+            summ = f" -- {i['summary']}" if i['summary'] and i['desk'] != 'reddit' else ''
+            out.append(f"- [{src}{' ' + when if when else ''}] {i['title']}{summ} <{i['url']}>")
+    return out
+
+
 def fetch_primary_leads(hours):
     leads, errors = {}, {}
     nw, err = fetch_navwarnings()
@@ -1691,6 +1930,15 @@ def fetch_primary_leads(hours):
     else:
         leads['gdelt'] = gd
         leads['gdelt_meta'] = meta
+    try:
+        wire, detail = fetch_wire(hours)
+        leads['wire'], leads['wire_detail'] = wire, detail
+        bad = [k for k, v in detail.items() if isinstance(v, str)]
+        print(f"  wire: {len(wire)} stories from {len(detail) - len(bad)}/{len(detail)} feeds"
+              + (f"; failed: {', '.join(bad)}" if bad else ''))
+    except Exception as e:
+        errors['wire'] = str(e)[:160]
+        print(f"  wire failed: {e}")
     leads['errors'] = errors
     return leads
 
@@ -1750,6 +1998,27 @@ def leads_block(leads, hours):
         out.append(f"- unavailable this run ({str(errs['gdelt'])[:100]}).")
     else:
         out.append('- none cleared the three-outlet bar.')
+    out.append('')
+    wire = leads.get('wire') or []
+    if wire:
+        detail = leads.get('wire_detail') or {}
+        down = [k for k, v in detail.items() if isinstance(v, str)]
+        reddit_ok = any(isinstance(v, int) for k, v in detail.items() if k.startswith('r/'))
+        out += [f'HEADLINES - last {hours}h, read from the outlets\' own feeds by the pipeline, free:',
+                *wire_lines(wire),
+                '',
+                'The pipeline retrieved these this run, so each IS a retrieved source for what its',
+                'headline and summary say: cite it as the outlet, tagged [OSINT - WEB], linking the',
+                'URL in angle brackets. Several outlets in one bracket means several reported it -',
+                'that is corroboration. For anything beyond the headline, search.',
+                'This list is the web half of the sweep, already done. Do not spend a web_search',
+                'finding a story that is here; spend it on detail, confirmation, or a lead with no',
+                'headline.' + (f' Feeds that failed this run: {", ".join(down)}.' if down else ''),
+                ('REDDIT lines are the newest posts in those subreddits: titles only, unverified,'
+                 ' tagged [OSINT - SOCIAL] if carried.' if reddit_ok else
+                 'Reddit refused the pipeline this run. Say so in one line in Section 1; do not'
+                 ' spend searches working around it.'),
+                '']
     if not (nw or gd):
         return '\n'.join(out) + '\n'
     out += ['',
@@ -1775,7 +2044,7 @@ def fetch_server_feeds(leads=None):
     # collectors every half hour without spending anything on the model.
     if leads is None:
         leads = fetch_primary_leads(LEAD_REFRESH_HOURS)
-    for k in ('navwarn', 'gdelt', 'gdelt_meta'):
+    for k in ('navwarn', 'gdelt', 'gdelt_meta', 'wire_detail'):
         if k in leads:
             feeds[k] = leads[k]
     errors.update(leads.get('errors') or {})
@@ -1873,6 +2142,7 @@ def write_feed_status(feeds):
     for k in ('quakes', 'launches', 'alerts', 'disasters', 'vessels', 'navwarn', 'gdelt'):
         counts[k] = len(feeds[k]) if isinstance(feeds.get(k), list) else None
     counts['gdelt_detail'] = feeds.get('gdelt_meta')
+    counts['wire_detail'] = feeds.get('wire_detail')
     counts['aircraft'] = feeds.get('aircount')
     counts['satellites'] = feeds.get('satcounts')
     # Which basemap actually reached the page. The globe silently degrades to the
@@ -2135,7 +2405,12 @@ def brief_quality(content, prior_n=0):
     if web_only or (reported and not social['x'] and not social['reddit']):
         print("  WARNING: no social sourcing in this brief - x_search appears unused")
     if reported and not social['reddit']:
-        print("  note: no Reddit sourcing - Section 1 asks for it explicitly")
+        print("  note: no Reddit sourcing (Reddit now comes from the headline feeds, when reachable)")
+    u = (LAST_TOOL_USE or {}).get('usage') or {}
+    if isinstance(u.get('num_server_side_tools_used'), int):
+        n = u['num_server_side_tools_used']
+        print(f"  searches: {n} against a budget of {SEARCH_BUDGET}"
+              + (" - OVER BUDGET" if n > SEARCH_BUDGET + 2 else ''))
     if reported and not re.search(r'^\s*searched:', content, re.I | re.M):
         print("  note: Section 1 did not list the queries it ran")
     # A section called quiet without a searched: line inside it was not looked at.
@@ -2466,7 +2741,7 @@ def main():
 
     stale = False
     print(f"Initiating collection, {WINDOW_HOURS}h window, Grok 4.1 + x_search + web_search...")
-    content, error = generate_with_grok(prompt)
+    content, error = generate_with_grok(prompt, since=window_start)
 
     if content:
         provider = "Grok 4.1 Fast Reasoning - Multi-INT Fusion (X Search + Web Search)"

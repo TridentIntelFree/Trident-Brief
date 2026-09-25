@@ -4,6 +4,30 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.3.0 — 2026-09-25
+
+### Brief
+- **Free headlines, fewer paid searches.** Searches were most of the bill
+  (about $0.20 a run; the prompt and the written brief were a few cents), and
+  most web searches were finding what an outlet's RSS feed publishes anyway.
+  The pipeline now reads about 25 feeds and CISA's Known Exploited
+  Vulnerabilities list before the model starts and hands it the headlines from
+  the window -- grouped by theatre, with a story several outlets carried merged
+  into one line naming all of them. The model cites those directly and spends
+  its searches on X and on detail.
+- **A search budget.** The tasking asked for roughly twenty searches a run
+  (both tools on every theatre, three Reddit searches, two per section for 3
+  and 4); it now states a budget of about eight, mostly X. The five or six
+  `site:reddit.com` searches per run, which produced no Reddit citation in any
+  recent brief, are gone: four defence subreddits come in through their feeds
+  instead, when Reddit lets the runner in.
+- **X search limited to the window.** Posts from before the collection window
+  are no longer returned, so each X search spends its results on usable posts.
+  If the API rejects the date limit, the run retries once without it.
+- **Cost in the log.** Each run prints its cost in dollars and its search count
+  against the budget; both are in `assets/feed-status.json`. A feed that fails
+  is named there under `wire_detail`.
+
 ## 1.2.0 — 2026-09-25
 
 ### Globe
