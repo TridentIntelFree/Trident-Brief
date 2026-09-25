@@ -310,6 +310,82 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .quiet-row span{font-family:var(--mono);font-size:.68em;letter-spacing:.06em;color:var(--ink-dim);
   background:rgba(30,41,73,.7);border-radius:4px;padding:2px 7px}
 
+/* ---------- foldable bands ---------- */
+.section-band.folded > :not(.band-head){display:none!important}
+.section-band.folded .band-head{margin-bottom:0}
+.fold-btn{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);font-family:var(--mono);
+  font-size:.68em;letter-spacing:.08em;padding:4px 10px;border-radius:20px;cursor:pointer;text-transform:uppercase;margin-left:auto}
+.fold-btn:hover{border-color:var(--blue);color:#fff}
+.band-head.foldable h2{cursor:pointer}
+
+/* ---------- appalachistan ---------- */
+.ap-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.ap-bar select,.ap-search input{background:#0a1226;border:1px solid var(--line);color:var(--ink);border-radius:8px;
+  padding:8px 10px;font-family:var(--mono);font-size:.8em;min-height:38px}
+.ap-bar select{flex:1 1 200px;min-width:0;max-width:100%}
+.ap-search{position:relative;flex:1 1 190px;min-width:0}
+.ap-search input{width:100%}
+.ap-hits{position:absolute;left:0;right:0;top:100%;z-index:1200;background:#0b1430;border:1px solid var(--line);
+  border-radius:0 0 8px 8px;display:none;max-height:300px;overflow:auto}
+.ap-hits button{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line2);
+  color:var(--ink);padding:8px 10px;font-size:.85em;cursor:pointer}
+.ap-hits button:hover{background:rgba(59,130,246,.18)}
+.ap-hits small{color:var(--ink-faint);font-family:var(--mono);margin-left:6px}
+.ap-btn{background:rgba(15,23,48,.9);border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:.74em;
+  letter-spacing:.06em;padding:8px 12px;border-radius:8px;cursor:pointer;min-height:38px}
+.ap-btn:hover{border-color:var(--blue)}
+.ap-btn.on{background:rgba(59,130,246,.28);border-color:var(--blue);color:#fff}
+.ap-btn.warn{border-color:#ef4444;color:#fecaca}
+.ap-btn:disabled{opacity:.45;cursor:default}
+.ap-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.ap-mapwrap{position:relative}
+#apMap{height:clamp(420px,68vh,820px);border:1px solid var(--line);border-radius:10px;background:#0b1224;overflow:hidden}
+.ap-boot{height:100%;display:grid;place-items:center;color:var(--ink-faint);font-family:var(--mono);font-size:.8em;text-align:center;padding:20px}
+.ap-net{position:absolute;left:50%;transform:translateX(-50%);top:10px;z-index:900;white-space:nowrap;font-family:var(--mono);font-size:.68em;padding:3px 8px;border-radius:6px;
+  background:rgba(8,13,30,.85);color:var(--ink-dim);pointer-events:none}
+.ap-net.off{color:#fbbf24}
+.ap-tabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.ap-tab{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);font-family:var(--mono);font-size:.7em;
+  letter-spacing:.08em;padding:8px 11px;border-radius:8px 8px 0 0;cursor:pointer;min-height:36px}
+.ap-tab.on{background:rgba(59,130,246,.22);border-color:var(--blue);color:#fff}
+.ap-tab.ap-sos{color:#fca5a5}
+.ap-panel{border:1px solid var(--line);border-radius:0 10px 10px 10px;padding:14px;background:rgba(10,17,36,.9);
+  font-size:.88em;line-height:1.6;min-height:120px}
+.ap-panel h4{font-family:var(--mono);font-size:.72em;letter-spacing:.12em;color:var(--ink-faint);margin:10px 0 4px;font-weight:600}
+.ap-panel h4:first-child{margin-top:0}
+.ap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 16px}
+.ap-grid.wide{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.ap-kv{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line2);padding:3px 0}
+.ap-kv span:first-child{color:var(--ink-faint);font-family:var(--mono);font-size:.82em;letter-spacing:.05em}
+.ap-kv b{color:#fff;font-weight:600;text-align:right}
+.ap-coord{font-family:var(--mono);color:#fff;font-size:1.02em;word-break:break-word}
+.ap-big{font-family:var(--mono);font-size:1.5em;color:#fff;font-weight:700;line-height:1.3}
+.ap-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.ap-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.ap-li{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line2);border-radius:8px;padding:6px 9px}
+.ap-li .nm{color:#fff}
+.ap-li small{color:var(--ink-faint);font-family:var(--mono)}
+.ap-dim{color:var(--ink-faint)}
+.ap-warn{color:#fbbf24}
+.ap-bad{color:#f87171}
+.ap-arrow{width:64px;height:64px;flex:none}
+.ap-prog{height:8px;border-radius:4px;background:#1e293b;overflow:hidden;margin:6px 0}
+.ap-prog i{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+.ap-fine{margin-top:10px;color:var(--ink-faint);font-size:.76em;line-height:1.6}
+.ap-panel input[type=text],.ap-panel input[type=number],.ap-panel select{background:#0a1226;border:1px solid var(--line);color:var(--ink);
+  border-radius:7px;padding:7px 9px;font-family:var(--mono);font-size:.9em;min-height:36px}
+.ap-panel input[type=number]{width:96px}
+.leaflet-container{font-family:system-ui,sans-serif;background:#0b1224}
+.leaflet-popup-content{font-size:13px;line-height:1.5;margin:10px 12px}
+.ap-pop b{font-size:14px}
+.ap-pop .k{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#475569}
+.ap-pop .row{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
+.ap-pop button,.ap-pop a.b{font:11px ui-monospace,monospace;letter-spacing:.04em;border:1px solid #94a3b8;background:#f1f5f9;color:#0f172a;
+  border-radius:6px;padding:5px 8px;cursor:pointer;text-decoration:none}
+.ap-me{filter:drop-shadow(0 0 4px rgba(0,0,0,.6))}
+@media (max-width:640px){ .ap-tab{flex:1 1 30%;text-align:center;border-radius:8px} .ap-panel{border-radius:10px}
+  #apMap .leaflet-control-attribution{font-size:9px;max-width:62%;line-height:1.35} }
+
 /* ---------- wire ---------- */
 .wire-list{display:flex;flex-direction:column;border:1px solid var(--line2);border-radius:9px;overflow:hidden}
 .w-row{display:grid;grid-template-columns:62px 1fr;gap:12px;padding:9px 12px;border-top:1px solid var(--line2);
@@ -526,6 +602,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       <span class="pill" id="stalePill" style="display:none"></span>
       <a class="pill" href="#godseye" style="text-decoration:none"><span class="dot live"></span>GOD'S EYE FEEDS</a>
       <a class="pill" href="#eventBand" style="text-decoration:none">EVENT BOARD <b id="pillEvents">0</b></a>
+      <a class="pill" href="#appBand" style="text-decoration:none">&#129406; APPALACHISTAN</a>
       <a class="pill" href="#wireBand" style="text-decoration:none;display:none" id="pillWireA" title="headlines published since this brief was collected">NEW ON THE WIRE <b id="pillWire">0</b></a>
       <button class="pill" style="cursor:pointer" onclick="window.print()">PRINT / PDF</button>
     </div>
@@ -803,6 +880,46 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       <div class="sub" id="archCount"></div>
     </div>
     <div class="arch-list" id="archList"></div>
+  </div>
+
+  <!-- ============ APPALACHISTAN ============ -->
+  <div class="section-band" id="appBand">
+    <div class="band-head">
+      <h2>&#129406; Appalachistan &mdash; Trail Maps</h2>
+      <div class="sub">
+        the Appalachian Trail and the ground around it &middot; GPS, trail miles, offline maps &middot;
+        topo <a href="https://www.usgs.gov/programs/national-geospatial-program/national-map" target="_blank" rel="noopener">USGS The National Map</a> (public domain) &middot;
+        trail data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>
+      </div>
+    </div>
+    <div class="ap-bar">
+      <select id="apJump" title="jump to a section of trail"><option value="">Jump to&hellip;</option></select>
+      <div class="ap-search"><input type="search" id="apFind" placeholder="find shelter, water, peak, town&hellip;" autocomplete="off"><div class="ap-hits" id="apHits"></div></div>
+      <button class="ap-btn ap-gps" id="apLocate" title="show where you are (uses the phone's GPS; works without signal)">&#9678; LOCATE</button>
+      <button class="ap-btn" id="apFollow" title="keep the map centred on you">FOLLOW</button>
+    </div>
+    <div class="ap-kinds" id="apKinds"></div>
+    <div class="ap-mapwrap">
+      <div id="apMap"><div class="ap-boot" id="apBoot">map loads when you scroll here &middot; <button class="ap-btn" id="apStart">OPEN MAP NOW</button></div></div>
+      <div class="ap-net" id="apNet"></div>
+    </div>
+    <div class="ap-tabs" id="apTabs">
+      <button class="ap-tab on" data-tab="here">HERE</button>
+      <button class="ap-tab" data-tab="goto">GO TO</button>
+      <button class="ap-tab" data-tab="track">TRACK</button>
+      <button class="ap-tab" data-tab="wpt">WAYPOINTS</button>
+      <button class="ap-tab" data-tab="measure">MEASURE</button>
+      <button class="ap-tab" data-tab="offline">OFFLINE</button>
+      <button class="ap-tab ap-sos" data-tab="sos">EMERGENCY</button>
+    </div>
+    <div class="ap-panel" id="apPanel"></div>
+    <div class="ap-fine">
+      A navigation aid, not a substitute for a paper map, a compass and knowing how to use them. Phones lose
+      battery and signal, and browsers pause a page when the screen turns off, so a track records only while
+      this page is open and the screen is on. Bearings are to true north; a magnetic compass along the AT reads
+      roughly 5&deg;&ndash;16&deg; west of true. Trail miles are measured along OpenStreetMap's line from Springer
+      Mountain and will differ from guidebook miles by a few tenths.
+    </div>
   </div>
 
   <div class="footer">
@@ -5669,6 +5786,43 @@ function agoShort(ms){
     b.onclick = function(){ openArch(a); };
     list.appendChild(b);
   });
+})();
+
+/* Fold a band down to its heading line. The long, rarely-needed sections sit
+   closed so the page stays short; the choice is remembered per section. */
+function foldable(id, foldedByDefault){
+  var band = document.getElementById(id);
+  if(!band || band.dataset.foldable) return;
+  band.dataset.foldable = '1';
+  var head = band.querySelector('.band-head'), key = 'trident_fold_' + id;
+  var btn = document.createElement('button');
+  btn.className = 'fold-btn'; btn.type = 'button';
+  head.classList.add('foldable'); head.appendChild(btn);
+  function set(f){
+    band.classList.toggle('folded', f);
+    btn.textContent = f ? '\u25b8 show' : '\u25be hide';
+    btn.setAttribute('aria-expanded', f ? 'false' : 'true');
+    try{ localStorage.setItem(key, f ? '1' : '0'); }catch(_){}
+    // canvases inside were laid out at zero size while hidden
+    if(!f) setTimeout(function(){ dispatchEvent(new Event('resize')); }, 30);
+  }
+  var saved = null;
+  try{ saved = localStorage.getItem(key); }catch(_){}
+  set(saved == null ? !!foldedByDefault : saved === '1');
+  btn.onclick = function(){ set(!band.classList.contains('folded')); };
+  head.querySelector('h2').onclick = function(){ set(!band.classList.contains('folded')); };
+}
+foldable('flyBand', true);
+foldable('archiveBand', true);
+
+/* Appalachistan runs from its own file so the service worker can keep it on
+   the phone. It loads Leaflet only when the section comes into view. */
+(function(){
+  var sc = document.createElement('script');
+  sc.src = 'assets/appalachistan.js'; sc.defer = true;
+  document.body.appendChild(sc);
+  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost'))
+    navigator.serviceWorker.register('sw.js').catch(function(){});
 })();
 
 function openArch(a){

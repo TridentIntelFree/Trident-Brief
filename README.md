@@ -30,6 +30,17 @@ globe's GPS JAM layer marks where many aircraft at once report degraded GPS
 accuracy (the gpsjam.org method, over a rolling six hours), and the terrain
 panel shows the site's weather from Open-Meteo. None of these calls a model.
 
+## Appalachistan
+
+The trail-map section at the bottom of the page (`assets/appalachistan.js`,
+with Leaflet 1.9.4 vendored under `assets/leaflet/`, BSD-2). Its trail data,
+`assets/appalachia.json`, is built from OpenStreetMap through Overpass by the
+pipeline and re-read from the live site between monthly rebuilds. `sw.js` is
+the service worker that keeps the page, the map and saved USGS tiles on the
+device so the section works with no signal. Tiles from OpenTopoMap,
+OpenStreetMap, Esri and Waymarked Trails are never stored, as their terms
+require.
+
 ## What a run costs
 
 xAI bills per search as well as per token, and the searches are most of it: on
@@ -119,7 +130,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.4.0) and appears in the page
+The build version lives in `VERSION` (currently 1.5.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).

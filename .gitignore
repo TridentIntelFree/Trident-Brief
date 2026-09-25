@@ -5,6 +5,7 @@ __pycache__/
 assets/satellites.json
 assets/aircraft.json
 assets/gpsjam.json
+assets/appalachia.json
 assets/feed-status.json
 assets/three.module.js
 assets/earth_*.jpg

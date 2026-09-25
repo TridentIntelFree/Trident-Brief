@@ -4,6 +4,58 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.0 — 2026-09-25
+
+### Appalachistan
+A trail map for the Appalachian Trail at the bottom of the page, built to be
+carried: it keeps working with no signal.
+
+- **Maps.** USGS Topo, USGS Imagery + Topo and USGS Shaded Relief (public
+  domain), plus the USGS 3DEP lidar hillshade -- the bare ground at about a
+  metre, which shows switchbacks, trail benches, old grades and stream cuts
+  under the canopy that no topo draws. Online only: OpenTopoMap, OpenStreetMap
+  (footpaths to zoom 19), Esri sub-metre imagery, and the Waymarked Trails
+  hiking-route overlay. The map zooms to 19.
+- **Trail data.** The whole AT line and, near it, shelters, campsites, water,
+  peaks, viewpoints, trailheads, waterfalls and trail towns, from
+  OpenStreetMap. Built on the site's next refresh, then re-read from the live
+  site and rebuilt monthly, so Overpass is queried once a month, not every half
+  hour. Each point carries a trail mile from Springer, measured along the
+  line; miles are only published when the route comes out between 2,050 and
+  2,350 miles long, and breaks under 300 m (a ford, the Kennebec ferry) are
+  bridged first.
+- **GPS.** Position with its accuracy circle, follow mode, a heading arrow
+  (GPS course, or the phone's compass), and the screen kept awake while it
+  runs. Coordinates as decimal degrees, degrees-minutes, DMS, UTM and
+  USNG/MGRS (the grid US search and rescue uses; checked against pyproj and
+  the mgrs library).
+- **On the trail.** Your trail mile and distance off the trail; the next water,
+  shelter and campsite northbound and southbound by trail distance; the
+  nearest shelter, water, trailhead and town in a straight line; sunrise,
+  sunset, last light and daylight left, computed on the phone.
+- **Go to** any shelter, waypoint or map point: distance, true bearing, a
+  pointing arrow and the along-trail distance.
+- **Track** recording with distance, moving time, pace and rough climb;
+  **waypoints**; **GPX export** of both and **GPX import** of routes from
+  other apps; **measure** a route by tapping it out.
+- **Emergency** card: coordinates in large type in decimal and USNG, trail
+  mile, a text-message link and copy/share of the location, a 911 link, and
+  the nearest ways out.
+- **Offline.** A service worker keeps the page, the map library, the trail
+  data and every USGS tile looked at on the device. The OFFLINE tab saves the
+  current view or a stretch of trail between two miles (1.5 km either side),
+  to zoom 16 for the topo or 17 for the lidar, with the tile count and size
+  shown first. If the phone shows signal but the network stalls, the saved
+  page opens after six seconds instead of hanging.
+
+The page says plainly what it is not: a substitute for a paper map and
+compass; a recorder that runs with the screen off; a source of guidebook
+miles.
+
+### Page
+- The Mushroom Body and the Brief Archive sections fold down to their heading
+  line, closed by default; the choice is remembered.
+
 ## 1.4.0 — 2026-09-25
 
 ### Page

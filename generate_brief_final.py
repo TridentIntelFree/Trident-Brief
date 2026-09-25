@@ -2170,6 +2170,285 @@ def leads_block(leads, hours):
     return '\n'.join(out)
 
 
+# ------------------------------------------------------------ appalachia ----
+# Appalachistan: the Appalachian Trail and what is along it, for a map that has
+# to keep working with no signal. Built from OpenStreetMap through Overpass once
+# a month and otherwise read back from the copy already on the live site, so
+# the half-hourly refresh does not re-query Overpass every thirty minutes.
+APP_FILE = 'assets/appalachia.json'
+APP_VERSION = 1
+APP_MAX_AGE_DAYS = 30
+OVERPASS = ['https://overpass-api.de/api/interpreter',
+            'https://overpass.kumi.systems/api/interpreter',
+            'https://overpass.private.coffee/api/interpreter']
+_AT_RELS = """rel["route"="hiking"]["name"~"^Appalachian (National Scenic )?Trail"]["name"!~"International"]->.top;
+rel(r.top)["route"="hiking"]->.kids;
+rel(r.kids)["route"="hiking"]->.grand;
+(.top;.kids;.grand;)->.rels;
+way(r.rels)->.w;"""
+APP_LINE_Q = '[out:json][timeout:240];\n' + _AT_RELS + '\n.w out geom qt;'
+APP_POI_Q = '[out:json][timeout:300];\n' + _AT_RELS + """
+(
+  nwr(around.w:1200)["amenity"="shelter"];
+  nwr(around.w:1200)["tourism"~"^(wilderness_hut|alpine_hut|camp_site)$"];
+  node(around.w:500)["amenity"="drinking_water"];
+  node(around.w:500)["natural"="spring"];
+  node(around.w:800)["natural"="peak"]["name"];
+  node(around.w:600)["tourism"="viewpoint"];
+  nwr(around.w:1200)["highway"="trailhead"];
+  node(around.w:1200)["waterway"="waterfall"];
+  node(around.w:5000)["place"~"^(town|village)$"];
+);
+out center tags qt;"""
+
+
+def _poi_kind(t):
+    if t.get('amenity') == 'shelter' or t.get('tourism') in ('wilderness_hut', 'alpine_hut'):
+        return 'shelter'
+    if t.get('tourism') == 'camp_site':
+        return 'camp'
+    if t.get('amenity') == 'drinking_water' or t.get('natural') == 'spring':
+        return 'water'
+    if t.get('natural') == 'peak':
+        return 'peak'
+    if t.get('tourism') == 'viewpoint':
+        return 'view'
+    if t.get('highway') == 'trailhead':
+        return 'trailhead'
+    if t.get('waterway') == 'waterfall':
+        return 'falls'
+    if t.get('place') in ('town', 'village'):
+        return 'town'
+    return None
+
+
+def _overpass(q, timeout=330):
+    last = 'no server tried'
+    for url in OVERPASS:
+        try:
+            r = requests.post(url, data={'data': q}, timeout=timeout,
+                              headers={'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'})
+            if r.status_code == 200:
+                return r.json(), None
+            last = f'{url.split("/")[2]} HTTP {r.status_code}'
+        except Exception as e:
+            last = f'{url.split("/")[2]} {str(e)[:80]}'
+        print(f"    overpass: {last}")
+    return None, last
+
+
+def _m(a, b):
+    return _km(a[0], a[1], b[0], b[1]) * 1000.0
+
+
+def _rdp(pts, tol_m):
+    """Douglas-Peucker in a local flat projection; keeps the ends."""
+    if len(pts) < 3:
+        return pts
+    lat0 = math.radians(sum(p[0] for p in pts) / len(pts))
+    kx, ky = 111320.0 * math.cos(lat0), 110540.0
+    xy = [(p[1] * kx, p[0] * ky) for p in pts]
+    keep = [False] * len(pts)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(pts) - 1)]
+    while stack:
+        i, j = stack.pop()
+        (x1, y1), (x2, y2) = xy[i], xy[j]
+        dx, dy = x2 - x1, y2 - y1
+        L = dx * dx + dy * dy
+        best, bk = -1.0, -1
+        for k in range(i + 1, j):
+            x, y = xy[k]
+            if L == 0:
+                d = (x - x1) ** 2 + (y - y1) ** 2
+            else:
+                t = max(0.0, min(1.0, ((x - x1) * dx + (y - y1) * dy) / L))
+                d = (x - x1 - t * dx) ** 2 + (y - y1 - t * dy) ** 2
+            if d > best:
+                best, bk = d, k
+        if bk > 0 and best > tol_m * tol_m:
+            keep[bk] = True
+            stack += [(i, bk), (bk, j)]
+    return [p for p, k in zip(pts, keep) if k]
+
+
+def _enc(pts):
+    """[[lat,lon],...] -> flat delta-coded ints at 1e-5 degrees (~1 m)."""
+    out, pl, pn = [], 0, 0
+    for la, lo in pts:
+        a, b = round(la * 1e5), round(lo * 1e5)
+        out += [a - pl, b - pn]
+        pl, pn = a, b
+    return out
+
+
+def _at_path(ways):
+    """Order the trail from Springer to Katahdin as the shortest route through the
+    relation's ways, so every point along it has a trail mile. Alternates and
+    side routes in the relation fall off the shortest path by themselves."""
+    import heapq
+    adj, geo = {}, {}
+    for w in ways:
+        n, g = w.get('nodes') or [], w.get('geometry') or []
+        if len(n) < 2 or len(n) != len(g):
+            continue
+        pts = [(p['lat'], p['lon']) for p in g]
+        L = sum(_m(pts[i - 1], pts[i]) for i in range(1, len(pts)))
+        geo[n[0]], geo[n[-1]] = pts[0], pts[-1]
+        adj.setdefault(n[0], []).append((n[-1], L, pts))
+        adj.setdefault(n[-1], []).append((n[0], L, pts[::-1]))
+    if not adj:
+        return None
+    # Bridge small breaks: two dangling ends within 300 m that OpenStreetMap
+    # does not join (a river ford, a ferry, a mapping gap) are one trail. A
+    # longer break is left alone -- the length check below catches that.
+    cell = {}
+    for k, (la, lo) in geo.items():
+        cell.setdefault((int(la * 200), int(lo * 200)), []).append(k)
+    dangling = [k for k in adj if len(adj[k]) == 1]
+    for k in dangling:
+        la, lo = geo[k]
+        best, bk = 300.0, None
+        cx, cy = int(la * 200), int(lo * 200)
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for o in cell.get((cx + dx, cy + dy), []):
+                    if o == k or any(v == o for v, _, _ in adj[k]):
+                        continue
+                    d = _m(geo[k], geo[o])
+                    if d < best:
+                        best, bk = d, o
+        if bk is not None:
+            adj[k].append((bk, best, [geo[k], geo[bk]]))
+            adj[bk].append((k, best, [geo[bk], geo[k]]))
+    start = min(adj, key=lambda k: geo[k][0])          # southern terminus
+    dist, prev = {start: 0.0}, {}
+    pq = [(0.0, start)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist.get(u, 1e18):
+            continue
+        for v, L, pts in adj[u]:
+            if d + L < dist.get(v, 1e18):
+                dist[v], prev[v] = d + L, (u, pts)
+                heapq.heappush(pq, (d + L, v))
+    end = max(dist, key=lambda k: dist[k])
+    chain, v = [], end
+    while v in prev:
+        u, pts = prev[v]
+        chain.append(pts)
+        v = u
+    path = []
+    for pts in reversed(chain):
+        path += pts if not path else pts[1:]
+    return path, dist[end] / 1609.344
+
+
+def build_appalachia():
+    t0 = time.time()
+    line, err = _overpass(APP_LINE_Q)
+    if line is None:
+        return None, 'trail line: ' + err
+    ways = [e for e in line.get('elements', []) if e.get('type') == 'way' and e.get('geometry')]
+    if len(ways) < 50:
+        return None, f'trail line: only {len(ways)} ways came back'
+    segs, npts = [], 0
+    for w in ways:
+        pts = _rdp([(p['lat'], p['lon']) for p in w['geometry']], 8)
+        npts += len(pts)
+        segs.append(_enc(pts))
+    out = {'v': APP_VERSION, 'built_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+           'source': 'OpenStreetMap contributors (ODbL), via Overpass',
+           'ways': len(ways), 'segs': segs, 'pois': []}
+    pp = _at_path(ways)
+    cum = None
+    if pp:
+        path, miles = pp
+        out['path_mi'] = round(miles, 1)
+        # Only claim trail miles when the route came out close to the real
+        # trail's length; a relation with a gap gives a path that stops short.
+        if 2050 <= miles <= 2350:
+            coarse = _rdp(path, 25)
+            out['path'] = _enc(coarse)
+            cum, c = [0.0], 0.0
+            for i in range(1, len(coarse)):
+                c += _m(coarse[i - 1], coarse[i]) / 1609.344
+                cum.append(c)
+            path_pts = coarse
+        print(f"  appalachia: shortest route {miles:.0f} mi "
+              f"({'miles kept' if cum else 'outside 2050-2350, miles not published'})")
+
+    pois, perr = _overpass(APP_POI_Q)
+    if pois is None:
+        out['poi_error'] = perr
+    else:
+        seen = set()
+        for e in pois.get('elements', []):
+            t = e.get('tags') or {}
+            k = _poi_kind(t)
+            la = e.get('lat', (e.get('center') or {}).get('lat'))
+            lo = e.get('lon', (e.get('center') or {}).get('lon'))
+            if not k or la is None or lo is None:
+                continue
+            name = (t.get('name') or '').strip()[:60]
+            key = (k, round(la, 4), round(lo, 4))
+            if key in seen:
+                continue
+            seen.add(key)
+            row = [round(la, 5), round(lo, 5), k, name]
+            mile = None
+            if cum:
+                # nearest vertex of the ordered route -- good to a few hundred metres
+                best, bi = 1e18, 0
+                for i in range(0, len(path_pts)):
+                    q = path_pts[i]
+                    d = (q[0] - la) ** 2 + ((q[1] - lo) * math.cos(math.radians(la))) ** 2
+                    if d < best:
+                        best, bi = d, i
+                mile = round(cum[bi], 1)
+            row.append(mile)
+            ele = re.match(r'^\s*(-?\d+(?:\.\d+)?)', str(t.get('ele') or ''))
+            row.append(round(float(ele.group(1))) if ele else None)
+            out['pois'].append(row)
+    kinds = {}
+    for r in out['pois']:
+        kinds[r[2]] = kinds.get(r[2], 0) + 1
+    print(f"  appalachia: built from Overpass in {time.time() - t0:.0f}s - {len(ways)} ways, "
+          f"{npts} points, POIs {kinds or out.get('poi_error')}")
+    return out, None
+
+
+def fetch_appalachia():
+    """Keep assets/appalachia.json on the site: reuse the deployed copy while it is
+    fresh, rebuild from Overpass when it is missing or a month old."""
+    old = None
+    try:
+        r = requests.get(_pages_asset('appalachia.json'), timeout=30, headers={'Cache-Control': 'no-cache'})
+        if r.status_code == 200:
+            old = r.json()
+    except Exception as e:
+        print(f"  appalachia: no deployed copy ({str(e)[:60]})")
+    fresh = False
+    if old and old.get('v') == APP_VERSION:
+        t = _wire_time(old.get('built_at'))
+        fresh = bool(t and datetime.now(timezone.utc) - t < timedelta(days=APP_MAX_AGE_DAYS)
+                     and old.get('pois'))
+    data, err = (old, None) if fresh else build_appalachia()
+    if data is None and old:
+        data = old
+        print(f"  appalachia: rebuild failed ({err}); keeping the deployed copy")
+    if data is None:
+        print(f"  appalachia: not available ({err})")
+        return None
+    os.makedirs('assets', exist_ok=True)
+    with open(APP_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, separators=(',', ':'))
+    if fresh:
+        print(f"  appalachia: reused deployed copy built {data.get('built_at')}")
+    return {'built_at': data.get('built_at'), 'ways': data.get('ways'), 'pois': len(data.get('pois') or []),
+            'path_mi': data.get('path_mi'), 'kb': os.path.getsize(APP_FILE) // 1024}
+
+
 def fetch_server_feeds(leads=None):
     """Fetch the rate-limited / CORS-awkward feeds here instead of in the browser.
 
@@ -2262,6 +2541,12 @@ def fetch_server_feeds(leads=None):
     else:
         feeds['satcounts'] = sats
 
+    try:
+        feeds['appalachia'] = fetch_appalachia()
+    except Exception as e:
+        errors['appalachia'] = str(e)[:160]
+        print(f"  appalachia failed: {e}")
+
     dis, err = fetch_disasters()
     if dis is None:
         errors['disasters'] = err
@@ -2292,6 +2577,7 @@ def write_feed_status(feeds):
     counts['wire'] = len(feeds['wire']) if isinstance(feeds.get('wire'), list) else None
     counts['wire_detail'] = feeds.get('wire_detail')
     counts['aircraft'] = feeds.get('aircount')
+    counts['appalachia'] = feeds.get('appalachia')
     gj = feeds.get('gpsjam') or {}
     counts['gpsjam'] = {k: gj.get(k) for k in ('runs', 'checked', 'cells_seen')} | \
         {'flagged': len(gj.get('cells') or [])} if gj else None
