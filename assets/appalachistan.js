@@ -322,8 +322,14 @@ function loadData(){
     });
     if(d.path){
       PATH = decode(d.path);
-      CUM = [0];
-      for(var i = 1; i < PATH.length; i++) CUM.push(CUM[i-1] + dist(PATH[i-1], PATH[i])/1609.344);
+      /* Trail miles come from the build, measured on OpenStreetMap's full line.
+         Measuring the simplified drawing instead loses every switchback --
+         about 120 miles over the whole trail. */
+      if(d.path_cum && d.path_cum.length === PATH.length) CUM = d.path_cum.map(function(c){ return c/100; });
+      else {
+        CUM = [0];
+        for(var i = 1; i < PATH.length; i++) CUM.push(CUM[i-1] + dist(PATH[i-1], PATH[i])/1609.344);
+      }
     }
     POIS = (d.pois || []).map(function(p){
       return {lat:p[0], lon:p[1], k:p[2], name:p[3] || '', mile:p[4], ele:p[5]};
