@@ -4,6 +4,40 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.2.0 — 2026-09-25
+
+### Globe
+- **Leads layers.** The navigational warnings and conflict hotspots the
+  collector hands the model are now on the globe too, under a new LEADS group.
+  Conflict hotspots (pink) are sized by how many separate outlets reported them.
+  Navigational warnings (lime) show a marker plus the area the warning actually
+  names -- its outline, track line or radius -- drawn on the surface and parsed
+  from the warning's own coordinates, with each lettered area kept separate.
+  Both open in the detail panel (full warning text; the outlets behind a
+  hotspot), work with box-select, show in the terrain panel's activity layer, and
+  offer BEFORE / AFTER imagery. A warning's date is the day it was issued, and
+  the panel says the activity it announces may fall later.
+
+### Brief
+- **Navigational warnings were stale.** The first live run kept 24 of 386
+  "active" warnings, and the newest of them was 868 days old -- permanent
+  ranges, old ordnance reports, cable-laying ships. The collector now asks NGA
+  several ways and keeps the freshest answer, logging what each returned; drops
+  warnings issued more than 45 days ago; drops routine commercial survey and
+  cable work; and if the newest warning of all is over three weeks old, reports
+  the feed as frozen rather than passing old notices off as news. "Submarine
+  volcanic activity" is no longer filed as a military exercise, and unexploded
+  ordnance is labelled as such rather than as live fire.
+- **Sections 3 and 4 must be searched.** The first brief under 1.1.1 issued no
+  search at all for Technology/Cyber or Homeland, then called both quiet. Each
+  now needs its searches and a "searched:" line before a quiet verdict, and the
+  run log warns when a section is called quiet without one.
+
+### What the first 1.1.1 brief did well
+It scored all four of the previous brief's calls with mixed verdicts, gave every
+new indicator a probability term and every assessment a confidence, and followed
+a GDELT lead to Ethiopia -- outside its usual theatres -- noting it as unverified.
+
 ## 1.1.1 — 2026-09-25
 
 The first numbered build. It rolls up everything shipped to date, plus this

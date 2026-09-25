@@ -635,12 +635,22 @@ Focus: active exploitation and named intrusions with an identified victim or act
 ransomware against infrastructure, state-linked operations, model or hardware releases
 with substantive capability claims, and regulatory or export-control action.
 Skip routine product marketing and vendor blogs with no incident behind them.
+SEARCH THIS SECTION before judging it. The last run issued no search at all for this
+section and for Section 4, then wrote "quiet in window" for both - a statement about
+the world made without looking at it. Run at least two web_search calls here (for
+example: CISA known exploited vulnerabilities added this week; ransomware attack
+hospital OR utility this week - one subject per query) and one x_keyword_search, and
+end the section with a "searched:" line naming them, as in Section 1. In a 12-hour
+window something is almost always being actively exploited somewhere; "quiet" here
+should be rare, and it is only credible with the queries beside it.
 
 ## 4. HOMELAND AND INFRASTRUCTURE
 Seeds: @DHSgov @FBI @TSA @CISAgov @NTSB @FAANews; web: state emergency management,
 regional press. Focus: incidents affecting civil aviation, rail, ports, power, water and
 telecoms; domestic security events; large-scale disruption. Distinguish accident from
 attack, and say when the distinction is not yet established.
+Same rule as Section 3: at least two searches before a verdict, and a "searched:" line
+at the end of the section. No searched line means the verdict was not earned.
 
 {slow_sections}
 
@@ -1331,29 +1341,44 @@ def fetch_gfx_assets():
 
 LEAD_REFRESH_HOURS = 2      # GDELT window on the half-hourly feeds-only run
 
-NAVWARN_URLS = [
-    'https://msi.nga.mil/api/publications/broadcast-warn?output=json&status=A',
-    'https://msi.nga.mil/api/publications/broadcast-warn?output=json',
-]
+NAVWARN_BASE = 'https://msi.nga.mil/api/publications/broadcast-warn?output=json'
+# The first live run returned 386 "active" warnings and every one that
+# qualified had been issued in 2022-24: the newest was 868 days old, on a
+# service that issues several rocket-launch notices a week. Whichever way that
+# happened -- a filter this API reads differently, a default sort, a stale
+# mirror -- it cannot be settled from here, so each run asks several ways,
+# logs what each returned, and keeps the freshest answer.
+NAVWARN_VARIANTS = ['&status=A', '&status=active', '']
+NAVWARN_MAX_AGE_DAYS = 45       # older than this is a standing notice, not a lead
+NAVWARN_FROZEN_DAYS = 21        # newest warning older than this: the feed is not live
 NAVWARN_PAGE = 'https://msi.nga.mil/NavWarnings'
 NAVAREA_LABEL = {'4': 'NAVAREA IV', 'IV': 'NAVAREA IV', '12': 'NAVAREA XII', 'XII': 'NAVAREA XII',
                  'A': 'HYDROLANT', 'P': 'HYDROPAC', 'C': 'HYDROARC'}
 # First match wins, so the space-launch pattern sits ahead of the missile one:
-# "ROCKET LAUNCH" is a launch notice, not a weapons test.
+# "ROCKET LAUNCH" is a launch notice, not a weapons test. Unexploded ordnance
+# is a hazard left behind, not live fire, and "submarine volcanic activity" is
+# geology -- the first run filed it as a military exercise.
 _NAVWARN_KIND = [
     ('space launch/debris', re.compile(r'SPACE DEBRIS|SPACE LAUNCH|LAUNCH VEHICLE|ROCKET LAUNCH|'
                                        r'ROCKET STAGE|REENTRY|RE-ENTRY', re.I)),
     ('missile/rocket', re.compile(r'\bMISSILES?\b|\bROCKETS?\b|\bBALLISTIC\b', re.I)),
-    ('live fire', re.compile(r'GUNNERY|\bFIRING\b|LIVE[- ]FIRE|WEAPONS? (FIRING|EXERCISE|TESTING)|'
-                             r'\bORDNANCE\b', re.I)),
-    ('military exercise', re.compile(r'(NAVAL|MILITARY) (EXERCISES?|OPERATIONS)|\bSUBMARINES?\b|'
-                                     r'AIRCRAFT CARRIER', re.I)),
-    ('hazardous ops', re.compile(r'HAZARDOUS OPERATIONS|UNDERWATER OPERATIONS|\bEXPLOSIVES?\b|'
-                                 r'\bMINES?\b|MINEFIELD|UNEXPLODED', re.I)),
+    ('ordnance hazard', re.compile(r'UNEXPLODED|\bUXO\b|DERELICT (MINE|ORDNANCE)|MINEFIELD|'
+                                   r'\bMINES?\b(?!\s+(?:OF|AND))', re.I)),
+    ('live fire', re.compile(r'GUNNERY|\bFIRING\b|LIVE[- ]FIRE|WEAPONS? (FIRING|EXERCISE|TESTING)', re.I)),
+    ('military exercise', re.compile(r'(NAVAL|MILITARY) (EXERCISES?|OPERATIONS)|AIRCRAFT CARRIER|'
+                                     r'\bSUBMARINES?\b(?!\s+(?:VOLCAN|CABLE|PIPELINE|ERUPTION|EARTHQUAKE))',
+                                     re.I)),
+    ('hazardous ops', re.compile(r'HAZARDOUS OPERATIONS|UNDERWATER OPERATIONS|\bEXPLOSIVES?\b', re.I)),
     ('security incident', re.compile(r'\bATTACK(ED|S)?\b|HIJACK|PIRACY|\bARMED\b|\bDRONES?\b|'
                                      r'UNMANNED', re.I)),
 ]
 _KIND_RANK = {k: i for i, (k, _) in enumerate(_NAVWARN_KIND)}
+# Routine commercial work -- a named survey vessel or cable ship laying cable
+# "until further notice" -- is a genuine hazard to mariners and noise to an
+# analyst. It only stays in when something military is also in the text.
+_NAVWARN_ROUTINE = re.compile(r'\bM/V\b|\bR/V\b|CABLESHIP|CABLE SHIP|SURVEY VESSEL|\bSURVEY\b|'
+                              r'SEISMIC SURVEY|PIPELAY|DREDG', re.I)
+_NAVWARN_MILITARY = re.compile(r'MISSILE|ROCKET|NAVAL|MILITARY|GUNNERY|FIRING|WARSHIP|NAVY', re.I)
 # NGA writes positions as 36-12.00N 125-30.00E
 _NGA_LL = re.compile(r'\b(\d{1,2})-(\d{1,2}(?:\.\d+)?)\s?([NS])\s*,?\s*(\d{1,3})-(\d{1,2}(?:\.\d+)?)\s?([EW])\b')
 
@@ -1379,6 +1404,58 @@ def _nga_time(s):
         return None
 
 
+# A warning's text is numbered paragraphs and lettered areas: "1. MISSILE
+# FIRING ... IN AREAS BOUND BY: A. 33-40N ..., B. 32-10N ...". Positions from
+# two different areas joined into one outline cross the map as a nonsense
+# shape, so the text is split at those markers and each piece is read on its
+# own. Coordinates never match these markers: "12.00N" has no space after the
+# point.
+_NGA_SPLIT = re.compile(r'(?=(?<![A-Z0-9])(?:\d{1,2}|[A-H])\.\s)')
+_NGA_CIRCLE = re.compile(r'WITHIN\s+(\d+(?:\.\d+)?)\s*(?:NAUTICAL\s+)?(?:MILES?|NM)\s+(?:RADIUS\s+)?OF', re.I)
+
+
+def _nga_shapes(text):
+    """The areas, lines and points a warning names, for drawing it on a map."""
+    shapes = []
+    para = ''
+    for seg in _NGA_SPLIT.split(text):
+        # A lettered area inherits its paragraph's wording: in "IN AREAS BOUND
+        # BY: A. ... B. ..." the word BOUND sits before the split, so area A
+        # on its own would read as loose points.
+        if re.match(r'^[A-H]\.\s', seg):
+            up = (para + ' ' + seg).upper()
+        else:
+            para = seg
+            up = seg.upper()
+        pts = _nga_points(seg)
+        if not pts:
+            continue
+        circ = _NGA_CIRCLE.search(seg)
+        if circ and len(pts) == 1:
+            shapes.append({'t': 'circle', 'p': [pts[0]], 'r': float(circ.group(1))})
+        elif len(pts) >= 3 and ('BOUND' in up or 'AREA' in up):
+            shapes.append({'t': 'poly', 'p': pts})
+        elif len(pts) >= 2 and ('TRACK' in up or 'JOINING' in up or 'BETWEEN' in up or 'LINE' in up):
+            shapes.append({'t': 'line', 'p': pts})
+        else:
+            shapes.extend({'t': 'pt', 'p': [p]} for p in pts)
+    # an outline spanning thousands of kilometres is a misread, not an area
+    out, total = [], 0
+    for s in shapes:
+        la = [p[0] for p in s['p']]
+        lo = [p[1] for p in s['p']]
+        if s['t'] in ('poly', 'line') and (max(la) - min(la) > 15 or max(lo) - min(lo) > 20):
+            out.extend({'t': 'pt', 'p': [p]} for p in s['p'][:6])
+            continue
+        out.append(s)
+    for s in out:
+        s['p'] = [[round(a, 3), round(b, 3)] for a, b in s['p'][:40]]
+        total += len(s['p'])
+        if total > 120:
+            break
+    return out[:12]
+
+
 def _navwarn_rows(d):
     if isinstance(d, list):
         return d
@@ -1393,21 +1470,43 @@ def _navwarn_rows(d):
 
 
 def fetch_navwarnings():
-    """Active NGA broadcast warnings, filtered to the military, launch and hazard ones.
+    """Active NGA broadcast warnings, filtered to recent military, launch and hazard ones.
 
     These are official notices to mariners: a closure area for a missile
     firing, a rocket stage drop zone, a live-fire exercise box. They are often
     published before anyone writes about the event, and they are primary
-    documents rather than somebody's account of one.
+    documents rather than somebody's account of one -- but only while they are
+    current. A two-year-old standing notice is not a lead, and a feed whose
+    newest entry is weeks old is not live, whatever it calls itself.
     """
-    d, err = _try(NAVWARN_URLS, timeout=30)
-    if d is None:
-        return None, err
-    rows = _navwarn_rows(d)
-    if rows is None:
-        shape = list(d.keys())[:10] if isinstance(d, dict) else type(d).__name__
-        return None, f'unexpected response shape, top level: {shape}'
-    out, total = [], 0
+    now = datetime.now(timezone.utc)
+    best, report = None, []
+    for v in NAVWARN_VARIANTS:
+        try:
+            d = _get(NAVWARN_BASE + v, timeout=30)
+        except Exception as e:
+            report.append(f"{v or '(none)'}: {str(e)[:60]}")
+            continue
+        rows = _navwarn_rows(d)
+        if rows is None:
+            shape = list(d.keys())[:10] if isinstance(d, dict) else type(d).__name__
+            report.append(f"{v or '(none)'}: unexpected shape {shape}")
+            continue
+        times = [t for t in (_nga_time((r or {}).get('issueDate')) for r in rows if isinstance(r, dict)) if t]
+        newest = max(times) if times else None
+        report.append(f"{v or '(none)'}: {len(rows)} rows, newest "
+                      f"{newest.strftime('%Y-%m-%d') if newest else 'undated'}")
+        if newest and (best is None or newest > best[1] or (newest == best[1] and len(rows) > len(best[0]))):
+            best = (rows, newest, v)
+    print('  navwarn variants: ' + ' | '.join(report))
+    if best is None:
+        return None, 'no variant returned dated warnings: ' + '; '.join(report)[:200]
+    rows, newest, variant = best
+    age = (now - newest).days
+    if age > NAVWARN_FROZEN_DAYS:
+        return None, (f'feed appears frozen: newest of {len(rows)} warnings was issued '
+                      f'{newest.strftime("%Y-%m-%d")}, {age} days ago')
+    out, total, stale, routine = [], 0, 0, 0
     for w in rows:
         if not isinstance(w, dict):
             continue
@@ -1415,8 +1514,15 @@ def fetch_navwarnings():
         if not text:
             continue
         total += 1
+        t = _nga_time(w.get('issueDate'))
+        if not t or (now - t).days > NAVWARN_MAX_AGE_DAYS:
+            stale += 1
+            continue
         kind = next((k for k, rx in _NAVWARN_KIND if rx.search(text)), None)
         if not kind:
+            continue
+        if _NAVWARN_ROUTINE.search(text) and not _NAVWARN_MILITARY.search(text):
+            routine += 1
             continue
         area = str(w.get('navArea') or w.get('area') or '').strip()
         label = NAVAREA_LABEL.get(area.upper(), f'NAVAREA {area}' if area else 'NAVWARN')
@@ -1424,25 +1530,30 @@ def fetch_navwarnings():
         item = {'id': f'{label} {num}/{str(yr)[-2:]}' if num and yr else label,
                 'kind': kind,
                 'issued': str(w.get('issueDate') or '')[:40],
+                'age_days': (now - t).days,
                 'authority': str(w.get('authority') or '')[:80],
-                'text': text[:600]}
+                'text': text[:600],
+                '_t': t.timestamp()}
         pts = _nga_points(text)
         if pts:
-            item['lat'] = round(sum(p[0] for p in pts) / len(pts), 3)
-            item['lon'] = round(sum(p[1] for p in pts) / len(pts), 3)
+            shapes = _nga_shapes(text)
+            # The marker goes on the first area, not the mean of every point: a
+            # notice with two separate debris boxes put it in open sea between
+            # them, on neither.
+            anchor = shapes[0]['p'] if shapes else pts
+            item['lat'] = round(sum(p[0] for p in anchor) / len(anchor), 3)
+            item['lon'] = round(sum(p[1] for p in anchor) / len(anchor), 3)
             item['points'] = len(pts)
-        t = _nga_time(item['issued'])
-        item['_t'] = t.timestamp() if t else 0
+            item['shapes'] = shapes
         out.append(item)
-    if not total:
-        first = list(rows[0].keys())[:14] if rows and isinstance(rows[0], dict) else None
-        return None, f'{len(rows)} rows but no warning text; first row fields: {first}'
-    # launches and weapons first, then the ones that can be put on a map, then recency
-    out.sort(key=lambda i: (_KIND_RANK[i['kind']], 'lat' not in i, -i['_t']))
+    # newest first; within a day, launches and weapons ahead of the rest
+    out.sort(key=lambda i: (-int(i['_t'] // 86400), _KIND_RANK[i['kind']], 'lat' not in i))
     for i in out:
         i.pop('_t', None)
-    print(f"  navwarn: {len(out)} of {total} active warnings are military, launch or hazard; "
-          f"{sum(1 for i in out if 'lat' in i)} carry positions")
+    print(f"  navwarn: variant '{variant or '(none)'}', {total} warnings, newest issued "
+          f"{newest.strftime('%Y-%m-%d')}; {stale} older than {NAVWARN_MAX_AGE_DAYS} days dropped, "
+          f"{routine} routine commercial dropped; {len(out)} leads, "
+          f"{sum(1 for i in out if i.get('shapes'))} mappable")
     return out[:80], None
 
 
@@ -1594,12 +1705,14 @@ def leads_block(leads, hours):
            'in the news - which is the point of them. Work them: each one is either carried',
            'in the brief or knowingly passed over, and the difference is recorded below.', '']
     nw = leads.get('navwarn')
-    out.append('MARITIME NAVIGATIONAL WARNINGS - NGA, active, filtered to military, launch and hazard:')
+    out.append('MARITIME NAVIGATIONAL WARNINGS - NGA, issued in the last 45 days, filtered to military, '
+               'launch and hazard, newest first:')
     if nw:
         for w in nw[:25]:
             pos = f"{abs(w['lat']):.1f}{'N' if w['lat'] >= 0 else 'S'} {abs(w['lon']):.1f}" \
                   f"{'E' if w['lon'] >= 0 else 'W'}" if 'lat' in w else 'no position'
-            out.append(f"- {w['id']} | {w['kind']} | issued {w['issued'] or '?'} | {pos} | "
+            age = f" ({w['age_days']}d ago)" if w.get('age_days') is not None else ''
+            out.append(f"- {w['id']} | {w['kind']} | issued {w['issued'] or '?'}{age} | {pos} | "
                        f"{w['text'][:260]}")
         out += ['',
                 'A navigational warning is an official publication the pipeline retrieved this run,',
@@ -2025,6 +2138,13 @@ def brief_quality(content, prior_n=0):
         print("  note: no Reddit sourcing - Section 1 asks for it explicitly")
     if reported and not re.search(r'^\s*searched:', content, re.I | re.M):
         print("  note: Section 1 did not list the queries it ran")
+    # A section called quiet without a searched: line inside it was not looked at.
+    for m in re.finditer(r'^##\s*(\d)\.\s*([^\n]+)\n(.*?)(?=^##\s|\Z)', content, re.M | re.S):
+        body = m.group(3)
+        if m.group(1) not in ('1', '3', '4'):        # the sections told to show their queries
+            continue
+        if re.search(r'quiet in window', body, re.I) and not re.search(r'searched:', body, re.I):
+            print(f"  WARNING: section {m.group(1)} ({m.group(2).strip()[:30]}) called quiet with no searches listed")
     if aggregators:
         print(f"  WARNING: {aggregators} citation(s) point at an aggregator, which Rule 1 bans")
 
