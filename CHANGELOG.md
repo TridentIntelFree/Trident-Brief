@@ -4,6 +4,22 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.5 — 2026-09-26
+
+### Appalachistan
+- **Trail miles measured on the real line.** The first complete build (all 14
+  sections: 383 shelters, 219 water sources, 489 campsites, 631 peaks, 456
+  viewpoints, 147 waterfalls, 66 trailheads, 143 trail towns) measured the
+  trail at 2,077 miles, about 120 short of its official ~2,200. The line is
+  simplified to keep the file small, and measuring the simplified line
+  straightened every switchback and bend. Each way now carries its length
+  measured on OpenStreetMap's full geometry, and trail miles along the route are
+  scaled to it; the page reads those miles rather than measuring the drawing.
+- The page no longer claims its miles match a guidebook's to a few tenths: they
+  come from OpenStreetMap's line and are for distances between points.
+- A forced rebuild now refetches every section but keeps each cached one until
+  it is replaced, so a rebuild that stalls halfway loses nothing.
+
 ## 1.5.4 — 2026-09-25
 
 ### Appalachistan

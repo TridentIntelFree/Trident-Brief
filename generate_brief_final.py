@@ -2271,10 +2271,11 @@ def _m(a, b):
     return _km(a[0], a[1], b[0], b[1]) * 1000.0
 
 
-def _rdp(pts, tol_m):
-    """Douglas-Peucker in a local flat projection; keeps the ends."""
+def _rdp(pts, tol_m, idx=False):
+    """Douglas-Peucker in a local flat projection; keeps the ends. With idx,
+    returns the indices kept rather than the points."""
     if len(pts) < 3:
-        return pts
+        return list(range(len(pts))) if idx else pts
     lat0 = math.radians(sum(p[0] for p in pts) / len(pts))
     kx, ky = 111320.0 * math.cos(lat0), 110540.0
     xy = [(p[1] * kx, p[0] * ky) for p in pts]
@@ -2299,6 +2300,8 @@ def _rdp(pts, tol_m):
         if bk > 0 and best > tol_m * tol_m:
             keep[bk] = True
             stack += [(i, bk), (bk, j)]
+    if idx:
+        return [i for i, k in enumerate(keep) if k]
     return [p for p, k in zip(pts, keep) if k]
 
 
@@ -2316,13 +2319,20 @@ def _at_path(edges):
     """Order the trail from Springer to Katahdin as the shortest route through the
     relation's ways, so every point along it has a trail mile. Alternates and
     side routes in the relation fall off the shortest path by themselves.
-    edges: (first node id, last node id, [(lat, lon), ...]) per way."""
+    edges: (first node id, last node id, [(lat, lon), ...][, true length m]).
+
+    The points are simplified for drawing, which straightens every switchback
+    and bend: measured on them the whole trail came out 2,077 miles, about 120
+    short. So each way carries its length measured on OpenStreetMap's full
+    geometry, and distances along the route are scaled to it.
+    Returns (points, trail miles at each point, total miles)."""
     import heapq
     adj, geo = {}, {}
-    for n0, n1, pts in edges:
+    for e in edges:
+        n0, n1, pts = e[0], e[1], e[2]
         if len(pts) < 2 or n0 == n1:
             continue
-        L = sum(_m(pts[i - 1], pts[i]) for i in range(1, len(pts)))
+        L = e[3] if len(e) > 3 and e[3] else sum(_m(pts[i - 1], pts[i]) for i in range(1, len(pts)))
         geo[n0], geo[n1] = pts[0], pts[-1]
         adj.setdefault(n0, []).append((n1, L, pts))
         adj.setdefault(n1, []).append((n0, L, pts[::-1]))
@@ -2371,12 +2381,21 @@ def _at_path(edges):
     chain, v = [], end
     while v in prev:
         u, pts = prev[v]
-        chain.append(pts)
+        chain.append((pts, dist[v] - dist[u]))
         v = u
-    path = []
-    for pts in reversed(chain):
-        path += pts if not path else pts[1:]
-    return path, dist[end] / 1609.344
+    path, cum = [], []
+    for pts, L in reversed(chain):
+        drawn = sum(_m(pts[i - 1], pts[i]) for i in range(1, len(pts))) or 1.0
+        scale, c0 = L / drawn, (cum[-1] if cum else 0.0)
+        part, c = [c0], c0
+        for i in range(1, len(pts)):
+            c += _m(pts[i - 1], pts[i]) * scale / 1609.344
+            part.append(c)
+        if path:
+            path += pts[1:]; cum += part[1:]
+        else:
+            path += pts; cum += part
+    return path, cum, dist[end] / 1609.344
 
 
 APP_CACHE = 'data/trail_sections.json'
@@ -2461,8 +2480,9 @@ def build_appalachia(cache=None):
         for e in got.get('elements', []):
             n, g = e.get('nodes') or [], e.get('geometry') or []
             if e.get('type') == 'way' and len(n) >= 2 and len(n) == len(g):
-                pts = _rdp([(p['lat'], p['lon']) for p in g], 8)
-                ws.append([e['id'], n[0], n[-1], _enc(pts)])
+                full = [(p['lat'], p['lon']) for p in g]
+                L = sum(_m(full[i - 1], full[i]) for i in range(1, len(full)))
+                ws.append([e['id'], n[0], n[-1], _enc(_rdp(full, 8)), round(L, 1)])
         sec.update(ways=ws, at=stamp)
         _save_cache(cache)
     for rid in rels:
@@ -2492,10 +2512,10 @@ def build_appalachia(cache=None):
     # Assemble whatever the cache now holds.
     edges, have = [], set()
     for rid in rels:
-        for wid, n0, n1, enc in cache['sec'].get(str(rid), {}).get('ways') or []:
-            if wid not in have:
-                have.add(wid)
-                edges.append((n0, n1, _dec(enc)))
+        for w in cache['sec'].get(str(rid), {}).get('ways') or []:
+            if w[0] not in have:
+                have.add(w[0])
+                edges.append((w[1], w[2], _dec(w[3]), w[4] if len(w) > 4 else None))
     lines_ok = sum(1 for r in rels if cache['sec'].get(str(r), {}).get('ways') is not None)
     with_ways = [r for r in rels if cache['sec'].get(str(r), {}).get('ways')]
     pois_ok = sum(1 for r in with_ways if cache['sec'][str(r)].get('pois') is not None)
@@ -2510,17 +2530,18 @@ def build_appalachia(cache=None):
     pp = _at_path(edges)
     cum = None
     if pp:
-        path, miles = pp
+        path, pcum, miles = pp
         out['path_mi'] = round(miles, 1)
         # Only claim trail miles when the route came out close to the real
         # trail's length; a relation with a gap gives a path that stops short.
         if 2050 <= miles <= 2350:
-            coarse = _rdp(path, 25)
+            keep = _rdp(path, 25, idx=True)
+            coarse = [path[i] for i in keep]
+            cum = [round(pcum[i], 2) for i in keep]
             out['path'] = _enc(coarse)
-            cum, c = [0.0], 0.0
-            for i in range(1, len(coarse)):
-                c += _m(coarse[i - 1], coarse[i]) / 1609.344
-                cum.append(c)
+            # Trail miles at each vertex of the drawn route, from the full
+            # geometry: the page reads miles from here, not from the drawn line.
+            out['path_cum'] = [round(c * 100) for c in cum]
             path_pts = coarse
         print(f"  appalachia: shortest route {miles:.0f} mi "
               f"({'miles kept' if cum else 'outside 2050-2350, miles not published'})")
@@ -2589,7 +2610,12 @@ def build_trail_data():
             print(f"Trail data is complete and recent (built {old.get('built_at')}); nothing to do.")
             return
     if os.environ.get('TRAIL_FORCE') == '1':
-        cache = {}
+        # Refetch everything, but keep what is cached until each section is
+        # replaced: a forced run that stalls halfway loses nothing.
+        cache.pop('rels_at', None)
+        for sec in cache.get('sec', {}).values():
+            sec.pop('at', None)
+            sec.pop('pois_at', None)
     data, err = build_appalachia(cache)
     if data is None:
         print(f"Trail data not built yet: {err}")
