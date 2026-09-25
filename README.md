@@ -2,7 +2,8 @@
 
 [![Generate Intelligence Brief](https://github.com/TridentIntelFree/Trident-Brief/actions/workflows/generate-brief.yml/badge.svg)](https://github.com/TridentIntelFree/Trident-Brief/actions/workflows/generate-brief.yml)
 
-Daily Intelligence Digest — an automated multi-INT fusion brief published to GitHub Pages.
+**The Trident Brief**, published by **Appalachian Intel** — an automated multi-INT fusion
+brief published to GitHub Pages.
 
 ## What it does
 
@@ -11,6 +12,11 @@ collection across four requirement areas — geopolitical/military, technology a
 cybersecurity, UAP, and parapsychology/consciousness research — then renders the
 result as a static page. Groq/Llama stands by as a fallback provider; if both are
 unavailable the last good brief is re-published and flagged as cached.
+
+Before the model starts, the collector also gathers primary-source leads it has
+to work through: active NGA maritime navigational warnings (missile firings,
+rocket debris areas, live fire) and GDELT armed-conflict hotspots. Each run also
+scores the previous brief's indicators and warnings against what happened.
 
 ## God's Eye live signal layer
 
@@ -43,7 +49,7 @@ client-side:
 | Slope | derived | where wheels, tracks and feet can go |
 | Viewshed | derived, radial sweep with curvature and refraction | what an observer at a point can see |
 | Activity | this page's own collection | what has been reported inside this ground |
-| Imagery | Sentinel-2 L2A true colour, `sentinel-cogs` on S3 | what is actually there |
+| Imagery | Sentinel-2 L2A true colour, infrared and SWIR, `sentinel-cogs` on S3 | what is there, and what changed: before/after either side of an event's date |
 
 Elevation comes from the USGS directly wherever the USGS has published it.
 The 1/3 arc-second 3DEP DEM is a Cloud Optimized GeoTIFF per 1-degree square
@@ -88,6 +94,13 @@ quarter of what a desktop does for the same view.
 | `latest-brief.json` | Last successful brief, used as the cache fallback |
 | `archive/` | Prior briefs plus a generated `index.json` the page reads |
 | `.github/workflows/generate-brief.yml` | Daily schedule at 11:00 UTC, plus manual dispatch |
+
+## Versions
+
+The build version lives in `VERSION` (currently 1.1.1) and appears in the page
+header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
+fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
+is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Running locally
 

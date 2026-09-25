@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="The Trident Brief - automated multi-INT fusion digest with live open-source signal feeds.">
+<meta name="description" content="The Trident Brief by Appalachian Intel - automated multi-INT fusion digest with live open-source signal feeds.">
 <meta name="color-scheme" content="dark">
-<title>Trident SIGINT Brief</title>
+<title>The Trident Brief &middot; Appalachian Intel</title>
+<meta name="generator" content="Trident Brief __VERSION__">
 <style>
 :root{
   --bg0:#070b1c; --bg1:#0f1730; --panel:rgba(13,21,44,.92); --panel2:rgba(18,28,56,.72);
@@ -40,7 +41,27 @@ body{
   padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.09em;border-radius:3px;
   display:inline-block;font-family:var(--mono)}
 h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase;letter-spacing:.02em;margin:14px 0 8px;line-height:1.12}
-.meta{color:var(--ink-dim);font-size:.86em;font-family:var(--mono)}
+.header h1{display:flex;align-items:center;gap:.32em;font-size:clamp(1.3em,6.2vw,2.6em)}
+.header h1 .ttl{text-wrap:balance}
+.tri{flex:none;width:.86em;height:1.08em;color:var(--amber);filter:drop-shadow(0 0 6px rgba(251,191,36,.35))}
+.hdr-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+/* publisher above product: Appalachian Intel publishes The Trident Brief */
+.brand{margin-top:16px;font-family:var(--mono);font-size:.8em;font-weight:700;letter-spacing:.3em;
+  color:var(--ink-dim);text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.brand::after{content:"";flex:0 1 90px;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+.header h1{margin-top:4px}
+.ver{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-dim);
+  border:1px solid var(--line);border-radius:3px;padding:4px 8px}
+.meta{color:var(--ink-dim);font-size:.86em;font-family:var(--mono);display:flex;flex-wrap:wrap;gap:2px 18px}
+.meta span{white-space:nowrap}
+/* On a phone the name has to hold one line: it broke as "THE TRIDENT / BRIEF"
+   with the second emblem dangling after it. One emblem is enough at that size. */
+@media (max-width:520px){
+  .header h1 .tri.r{display:none}
+  .badge{letter-spacing:.05em}
+  .badge .wide{display:none}
+  .meta span{white-space:normal}
+}
 .sigint{color:var(--amber);font-size:.76em;font-weight:700;margin-top:6px;letter-spacing:.05em;font-family:var(--mono)}
 .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;position:relative;z-index:1}
 .pill{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);color:var(--ink-dim);
@@ -145,6 +166,47 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .bx-more{font-family:var(--mono);font-size:.68em;color:var(--ink-faint);padding:8px 2px 0}
 #globe.boxing,#globe3d.boxing{cursor:crosshair}
 
+/* ---------- selection feedback ---------- */
+.sel-ret{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:5;display:none;color:#22d3ee;
+  will-change:transform}
+.sel-ret::before,.sel-ret::after{content:"";position:absolute;left:-16px;top:-16px;width:32px;height:32px;border-radius:50%}
+.sel-ret::before{border:2px solid currentColor;box-shadow:0 0 10px currentColor,inset 0 0 6px currentColor}
+.sel-ret::after{border:1.5px solid currentColor;animation:selPulse 1.8s ease-out infinite}
+.sel-ret i{position:absolute;background:currentColor;border-radius:1px;box-shadow:0 0 4px currentColor}
+.sel-ret i:nth-child(1){left:-1px;top:-26px;width:2px;height:8px}
+.sel-ret i:nth-child(2){left:-1px;top:18px;width:2px;height:8px}
+.sel-ret i:nth-child(3){left:-26px;top:-1px;width:8px;height:2px}
+.sel-ret i:nth-child(4){left:18px;top:-1px;width:8px;height:2px}
+.sel-ret.lock::before{animation:selLock .45s cubic-bezier(.2,.9,.3,1.25)}
+@keyframes selLock{0%{transform:scale(2.6);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes selPulse{0%{transform:scale(1);opacity:.85}100%{transform:scale(2);opacity:0}}
+.sel-ripple{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:5}
+.sel-ripple::before{content:"";position:absolute;left:-13px;top:-13px;width:26px;height:26px;border-radius:50%;
+  border:1.5px solid rgba(203,213,225,.75);animation:selMissAnim .55s ease-out forwards}
+@keyframes selMissAnim{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.7);opacity:0}}
+.sel-card{position:absolute;z-index:6;display:flex;align-items:center;gap:9px;padding:7px 7px 7px 10px;
+  background:rgba(6,11,26,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border:1px solid var(--line2);border-left:3px solid var(--c,#22d3ee);border-radius:9px;
+  box-shadow:0 10px 26px -10px rgba(0,0,0,.85);animation:scIn .22s ease-out}
+.sel-card[hidden]{display:none}
+@keyframes scIn{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:none}}
+.sc-dot{flex:none;width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.sc-txt{flex:1;min-width:0;line-height:1.25}
+.sc-kind{font-family:var(--mono);font-size:.58em;font-weight:700;letter-spacing:.11em;color:var(--c,#22d3ee);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-title{font-size:.84em;font-weight:700;color:var(--ink);overflow:hidden;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.sc-sub{font-family:var(--mono);font-size:.64em;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-go,.sc-x{flex:none;background:rgba(15,23,48,.9);border:1px solid var(--line2);color:var(--ink-dim);cursor:pointer;
+  font-family:var(--mono);font-size:.62em;letter-spacing:.08em;border-radius:6px;padding:7px 9px;min-height:32px}
+.sc-go:hover,.sc-x:hover{border-color:var(--c,#22d3ee);color:#fff}
+.sc-x{font-size:.95em;line-height:1;padding:6px 10px}
+#detailPanel.flash{animation:dpFlash 1.1s ease-out}
+@keyframes dpFlash{0%{box-shadow:0 0 0 2px var(--cyan),0 0 22px rgba(34,211,238,.35)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){
+  .sel-ret::after,.sel-ret.lock::before,.sel-ripple::before,.sel-card,#detailPanel.flash{animation:none}
+}
+
 /* ---------- terrain ---------- */
 .tr-layers{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
 .tr-lyr{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);cursor:pointer;
@@ -153,7 +215,20 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .tr-lyr.on{background:rgba(59,130,246,.22);border-color:var(--blue);color:#fff}
 .tr-lyr:disabled{opacity:.4;cursor:default;border-style:dashed}
 .tr-shot{background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:6px;color:var(--ink-dim);
-  font-family:var(--mono);font-size:.66em;letter-spacing:.04em;padding:5px 7px;max-width:210px}
+  font-family:var(--mono);font-size:.66em;letter-spacing:.04em;padding:5px 7px;max-width:230px}
+.tr-imgbar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:-3px 0 9px;padding:7px;
+  border:1px dashed var(--line2);border-radius:8px;background:rgba(9,15,33,.5)}
+.ib{background:transparent;border:1px solid var(--line2);color:var(--ink-dim);cursor:pointer;font-family:var(--mono);
+  font-size:.62em;letter-spacing:.08em;padding:4px 9px;border-radius:5px}
+.ib:hover{border-color:var(--cyan);color:var(--ink)}
+.ib.on{background:rgba(34,211,238,.16);border-color:var(--cyan);color:#fff}
+.ib-date{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.62em;color:var(--ink-faint);
+  letter-spacing:.06em;text-transform:uppercase}
+.ib-date input{background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:5px;color:var(--ink-dim);
+  font-family:var(--mono);font-size:1em;padding:3px 5px;color-scheme:dark}
+.tr-swipe{display:flex;align-items:center;gap:9px;margin-top:7px;font-family:var(--mono);font-size:.66em;
+  color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em}
+.tr-swipe input{flex:1;accent-color:var(--cyan)}
 .tr-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
 #trCoord{flex:1 1 220px;min-width:0;background:rgba(9,15,33,.9);border:1px solid var(--line2);border-radius:7px;
   color:var(--ink);font-family:var(--mono);font-size:.82em;padding:8px 11px}
@@ -396,13 +471,28 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 <div class="container">
 
   <div class="header">
-    <div class="badge">OPEN-SOURCE COLLECTION &middot; PUBLIC SOURCES ONLY</div>
-    <h1>&#9876;&#65039; THE TRIDENT BRIEF &#9876;&#65039;</h1>
-    <div class="meta">Collection Period: __TIMESTAMP__ &nbsp;|&nbsp; Source: __BADGE__</div>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+      <symbol id="tridentMark" viewBox="0 0 32 40">
+        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9 V15.5 Q6 22.5 16 22.5 Q26 22.5 26 15.5 V9" stroke-width="3.3"/>
+          <path d="M16 6 V38" stroke-width="3.3"/>
+          <path d="M2.6 11.6 L6 3.6 L9.4 11.6" stroke-width="3"/>
+          <path d="M12.6 9.2 L16 1.6 L19.4 9.2" stroke-width="3"/>
+          <path d="M22.6 11.6 L26 3.6 L29.4 11.6" stroke-width="3"/>
+          <path d="M11.5 27 H20.5" stroke-width="3"/>
+        </g>
+      </symbol></defs></svg>
+    <div class="hdr-top">
+      <div class="badge">OPEN-SOURCE<span class="wide"> COLLECTION</span> &middot; PUBLIC SOURCES ONLY</div>
+      <span class="ver" title="build version">v__VERSION__</span>
+    </div>
+    <div class="brand">Appalachian Intel</div>
+    <h1><svg class="tri" aria-hidden="true"><use href="#tridentMark"/></svg><span class="ttl">THE TRIDENT BRIEF</span><svg class="tri r" aria-hidden="true"><use href="#tridentMark"/></svg></h1>
+    <div class="meta"><span>Collected __TIMESTAMP__</span><span>Feeds refreshed __REFRESHED__</span><span>Source: __BADGE__</span></div>
     <div class="sigint">MULTI-INT FUSION | SIGINT + HUMINT + OSINT-WEB + CHATTER MONITORING</div>
     <div class="pills">
       <span class="pill"><span class="dot live" id="freshDot"></span><b id="freshAge">--</b>&nbsp;since collection</span>
-      <span class="pill">NEXT COLLECTION <b id="nextRun">11:00 UTC</b></span>
+      <span class="pill" title="scheduled 11:00 and 23:00 UTC; GitHub can start a scheduled run late">NEXT COLLECTION <b id="nextRun">--</b></span>
       <span class="pill" id="stalePill" style="display:none"></span>
       <a class="pill" href="#godseye" style="text-decoration:none"><span class="dot live"></span>GOD'S EYE FEEDS</a>
       <a class="pill" href="#eventBand" style="text-decoration:none">EVENT BOARD <b id="pillEvents">0</b></a>
@@ -540,9 +630,21 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
             <button class="tr-lyr" data-lyr="view">VIEWSHED</button>
             <button class="tr-lyr" data-lyr="act">ACTIVITY</button>
             <button class="tr-lyr" data-lyr="img">IMAGERY</button>
-            <select id="trShot" class="tr-shot" style="display:none" title="which satellite pass to draw"></select>
+          </div>
+          <div class="tr-imgbar" id="trImgBar" style="display:none">
+            <button class="ib ib-view on" data-view="tci" title="what an eye would see">TRUE COLOUR</button>
+            <button class="ib ib-view" data-view="cir" title="near infrared in red: live vegetation glows, cleared or burnt ground goes dark">INFRARED</button>
+            <button class="ib ib-view" data-view="swir" title="shortwave infrared: burn scars, fire, disturbed earth; cuts through haze">SWIR</button>
+            <button class="ib" id="trCmp" title="swipe between a pass before and a pass after a date">&#8646; BEFORE / AFTER</button>
+            <label class="ib-date" title="event date: before and after are chosen either side of it">date
+              <input type="date" id="trEvtDate"></label>
+            <select id="trShotA" class="tr-shot" style="display:none" title="the BEFORE pass"></select>
+            <select id="trShot" class="tr-shot" style="display:none" title="which satellite pass to draw (the AFTER pass when comparing)"></select>
           </div>
           <canvas id="trMap"></canvas>
+          <div class="tr-swipe" id="trSwipeRow" style="display:none">
+            <span>before</span><input type="range" id="trSwipe" min="0" max="100" value="50"><span>after</span>
+          </div>
           <div class="tr-legend">
             <span id="trElev" style="display:contents">
               <span><b id="trLo">&mdash;</b> low</span>
@@ -656,7 +758,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
   </div>
 
   <div class="footer">
-    AUTOMATED MULTI-INT COLLECTION SYSTEM | __PROVIDER__ | DAILY 06:00 EST<br>
+    APPALACHIAN INTEL &middot; THE TRIDENT BRIEF v__VERSION__ | AUTOMATED MULTI-INT COLLECTION | __PROVIDER__<br>
     MONITORING 100+ HIGH-VALUE X ACCOUNTS + WEB SOURCES | SIGINT + HUMINT + OSINT-WEB + CHATTER FUSION<br>
     LIVE LAYER: USGS &middot; adsb.lol &middot; NOAA/NWS &middot; wheretheiss.at &middot; Launch Library 2 &mdash;
     inspired by <a href="https://github.com/bilawalsidhu/gods-eye-view" target="_blank" rel="noopener">God's Eye View</a>
@@ -684,6 +786,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
    ===================================================================== */
 const BRIEF_MD   = __BRIEF_JSON__;
 const BUILT_AT   = __BUILT_AT_JSON__;
+const COLLECTED_AT = __COLLECTED_AT_JSON__;   // when the brief itself was collected
 const IS_STALE   = __IS_STALE_JSON__;
 const ARCHIVE    = __ARCHIVE_JSON__;
 const EVENTS     = __EVENTS_JSON__;
@@ -996,17 +1099,46 @@ function searchHistory(q){
   return hit.length;
 }
 
+/* When a contact happened, so imagery can be pulled either side of it.
+   Events carry the time their source gave; where it gave none, the start of
+   the collection window stands in, because the event is known to fall inside
+   that window and a pass labelled "before" must not be able to post-date it. */
+function contactWhen(c){
+  var d = c && c.d;
+  if(!d) return null;
+  if(c.k === 'events'){
+    if(d.when && /^\d{4}-\d{2}-\d{2}/.test(d.when)) return {date:String(d.when).slice(0,10), basis:'source'};
+    var t = Date.parse(COLLECTED_AT || BUILT_AT);
+    if(isFinite(t)) return {date:new Date(t - 12*3600e3).toISOString().slice(0,10), basis:'brief'};
+  }
+  if(c.k === 'quake' && d.time) return {date:new Date(d.time).toISOString().slice(0,10), basis:'source'};
+  return null;
+}
+function terrainAttrs(c){
+  var w = contactWhen(c);
+  return 'data-terrain="'+c.lat+','+c.lon+'"' +
+         (w ? ' data-when="'+w.date+'" data-basis="'+w.basis+'"' : '');
+}
+
 /* ---- freshness + next-run clock ---- */
 (function(){
-  var built = new Date(BUILT_AT);
+  /* Age of the BRIEF, not of the page. The page is rebuilt every half hour
+     for the live feeds, and measuring from that rebuild reported "0m since
+     collection" on a brief most of a day old. */
+  var built = new Date(COLLECTED_AT || BUILT_AT);
   function tick(){
     var mins = Math.max(0, Math.floor((Date.now() - built.getTime())/60000));
     var d = Math.floor(mins/1440), h = Math.floor((mins%1440)/60), m = mins%60;
     document.getElementById('freshAge').textContent = d ? (d+'d '+h+'h') : (h ? (h+'h '+m+'m') : (m+'m'));
     var dot = document.getElementById('freshDot');
-    dot.className = 'dot live' + (mins > 2880 ? ' dead' : (mins > 1560 ? ' stale' : ''));
-    var now = new Date(), next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 11, 0, 0));
-    if(next <= now) next.setUTCDate(next.getUTCDate()+1);
+    // collections are twice a day, so a brief over 14h old has missed one
+    dot.className = 'dot live' + (mins > 1560 ? ' dead' : (mins > 840 ? ' stale' : ''));
+    // scheduled at 11:00 and 23:00 UTC; this used to count down to 11:00 only
+    var now = new Date(), next = null;
+    [11, 23, 35].forEach(function(h){
+      var t = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), h, 0, 0));
+      if(!next && t > now) next = t;
+    });
     var left = Math.floor((next - now)/60000);
     document.getElementById('nextRun').textContent = 'T-'+Math.floor(left/60)+'h '+(left%60)+'m';
   }
@@ -1326,6 +1458,15 @@ function draw(){
       ctx.strokeStyle=c.color; ctx.lineWidth=isSel?2:1; ctx.globalAlpha=isSel?1:.5; ctx.stroke(); ctx.globalAlpha=1;
     }
   });
+  /* the selection reticle: contacts by id, satellites by catalogue index so a
+     moving one is followed, anything else by its position */
+  var sp = null, sid = G.sel && String(G.sel.id || '');
+  if(G.sel){
+    for(var si=0; si<pts.length; si++) if(pts[si].id === G.sel.id){ sp = {x:pts[si].sx, y:pts[si].sy}; break; }
+    if(!sp && /^sat\d+$/.test(sid)) sp = pickSatProbe(+sid.slice(3));
+    if(!sp && !/^sat/.test(sid) && G.sel.lat != null){ var sq = project(G.sel.lon, G.sel.lat); if(sq.z > 0) sp = sq; }
+  }
+  selMark(cv, sp ? sp.x : null, sp ? sp.y : null, G.sel && G.sel.color);
 
   drawLimb();
 
@@ -1409,6 +1550,7 @@ function pick(p){
   if(!best) best = pickSat(p.x, p.y);
   // Having picked something out, you want to read it, not watch it rotate away.
   if(best && G.spin) setSpin(false);
+  if(!best) selMiss(cv, p.x, p.y);
   G.sel = best; renderDetail(best);
 }
 
@@ -1433,7 +1575,7 @@ function fmtTime(ts){ try{ return new Date(ts).toISOString().replace('T',' ').sl
 
 function renderDetail(c){
   var el = document.getElementById('detailPanel');
-  if(!c){ el.innerHTML = '<div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div>'; return; }
+  if(!c){ el.innerHTML = '<div class="detail-empty">No contact selected.<br><span>Click a point on the globe to expand its detail and source.</span></div>'; selCard(null); return; }
   var d=c.d, rows=[], title='', place='', link='';
 
   if(c.k==='events'){
@@ -1443,6 +1585,7 @@ function renderDetail(c){
     if(d.classification) rows.push(['CLASS', d.classification]);
     if(d.confidence)     rows.push(['CONFIDENCE', d.confidence.toUpperCase()]);
     if(d.section)        rows.push(['SECTION', d.section.toUpperCase()]);
+    if(d.when)           rows.push(['WHEN', String(d.when).replace('T', ' ')]);
     link = d.url || '';
   } else if(c.k==='quake'){
     title = 'M' + Number(d.mag).toFixed(1) + ' earthquake';
@@ -1513,9 +1656,11 @@ function renderDetail(c){
     /* Every contact on this globe has coordinates, which is the whole input the
        terrain tool needs -- no geocoder, no place-name lookup, no third-party
        host that has to be reachable. Click a thing, look at the ground under it. */
-    '<button class="d-link" style="cursor:pointer;margin-left:7px" data-terrain="'+c.lat+','+c.lon+'">ANALYSE TERRAIN</button>';
+    '<button class="d-link" style="cursor:pointer;margin-left:7px" '+terrainAttrs(c)+'>' +
+      (contactWhen(c) ? 'BEFORE / AFTER' : 'ANALYSE TERRAIN') + '</button>';
 
   if(wantsChip){ basemap(); drawChip(el.querySelector('canvas.ev-chip')); }
+  selCard(c);
 }
 
 /* =====================================================================
@@ -1668,6 +1813,115 @@ function boxPointer(el, onFinish){
 /* The rectangle is a positioned div rather than something painted into a
    canvas: one globe is 2D canvas and the other is three.js, and a div sits
    over either without each renderer needing its own overlay pass. */
+/* =====================================================================
+   SELECTION FEEDBACK -- show what was picked, where it was picked
+
+   A tap on the globe used to change nothing on the globe itself. The 3D
+   renderer drew no mark on the selected contact at all, and on a phone the
+   detail panel sits below the globe, so the only sign that anything had
+   happened was off-screen: tap, scroll down, check, scroll back up, try
+   again. Now the contact is marked where it sits and named where you are
+   already looking, and a tap that hits nothing says so as well -- telling a
+   miss from a hit is half of what was missing.
+   ===================================================================== */
+var SELUI = {ret:null, card:null, side:'bottom'};
+function selCanvas(){
+  var g3 = document.getElementById('globe3d');
+  return (g3 && g3.style.display !== 'none') ? g3 : document.getElementById('globe');
+}
+function selBuild(){
+  if(SELUI.ret) return;
+  var host = document.querySelector('.globe-col');
+  if(!host) return;
+  SELUI.ret = document.createElement('div');
+  SELUI.ret.className = 'sel-ret';
+  SELUI.ret.innerHTML = '<i></i><i></i><i></i><i></i>';
+  host.appendChild(SELUI.ret);
+  SELUI.card = document.createElement('div');
+  SELUI.card.className = 'sel-card';
+  SELUI.card.hidden = true;
+  // announced to screen readers, which had no way to know a pick landed either
+  SELUI.card.setAttribute('role', 'status');
+  SELUI.card.setAttribute('aria-live', 'polite');
+  SELUI.card.innerHTML =
+    '<span class="sc-dot"></span>' +
+    '<div class="sc-txt"><div class="sc-kind"></div><div class="sc-title"></div><div class="sc-sub"></div></div>' +
+    '<button class="sc-go" type="button">DETAILS</button>' +
+    '<button class="sc-x" type="button" aria-label="Clear selection" title="Clear selection">&times;</button>';
+  host.appendChild(SELUI.card);
+  SELUI.card.querySelector('.sc-go').onclick = function(){
+    var p = document.getElementById('detailPanel');
+    p.scrollIntoView({behavior:'smooth', block:'nearest'});
+    p.classList.remove('flash'); void p.offsetWidth; p.classList.add('flash');
+  };
+  SELUI.card.querySelector('.sc-x').onclick = function(){ G.sel = null; renderDetail(null); };
+  addEventListener('resize', function(){ if(!SELUI.card.hidden) selPlace(SELUI.side); });
+}
+/* Dock the card along the bottom of the globe, or the top when the contact
+   itself is low on the disc -- the card must never cover what it names. */
+function selPlace(side){
+  var cv = selCanvas(), card = SELUI.card;
+  if(!cv || !card) return;
+  SELUI.side = side;
+  card.style.left = (cv.offsetLeft + 8) + 'px';
+  card.style.width = Math.max(200, cv.offsetWidth - 16) + 'px';
+  card.style.top = (side === 'top' ? cv.offsetTop + 8
+                                   : cv.offsetTop + cv.offsetHeight - card.offsetHeight - 8) + 'px';
+}
+/* Each renderer calls this every frame with the selected contact's position
+   in canvas pixels, or null when it is off the visible face of the globe. */
+function selMark(cv, x, y, color){
+  selBuild();
+  var r = SELUI.ret;
+  if(!r) return;
+  if(x == null || !G.sel){ if(r.style.display !== 'none') r.style.display = 'none'; return; }
+  r.style.display = 'block';
+  r.style.transform = 'translate(' + (cv.offsetLeft + x).toFixed(1) + 'px,' + (cv.offsetTop + y).toFixed(1) + 'px)';
+  if(color && r._c !== color){ r.style.color = color; r._c = color; }
+  if(SELUI.card && !SELUI.card.hidden){
+    var h = cv.offsetHeight, want = y > h*0.62 ? 'top' : (y < h*0.38 ? 'bottom' : SELUI.side);
+    if(want !== SELUI.side) selPlace(want);
+  }
+}
+/* the card reads the detail panel renderDetail has just written, so the two
+   can never disagree about what is selected */
+function selCard(c){
+  selBuild();
+  var card = SELUI.card;
+  if(!card) return;
+  if(!c){ card.hidden = true; if(SELUI.ret) SELUI.ret.style.display = 'none'; return; }
+  var p = document.getElementById('detailPanel');
+  function txt(q){ var e = p.querySelector(q); return e ? e.textContent.replace(/\s+/g, ' ').trim() : ''; }
+  var col = c.color || '#22d3ee';
+  card.style.setProperty('--c', col);
+  card.querySelector('.sc-dot').style.background = col;
+  card.querySelector('.sc-dot').style.color = col;
+  card.querySelector('.sc-kind').textContent = txt('.d-kind');
+  card.querySelector('.sc-title').textContent = txt('.d-title') || 'Selected contact';
+  card.querySelector('.sc-sub').textContent = txt('.d-place') ||
+    (c.lat != null ? Math.abs(c.lat).toFixed(2) + '°' + (c.lat >= 0 ? 'N' : 'S') + '  ' +
+                     Math.abs(c.lon).toFixed(2) + '°' + (c.lon >= 0 ? 'E' : 'W') : '');
+  card.hidden = false;
+  // side by side, the panel is already in view; stacked, it is below the globe
+  var cv = selCanvas();
+  var below = cv && p.getBoundingClientRect().top > cv.getBoundingClientRect().bottom - 4;
+  card.querySelector('.sc-go').innerHTML = 'DETAILS ' + (below ? '&darr;' : '&rarr;');
+  selPlace(SELUI.side);
+  // lock-on: the reticle snaps in, and a side-by-side panel pulses once
+  if(SELUI.ret){ SELUI.ret.classList.remove('lock'); void SELUI.ret.offsetWidth; SELUI.ret.classList.add('lock'); }
+  if(!below){ p.classList.remove('flash'); void p.offsetWidth; p.classList.add('flash'); }
+}
+/* a tap that landed on nothing: a brief ring where it landed */
+function selMiss(cv, x, y){
+  var host = document.querySelector('.globe-col');
+  if(!host || !cv) return;
+  var d = document.createElement('div');
+  d.className = 'sel-ripple';
+  d.style.transform = 'translate(' + (cv.offsetLeft + x) + 'px,' + (cv.offsetTop + y) + 'px)';
+  host.appendChild(d);
+  setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 600);
+}
+
 var BOXEL = null;
 function boxOverlay(){
   if(!BOXEL){
@@ -2411,6 +2665,8 @@ window.TB = {
   get KIND(){ return KIND; },     get SECTION_COLOR(){ return SECTION_COLOR; },
   get G(){ return G; },           get KIND_OF(){ return KIND_OF; },
   renderDetail: function(c){ return renderDetail(c); },
+  selMark: function(cv, x, y, c){ return selMark(cv, x, y, c); },
+  selMiss: function(cv, x, y){ return selMiss(cv, x, y); },
   setZoomLabel: function(z){ var e=document.getElementById('zoomLabel'); if(e) e.textContent = z.toFixed(1)+'\u00d7'; },
   setSpin: function(on){ setSpin(on); },
   stopCanvasGlobe: function(){ G.stopped = true; },
@@ -2711,6 +2967,9 @@ function drawChip(cv){
 function focusGlobe(lat, lon, zoom){
   G.rot = [-lon, lat]; setSpin(false);
   setZoom(Math.max(G.zoom, zoom || 3));
+  var g3 = document.getElementById('globe3d');
+  if(window.GLOBE3D && window.GLOBE3D.focus && g3 && g3.style.display !== 'none')
+    window.GLOBE3D.focus(lat, lon, zoom || 3);
   document.getElementById('godseye').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
@@ -2811,6 +3070,7 @@ function focusGlobe(lat, lon, zoom){
             '<div class="ev-acts">' +
               (e.url ? '<a class="ev-btn" href="'+esc(e.url)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '') +
               '<button class="ev-btn" data-act="globe">SHOW ON GLOBE</button>' +
+              '<button class="ev-btn" '+terrainAttrs({k:'events', lat:e.lat, lon:e.lon, d:e})+'>BEFORE / AFTER</button>' +
               '<button class="ev-btn" data-act="find">FIND IN BRIEF</button>' +
             '</div>' +
           '</div>';
@@ -3213,14 +3473,38 @@ function focusGlobe(lat, lon, zoom){
     /* Imagery is not derived from the elevation grid -- it is pixels off a
        satellite -- so it skips the hillshade loop entirely and paints itself. */
     if(MODE === 'img'){
-      for(var ii=0; ii<W*H; ii++){
-        var pi = ii*4;
-        if(S2.got && S2.got[ii]){
-          o[pi] = S2.rgb[ii*3]; o[pi+1] = S2.rgb[ii*3+1]; o[pi+2] = S2.rgb[ii*3+2];
-        } else { o[pi] = 10; o[pi+1] = 14; o[pi+2] = 26; }
-        o[pi+3] = 255;
+      /* In a comparison the before pass fills the left of the swipe line and
+         the after pass the right, over exactly the same ground grid, so the
+         line can be dragged across a feature to see it change in place. */
+      var IA = S2.cmp ? S2.imgA : null, IB = S2.imgB || (S2.cmp ? null : S2.imgA);
+      var split = (IA && S2.imgB) ? Math.round(W * S2.swipe) : (IA ? W : 0);
+      for(var yy=0; yy<H; yy++){
+        for(var xx=0; xx<W; xx++){
+          var ii = yy*W + xx, pi = ii*4, SRC = xx < split ? IA : IB;
+          if(SRC && SRC.got[ii]){
+            o[pi] = SRC.rgb[ii*3]; o[pi+1] = SRC.rgb[ii*3+1]; o[pi+2] = SRC.rgb[ii*3+2];
+          } else { o[pi] = 10; o[pi+1] = 14; o[pi+2] = 26; }
+          o[pi+3] = 255;
+        }
       }
       mapX.putImageData(img, 0, 0);
+      if(IA && S2.imgB && S2.chosenA && S2.chosenB){
+        var k = W / Math.max(1, mapC.clientWidth || W);
+        mapX.save();
+        mapX.fillStyle = 'rgba(255,255,255,.95)';
+        mapX.fillRect(split - Math.max(1, k), 0, Math.max(2, 2*k), H);
+        mapX.font = '700 ' + Math.round(12*k) + 'px ui-monospace,monospace';
+        mapX.textBaseline = 'top';
+        function tag(t, x, right){
+          var w = mapX.measureText(t).width + 12*k;
+          var x0 = right ? x - w - 8*k : x + 8*k;
+          mapX.fillStyle = 'rgba(5,9,26,.78)'; mapX.fillRect(x0, 8*k, w, 20*k);
+          mapX.fillStyle = '#fff'; mapX.fillText(t, x0 + 6*k, 12*k);
+        }
+        if(split > 120*k) tag('BEFORE ' + s2Day(S2.chosenA), split, true);
+        if(W - split > 120*k) tag('AFTER ' + s2Day(S2.chosenB), split, false);
+        mapX.restore();
+      }
       drawPicks();
       return;
     }
@@ -3507,7 +3791,7 @@ function focusGlobe(lat, lon, zoom){
     }
   });
 
-  function go(lat, lon, km){
+  function go(lat, lon, km, layer){
     var hint = document.getElementById('trHint');
     hint.textContent = 'reading the ground\u2026';
     picks = [];
@@ -3528,6 +3812,7 @@ function focusGlobe(lat, lon, zoom){
                          ' \u00b7 ' + Math.round(G.mpp) + ' m/px grid' +
                          (G.nodata > G.w*G.h*0.005
                            ? ' \u00b7 ' + (G.nodata/(G.w*G.h)*100).toFixed(0) + '% no data' : '');
+      if(layer && layer !== 'topo') setLayer(layer);
     }, function(err){
       hint.innerHTML = '<span style="color:#f87171">' + esc(err) + '</span>';
     }, function(note){ hint.textContent = note + '\u2026'; });
@@ -3565,9 +3850,15 @@ function focusGlobe(lat, lon, zoom){
     got: null,      // Uint8Array(w*h), 1 where a scene actually covered it
     key: null,      // which area the raster belongs to
     busy: false,
-    gen: 0,         // bumped whenever the ground changes, to orphan a stale load
+    gen: 0,         // bumped by every request, to orphan whatever it supersedes
     note: '',
-    hdr: {}         // TCI url -> parsed IFD chain, so a re-pick is cheap
+    hdr: {},        // file url -> parsed IFD chain, so a re-pick is cheap
+    view: 'tci',    // tci | cir | swir
+    cmp: false,     // before/after comparison on
+    evt: null,      // {date:'YYYY-MM-DD', basis:'source'|'brief'|'manual'}
+    swipe: 0.5,
+    local: {}, passes: {}, bands: {}, nlist: {}, tiles: [], months: [], spent: 0,
+    pickA: null, pickB: null, chosenA: null, chosenB: null, imgA: null, imgB: null
   };
   function s2Key(){ return GRID ? GRID.z+'/'+GRID.tx0+'/'+GRID.ty0+'/'+GRID.w+'x'+GRID.h : ''; }
   /* A load in flight belongs to the ground it started on. Analysing a new
@@ -3578,10 +3869,13 @@ function focusGlobe(lat, lon, zoom){
   function s2Reset(){
     S2.gen++;
     S2.busy = false;
-    S2.scenes = null; S2.chosen = null; S2.rgb = null; S2.got = null;
-    S2.key = null; S2.note = ''; S2.summary = '';
-    var s = document.getElementById('trShot');
-    if(s){ s.style.display = 'none'; s.innerHTML = ''; s.disabled = false; }
+    S2.scenes = null; S2.key = null; S2.note = ''; S2.summary = '';
+    S2.local = {}; S2.passes = {}; S2.bands = {}; S2.nlist = {}; S2.tiles = []; S2.spent = 0;
+    S2.pickA = S2.pickB = S2.chosenA = S2.chosenB = S2.imgA = S2.imgB = null;
+    ['trShot', 'trShotA'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el){ el.style.display = 'none'; el.innerHTML = ''; el.disabled = false; }
+    });
   }
 
   /* Forward transverse Mercator, WGS84. Sentinel-2 is delivered in UTM, one
@@ -3692,9 +3986,6 @@ function focusGlobe(lat, lon, zoom){
       .catch(function(){ return null; });
   }
   function s2Age(m){ return (Date.now() - Date.parse(m.date)) / 86400000; }
-  /* Clear beats recent, but not without limit: a spotless scene from three
-     months ago is the wrong answer when last week's is only lightly clouded. */
-  function s2Score(m){ return m.cloud + s2Age(m)*0.5 + (m.blank > 40 ? 500 : m.blank*0.4); }
 
   /* ---- the COG itself ---- */
   var TIFF_SZ = {1:1,2:1,3:2,4:4,5:8,6:1,7:1,8:2,9:4,10:8,11:4,12:8};
@@ -3781,6 +4072,17 @@ function focusGlobe(lat, lon, zoom){
           u[o + x*s + k] = (u[o + x*s + k] + u[o + (x-1)*s + k]) & 255;
     }
   }
+  /* The same horizontal predictor on 16-bit data differences whole samples,
+     so undoing it byte by byte -- which is right for true colour -- would
+     carry every low byte's overflow into the wrong place. */
+  function unpredict16(u, w, h, s){
+    for(var y=0; y<h; y++){
+      var o = y*w*s;
+      for(var x=1; x<w; x++)
+        for(var k=0; k<s; k++)
+          u[o + x*s + k] = (u[o + x*s + k] + u[o + (x-1)*s + k]) & 0xFFFF;
+    }
+  }
   function cogTile(url, lv, idx, expect){
     var off = lv.toff[idx], len = lv.tlen[idx];
     if(!len) return Promise.resolve(null);
@@ -3798,7 +4100,9 @@ function focusGlobe(lat, lon, zoom){
       })
       .then(function(u){
         if(!u) return null;
-        if(lv.pred === 2) unpredict(u, lv.tw, lv.th, lv.samples);
+        if(lv.pred === 2 && lv.bits === 16)
+          unpredict16(new Uint16Array(u.buffer, u.byteOffset, u.byteLength >> 1), lv.tw, lv.th, lv.samples);
+        else if(lv.pred === 2) unpredict(u, lv.tw, lv.th, lv.samples);
         else if(lv.pred === 3) unpredictFloat(u, lv.tw, lv.th, (lv.bits/8)|0, lv.samples);
         return u;
       })
@@ -3809,14 +4113,16 @@ function focusGlobe(lat, lon, zoom){
      at every pixel is a few million trig calls; doing it on an 8 px lattice
      and interpolating between is indistinguishable at these spans, because
      transverse Mercator has no structure that fine. */
-  function utmLattice(zone, step){
-    var nx = Math.ceil(GRID.w/step), ny = Math.ceil(GRID.h/step);
+  function utmLattice(zone, step, w, h){
+    w = w || GRID.w; h = h || GRID.h;
+    var k = GRID.w / w;                      // target pixel -> panel pixel
+    var nx = Math.ceil(w/step), ny = Math.ceil(h/step);
     var E = new Float64Array((nx+1)*(ny+1)), N = new Float64Array((nx+1)*(ny+1));
     var eMin = Infinity, eMax = -Infinity, nMin = Infinity, nMax = -Infinity;
     for(var j=0; j<=ny; j++){
-      var la = y2lat(GRID.ty0 + (j*step)/TILE, GRID.z);
+      var la = y2lat(GRID.ty0 + (j*step*k)/TILE, GRID.z);
       for(var i=0; i<=nx; i++){
-        var lo = x2lon(GRID.tx0 + (i*step)/TILE, GRID.z);
+        var lo = x2lon(GRID.tx0 + (i*step*k)/TILE, GRID.z);
         var u = utmFwd(la, lo, zone), q = j*(nx+1)+i;
         E[q] = u.E; N[q] = u.N;
         if(u.E < eMin) eMin = u.E;
@@ -3847,81 +4153,6 @@ function focusGlobe(lat, lon, zoom){
       }
     }
     return {lv:lv, c0:c0, c1:c1, r0:r0, r1:r1, jobs:jobs, bytes:bytes};
-  }
-
-  /* Read one granule into this panel's grid, filling only where nothing has
-     been filled yet, and report how much of the ground it covered. */
-  function s2Paint(meta, onSay){
-    var url = S2.base + meta.pfx + 'TCI.tif';
-    var zone = (meta.epsg > 32600 && meta.epsg < 32661) ? meta.epsg - 32600
-             : (meta.epsg > 32700 && meta.epsg < 32761) ? meta.epsg - 32700 : 0;
-    if(!zone) return Promise.resolve({filled:0, bytes:0, err:'granule is not in a UTM zone'});
-    return cogHeader(url).then(function(levels){
-      var LT = utmLattice(zone, 8);
-      /* Pick the level by what the screen can actually show, not by what the
-         grid holds: the panel is drawn a good deal smaller than the raster
-         behind it, so matching the raster would download four times the
-         pixels for detail no monitor ever renders. Then step coarser while
-         the download is unreasonable -- and the cost of each level is known
-         in advance, because a COG's tile byte counts are in the header that
-         has already been read. */
-      var shown = Math.max(320, (mapC.clientWidth || 640) * (window.devicePixelRatio || 1));
-      var dispMpp = GRID.w * GRID.mpp / shown;
-      var li = 0;
-      for(var i=0; i<levels.length; i++) if(levels[i].mpp <= dispMpp*1.3) li = i;
-      var plan = null;
-      for(; li < levels.length; li++){
-        var p = planTiles(levels[li], {x0:LT.eMin, x1:LT.eMax, y0:LT.nMin, y1:LT.nMax});
-        if(!p) return {filled:0, bytes:0, err:'that ground is outside this granule'};
-        plan = p;
-        if(p.bytes <= 12*1048576 && p.jobs.length <= 12) break;
-      }
-      var lv = plan.lv, c0 = plan.c0, c1 = plan.c1, r0 = plan.r0, r1 = plan.r1;
-      var sw = c1-c0+1, sh = r1-r0+1;
-      var src = new Uint8Array(sw*sh*3), have = new Uint8Array(sw*sh);
-      var jobs = plan.jobs, bytes = plan.bytes;
-      if(onSay) onSay(jobs.length + ' image tiles at ' + Math.round(lv.mpp) + ' m, ' +
-                      (bytes/1048576).toFixed(1) + ' MB');
-      return pool(jobs, 4, function(t){
-        return cogTile(url, lv, t.idx).then(function(u){
-          if(!u) return;
-          var bx = t.tx*lv.tw, by = t.ty*lv.th, S = lv.samples;
-          var y0 = Math.max(r0, by), y1 = Math.min(r1, by+lv.th-1);
-          var x0 = Math.max(c0, bx), x1 = Math.min(c1, bx+lv.tw-1);
-          for(var y=y0; y<=y1; y++){
-            var so = ((y-by)*lv.tw)*S, dofs = ((y-r0)*sw);
-            for(var x=x0; x<=x1; x++){
-              var s = so + (x-bx)*S, d = dofs + (x-c0);
-              var R = u[s], G2 = u[s+1], B = u[s+2];
-              if(!R && !G2 && !B) continue;          // granule edge fill
-              src[d*3] = R; src[d*3+1] = G2; src[d*3+2] = B; have[d] = 1;
-            }
-          }
-        });
-      }).then(function(){
-        // resample into the panel grid, nearest neighbour through the lattice
-        var W = GRID.w, H = GRID.h, nx = LT.nx, filled = 0;
-        for(var y=0; y<H; y++){
-          var fy = y/LT.step, j0 = fy|0, ay = fy-j0, ra = j0*(nx+1), rb = ra+nx+1;
-          for(var x=0; x<W; x++){
-            var i = y*W + x;
-            if(S2.got[i]) continue;
-            var fx = x/LT.step, i0 = fx|0, ax = fx-i0;
-            var qa = ra+i0, qb = rb+i0;
-            var E = (LT.E[qa]*(1-ax) + LT.E[qa+1]*ax)*(1-ay) + (LT.E[qb]*(1-ax) + LT.E[qb+1]*ax)*ay;
-            var N = (LT.N[qa]*(1-ax) + LT.N[qa+1]*ax)*(1-ay) + (LT.N[qb]*(1-ax) + LT.N[qb+1]*ax)*ay;
-            var sc = Math.round((E - lv.ox)/lv.mpp) - c0;
-            var sr = Math.round((lv.oy - N)/lv.mpp) - r0;
-            if(sc < 0 || sr < 0 || sc >= sw || sr >= sh) continue;
-            var d = sr*sw + sc;
-            if(!have[d]) continue;
-            S2.rgb[i*3] = src[d*3]; S2.rgb[i*3+1] = src[d*3+1]; S2.rgb[i*3+2] = src[d*3+2];
-            S2.got[i] = 1; filled++;
-          }
-        }
-        return {filled:filled, bytes:bytes, mpp:lv.mpp, tiles:jobs.length};
-      });
-    }).catch(function(e){ return {filled:0, bytes:0, err:e.message || 'granule unreadable'}; });
   }
 
   /* =====================================================================
@@ -4170,26 +4401,371 @@ function focusGlobe(lat, lon, zoom){
     });
   }
 
+  /* ---- reading any band of a pass into a grid ----
+
+     True colour arrives as one 8-bit, 3-sample file. The bands that see what
+     true colour cannot -- near infrared (B08) for vegetation, shortwave
+     infrared (B12) for burn scars, heat and disturbed ground, and the scene
+     classification layer (SCL) that marks cloud pixel by pixel -- are single
+     16- or 8-bit files on exactly the same grid. So one reader serves all of
+     them; only the sample count and type change. */
+  function s2Zone(meta){
+    return (meta.epsg > 32600 && meta.epsg < 32661) ? meta.epsg - 32600
+         : (meta.epsg > 32700 && meta.epsg < 32761) ? meta.epsg - 32700 : 0;
+  }
+  function s2Day(m){ return String(m.date).slice(0,10); }
+  function s2DaysBetween(a, b){ return (Date.parse(a) - Date.parse(b)) / 86400000; }
+
+  /* A target grid laid over this panel: full size for display, or a coarse
+     64-cell one when all that is wanted is a statistic, such as how much of
+     the ground is under cloud. */
+  function s2Target(S, Cls, coarse){
+    var w = coarse ? 64 : GRID.w;
+    var h = coarse ? Math.max(8, Math.round(64 * GRID.h / GRID.w)) : GRID.h;
+    var groundW = GRID.w * GRID.mpp;
+    var shown = Math.max(320, (mapC.clientWidth || 640) * (window.devicePixelRatio || 1));
+    return {w:w, h:h, S:S, data:new Cls(w*h*S), got:new Uint8Array(w*h),
+            step: coarse ? 1 : 8,
+            mpp: coarse ? groundW/64 : groundW/shown,
+            budget: coarse ? 1048576 : 12*1048576};
+  }
+
+  function s2ReadInto(meta, band, tgt, onSay){
+    var url = S2.base + meta.pfx + band + '.tif';
+    var zone = s2Zone(meta);
+    if(!zone) return Promise.resolve({filled:0, bytes:0, err:'granule is not in a UTM zone'});
+    return cogHeader(url).then(function(levels){
+      var LT = utmLattice(zone, tgt.step, tgt.w, tgt.h);
+      /* The level follows what the target can show; then the byte counts
+         already in the header decide whether it is affordable. */
+      var li = 0;
+      for(var i=0; i<levels.length; i++) if(levels[i].mpp <= tgt.mpp*1.3) li = i;
+      var plan = null;
+      for(; li < levels.length; li++){
+        var p = planTiles(levels[li], {x0:LT.eMin, x1:LT.eMax, y0:LT.nMin, y1:LT.nMax});
+        if(!p) return {filled:0, bytes:0, err:'that ground is outside this granule'};
+        plan = p;
+        if(p.bytes <= tgt.budget && p.jobs.length <= 16) break;
+      }
+      var lv = plan.lv, c0 = plan.c0, r0 = plan.r0, S = tgt.S;
+      var sw = plan.c1-c0+1, sh = plan.r1-r0+1;
+      var src = new (tgt.data.constructor)(sw*sh*S), have = new Uint8Array(sw*sh);
+      if(onSay) onSay(band + ': ' + plan.jobs.length + ' tiles at ' + Math.round(lv.mpp) + ' m, ' +
+                      (plan.bytes/1048576).toFixed(1) + ' MB');
+      return pool(plan.jobs, 4, function(t){
+        return cogTile(url, lv, t.idx).then(function(u){
+          if(!u) return;
+          var v = lv.bits === 16 ? new Uint16Array(u.buffer, u.byteOffset, u.byteLength >> 1) : u;
+          var bx = t.tx*lv.tw, by = t.ty*lv.th, LS = lv.samples;
+          var ya = Math.max(r0, by), yb = Math.min(plan.r1, by+lv.th-1);
+          var xa = Math.max(c0, bx), xb = Math.min(plan.c1, bx+lv.tw-1);
+          for(var y=ya; y<=yb; y++){
+            var so = (y-by)*lv.tw*LS, dofs = (y-r0)*sw;
+            for(var x=xa; x<=xb; x++){
+              var s = so + (x-bx)*LS, d = dofs + (x-c0), any = 0;
+              for(var k=0; k<S; k++){ var val = v[s+k]; src[d*S+k] = val; any |= val; }
+              if(any) have[d] = 1;                  // all-zero is the granule's edge fill
+            }
+          }
+        });
+      }).then(function(){
+        var W = tgt.w, H = tgt.h, nx = LT.nx, st = LT.step, filled = 0;
+        for(var y=0; y<H; y++){
+          var fy = y/st, j0 = fy|0, ay = fy-j0, ra = j0*(nx+1), rb = ra+nx+1;
+          for(var x=0; x<W; x++){
+            var i = y*W + x;
+            if(tgt.got[i]) continue;
+            var fx = x/st, i0 = fx|0, ax = fx-i0, qa = ra+i0, qb = rb+i0;
+            var E = (LT.E[qa]*(1-ax) + LT.E[qa+1]*ax)*(1-ay) + (LT.E[qb]*(1-ax) + LT.E[qb+1]*ax)*ay;
+            var N = (LT.N[qa]*(1-ax) + LT.N[qa+1]*ax)*(1-ay) + (LT.N[qb]*(1-ax) + LT.N[qb+1]*ax)*ay;
+            // the tie point is a pixel corner, so the containing pixel is the floor
+            var sc = Math.floor((E - lv.ox)/lv.mpp) - c0;
+            var sr = Math.floor((lv.oy - N)/lv.mppY) - r0;
+            if(sc < 0 || sr < 0 || sc >= sw || sr >= sh) continue;
+            var d = sr*sw + sc;
+            if(!have[d]) continue;
+            for(var k=0; k<S; k++) tgt.data[i*S+k] = src[d*S+k];
+            tgt.got[i] = 1; filled++;
+          }
+        }
+        return {filled:filled, bytes:plan.bytes, mpp:lv.mpp};
+      });
+    }).catch(function(e){ return {filled:0, bytes:0, err:(e && e.message) || 'granule unreadable'}; });
+  }
+
+  /* ---- how cloudy is it HERE, not across the granule ----
+
+     The scene metadata's cloud figure covers all 100 km of the granule.
+     Taipei came back at 32% for its granule and was overcast over the city
+     itself, which is the only part anyone was looking at. The scene
+     classification layer marks every 20 m pixel as vegetation, water, cloud,
+     shadow, cirrus and so on, and read at a coarse overview over just this
+     panel it costs a few kilobytes -- so candidate passes are ranked by the
+     cloud over this ground. */
+  var SCL_CLOUD = {3:1, 8:1, 9:1, 10:1};   // cloud shadow, medium and high cloud, cirrus
+  function localCloud(meta){
+    if(meta.id in S2.local) return Promise.resolve(S2.local[meta.id]);
+    var tgt = s2Target(1, Uint8Array, true);
+    return s2ReadInto(meta, 'SCL', tgt).then(function(){
+      var n = 0, c = 0, all = tgt.w*tgt.h;
+      for(var i=0; i<all; i++){
+        if(!tgt.got[i] || !tgt.data[i]) continue;
+        n++;
+        if(SCL_CLOUD[tgt.data[i]]) c++;
+      }
+      // too little of this ground inside the granule to judge it fairly
+      S2.local[meta.id] = n > all*0.2 ? c/n : null;
+      return S2.local[meta.id];
+    });
+  }
+  function cloudHere(m){
+    var l = S2.local[m.id];
+    return (l == null) ? m.cloud : l*100;
+  }
+  /* Rank cheaply on the granule figure, then read the classification layer
+     for the best few and choose on the local figure. Reading it for all
+     thirty candidates would be thirty more files for passes nobody wants. */
+  function bestPass(cands, cost, k){
+    if(!cands.length) return Promise.resolve(null);
+    var top = cands.slice().sort(function(a, b){ return cost(a, a.cloud) - cost(b, b.cloud); }).slice(0, k || 8);
+    return pool(top, 4, function(m){ return localCloud(m).catch(function(){ return null; }); })
+      .then(function(){
+        var best = null, bc = Infinity;
+        top.forEach(function(m){ var c = cost(m, cloudHere(m)); if(c < bc){ bc = c; best = m; } });
+        return best;
+      });
+  }
+
+  /* ---- a pass is one date: the centre granule plus same-day neighbours ---- */
+  function neighbourList(t){
+    if(S2.nlist[t.id]) return Promise.resolve(S2.nlist[t.id]);
+    return s2List(t, S2.months).then(function(l){ S2.nlist[t.id] = l; return l; });
+  }
+  function passList(meta){
+    if(S2.passes[meta.id]) return Promise.resolve(S2.passes[meta.id]);
+    var others = S2.tiles.filter(function(t){ return t.id !== S2.tiles[0].id; });
+    return pool(others, 2, function(t){
+      return neighbourList(t).then(function(list){
+        var near = list.filter(function(s){
+          var d = (s.id.match(/_(\d{8})_/) || [])[1];
+          if(!d) return false;
+          var iso = d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);
+          return Math.abs(Date.parse(iso) - Date.parse(meta.date)) < 7*86400000;
+        }).slice(0, 6);
+        return pool(near, 4, s2Meta).then(function(ms){
+          var good = ms.filter(function(m){ return m && m.epsg && m.blank < 90; });
+          if(!good.length) return null;
+          /* Weight the date hard. Two granules from different overpasses meet
+             in a visible seam -- different sun, different weather -- so a
+             same-day granule wins even when it is cloudier. */
+          function fit(m){ return m.cloud + Math.abs(s2DaysBetween(m.date, meta.date)) * 12; }
+          good.sort(function(p, q){ return fit(p) - fit(q); });
+          return good[0];
+        });
+      });
+    }).then(function(extra){
+      S2.passes[meta.id] = [meta].concat(extra.filter(Boolean));
+      return S2.passes[meta.id];
+    });
+  }
+  var BAND_SPEC = {TCI:[3, Uint8Array], B08:[1, Uint16Array], B12:[1, Uint16Array]};
+  function passBand(meta, band, say){
+    var key = meta.id + '|' + band;
+    if(S2.bands[key]) return Promise.resolve(S2.bands[key]);
+    return passList(meta).then(function(list){
+      var spec = BAND_SPEC[band], tgt = s2Target(spec[0], spec[1], false), bytes = 0, mpp = 0;
+      var days = {}, n = 0;
+      return pool(list, 1, function(m){
+        n++;
+        return s2ReadInto(m, band, tgt, function(t){
+          if(say) say(s2Day(meta) + ' · granule ' + n + ' of ' + list.length + ' · ' + t);
+        }).then(function(r){
+          bytes += r.bytes || 0;
+          if(r.mpp) mpp = Math.max(mpp, r.mpp);
+          if(r.filled) days[s2Day(m)] = 1;
+        });
+      }).then(function(){
+        var cov = 0;
+        for(var i=0; i<tgt.got.length; i++) if(tgt.got[i]) cov++;
+        S2.bands[key] = {data:tgt.data, got:tgt.got, bytes:bytes, mpp:mpp, cover:cov/tgt.got.length,
+                         granules:list.length, days:Object.keys(days).sort()};
+        S2.spent += bytes;
+        return S2.bands[key];
+      });
+    });
+  }
+
+  /* ---- composites ----
+
+     True colour is what an eye would see. Colour infrared puts near infrared
+     in the red channel, so healthy vegetation glows red and anything that
+     killed it -- fire, clearing, flooding, a new pad poured -- goes dark.
+     SWIR puts shortwave infrared in red: burn scars and active fire stand
+     out, cut earth and fresh construction read differently from settled
+     ground, and haze that softens true colour largely drops away.
+
+     Infrared bands have no fixed display scale, so each is stretched between
+     its 2nd and 98th percentile. In a comparison both passes share ONE
+     stretch, computed across both -- stretched separately, a quiet scene and
+     a busy one would each fill the whole range and every difference between
+     them would be partly an artefact of the processing. */
+  var VIEWS = {
+    tci:  {label:'true colour', bands:['TCI']},
+    cir:  {label:'colour infrared (NIR, red, green)', bands:['TCI', 'B08']},
+    swir: {label:'shortwave infrared (SWIR, NIR, red)', bands:['TCI', 'B08', 'B12']}
+  };
+  /* Cloud is the brightest thing in both infrared bands, so a cloudy pass in
+     the pair drags the top of a shared stretch up and crushes the clear one
+     into mud -- which is what the first version did, making the clear pass
+     look worse for being compared. Pixels that are near-white in true colour
+     are left out of the statistics; the ground sets the stretch, not the
+     weather. */
+  function stretchOf(list){
+    var hist = new Uint32Array(4096), n = 0;
+    list.forEach(function(p){
+      var b = p.band, T = p.tci.data;
+      for(var i=0; i<b.data.length; i+=3){
+        if(!b.got[i] || !b.data[i]) continue;
+        if(T[i*3] > 175 && T[i*3+1] > 175 && T[i*3+2] > 175) continue;
+        hist[Math.min(4095, b.data[i] >> 2)]++; n++;
+      }
+    });
+    if(!n) return [0, 4000];
+    var lo = 0, hi = 4095, run = 0;
+    for(var j=0; j<4096; j++){ run += hist[j]; if(run >= n*0.02){ lo = j; break; } }
+    run = 0;
+    for(var k=4095; k>=0; k--){ run += hist[k]; if(run >= n*0.02){ hi = k; break; } }
+    return [lo*4, Math.max(lo*4 + 16, hi*4 + 3)];
+  }
+  function compose(view, b, st){
+    var W = GRID.w, H = GRID.h, n = W*H;
+    var rgb = new Uint8Array(n*3), got = new Uint8Array(n);
+    var T = b.TCI;
+    function s(v, r){ var x = (v - r[0]) * 255 / (r[1] - r[0]); return x < 0 ? 0 : x > 255 ? 255 : x; }
+    for(var i=0; i<n; i++){
+      if(!T.got[i]) continue;
+      if(view === 'tci'){
+        rgb[i*3] = T.data[i*3]; rgb[i*3+1] = T.data[i*3+1]; rgb[i*3+2] = T.data[i*3+2];
+      } else if(view === 'cir'){
+        if(!b.B08.got[i]) continue;
+        rgb[i*3] = s(b.B08.data[i], st.B08); rgb[i*3+1] = T.data[i*3]; rgb[i*3+2] = T.data[i*3+1];
+      } else {
+        if(!b.B08.got[i] || !b.B12.got[i]) continue;
+        rgb[i*3] = s(b.B12.data[i], st.B12); rgb[i*3+1] = s(b.B08.data[i], st.B08); rgb[i*3+2] = T.data[i*3];
+      }
+      got[i] = 1;
+    }
+    return {rgb:rgb, got:got};
+  }
+
+  /* what the controls currently ask for, so returning to the layer only
+     re-reads when something about the request actually changed */
+  function imgWant(){
+    return [S2.view, S2.cmp, S2.pickA, S2.pickB, S2.evt ? S2.evt.date : ''].join('|');
+  }
   function imgSay(html){
     if(MODE === 'img'){ var n = document.getElementById('trLos'); if(n) n.innerHTML = html; }
   }
-  function imgLoad(wantId){
-    if(!GRID || S2.busy) return;
-    S2.busy = true;
-    var key = s2Key(), gen = S2.gen;
+
+  /* ---- the whole imagery request, start to finish ----
+
+     Every call supersedes the one before it: changing view, pass, date or
+     ground mid-fetch orphans the old chain through the generation counter,
+     so the layer can never wedge on a request that no longer matters. */
+  function imgRun(){
+    if(!GRID) return;
+    var gen = ++S2.gen, key = s2Key(), want = imgWant();
     function alive(){ return S2.gen === gen; }
     function step(){ if(!alive()) throw new Error('__stale'); }
-    function say(html){ if(alive()) imgSay(html); }
-    var sel = document.getElementById('trShot');
-    if(sel) sel.disabled = true;
-    say('<b>Imagery</b><br>looking for scenes over this ground…');
+    function say(t){ if(alive()) imgSay('<b>Imagery</b><br>' + t); }
+    S2.busy = true;
+    imgControls();
+    say('looking for passes over this ground…');
 
-    /* Which 100 km squares does this panel touch? Sample the grid rather
-       than assume one: at 80 km across, a box almost never sits inside a
-       single granule, and the neighbours can be in a different UTM zone. */
+    var evt = S2.evt;
+    var ready = (S2.key === key && S2.scenes) ? Promise.resolve() : imgScenes(say, step);
+    ready.then(function(){
+      step();
+      var all = S2.scenes;
+      if(!all.length) throw new Error('no usable passes over this ground');
+      /* single: the clearest recent pass here. compare: the latest clear pass
+         before the date and the earliest clear pass after it -- closeness to
+         the date weighs as much as cloud, because a clear view three months
+         out answers a different question. */
+      if(!S2.cmp){
+        return (S2.pickB ? Promise.resolve(byId(S2.pickB))
+                         : bestPass(all, function(m, c){ return c + s2Age(m)*0.5 + (m.blank > 40 ? 500 : m.blank*0.4); }))
+          .then(function(b){ return [null, b]; });
+      }
+      var anchor = evt ? evt.date : (S2.chosenB ? s2Day(S2.chosenB) : s2Day(all[0]));
+      var before = all.filter(function(m){ return s2DaysBetween(anchor, s2Day(m)) >= (evt ? 0 : 10); });
+      var after  = all.filter(function(m){ return s2DaysBetween(s2Day(m), anchor) >  (evt ? 0 : -1); });
+      if(!evt) after = S2.chosenB ? [S2.chosenB] : after;
+      say('choosing the clearest pass either side of ' + esc(anchor) + '…');
+      return Promise.all([
+        S2.pickA ? Promise.resolve(byId(S2.pickA))
+                 : bestPass(before, function(m, c){ return c + s2DaysBetween(anchor, s2Day(m)); }),
+        S2.pickB ? Promise.resolve(byId(S2.pickB))
+                 : bestPass(after, function(m, c){ return c + s2DaysBetween(s2Day(m), anchor); })
+      ]);
+    }).then(function(pair){
+      step();
+      S2.chosenA = pair[0]; S2.chosenB = pair[1];
+      if(!S2.chosenB && !S2.chosenA) throw new Error('no pass could be read over this ground');
+      fillShots();
+      imgCap();
+      var need = VIEWS[S2.view].bands, jobs = [];
+      [S2.chosenA, S2.chosenB].forEach(function(m){
+        if(m) need.forEach(function(bd){ jobs.push({m:m, band:bd}); });
+      });
+      return pool(jobs, 1, function(j){
+        return passBand(j.m, j.band, function(t){ say(esc(t)); });
+      }).then(function(){ return pair; });
+    }).then(function(pair){
+      step();
+      var need = VIEWS[S2.view].bands;
+      function bandsOf(m){
+        if(!m) return null;
+        var o = {};
+        need.forEach(function(bd){ o[bd] = S2.bands[m.id + '|' + bd]; });
+        return o;
+      }
+      var bA = bandsOf(pair[0]), bB = bandsOf(pair[1]);
+      var st = {};
+      ['B08', 'B12'].forEach(function(bd){
+        if(need.indexOf(bd) < 0) return;
+        st[bd] = stretchOf([bA, bB].filter(Boolean).map(function(o){ return {band:o[bd], tci:o.TCI}; }));
+      });
+      S2.drawn = want;
+      S2.imgA = bA ? compose(S2.view, bA, st) : null;
+      S2.imgB = bB ? compose(S2.view, bB, st) : null;
+      S2.key = key;
+      S2.busy = false;
+      imgControls();
+      S2.summary = imgSummary(bA, bB);
+      imgSay(S2.summary);
+      if(MODE === 'img') render();
+    }).catch(function(e){
+      if(!alive()) return;
+      S2.busy = false;
+      imgControls();
+      if(e && e.message === '__stale') return;
+      imgSay('<b>No imagery drawn.</b><br><span class="no">' + esc((e && e.message) || String(e)) +
+             '</span><br><span style="color:var(--ink-faint)">Sentinel-2 covers land and coast ' +
+             'between 84°N and 80°S; open ocean and the poles are not imaged.</span>');
+    });
+  }
+  function byId(id){
+    for(var i=0; i<(S2.scenes||[]).length; i++) if(S2.scenes[i].id === id) return S2.scenes[i];
+    return null;
+  }
+
+  /* Which passes exist over this ground. The months listed reach back past
+     the event date when there is one, so there is a "before" to find. */
+  function imgScenes(say, step){
     var centre = pxToLL(GRID.w/2, GRID.h/2);
     var ct = mgrsTile(centre.lat, centre.lon);
-    if(!ct){ S2.busy = false; return say('<b>No imagery.</b><br>Sentinel-2 does not cover the poles.'); }
+    if(!ct) return Promise.reject(new Error('Sentinel-2 does not cover the poles'));
     var seen = {}, tiles = [ct];
     seen[ct.id] = 1;
     for(var a=0; a<=4; a++) for(var b=0; b<=4; b++){
@@ -4197,136 +4773,121 @@ function focusGlobe(lat, lon, zoom){
       var t = mgrsTile(ll.lat, ll.lon);
       if(t && !seen[t.id]){ seen[t.id] = 1; tiles.push(t); }
     }
-    tiles = tiles.slice(0, 4);
-
-    var months = s2Months(3);
-    s2List(ct, months).then(function(cands){
+    S2.tiles = tiles.slice(0, 4);
+    var back = 3;
+    if(S2.evt){
+      var ago = (Date.now() - Date.parse(S2.evt.date)) / (30*86400000);
+      back = Math.min(8, Math.max(3, Math.ceil(ago) + 2));
+    }
+    S2.months = s2Months(back);
+    return s2List(ct, S2.months).then(function(cands){
+      step();
       if(!cands.length) throw new Error('no Sentinel-2 scenes are published for square ' + ct.id);
       cands.sort(function(p, q){ return p.id < q.id ? 1 : -1; });
-      cands = cands.slice(0, 30);
-      say('<b>Imagery</b><br>reading cloud cover on ' + cands.length + ' scenes…');
+      cands = cands.slice(0, 45);
+      say('reading metadata for ' + cands.length + ' passes…');
       return pool(cands, 6, s2Meta);
     }).then(function(metas){
       step();
       var ok = metas.filter(function(m){ return m && m.epsg && m.blank < 90; });
-      if(!ok.length) throw new Error('no usable scene metadata came back');
       ok.sort(function(p, q){ return Date.parse(q.date) - Date.parse(p.date); });
       S2.scenes = ok;
-      var pick = null;
-      if(wantId) for(var i=0;i<ok.length;i++) if(ok[i].id === wantId) pick = ok[i];
-      if(!pick){
-        pick = ok[0];
-        ok.forEach(function(m){ if(s2Score(m) < s2Score(pick)) pick = m; });
-      }
-      S2.chosen = pick;
-      fillShots();
-      imgCap();
-
-      /* The neighbouring squares need a scene too, and it should be from
-         about the same day or the seams show as different seasons. */
-      var others = tiles.filter(function(t){ return t.id !== ct.id; });
-      return pool(others, 2, function(t){
-        return s2List(t, months).then(function(list){
-          var near = list.filter(function(s){
-            var d = (s.id.match(/_(\d{8})_/) || [])[1];
-            if(!d) return false;
-            var iso = d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);
-            return Math.abs(Date.parse(iso) - Date.parse(pick.date)) < 7*86400000;
-          }).slice(0, 6);
-          return pool(near, 4, s2Meta).then(function(ms){
-            var good = ms.filter(function(m){ return m && m.epsg && m.blank < 90; });
-            if(!good.length) return null;
-            /* Weight the date hard. Two granules from different overpasses
-               meet in a visible seam -- different sun angle, different
-               weather, sometimes a different week of harvest -- so a
-               same-day granule is worth taking even when it is cloudier
-               than one from three days off. */
-            function fit(m){
-              return m.cloud + Math.abs(Date.parse(m.date) - Date.parse(pick.date))/86400000 * 12;
-            }
-            good.sort(function(p, q){ return fit(p) - fit(q); });
-            return good[0];
-          });
-        });
-      }).then(function(extra){
-        return [pick].concat(extra.filter(Boolean));
-      });
-    }).then(function(list){
-      step();
-      S2.rgb = new Uint8Array(GRID.w*GRID.h*3);
-      S2.got = new Uint8Array(GRID.w*GRID.h);
-      var done = [], n = 0;
-      return pool(list, 1, function(m){
-        n++;
-        say('<b>Imagery</b><br>' + esc(m.id) + '<br>granule ' + n + ' of ' + list.length +
-               ' — fetching…');
-        return s2Paint(m, function(t){
-          say('<b>Imagery</b><br>' + esc(m.id) + '<br>granule ' + n + ' of ' + list.length +
-                 ' — ' + esc(t));
-        }).then(function(r){ done.push({m:m, r:r}); return r; });
-      }).then(function(){ return done; });
-    }).then(function(done){
-      step();
-      S2.key = key;
-      S2.busy = false;
-      if(sel) sel.disabled = false;
-      var px = GRID.w*GRID.h, cov = 0;
-      for(var i=0;i<S2.got.length;i++) if(S2.got[i]) cov++;
-      var bytes = 0, mpp = 0;
-      done.forEach(function(d){ bytes += d.r.bytes||0; if(d.r.mpp) mpp = Math.max(mpp, d.r.mpp); });
-      S2.note = cov ? null : 'nothing painted';
-      if(!cov) throw new Error('the granules returned no pixels over this ground');
-      var main = S2.chosen;
-      var days = {};
-      done.forEach(function(d){ if(d.r.filled) days[String(d.m.date).slice(0,10)] = 1; });
-      var spread = Object.keys(days).sort();
-      S2.summary =
-        '<b>Sentinel-2 L2A</b>, true colour<br>' +
-        '<span style="color:var(--ink)">' + esc(String(main.date).slice(0,10)) + '</span> · ' +
-        main.cloud.toFixed(1) + '% cloud over the whole granule<br>' +
-        Math.round(mpp) + ' m/px · ' + done.length + ' granule' + (done.length>1?'s':'') +
-        ' · ' + (bytes/1048576).toFixed(1) + ' MB read<br>' +
-        (cov < px*0.995
-          ? '<span class="no">&#9679; ' + (100 - cov/px*100).toFixed(0) + '% of this ground ' +
-            'is not covered</span><br>'
-          : '') +
-        (spread.length > 1
-          ? '<span class="no">&#9679; mosaic spans ' + spread.length + ' passes</span> (' +
-            esc(spread[0]) + ' to ' + esc(spread[spread.length-1]) + ') — the join ' +
-            'between granules is a different day, not a change on the ground<br>'
-          : '') +
-        '<span style="color:var(--ink-faint)">read straight from the public COGs by range ' +
-        'request — no tile server, no key. That cloud figure is for the whole 100 km ' +
-        'granule; cover over this ground can be far worse, or clear. Pick another pass ' +
-        'above.</span>';
-      say(S2.summary);
-      if(MODE === 'img') render();
-    }).catch(function(e){
-      if(!alive()) return;                       // a newer area has taken over
-      S2.busy = false; S2.rgb = null; S2.got = null; S2.key = null;
-      if(sel) sel.disabled = false;
-      say('<b>No imagery drawn.</b><br><span class="no">' + esc(e.message || String(e)) +
-             '</span><br><span style="color:var(--ink-faint)">Sentinel-2 covers land and coast ' +
-             'between 84°N and 80°S; open ocean and the poles are not imaged.</span>');
     });
+  }
+
+  function imgSummary(bA, bB){
+    var B = S2.chosenB, A = S2.chosenA, v = VIEWS[S2.view];
+    function line(m, b, tag){
+      if(!m) return '';
+      var l = S2.local[m.id], t = b[v.bands[0]];
+      return (tag ? '<b>' + tag + '</b> ' : '') +
+        '<span style="color:var(--ink)">' + esc(s2Day(m)) + '</span> · ' +
+        (l == null ? m.cloud.toFixed(0) + '% cloud over the granule'
+                   : '<span class="' + (l > 0.3 ? 'no' : 'ok') + '">' + (l*100).toFixed(0) +
+                     '% cloud over this ground</span>') +
+        (t && t.days.length > 1 ? ' · <span class="no">mosaic of ' + t.days.length + ' passes</span>' : '') +
+        '<br>';
+    }
+    var any = bB || bA, first = any[v.bands[0]], cover = first ? first.cover : 0;
+    var out = '<b>Sentinel-2 L2A</b>, ' + esc(v.label) + '<br>';
+    if(S2.cmp){
+      out += line(A, bA || {}, 'BEFORE') ;
+      out += B ? line(B, bB, 'AFTER') : '<b>AFTER</b> <span class="no">no pass since ' +
+               esc(S2.evt ? S2.evt.date : 'then') + ' yet</span> — Sentinel-2 revisits every 2–5 days<br>';
+      if(A && B){
+        var gap = s2DaysBetween(s2Day(B), s2Day(A));
+        out += gap.toFixed(0) + ' days apart' + (gap > 45 ? ' — <span class="no">season and sun angle have changed ' +
+               'too, so not every difference is on the ground</span>' : '') + '<br>';
+      }
+      if(!A) out += '<span class="no">no clear pass before that date in the months searched</span><br>';
+      if(!B && A) out += '<span style="color:var(--ink-faint)">showing the before pass on its own; the after ' +
+             'pass will appear once the satellite has been over again</span><br>';
+      if(A && B) out += '<span style="color:var(--ink-faint)">drag the slider under the map to swipe between them' +
+             (S2.view !== 'tci' ? '; both share one stretch, so colour differences are not processing' : '') +
+             '</span><br>';
+    } else {
+      out += line(B, bB, '');
+    }
+    if(S2.evt) out += '<span style="color:var(--ink-faint)">event date ' + esc(S2.evt.date) +
+                      (S2.evt.basis === 'source' ? ' (from the source)'
+                       : S2.evt.basis === 'brief' ? ' (the source gave no date: start of the collection ' +
+                         'window of the brief that reported it, so nothing labelled before can post-date it)'
+                       : ' (entered)') + '</span><br>';
+    out += Math.round(first ? first.mpp : 0) + ' m/px · ' + (S2.spent/1048576).toFixed(1) + ' MB read this area' +
+           (cover < 0.995 ? ' · <span class="no">' + (100 - cover*100).toFixed(0) + '% of the ground not covered</span>' : '') +
+           '<br><span style="color:var(--ink-faint)">read straight from the public COGs — no tile server, no key. ' +
+           'Cloud here is from each pass’s own pixel classification.</span>';
+    return out;
   }
 
   function imgCap(){
     var cap = document.getElementById('trCap');
     if(!cap || MODE !== 'img') return;
-    cap.innerHTML = S2.chosen
-      ? 'Sentinel-2 ' + esc(String(S2.chosen.date).slice(0,10)) + ' \u00b7 ' +
-        S2.chosen.cloud.toFixed(0) + '% cloud'
-      : 'Sentinel-2 true colour';
+    var v = VIEWS[S2.view].label;
+    cap.innerHTML = S2.cmp && S2.chosenA && S2.chosenB
+      ? esc(s2Day(S2.chosenA)) + ' ◂ before · after ▸ ' + esc(s2Day(S2.chosenB))
+      : S2.cmp && S2.chosenA
+      ? 'before ' + esc(s2Day(S2.chosenA)) + ' · no after pass yet'
+      : (S2.chosenB ? 'Sentinel-2 ' + esc(s2Day(S2.chosenB)) + ' · ' + esc(v) : 'Sentinel-2 ' + esc(v));
+  }
+  function shotLabel(m){
+    var l = S2.local[m.id], rel = '';
+    if(S2.evt){
+      var d = s2DaysBetween(s2Day(m), S2.evt.date);
+      rel = d < 0 ? ' · ' + Math.round(-d) + 'd before' : ' · ' + Math.round(d) + 'd after';
+    }
+    return s2Day(m) + ' · ' + (l == null ? m.cloud.toFixed(0) + '% granule'
+                                              : (l*100).toFixed(0) + '% here') + rel;
   }
   function fillShots(){
-    var sel = document.getElementById('trShot');
-    if(!sel || !S2.scenes) return;
-    sel.innerHTML = S2.scenes.map(function(m){
-      return '<option value="' + esc(m.id) + '"' + (S2.chosen && m.id === S2.chosen.id ? ' selected' : '') +
-             '>' + esc(String(m.date).slice(0,10)) + ' · ' + m.cloud.toFixed(0) + '% cloud</option>';
-    }).join('');
-    sel.style.display = (MODE === 'img') ? '' : 'none';
+    var a = document.getElementById('trShotA'), b = document.getElementById('trShot');
+    if(!b || !S2.scenes) return;
+    function opts(sel){
+      return S2.scenes.map(function(m){
+        return '<option value="' + esc(m.id) + '"' + (sel && m.id === sel.id ? ' selected' : '') + '>' +
+               esc(shotLabel(m)) + '</option>';
+      }).join('');
+    }
+    b.innerHTML = opts(S2.chosenB);
+    if(a) a.innerHTML = '<option value="">none</option>' + opts(S2.chosenA);
+    imgControls();
+  }
+  /* Show the controls that apply, and freeze them while a read is running. */
+  function imgControls(){
+    var bar = document.getElementById('trImgBar'), on = (MODE === 'img');
+    if(bar) bar.style.display = on ? '' : 'none';
+    var a = document.getElementById('trShotA'), b = document.getElementById('trShot');
+    var sw = document.getElementById('trSwipeRow'), cmp = document.getElementById('trCmp');
+    if(b){ b.style.display = (on && S2.scenes) ? '' : 'none'; b.disabled = S2.busy; }
+    if(a){ a.style.display = (on && S2.scenes && S2.cmp) ? '' : 'none'; a.disabled = S2.busy; }
+    if(sw) sw.style.display = (on && S2.cmp && S2.imgA && S2.imgB) ? '' : 'none';
+    if(cmp) cmp.classList.toggle('on', !!S2.cmp);
+    Array.prototype.forEach.call(document.querySelectorAll('.ib-view'), function(x){
+      x.classList.toggle('on', x.dataset.view === S2.view);
+    });
+    var ed = document.getElementById('trEvtDate');
+    if(ed && S2.evt && ed.value !== S2.evt.date) ed.value = S2.evt.date;
+    if(ed && !S2.evt) ed.value = '';
   }
 
   function setLayer(m){
@@ -4347,17 +4908,15 @@ function focusGlobe(lat, lon, zoom){
       cap.style.display = ramp ? 'none' : '';
       cap.innerHTML = m === 'slope' ? 'slope angle, 0\u00b0 to 45\u00b0+'
                     : m === 'view'  ? 'green: in sight of the observer'
-                    : m === 'img'   ? (S2.chosen
-                        ? 'Sentinel-2 ' + esc(String(S2.chosen.date).slice(0,10)) +
-                          ' \u00b7 ' + S2.chosen.cloud.toFixed(0) + '% cloud'
-                        : 'Sentinel-2 true colour')
                     : '';
     }
+    imgControls();
+    imgCap();
     if(!GRID) return;
     if(m === 'img'){
-      if(S2.busy){ render(); return; }
-      if(!S2.got || S2.key !== s2Key()){ render(); imgLoad(); return; }
       render();
+      if(S2.busy) return;
+      if(!S2.imgB && !S2.imgA || S2.key !== s2Key() || S2.drawn !== imgWant()){ imgRun(); return; }
       document.getElementById('trLos').innerHTML = S2.summary || '';
       return;
     }
@@ -4405,13 +4964,33 @@ function focusGlobe(lat, lon, zoom){
     b.addEventListener('click', function(){ setLayer(b.dataset.lyr); });
   });
   (function(){
-    var sel = document.getElementById('trShot');
-    if(!sel) return;
-    sel.addEventListener('change', function(){
-      if(S2.busy || !GRID) return;
-      S2.gen++;
-      S2.rgb = null; S2.got = null; S2.key = null;
-      imgLoad(sel.value);
+    function again(){ if(GRID && MODE === 'img') imgRun(); else imgControls(); }
+    var sel = document.getElementById('trShot'), selA = document.getElementById('trShotA');
+    if(sel) sel.addEventListener('change', function(){ S2.pickB = sel.value || null; again(); });
+    if(selA) selA.addEventListener('change', function(){ S2.pickA = selA.value || null; again(); });
+    Array.prototype.forEach.call(document.querySelectorAll('.ib-view'), function(b){
+      b.addEventListener('click', function(){ S2.view = b.dataset.view; again(); });
+    });
+    var cmp = document.getElementById('trCmp');
+    if(cmp) cmp.addEventListener('click', function(){
+      S2.cmp = !S2.cmp;
+      if(!S2.cmp){ S2.pickA = null; S2.imgA = null; }
+      again();
+    });
+    var ed = document.getElementById('trEvtDate');
+    if(ed) ed.addEventListener('change', function(){
+      var v = ed.value;
+      S2.evt = /^\d{4}-\d{2}-\d{2}$/.test(v) ? {date:v, basis:'manual'} : null;
+      S2.pickA = S2.pickB = null;
+      if(S2.evt) S2.cmp = true;
+      /* a date further back than the months already listed needs a fresh listing */
+      S2.key = null;
+      again();
+    });
+    var sw = document.getElementById('trSwipe');
+    if(sw) sw.addEventListener('input', function(){
+      S2.swipe = Math.max(0, Math.min(1, sw.value / 100));
+      if(MODE === 'img') render();
     });
   })();
 
@@ -4424,6 +5003,9 @@ function focusGlobe(lat, lon, zoom){
     if(Math.abs(la) > 85 || Math.abs(lo) > 180){
       document.getElementById('trHint').innerHTML =
         '<span style="color:#f87171">out of range (lat \u00b185, lon \u00b1180)</span>'; return; }
+    var ed = document.getElementById('trEvtDate');
+    S2.evt = (ed && /^\d{4}-\d{2}-\d{2}$/.test(ed.value)) ? {date:ed.value, basis:'manual'} : null;
+    S2.pickA = S2.pickB = null;
     go(la, lo, parseFloat(document.getElementById('trSpan').value));
   });
   document.getElementById('trCoord').addEventListener('keydown', function(e){
@@ -4439,7 +5021,13 @@ function focusGlobe(lat, lon, zoom){
     if(!isFinite(la) || !isFinite(lo)) return;
     document.getElementById('trCoord').value = la.toFixed(4) + ', ' + lo.toFixed(4);
     band.scrollIntoView({behavior:'smooth', block:'start'});
-    go(la, lo, parseFloat(document.getElementById('trSpan').value));
+    /* A contact with a date opens straight onto the question it raises: what
+       did this ground look like before, and what does it look like now. */
+    var when = b.dataset.when || '';
+    S2.evt = /^\d{4}-\d{2}-\d{2}$/.test(when) ? {date:when, basis:b.dataset.basis || 'source'} : null;
+    S2.cmp = !!S2.evt;
+    S2.pickA = S2.pickB = null;
+    go(la, lo, parseFloat(document.getElementById('trSpan').value), S2.evt ? 'img' : null);
   });
 })();
 
@@ -5112,7 +5700,7 @@ async function boot(){
      covered 97% of the frame -- the globe was pressed against every edge and
      the additive blue shell was most of what you saw. 4.2 gives 2.89, putting
      the earth at 69% with proper margin, matching the 2D globe's framing. */
-  let rotY = -0.35, rotX = -0.26, dist = D0, drag = null;
+  let rotY = -0.35, rotX = -0.26, dist = D0, drag = null, fly = null;
   /* MIN is not just a comfort limit: it sets how far the glyph threshold can be
      crossed. 4.2/1.6 = 2.6x, which is what lifts a 2.4px debris shard past the
      6px mark on a non-HiDPI display. Closer than 1.6 and the 1.035 atmosphere
@@ -5125,7 +5713,7 @@ async function boot(){
   }
   cv.addEventListener('mousedown', e => {
     if(window.TB.boxOn()) return;              // boxing owns the drag
-    drag = {x:e.clientX, y:e.clientY, rx:rotX, ry:rotY, moved:false}; cv.classList.add('drag'); });
+    fly = null; drag = {x:e.clientX, y:e.clientY, rx:rotX, ry:rotY, moved:false}; cv.classList.add('drag'); });
   addEventListener('mousemove', e => {
     if(!drag) return;
     const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
@@ -5143,7 +5731,7 @@ async function boot(){
   let pinch = null;
   cv.addEventListener('touchstart', e => {
     if(e.touches.length===2){ pinch = {d:Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY), z:dist}; drag=null; }
-    else if(e.touches.length===1) drag = {x:e.touches[0].clientX, y:e.touches[0].clientY, rx:rotX, ry:rotY, moved:false};
+    else if(e.touches.length===1){ fly = null; drag = {x:e.touches[0].clientX, y:e.touches[0].clientY, rx:rotX, ry:rotY, moved:false}; }
   }, {passive:true});
   cv.addEventListener('touchmove', e => {
     if(pinch && e.touches.length===2){
@@ -5188,6 +5776,7 @@ async function boot(){
       : Object.assign({}, meta[i], {color:'#'+col.fromArray(cCol, i*3).getHexString()});
     // stop the rotation once something is selected, so it stays under the cursor
     if(best && window.TB.G.spin) window.TB.setSpin(false);
+    if(!best){ const r = cv.getBoundingClientRect(); window.TB.selMiss(cv, ev.clientX - r.left, ev.clientY - r.top); }
     window.TB.G.sel = best;
     window.TB.renderDetail(best);
   }
@@ -5254,8 +5843,54 @@ async function boot(){
 
   const sunV = earthMat.uniforms.sunDir.value;
   let lastRebuild = 0, lastSun = 0;
+
+  /* Where the selected contact is on screen this frame. The point cloud is
+     rebuilt every 700 ms as satellites and aircraft move, so the index is
+     re-found by the contact's underlying record -- which survives a rebuild --
+     and a moving satellite stays under its reticle. Hidden behind the globe,
+     it returns null and the reticle goes with it. */
+  let selI = -1;
+  const _sp = new THREE.Vector3(), _sq = new THREE.Vector3();
+
+  /* Turn the globe to face a point. "SHOW ON GLOBE" and the other jump-to
+     buttons used to rotate only the 2D globe's state, so on this renderer --
+     the one nearly everyone sees -- they selected a contact and left it on the
+     far side of the planet. The world is rotated X-then-Y, so the Y turn
+     swings the point into the x=0 plane facing the camera and the X tilt
+     lifts it to the centre; the flight takes the short way round. */
+  function focus(lat, lon, zoom){
+    const v = ll2v(lat, lon, 0);
+    const ty = Math.atan2(-v[0], v[2]);
+    const tx = Math.max(-1.45, Math.min(1.45, Math.atan2(v[1], Math.hypot(v[0], v[2]))));
+    const td = zoom ? Math.max(MIN, Math.min(dist, D0/zoom)) : dist;
+    const dy = (((ty - rotY) % (2*Math.PI)) + 3*Math.PI) % (2*Math.PI) - Math.PI;
+    fly = {t0: performance.now(), x0: rotX, y0: rotY, d0: dist, dx: tx - rotX, dy: dy, dd: td - dist};
+  }
+  function selScreen(){
+    const sel = window.TB.G.sel;
+    if(!sel) return null;
+    const n = cg.drawRange.count;
+    if(!(selI >= 0 && selI < n && meta[selI] && meta[selI].d === sel.d)){
+      selI = -1;
+      if(sel.d) for(let i=0;i<n;i++) if(meta[i] && meta[i].d === sel.d){ selI = i; break; }
+    }
+    if(selI >= 0) _sp.set(cPos[selI*3], cPos[selI*3+1], cPos[selI*3+2]);
+    else if(sel.lat != null){ const v = ll2v(sel.lat, sel.lon, sel.d && sel.d.alt ? sel.d.alt/6371 : 0); _sp.set(v[0], v[1], v[2]); }
+    else return null;
+    _sp.applyMatrix4(world.matrixWorld);
+    if(occluded(_sp)) return null;
+    _sq.copy(_sp).project(camera);
+    if(_sq.z > 1) return null;
+    return {x:(_sq.x*0.5+0.5)*cv.clientWidth, y:(-_sq.y*0.5+0.5)*cv.clientHeight};
+  }
   function frame(t){
-    if(window.TB.G.spin && !drag && !window.TB.G.hover) rotY += 0.00022 * 16;
+    if(fly){
+      const k = Math.min(1, (performance.now() - fly.t0) / 700), e = 1 - Math.pow(1 - k, 3);
+      rotX = fly.x0 + fly.dx*e; rotY = fly.y0 + fly.dy*e; dist = fly.d0 + fly.dd*e;
+      window.TB.setZoomLabel(D0/dist);
+      if(k >= 1) fly = null;
+    }
+    if(window.TB.G.spin && !drag && !window.TB.G.hover && !fly) rotY += 0.00022 * 16;
     world.rotation.set(rotX, rotY, 0);
     camera.position.set(0, 0, dist); camera.lookAt(0,0,0);
     if(t - lastSun > 30000 || !lastSun){
@@ -5270,10 +5905,12 @@ async function boot(){
     }
     if(t - lastRebuild > 700){ rebuild(); lastRebuild = t; }
     renderer.render(scene, camera);
+    const sp = selScreen();
+    window.TB.selMark(cv, sp ? sp.x : null, sp ? sp.y : null, window.TB.G.sel && window.TB.G.sel.color);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  window.GLOBE3D = {rebuild, renderer, scene, camera,
+  window.GLOBE3D = {rebuild, renderer, scene, camera, focus,
                     get count(){ return cg.drawRange.count; },
                     get dist(){ return dist; }, setDist(d){ dist = d; }};
   window.TB.onWebglReady();
