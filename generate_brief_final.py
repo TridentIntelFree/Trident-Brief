@@ -98,6 +98,7 @@ quiet - one line is fine."""
 
 
 LAST_TOOL_USE = {}
+LAST_GPSJAM = None
 
 
 def report_tool_use(data):
@@ -942,6 +943,92 @@ AIR_ANCHORS = [
 ]
 
 
+# GPS interference. The hub anchors above sit where airliners are, which is not
+# where GPS is jammed. These add the regions where jamming and spoofing are
+# persistent enough to show in a half-hour sample: the Baltic and Gulf of
+# Finland, the Kola border, the Black Sea, the eastern Mediterranean and the
+# Levant, Iraq, the Caucasus, and the India-Pakistan border.
+JAM_ANCHORS = [
+    (55.0, 20.5), (59.4, 25.5), (68.5, 29.0), (44.8, 33.5), (34.8, 33.0),
+    (32.8, 35.5), (33.3, 44.4), (40.3, 46.5), (31.0, 73.5),
+]
+JAM_HOURS = 6          # rolling window the layer aggregates over
+JAM_MIN_SIGHTINGS = 5  # a cell needs this many aircraft sightings to be judged
+JAM_MIN_AIRCRAFT = 2   # ...and degraded GPS from this many different aircraft,
+                       # so one airframe with a faulty receiver is not "jamming"
+
+
+def _gps_degraded(a):
+    """(checked, degraded) for one ADS-B row, gpsjam.org's signal.
+
+    An aircraft broadcasts how accurate it believes its own position is (NACp)
+    and how far it trusts it (NIC). Jamming shows up as those collapsing for
+    every aircraft in an area at once. Only airborne civil ADS-B counts: MLAT
+    and TIS-B positions are computed on the ground, and some military
+    transponders report low accuracy on purpose.
+    """
+    if str(a.get('type') or 'adsb_icao')[:4] not in ('adsb', 'adsr'):
+        return False, False
+    alt = a.get('alt_baro')
+    if alt is None or alt == 'ground' or a.get('version') == 0:
+        return False, False
+    nacp, nic = a.get('nac_p'), a.get('nic')
+    if nacp is None and nic is None and 'gpsOkBefore' not in a:
+        return False, False
+    bad = (isinstance(nacp, int) and nacp < 8) or (isinstance(nic, int) and nic < 7) \
+        or 'gpsOkBefore' in a
+    return True, bool(bad)
+
+
+def _pages_asset(name):
+    repo = os.environ.get('GITHUB_REPOSITORY', 'TridentIntelFree/Trident-Brief')
+    owner, _, rname = repo.partition('/')
+    return f'https://{owner.lower()}.github.io/{rname}/assets/{name}'
+
+
+def gps_jam_layer(cells_now):
+    """Fold this run's per-cell sample into the rolling window and summarise it.
+
+    The feed refresh does not commit, so the window's earlier samples are read
+    back from the copy already deployed on the live site. If that is not
+    reachable the layer simply starts again from this run.
+    """
+    now = datetime.now(timezone.utc)
+    runs = []
+    try:
+        r = requests.get(_pages_asset('gpsjam.json'), timeout=10,
+                         headers={'Cache-Control': 'no-cache'})
+        if r.status_code == 200:
+            runs = r.json().get('runs') or []
+    except Exception as e:
+        print(f"  gpsjam: no earlier samples ({str(e)[:60]})")
+    keep = []
+    for run in runs:
+        t = _wire_time(run.get('at'))
+        if t and now - t <= timedelta(hours=JAM_HOURS) and isinstance(run.get('c'), dict):
+            keep.append(run)
+    keep.append({'at': now.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                 'c': {k: [v[0], v[1], sorted(v[2])[:40]] for k, v in cells_now.items()}})
+    os.makedirs('assets', exist_ok=True)
+    with open('assets/gpsjam.json', 'w', encoding='utf-8') as f:
+        json.dump({'hours': JAM_HOURS, 'runs': keep}, f, separators=(',', ':'))
+
+    agg = {}
+    for run in keep:
+        for k, (n, bad, hexes) in run['c'].items():
+            a = agg.setdefault(k, [0, 0, set()])
+            a[0] += n; a[1] += bad; a[2].update(hexes)
+    out, checked = [], 0
+    for k, (n, bad, hexes) in agg.items():
+        checked += n
+        if n >= JAM_MIN_SIGHTINGS and len(hexes) >= JAM_MIN_AIRCRAFT and bad / n >= 0.02:
+            la, lo = (int(x) for x in k.split(','))
+            out.append([la, lo, n, bad, len(hexes)])
+    out.sort(key=lambda c: -c[3] / c[2])
+    return {'at': keep[-1]['at'], 'hours': JAM_HOURS, 'runs': len(keep), 'checked': checked,
+            'cells_seen': len(agg), 'cells': out[:400]}
+
+
 # airplanes.live answers 403 to every unregistered request ("Please contact us
 # at contact@airplanes.live"), so it is tried last rather than first: putting it
 # ahead of the others cost a wasted round-trip on all seventeen queries.
@@ -960,7 +1047,8 @@ def fetch_aircraft():
     the picture is collected server-side and served same-origin, where nothing
     can refuse it. It is a snapshot, not a live feed, and the page says so.
     """
-    seen, out = set(), []
+    global LAST_GPSJAM
+    seen, out, jam = set(), [], {}
 
     def take(rows, mil=False):
         for a in rows or []:
@@ -971,6 +1059,15 @@ def fetch_aircraft():
             if not key or key in seen:
                 continue
             seen.add(key)
+            is_mil = mil or bool(a.get('dbFlags') and int(a['dbFlags']) & 1)
+            if not is_mil:
+                ok, bad = _gps_degraded(a)
+                if ok:
+                    c = jam.setdefault(f'{math.floor(lat)},{math.floor(lon)}', [0, 0, set()])
+                    c[0] += 1
+                    if bad:
+                        c[1] += 1
+                        c[2].add(str(key))
             rec = {'hex': key, 'flight': (a.get('flight') or '').strip()[:10],
                    't': (a.get('t') or '')[:8], 'lat': round(lat, 3), 'lon': round(lon, 3)}
             alt = a.get('alt_baro')
@@ -1004,7 +1101,7 @@ def fetch_aircraft():
         take(d.get('ac') or d.get('aircraft'), mil=True)
     mil_n = len(out)
 
-    for i, (lat, lon) in enumerate(AIR_ANCHORS):
+    for i, (lat, lon) in enumerate(AIR_ANCHORS + JAM_ANCHORS):
         if i:
             time.sleep(0.4)   # one anchor drew a 429 when fired back to back
         d, _ = _try(_ac_urls(lat, lon), timeout=20)
@@ -1013,6 +1110,14 @@ def fetch_aircraft():
 
     if not out:
         return None, 'no provider answered from the runner either'
+
+    try:
+        LAST_GPSJAM = gps_jam_layer(jam)
+        j = LAST_GPSJAM
+        print(f"  gpsjam: {sum(v[0] for v in jam.values())} sightings with accuracy fields this run; "
+              f"{j['runs']} run(s) in {JAM_HOURS}h, {j['cells_seen']} cells, {len(j['cells'])} flagged")
+    except Exception as e:
+        print(f"  gpsjam failed: {e}")
 
     out = out[:5000]
     os.makedirs('assets', exist_ok=True)
@@ -1803,7 +1908,9 @@ def parse_feed(xml_bytes):
                 f['time'] = _wire_time(ch.text)
             elif k in ('description', 'summary', 'content') and not f['summary']:
                 f['summary'] = _wire_text(''.join(ch.itertext()), 150)
-        if f['title'] and f['url']:
+        # Feed content is someone else's: a link that is not plain http(s) could
+        # run script when the page renders it, so it never gets that far.
+        if f['title'] and re.match(r'https?://', f['url'] or '', re.I):
             out.append(f)
     return out
 
@@ -1896,6 +2003,21 @@ def fetch_wire(hours):
     return merged, detail
 
 
+def wire_for_page(items, cap=160):
+    """The headlines in the page's own compact shape, newest first."""
+    rows = sorted(items, key=lambda i: (i['time'] or datetime.min.replace(tzinfo=timezone.utc)),
+                  reverse=True)
+    out = []
+    for i in rows[:cap]:
+        r = {'s': i['src'], 'd': i['desk'], 't': i['title'], 'u': i['url']}
+        if i['time']:
+            r['at'] = i['time'].strftime('%Y-%m-%dT%H:%M:%SZ')
+        if i.get('summary') and i['desk'] != 'reddit':
+            r['m'] = i['summary']
+        out.append(r)
+    return out
+
+
 def wire_lines(items, cap=WIRE_MAX):
     """Group by desk, most-corroborated first, and fit the cap fairly across desks."""
     by = {d: [] for d, _ in WIRE_DESKS}
@@ -1929,7 +2051,7 @@ def wire_lines(items, cap=WIRE_MAX):
     return out
 
 
-def fetch_primary_leads(hours):
+def fetch_primary_leads(hours, wire_hours=None):
     leads, errors = {}, {}
     nw, err = fetch_navwarnings()
     if nw is None:
@@ -1945,7 +2067,7 @@ def fetch_primary_leads(hours):
         leads['gdelt'] = gd
         leads['gdelt_meta'] = meta
     try:
-        wire, detail = fetch_wire(hours)
+        wire, detail = fetch_wire(wire_hours or hours)
         leads['wire'], leads['wire_detail'] = wire, detail
         bad = [k for k, v in detail.items() if isinstance(v, str)]
         print(f"  wire: {len(wire)} stories from {len(detail) - len(bad)}/{len(detail)} feeds"
@@ -2048,6 +2170,285 @@ def leads_block(leads, hours):
     return '\n'.join(out)
 
 
+# ------------------------------------------------------------ appalachia ----
+# Appalachistan: the Appalachian Trail and what is along it, for a map that has
+# to keep working with no signal. Built from OpenStreetMap through Overpass once
+# a month and otherwise read back from the copy already on the live site, so
+# the half-hourly refresh does not re-query Overpass every thirty minutes.
+APP_FILE = 'assets/appalachia.json'
+APP_VERSION = 1
+APP_MAX_AGE_DAYS = 30
+OVERPASS = ['https://overpass-api.de/api/interpreter',
+            'https://overpass.kumi.systems/api/interpreter',
+            'https://overpass.private.coffee/api/interpreter']
+_AT_RELS = """rel["route"="hiking"]["name"~"^Appalachian (National Scenic )?Trail"]["name"!~"International"]->.top;
+rel(r.top)["route"="hiking"]->.kids;
+rel(r.kids)["route"="hiking"]->.grand;
+(.top;.kids;.grand;)->.rels;
+way(r.rels)->.w;"""
+APP_LINE_Q = '[out:json][timeout:240];\n' + _AT_RELS + '\n.w out geom qt;'
+APP_POI_Q = '[out:json][timeout:300];\n' + _AT_RELS + """
+(
+  nwr(around.w:1200)["amenity"="shelter"];
+  nwr(around.w:1200)["tourism"~"^(wilderness_hut|alpine_hut|camp_site)$"];
+  node(around.w:500)["amenity"="drinking_water"];
+  node(around.w:500)["natural"="spring"];
+  node(around.w:800)["natural"="peak"]["name"];
+  node(around.w:600)["tourism"="viewpoint"];
+  nwr(around.w:1200)["highway"="trailhead"];
+  node(around.w:1200)["waterway"="waterfall"];
+  node(around.w:5000)["place"~"^(town|village)$"];
+);
+out center tags qt;"""
+
+
+def _poi_kind(t):
+    if t.get('amenity') == 'shelter' or t.get('tourism') in ('wilderness_hut', 'alpine_hut'):
+        return 'shelter'
+    if t.get('tourism') == 'camp_site':
+        return 'camp'
+    if t.get('amenity') == 'drinking_water' or t.get('natural') == 'spring':
+        return 'water'
+    if t.get('natural') == 'peak':
+        return 'peak'
+    if t.get('tourism') == 'viewpoint':
+        return 'view'
+    if t.get('highway') == 'trailhead':
+        return 'trailhead'
+    if t.get('waterway') == 'waterfall':
+        return 'falls'
+    if t.get('place') in ('town', 'village'):
+        return 'town'
+    return None
+
+
+def _overpass(q, timeout=330):
+    last = 'no server tried'
+    for url in OVERPASS:
+        try:
+            r = requests.post(url, data={'data': q}, timeout=timeout,
+                              headers={'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'})
+            if r.status_code == 200:
+                return r.json(), None
+            last = f'{url.split("/")[2]} HTTP {r.status_code}'
+        except Exception as e:
+            last = f'{url.split("/")[2]} {str(e)[:80]}'
+        print(f"    overpass: {last}")
+    return None, last
+
+
+def _m(a, b):
+    return _km(a[0], a[1], b[0], b[1]) * 1000.0
+
+
+def _rdp(pts, tol_m):
+    """Douglas-Peucker in a local flat projection; keeps the ends."""
+    if len(pts) < 3:
+        return pts
+    lat0 = math.radians(sum(p[0] for p in pts) / len(pts))
+    kx, ky = 111320.0 * math.cos(lat0), 110540.0
+    xy = [(p[1] * kx, p[0] * ky) for p in pts]
+    keep = [False] * len(pts)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(pts) - 1)]
+    while stack:
+        i, j = stack.pop()
+        (x1, y1), (x2, y2) = xy[i], xy[j]
+        dx, dy = x2 - x1, y2 - y1
+        L = dx * dx + dy * dy
+        best, bk = -1.0, -1
+        for k in range(i + 1, j):
+            x, y = xy[k]
+            if L == 0:
+                d = (x - x1) ** 2 + (y - y1) ** 2
+            else:
+                t = max(0.0, min(1.0, ((x - x1) * dx + (y - y1) * dy) / L))
+                d = (x - x1 - t * dx) ** 2 + (y - y1 - t * dy) ** 2
+            if d > best:
+                best, bk = d, k
+        if bk > 0 and best > tol_m * tol_m:
+            keep[bk] = True
+            stack += [(i, bk), (bk, j)]
+    return [p for p, k in zip(pts, keep) if k]
+
+
+def _enc(pts):
+    """[[lat,lon],...] -> flat delta-coded ints at 1e-5 degrees (~1 m)."""
+    out, pl, pn = [], 0, 0
+    for la, lo in pts:
+        a, b = round(la * 1e5), round(lo * 1e5)
+        out += [a - pl, b - pn]
+        pl, pn = a, b
+    return out
+
+
+def _at_path(ways):
+    """Order the trail from Springer to Katahdin as the shortest route through the
+    relation's ways, so every point along it has a trail mile. Alternates and
+    side routes in the relation fall off the shortest path by themselves."""
+    import heapq
+    adj, geo = {}, {}
+    for w in ways:
+        n, g = w.get('nodes') or [], w.get('geometry') or []
+        if len(n) < 2 or len(n) != len(g):
+            continue
+        pts = [(p['lat'], p['lon']) for p in g]
+        L = sum(_m(pts[i - 1], pts[i]) for i in range(1, len(pts)))
+        geo[n[0]], geo[n[-1]] = pts[0], pts[-1]
+        adj.setdefault(n[0], []).append((n[-1], L, pts))
+        adj.setdefault(n[-1], []).append((n[0], L, pts[::-1]))
+    if not adj:
+        return None
+    # Bridge small breaks: two dangling ends within 300 m that OpenStreetMap
+    # does not join (a river ford, a ferry, a mapping gap) are one trail. A
+    # longer break is left alone -- the length check below catches that.
+    cell = {}
+    for k, (la, lo) in geo.items():
+        cell.setdefault((int(la * 200), int(lo * 200)), []).append(k)
+    dangling = [k for k in adj if len(adj[k]) == 1]
+    for k in dangling:
+        la, lo = geo[k]
+        best, bk = 300.0, None
+        cx, cy = int(la * 200), int(lo * 200)
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for o in cell.get((cx + dx, cy + dy), []):
+                    if o == k or any(v == o for v, _, _ in adj[k]):
+                        continue
+                    d = _m(geo[k], geo[o])
+                    if d < best:
+                        best, bk = d, o
+        if bk is not None:
+            adj[k].append((bk, best, [geo[k], geo[bk]]))
+            adj[bk].append((k, best, [geo[bk], geo[k]]))
+    start = min(adj, key=lambda k: geo[k][0])          # southern terminus
+    dist, prev = {start: 0.0}, {}
+    pq = [(0.0, start)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist.get(u, 1e18):
+            continue
+        for v, L, pts in adj[u]:
+            if d + L < dist.get(v, 1e18):
+                dist[v], prev[v] = d + L, (u, pts)
+                heapq.heappush(pq, (d + L, v))
+    end = max(dist, key=lambda k: dist[k])
+    chain, v = [], end
+    while v in prev:
+        u, pts = prev[v]
+        chain.append(pts)
+        v = u
+    path = []
+    for pts in reversed(chain):
+        path += pts if not path else pts[1:]
+    return path, dist[end] / 1609.344
+
+
+def build_appalachia():
+    t0 = time.time()
+    line, err = _overpass(APP_LINE_Q)
+    if line is None:
+        return None, 'trail line: ' + err
+    ways = [e for e in line.get('elements', []) if e.get('type') == 'way' and e.get('geometry')]
+    if len(ways) < 50:
+        return None, f'trail line: only {len(ways)} ways came back'
+    segs, npts = [], 0
+    for w in ways:
+        pts = _rdp([(p['lat'], p['lon']) for p in w['geometry']], 8)
+        npts += len(pts)
+        segs.append(_enc(pts))
+    out = {'v': APP_VERSION, 'built_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+           'source': 'OpenStreetMap contributors (ODbL), via Overpass',
+           'ways': len(ways), 'segs': segs, 'pois': []}
+    pp = _at_path(ways)
+    cum = None
+    if pp:
+        path, miles = pp
+        out['path_mi'] = round(miles, 1)
+        # Only claim trail miles when the route came out close to the real
+        # trail's length; a relation with a gap gives a path that stops short.
+        if 2050 <= miles <= 2350:
+            coarse = _rdp(path, 25)
+            out['path'] = _enc(coarse)
+            cum, c = [0.0], 0.0
+            for i in range(1, len(coarse)):
+                c += _m(coarse[i - 1], coarse[i]) / 1609.344
+                cum.append(c)
+            path_pts = coarse
+        print(f"  appalachia: shortest route {miles:.0f} mi "
+              f"({'miles kept' if cum else 'outside 2050-2350, miles not published'})")
+
+    pois, perr = _overpass(APP_POI_Q)
+    if pois is None:
+        out['poi_error'] = perr
+    else:
+        seen = set()
+        for e in pois.get('elements', []):
+            t = e.get('tags') or {}
+            k = _poi_kind(t)
+            la = e.get('lat', (e.get('center') or {}).get('lat'))
+            lo = e.get('lon', (e.get('center') or {}).get('lon'))
+            if not k or la is None or lo is None:
+                continue
+            name = (t.get('name') or '').strip()[:60]
+            key = (k, round(la, 4), round(lo, 4))
+            if key in seen:
+                continue
+            seen.add(key)
+            row = [round(la, 5), round(lo, 5), k, name]
+            mile = None
+            if cum:
+                # nearest vertex of the ordered route -- good to a few hundred metres
+                best, bi = 1e18, 0
+                for i in range(0, len(path_pts)):
+                    q = path_pts[i]
+                    d = (q[0] - la) ** 2 + ((q[1] - lo) * math.cos(math.radians(la))) ** 2
+                    if d < best:
+                        best, bi = d, i
+                mile = round(cum[bi], 1)
+            row.append(mile)
+            ele = re.match(r'^\s*(-?\d+(?:\.\d+)?)', str(t.get('ele') or ''))
+            row.append(round(float(ele.group(1))) if ele else None)
+            out['pois'].append(row)
+    kinds = {}
+    for r in out['pois']:
+        kinds[r[2]] = kinds.get(r[2], 0) + 1
+    print(f"  appalachia: built from Overpass in {time.time() - t0:.0f}s - {len(ways)} ways, "
+          f"{npts} points, POIs {kinds or out.get('poi_error')}")
+    return out, None
+
+
+def fetch_appalachia():
+    """Keep assets/appalachia.json on the site: reuse the deployed copy while it is
+    fresh, rebuild from Overpass when it is missing or a month old."""
+    old = None
+    try:
+        r = requests.get(_pages_asset('appalachia.json'), timeout=30, headers={'Cache-Control': 'no-cache'})
+        if r.status_code == 200:
+            old = r.json()
+    except Exception as e:
+        print(f"  appalachia: no deployed copy ({str(e)[:60]})")
+    fresh = False
+    if old and old.get('v') == APP_VERSION:
+        t = _wire_time(old.get('built_at'))
+        fresh = bool(t and datetime.now(timezone.utc) - t < timedelta(days=APP_MAX_AGE_DAYS)
+                     and old.get('pois'))
+    data, err = (old, None) if fresh else build_appalachia()
+    if data is None and old:
+        data = old
+        print(f"  appalachia: rebuild failed ({err}); keeping the deployed copy")
+    if data is None:
+        print(f"  appalachia: not available ({err})")
+        return None
+    os.makedirs('assets', exist_ok=True)
+    with open(APP_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, separators=(',', ':'))
+    if fresh:
+        print(f"  appalachia: reused deployed copy built {data.get('built_at')}")
+    return {'built_at': data.get('built_at'), 'ways': data.get('ways'), 'pois': len(data.get('pois') or []),
+            'path_mi': data.get('path_mi'), 'kb': os.path.getsize(APP_FILE) // 1024}
+
+
 def fetch_server_feeds(leads=None):
     """Fetch the rate-limited / CORS-awkward feeds here instead of in the browser.
 
@@ -2062,10 +2463,14 @@ def fetch_server_feeds(leads=None):
     # fetches a short window of its own, which is also what exercises both
     # collectors every half hour without spending anything on the model.
     if leads is None:
-        leads = fetch_primary_leads(LEAD_REFRESH_HOURS)
+        # The headline panel on the page shows the whole collection window, so
+        # the wire keeps it even on the short-window feeds-only run.
+        leads = fetch_primary_leads(LEAD_REFRESH_HOURS, wire_hours=WINDOW_HOURS)
     for k in ('navwarn', 'gdelt', 'gdelt_meta', 'wire_detail'):
         if k in leads:
             feeds[k] = leads[k]
+    if leads.get('wire'):
+        feeds['wire'] = wire_for_page(leads['wire'])
     errors.update(leads.get('errors') or {})
 
     # all_day carries every recorded event (~250-400/day) rather than the ~30
@@ -2126,6 +2531,8 @@ def fetch_server_feeds(leads=None):
         print(f"  aircraft failed: {err}")
     else:
         feeds['aircount'] = ac
+        if LAST_GPSJAM:
+            feeds['gpsjam'] = LAST_GPSJAM
 
     sats, err = fetch_skywatch()
     if sats is None:
@@ -2133,6 +2540,12 @@ def fetch_server_feeds(leads=None):
         print(f"  skywatch failed: {err}")
     else:
         feeds['satcounts'] = sats
+
+    try:
+        feeds['appalachia'] = fetch_appalachia()
+    except Exception as e:
+        errors['appalachia'] = str(e)[:160]
+        print(f"  appalachia failed: {e}")
 
     dis, err = fetch_disasters()
     if dis is None:
@@ -2161,8 +2574,13 @@ def write_feed_status(feeds):
     for k in ('quakes', 'launches', 'alerts', 'disasters', 'vessels', 'navwarn', 'gdelt'):
         counts[k] = len(feeds[k]) if isinstance(feeds.get(k), list) else None
     counts['gdelt_detail'] = feeds.get('gdelt_meta')
+    counts['wire'] = len(feeds['wire']) if isinstance(feeds.get('wire'), list) else None
     counts['wire_detail'] = feeds.get('wire_detail')
     counts['aircraft'] = feeds.get('aircount')
+    counts['appalachia'] = feeds.get('appalachia')
+    gj = feeds.get('gpsjam') or {}
+    counts['gpsjam'] = {k: gj.get(k) for k in ('runs', 'checked', 'cells_seen')} | \
+        {'flagged': len(gj.get('cells') or [])} if gj else None
     counts['satellites'] = feeds.get('satcounts')
     # Which basemap actually reached the page. The globe silently degrades to the
     # older, lower-contrast three.js texture if the Blue Marble mirror is down,

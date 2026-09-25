@@ -253,6 +253,17 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
   background:linear-gradient(90deg,#1e3a5f,#2d6a4f,#74a942,#c9b458,#a0642e,#8a6a5c,#e8eefc)}
 .tr-scale{white-space:nowrap}
 .tr-side{min-width:0}
+.tr-wx{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));border:1px solid var(--line2);
+  border-radius:9px;padding:11px 13px;margin-bottom:10px;font-family:var(--mono);font-size:.72em;color:var(--ink-dim);line-height:1.6}
+.wx-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.wx-k{letter-spacing:.12em;color:var(--ink-faint);font-size:.9em}
+.wx-now{color:#fff;font-size:1.3em;font-weight:700;font-family:system-ui,sans-serif}
+.wx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:4px 12px;margin:6px 0}
+.wx-grid b{color:var(--ink);font-weight:600}
+.wx-grid .warn{color:var(--amber)}
+.wx-next{border-top:1px solid var(--line2);padding-top:6px;margin-top:4px}
+.wx-src{margin-top:5px;color:var(--ink-faint);font-size:.9em}
+.wx-src a{color:var(--ink-faint)}
 .tr-read{background:linear-gradient(180deg,rgba(18,28,56,.85),rgba(11,18,38,.85));border:1px solid var(--line2);
   border-radius:9px;padding:13px;margin-bottom:10px;min-height:104px}
 #trProfile{width:100%;height:auto;display:block;border:1px solid var(--line2);border-radius:9px;background:rgba(7,13,30,.8)}
@@ -298,6 +309,99 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
   text-transform:uppercase;margin-right:2px}
 .quiet-row span{font-family:var(--mono);font-size:.68em;letter-spacing:.06em;color:var(--ink-dim);
   background:rgba(30,41,73,.7);border-radius:4px;padding:2px 7px}
+
+/* ---------- foldable bands ---------- */
+.section-band.folded > :not(.band-head){display:none!important}
+.section-band.folded .band-head{margin-bottom:0}
+.fold-btn{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);font-family:var(--mono);
+  font-size:.68em;letter-spacing:.08em;padding:4px 10px;border-radius:20px;cursor:pointer;text-transform:uppercase;margin-left:auto}
+.fold-btn:hover{border-color:var(--blue);color:#fff}
+.band-head.foldable h2{cursor:pointer}
+
+/* ---------- appalachistan ---------- */
+.ap-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.ap-bar select,.ap-search input{background:#0a1226;border:1px solid var(--line);color:var(--ink);border-radius:8px;
+  padding:8px 10px;font-family:var(--mono);font-size:.8em;min-height:38px}
+.ap-bar select{flex:1 1 200px;min-width:0;max-width:100%}
+.ap-search{position:relative;flex:1 1 190px;min-width:0}
+.ap-search input{width:100%}
+.ap-hits{position:absolute;left:0;right:0;top:100%;z-index:1200;background:#0b1430;border:1px solid var(--line);
+  border-radius:0 0 8px 8px;display:none;max-height:300px;overflow:auto}
+.ap-hits button{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line2);
+  color:var(--ink);padding:8px 10px;font-size:.85em;cursor:pointer}
+.ap-hits button:hover{background:rgba(59,130,246,.18)}
+.ap-hits small{color:var(--ink-faint);font-family:var(--mono);margin-left:6px}
+.ap-btn{background:rgba(15,23,48,.9);border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:.74em;
+  letter-spacing:.06em;padding:8px 12px;border-radius:8px;cursor:pointer;min-height:38px}
+.ap-btn:hover{border-color:var(--blue)}
+.ap-btn.on{background:rgba(59,130,246,.28);border-color:var(--blue);color:#fff}
+.ap-btn.warn{border-color:#ef4444;color:#fecaca}
+.ap-btn:disabled{opacity:.45;cursor:default}
+.ap-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.ap-mapwrap{position:relative}
+#apMap{height:clamp(420px,68vh,820px);border:1px solid var(--line);border-radius:10px;background:#0b1224;overflow:hidden}
+.ap-boot{height:100%;display:grid;place-items:center;color:var(--ink-faint);font-family:var(--mono);font-size:.8em;text-align:center;padding:20px}
+.ap-net{position:absolute;left:50%;transform:translateX(-50%);top:10px;z-index:900;white-space:nowrap;font-family:var(--mono);font-size:.68em;padding:3px 8px;border-radius:6px;
+  background:rgba(8,13,30,.85);color:var(--ink-dim);pointer-events:none}
+.ap-net.off{color:#fbbf24}
+.ap-tabs{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.ap-tab{background:rgba(15,23,48,.8);border:1px solid var(--line2);color:var(--ink-dim);font-family:var(--mono);font-size:.7em;
+  letter-spacing:.08em;padding:8px 11px;border-radius:8px 8px 0 0;cursor:pointer;min-height:36px}
+.ap-tab.on{background:rgba(59,130,246,.22);border-color:var(--blue);color:#fff}
+.ap-tab.ap-sos{color:#fca5a5}
+.ap-panel{border:1px solid var(--line);border-radius:0 10px 10px 10px;padding:14px;background:rgba(10,17,36,.9);
+  font-size:.88em;line-height:1.6;min-height:120px}
+.ap-panel h4{font-family:var(--mono);font-size:.72em;letter-spacing:.12em;color:var(--ink-faint);margin:10px 0 4px;font-weight:600}
+.ap-panel h4:first-child{margin-top:0}
+.ap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 16px}
+.ap-grid.wide{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.ap-kv{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line2);padding:3px 0}
+.ap-kv span:first-child{color:var(--ink-faint);font-family:var(--mono);font-size:.82em;letter-spacing:.05em}
+.ap-kv b{color:#fff;font-weight:600;text-align:right}
+.ap-coord{font-family:var(--mono);color:#fff;font-size:1.02em;word-break:break-word}
+.ap-big{font-family:var(--mono);font-size:1.5em;color:#fff;font-weight:700;line-height:1.3}
+.ap-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.ap-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.ap-li{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line2);border-radius:8px;padding:6px 9px}
+.ap-li .nm{color:#fff}
+.ap-li small{color:var(--ink-faint);font-family:var(--mono)}
+.ap-dim{color:var(--ink-faint)}
+.ap-warn{color:#fbbf24}
+.ap-bad{color:#f87171}
+.ap-arrow{width:64px;height:64px;flex:none}
+.ap-prog{height:8px;border-radius:4px;background:#1e293b;overflow:hidden;margin:6px 0}
+.ap-prog i{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+.ap-fine{margin-top:10px;color:var(--ink-faint);font-size:.76em;line-height:1.6}
+.ap-panel input[type=text],.ap-panel input[type=number],.ap-panel select{background:#0a1226;border:1px solid var(--line);color:var(--ink);
+  border-radius:7px;padding:7px 9px;font-family:var(--mono);font-size:.9em;min-height:36px}
+.ap-panel input[type=number]{width:96px}
+.leaflet-container{font-family:system-ui,sans-serif;background:#0b1224}
+.leaflet-popup-content{font-size:13px;line-height:1.5;margin:10px 12px}
+.ap-pop b{font-size:14px}
+.ap-pop .k{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#475569}
+.ap-pop .row{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
+.ap-pop button,.ap-pop a.b{font:11px ui-monospace,monospace;letter-spacing:.04em;border:1px solid #94a3b8;background:#f1f5f9;color:#0f172a;
+  border-radius:6px;padding:5px 8px;cursor:pointer;text-decoration:none}
+.ap-me{filter:drop-shadow(0 0 4px rgba(0,0,0,.6))}
+@media (max-width:640px){ .ap-tab{flex:1 1 30%;text-align:center;border-radius:8px} .ap-panel{border-radius:10px}
+  #apMap .leaflet-control-attribution{font-size:9px;max-width:62%;line-height:1.35} }
+
+/* ---------- wire ---------- */
+.wire-list{display:flex;flex-direction:column;border:1px solid var(--line2);border-radius:9px;overflow:hidden}
+.w-row{display:grid;grid-template-columns:62px 1fr;gap:12px;padding:9px 12px;border-top:1px solid var(--line2);
+  background:rgba(11,18,38,.55);border-left:3px solid transparent}
+.w-row:first-child{border-top:0}
+.w-row:hover{background:rgba(20,32,64,.8)}
+.w-when{font-family:var(--mono);font-size:.7em;color:var(--ink-faint);padding-top:3px;white-space:nowrap}
+.w-src{display:block;font-family:var(--mono);font-size:.64em;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:2px}
+.w-t{color:#fff;text-decoration:none;font-size:.9em;font-weight:600;line-height:1.45}
+.w-t:hover{color:var(--cyan);text-decoration:underline}
+.w-m{display:block;color:var(--ink-faint);font-size:.8em;line-height:1.5;margin-top:2px}
+.w-tag{display:inline-block;font-family:var(--mono);font-size:.9em;letter-spacing:.06em;border-radius:3px;padding:0 5px;margin-left:6px}
+.w-tag.new{background:rgba(251,191,36,.18);color:var(--amber)}
+.w-tag.multi{background:rgba(34,197,94,.16);color:var(--green)}
+.wire-more{margin-top:10px}
+@media (max-width:640px){ .w-row{grid-template-columns:1fr;gap:2px} }
 
 /* ---------- event board ---------- */
 .ev-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
@@ -498,6 +602,8 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       <span class="pill" id="stalePill" style="display:none"></span>
       <a class="pill" href="#godseye" style="text-decoration:none"><span class="dot live"></span>GOD'S EYE FEEDS</a>
       <a class="pill" href="#eventBand" style="text-decoration:none">EVENT BOARD <b id="pillEvents">0</b></a>
+      <a class="pill" href="#appBand" style="text-decoration:none">&#129406; APPALACHISTAN</a>
+      <a class="pill" href="#wireBand" style="text-decoration:none;display:none" id="pillWireA" title="headlines published since this brief was collected">NEW ON THE WIRE <b id="pillWire">0</b></a>
       <button class="pill" style="cursor:pointer" onclick="window.print()">PRINT / PDF</button>
     </div>
   </div>
@@ -534,6 +640,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
           <span class="lyr-group"><b>surface</b>
             <button class="lyr on" data-layer="air"><i style="background:#22d3ee"></i>AIR <b id="nAir">0</b></button>
             <button class="lyr on" data-layer="naval"><i style="background:#34d399"></i>NAVAL <b id="nNaval">0</b></button>
+            <button class="lyr on" data-layer="jam" title="GPS interference: where many aircraft at once report degraded GPS accuracy, rolling 6 hours"><i style="background:#f43f5e"></i>GPS JAM <b id="nJam">0</b></button>
           </span>
           <span class="lyr-group"><b>earth</b>
             <button class="lyr on" data-layer="quake"><i style="background:#fbbf24"></i>SEISMIC <b id="nQuake">0</b></button>
@@ -663,6 +770,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
           <div class="globe-hint">hover to read elevation &middot; click twice to draw a line of sight</div>
         </div>
         <div class="tr-side">
+          <div class="tr-wx" id="trWx" style="display:none"></div>
           <div class="tr-read" id="trRead"></div>
           <canvas id="trProfile"></canvas>
           <div class="tr-los" id="trLos"></div>
@@ -679,6 +787,17 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
     </div>
     <div class="ev-filters" id="evFilters"></div>
     <div class="ev-list" id="evList"></div>
+  </div>
+
+  <!-- ============ WIRE ============ -->
+  <div class="section-band" id="wireBand" style="display:none">
+    <div class="band-head">
+      <h2>&#128240; Wire &mdash; Headlines</h2>
+      <div class="sub" id="wireSub"></div>
+    </div>
+    <div class="ev-filters" id="wireFilters"></div>
+    <div class="wire-list" id="wireList"></div>
+    <button class="ev-f wire-more" id="wireMore" style="display:none"></button>
   </div>
 
   <!-- ============ RECURRENCE ============ -->
@@ -761,6 +880,46 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       <div class="sub" id="archCount"></div>
     </div>
     <div class="arch-list" id="archList"></div>
+  </div>
+
+  <!-- ============ APPALACHISTAN ============ -->
+  <div class="section-band" id="appBand">
+    <div class="band-head">
+      <h2>&#129406; Appalachistan &mdash; Trail Maps</h2>
+      <div class="sub">
+        the Appalachian Trail and the ground around it &middot; GPS, trail miles, offline maps &middot;
+        topo <a href="https://www.usgs.gov/programs/national-geospatial-program/national-map" target="_blank" rel="noopener">USGS The National Map</a> (public domain) &middot;
+        trail data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>
+      </div>
+    </div>
+    <div class="ap-bar">
+      <select id="apJump" title="jump to a section of trail"><option value="">Jump to&hellip;</option></select>
+      <div class="ap-search"><input type="search" id="apFind" placeholder="find shelter, water, peak, town&hellip;" autocomplete="off"><div class="ap-hits" id="apHits"></div></div>
+      <button class="ap-btn ap-gps" id="apLocate" title="show where you are (uses the phone's GPS; works without signal)">&#9678; LOCATE</button>
+      <button class="ap-btn" id="apFollow" title="keep the map centred on you">FOLLOW</button>
+    </div>
+    <div class="ap-kinds" id="apKinds"></div>
+    <div class="ap-mapwrap">
+      <div id="apMap"><div class="ap-boot" id="apBoot">map loads when you scroll here &middot; <button class="ap-btn" id="apStart">OPEN MAP NOW</button></div></div>
+      <div class="ap-net" id="apNet"></div>
+    </div>
+    <div class="ap-tabs" id="apTabs">
+      <button class="ap-tab on" data-tab="here">HERE</button>
+      <button class="ap-tab" data-tab="goto">GO TO</button>
+      <button class="ap-tab" data-tab="track">TRACK</button>
+      <button class="ap-tab" data-tab="wpt">WAYPOINTS</button>
+      <button class="ap-tab" data-tab="measure">MEASURE</button>
+      <button class="ap-tab" data-tab="offline">OFFLINE</button>
+      <button class="ap-tab ap-sos" data-tab="sos">EMERGENCY</button>
+    </div>
+    <div class="ap-panel" id="apPanel"></div>
+    <div class="ap-fine">
+      A navigation aid, not a substitute for a paper map, a compass and knowing how to use them. Phones lose
+      battery and signal, and browsers pause a page when the screen turns off, so a track records only while
+      this page is open and the screen is on. Bearings are to true north; a magnetic compass along the AT reads
+      roughly 5&deg;&ndash;16&deg; west of true. Trail miles are measured along OpenStreetMap's line from Springer
+      Mountain and will differ from guidebook miles by a few tenths.
+    </div>
   </div>
 
   <div class="footer">
@@ -1183,7 +1342,7 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 var G = {
   rot:[20,-15], R:0, baseR:0, zoom:1, cx:0, cy:0, spin:true, sel:null, drag:null,
   layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true,
-          conflict:true, navwarn:true},
+          conflict:true, navwarn:true, jam:true},
   air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[]
 };
 
@@ -1199,8 +1358,16 @@ var KIND = {
   naval: {color:'#34d399', label:'VESSEL'},
   iss:   {color:'#a78bfa', label:'ORBITAL'},
   conflict:{color:'#f472b6', label:'CONFLICT HOTSPOT'},
-  navwarn: {color:'#a3e635', label:'NAV WARNING'}
+  navwarn: {color:'#a3e635', label:'NAV WARNING'},
+  jam:     {color:'#f43f5e', label:'GPS INTERFERENCE'}
 };
+/* GPS interference cells: 1-degree squares where airborne civil aircraft report
+   degraded GPS, built server-side from the ADS-B picture over six hours.
+   gpsjam.org's thresholds: over 10% of aircraft is high, 2-10% elevated. */
+var JAM = ((typeof FEEDS !== 'undefined' && FEEDS && FEEDS.gpsjam && FEEDS.gpsjam.cells) || []).map(function(c){
+  return {lat0:c[0], lon0:c[1], lat:c[0]+.5, lon:c[1]+.5, n:c[2], bad:c[3], ac:c[4], pct:c[3]/Math.max(1,c[2])};
+});
+function jamColor(p){ return p >= .10 ? '#ef4444' : '#f59e0b'; }
 var SECTION_COLOR = {geopolitical:'#ef4444', technology:'#a78bfa', homeland:'#f59e0b', uap:'#22d3ee', research:'#22c55e'};
 
 var cv = document.getElementById('globe'), ctx = cv.getContext('2d');
@@ -1438,6 +1605,23 @@ function drawNavAreas(){
   ctx.restore();
 }
 
+function drawJamCells(){
+  if(!G.layers.jam || !JAM.length) return;
+  ctx.save();
+  JAM.forEach(function(j){
+    var cs = [[j.lon0, j.lat0], [j.lon0+1, j.lat0], [j.lon0+1, j.lat0+1], [j.lon0, j.lat0+1]];
+    var pts = [];
+    for(var i=0; i<4; i++){ var q = project(cs[i][0], cs[i][1]); if(q.z <= 0) return; pts.push(q); }
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+    for(var k=1; k<4; k++) ctx.lineTo(pts[k].x, pts[k].y);
+    ctx.closePath();
+    ctx.globalAlpha = j.pct >= .10 ? .5 : .32;
+    ctx.fillStyle = jamColor(j.pct); ctx.fill();
+    ctx.globalAlpha = .8; ctx.strokeStyle = jamColor(j.pct); ctx.lineWidth = .8; ctx.stroke();
+  });
+  ctx.restore();
+}
+
 function contacts(){
   var out=[];
   if(G.layers.events) EVENTS.forEach(function(e,i){
@@ -1477,6 +1661,9 @@ function contacts(){
   if(G.layers.navwarn) (FEEDS.navwarn||[]).forEach(function(w,i){
     if(w.lat==null) return;
     out.push({k:'navwarn', lat:w.lat, lon:w.lon, r:3.6, d:w, id:'n'+i, color:KIND.navwarn.color});
+  });
+  if(G.layers.jam) JAM.forEach(function(j,i){
+    out.push({k:'jam', lat:j.lat, lon:j.lon, r:2.6, d:j, id:'j'+i, color:jamColor(j.pct)});
   });
   if(G.layers.naval) (FEEDS.vessels||[]).forEach(function(v,i){
     if(v.lat==null || v.lon==null || !v._mil) return;
@@ -1526,6 +1713,7 @@ function draw(){
   drawShading();     /* night falls on the map, not on the contacts */
   drawSats();
 
+  drawJamCells();
   drawNavAreas();
 
   /* contacts, far side first so near side draws on top */
@@ -1707,6 +1895,20 @@ function renderDetail(c){
     if(d.shapes && d.shapes.length) rows.push(['DRAWN', d.shapes.length + ' area' + (d.shapes.length > 1 ? 's' : '') + ' on the globe']);
     note = d.text || '';
     link = 'https://msi.nga.mil/NavWarnings';
+  } else if(c.k==='jam'){
+    var gj = FEEDS.gpsjam || {};
+    title = 'GPS interference &mdash; ' + (d.pct >= .10 ? 'HIGH' : 'ELEVATED');
+    place = Math.abs(d.lat0) + '\u2013' + Math.abs(d.lat0+1) + '\u00b0' + (d.lat0 >= 0 ? 'N' : 'S') + '  ' +
+            Math.abs(d.lon0) + '\u2013' + Math.abs(d.lon0+1) + '\u00b0' + (d.lon0 >= 0 ? 'E' : 'W') + '  \u00b7  1\u00b0 cell';
+    rows.push(['DEGRADED', Math.round(d.pct*100) + '% of ' + d.n + ' aircraft sightings']);
+    rows.push(['AIRCRAFT', d.ac + ' different aircraft reported it']);
+    rows.push(['WINDOW', 'last ' + (gj.hours || 6) + 'h \u00b7 ' + (gj.runs || 1) + ' sample' + ((gj.runs||1) > 1 ? 's' : '')]);
+    if(gj.at) rows.push(['LATEST', fmtTime(gj.at)]);
+    note = 'Aircraft broadcast how accurate they believe their own GPS position is. When that collapses for ' +
+           'many aircraft in one area at once, the usual cause is jamming or spoofing; a single aircraft with ' +
+           'a faulty receiver is not counted. This is a sample of airborne civil ADS-B traffic, not a survey: ' +
+           'a cell with few sightings can mislead. The same signal gpsjam.org maps daily.';
+    link = 'https://gpsjam.org/?lat=' + d.lat.toFixed(1) + '&lon=' + d.lon.toFixed(1) + '&z=6';
   } else if(c.k==='conflict'){
     title = esc(d.place || 'Conflict hotspot');
     place = 'GDELT \u00b7 machine-coded from news';
@@ -1794,6 +1996,7 @@ function boxLabel(c){
   if(c.k === 'hazard')return d.event || d.name || 'hazard';
   if(c.k === 'navwarn') return (d.id || 'nav warning') + '  ' + (d.kind || '');
   if(c.k === 'conflict')return d.place || 'conflict hotspot';
+  if(c.k === 'jam')     return 'GPS interference ' + d.lat0 + (d.lat0>=0?'N ':'S ') + d.lon0 + (d.lon0>=0?'E':'W');
   if(c.k === 'launch')return d.name || 'launch';
   if(c.k === 'iss')   return 'International Space Station';
   if(c.k === 'rf')    return d.name || d.mac || 'radio';
@@ -1809,13 +2012,14 @@ function boxDetail(c){
   if(d.s) return Math.round(d.alt).toLocaleString() + ' km';
   if(c.k === 'conflict') return (d.outlets || 0) + ' outlets';
   if(c.k === 'navwarn')  return d.age_days != null ? d.age_days + 'd ago' : '';
+  if(c.k === 'jam')      return Math.round(d.pct*100) + '% of ' + d.n;
   return '';
 }
 
 /* Ships and aircraft are what this was asked for, so they lead; the rest
    follow rather than being hidden, because a box over a coast catching a
    priority event as well as the shipping is worth knowing about. */
-var BOX_ORDER = ['events','naval','air','navwarn','conflict','hazard','quake','launch','iss','rf','sats','rocket','debris'];
+var BOX_ORDER = ['events','naval','air','navwarn','jam','conflict','hazard','quake','launch','iss','rf','sats','rocket','debris'];
 
 function boxReport(hits, kmAcross){
   var out = document.getElementById('boxOut');
@@ -2483,6 +2687,7 @@ function paintBaked(){
     plottable(FEEDS.alerts) + plottable(FEEDS.disasters) + plottable(FEEDS.launches);
   document.getElementById('nConflict').textContent = plottable(FEEDS.gdelt);
   document.getElementById('nNavwarn').textContent = plottable(FEEDS.navwarn);
+  document.getElementById('nJam').textContent = JAM.length;
 }
 
 
@@ -2781,6 +2986,8 @@ window.TB = {
   selMark: function(cv, x, y, c){ return selMark(cv, x, y, c); },
   selMiss: function(cv, x, y){ return selMiss(cv, x, y); },
   navRings: function(){ return navRings(); },
+  get JAM(){ return JAM; },
+  jamColor: function(p){ return jamColor(p); },
   setZoomLabel: function(z){ var e=document.getElementById('zoomLabel'); if(e) e.textContent = z.toFixed(1)+'\u00d7'; },
   setSpin: function(on){ setSpin(on); },
   stopCanvasGlobe: function(){ G.stopped = true; },
@@ -3223,6 +3430,100 @@ function focusGlobe(lat, lon, zoom){
     });
     if(!n) list.innerHTML = '<div class="ev-none">No events match this filter.</div>';
   }
+  paint();
+})();
+
+/* =====================================================================
+   WIRE -- the outlets' own headlines, refreshed every half hour
+
+   The brief is up to twelve hours old by the next collection. The pipeline
+   reads ~30 outlets' RSS feeds for every run anyway, and the feed refresh
+   re-reads them every thirty minutes at no cost, so this is what they are
+   publishing now -- with everything newer than the brief marked NEW.
+   ===================================================================== */
+var WIRE_DESK = {
+  europe:['Europe / Ukraine','#60a5fa'], mideast:['Middle East','#f59e0b'], indopac:['Indo-Pacific','#34d399'],
+  africa:['Africa','#fb923c'], world:['World desks','#94a3b8'], defense:['Defence','#ef4444'],
+  maritime:['Maritime','#22d3ee'], space:['Space','#a78bfa'], cyber:['Cyber','#c084fc'],
+  homeland:['US homeland','#fbbf24'], reddit:['Reddit','#ff6a2b']
+};
+function escA(s){ return esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function agoShort(ms){
+  var m = Math.max(0, Math.round(ms/60000));
+  if(m < 60) return m + 'm';
+  var h = Math.floor(m/60);
+  return h < 48 ? h + 'h' + (m%60 && h < 10 ? ' ' + (m%60) + 'm' : '') : Math.round(h/24) + 'd';
+}
+(function(){
+  var W = ((typeof FEEDS !== 'undefined' && FEEDS && FEEDS.wire) || []).filter(function(w){
+    return w && w.t && /^https?:\/\//i.test(w.u || '');
+  });
+  if(!W.length) return;
+  var band = document.getElementById('wireBand'), list = document.getElementById('wireList');
+  var fbox = document.getElementById('wireFilters'), more = document.getElementById('wireMore');
+  band.style.display = '';
+  var cut = Date.parse(COLLECTED_AT || BUILT_AT), now = Date.now();
+  W.forEach(function(w){ w._at = w.at ? Date.parse(w.at) : NaN;
+                         w._new = !isNaN(w._at) && !isNaN(cut) && w._at > cut; });
+  var fresh = W.filter(function(w){ return w._new; }).length;
+  var outlets = {};
+  W.forEach(function(w){ (w.s||[]).forEach(function(x){ outlets[x] = 1; }); });
+  var refreshed = (FEEDS && FEEDS.fetched_at) ? Date.parse(FEEDS.fetched_at) : NaN;
+  document.getElementById('wireSub').innerHTML =
+    W.length + ' stories from ' + Object.keys(outlets).length + ' outlets in the last 12h' +
+    (fresh ? ' &middot; <b style="color:var(--amber)">' + fresh + ' since the brief</b>' : '') +
+    (!isNaN(refreshed) ? ' &middot; read ' + agoShort(now - refreshed) + ' ago' : '') +
+    ' &middot; headlines only &mdash; follow the link before relying on one';
+  if(fresh){
+    document.getElementById('pillWire').textContent = fresh;
+    document.getElementById('pillWireA').style.display = '';
+  }
+
+  var filter = {desk:null, fresh:false, multi:false}, shown = 40;
+  function fbtn(label, dot, on, fn){
+    var b = document.createElement('button');
+    b.className = 'ev-f' + (on ? ' on' : '');
+    b.innerHTML = (dot ? '<i style="background:'+dot+'"></i>' : '') + esc(label);
+    b.onclick = function(){ fn(); shown = 40; paint(); };
+    fbox.appendChild(b);
+  }
+  function buildFilters(){
+    fbox.innerHTML = '';
+    fbtn('all (' + W.length + ')', null, !filter.desk && !filter.fresh && !filter.multi,
+         function(){ filter.desk = null; filter.fresh = filter.multi = false; });
+    if(fresh) fbtn('since brief (' + fresh + ')', '#fbbf24', filter.fresh,
+                   function(){ filter.fresh = !filter.fresh; });
+    var multi = W.filter(function(w){ return (w.s||[]).length > 1; }).length;
+    if(multi) fbtn('2+ outlets (' + multi + ')', '#22c55e', filter.multi,
+                   function(){ filter.multi = !filter.multi; });
+    Object.keys(WIRE_DESK).forEach(function(k){
+      var n = W.filter(function(w){ return w.d === k; }).length;
+      if(n) fbtn(WIRE_DESK[k][0] + ' (' + n + ')', WIRE_DESK[k][1], filter.desk === k,
+                 function(){ filter.desk = filter.desk === k ? null : k; });
+    });
+  }
+  function paint(){
+    buildFilters();
+    var rows = W.filter(function(w){
+      return (!filter.desk || w.d === filter.desk) && (!filter.fresh || w._new) &&
+             (!filter.multi || (w.s||[]).length > 1);
+    });
+    list.innerHTML = rows.slice(0, shown).map(function(w){
+      var desk = WIRE_DESK[w.d] || ['', '#64748b'];
+      var src = (w.s || []).join(' · ');
+      return '<div class="w-row" style="border-left-color:' + desk[1] + '">' +
+        '<div class="w-when" title="' + escA(w.at ? 'published ' + w.at.replace('T', ' ').replace('Z', ' UTC') : 'time not given') + '">' +
+          (isNaN(w._at) ? '&mdash;' : agoShort(now - w._at)) + '</div>' +
+        '<div><span class="w-src">' + esc(src) + (desk[0] ? ' &middot; ' + esc(desk[0]) : '') +
+          (w._new ? '<span class="w-tag new">NEW</span>' : '') +
+          ((w.s||[]).length > 1 ? '<span class="w-tag multi">' + w.s.length + ' OUTLETS</span>' : '') +
+        '</span><a class="w-t" href="' + escA(w.u) + '" target="_blank" rel="noopener noreferrer">' + esc(w.t) + '</a>' +
+        (w.m ? '<span class="w-m">' + esc(w.m) + '</span>' : '') + '</div></div>';
+    }).join('') || '<div class="w-row"><div></div><div class="w-m">Nothing in this filter.</div></div>';
+    more.style.display = rows.length > shown ? '' : 'none';
+    more.textContent = 'show ' + Math.min(40, rows.length - shown) + ' more of ' + (rows.length - shown);
+  }
+  more.onclick = function(){ shown += 40; paint(); };
   paint();
 })();
 
@@ -3819,6 +4120,7 @@ function focusGlobe(lat, lon, zoom){
     take((FEEDS||{}).disasters, 'hazard');
     take((FEEDS||{}).gdelt, 'conflict');
     take((FEEDS||{}).navwarn, 'navwarn');
+    take(JAM, 'jam');
     take((FEEDS||{}).quakes, 'quake');
     take((FEEDS||{}).vessels, 'naval');
     take(G.air, 'air');
@@ -3907,10 +4209,94 @@ function focusGlobe(lat, lon, zoom){
     }
   });
 
+  /* =====================================================================
+     WEATHER at the site -- Open-Meteo, free, no key, answers the browser
+
+     Terrain says what the ground allows; the weather says what it allows
+     today. Wind and gusts for anything that flies, visibility and cloud for
+     anything that looks (including whether the next satellite pass will see
+     the ground), precipitation for anything that moves. A model forecast, not
+     an observation, and labelled as one.
+     ===================================================================== */
+  var WX_CODE = {0:'Clear',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Freezing fog',
+    51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',56:'Freezing drizzle',57:'Freezing drizzle',
+    61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',
+    71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Rain showers',81:'Rain showers',
+    82:'Violent rain showers',85:'Snow showers',86:'Heavy snow showers',95:'Thunderstorm',
+    96:'Thunderstorm, hail',99:'Thunderstorm, heavy hail'};
+  var wxSeq = 0;
+  function compass(deg){
+    return ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(((deg%360)+360)%360/22.5)%16];
+  }
+  function hhmm(iso){ return iso ? String(iso).slice(11,16) + 'Z' : '?'; }
+  function wxLoad(lat, lon){
+    var box = document.getElementById('trWx'), seq = ++wxSeq;
+    if(!box) return;
+    box.style.display = '';
+    box.innerHTML = '<div class="wx-h"><span class="wx-k">WEATHER AT SITE</span><span>loading\u2026</span></div>';
+    var cur = 'temperature_2m,relative_humidity_2m,precipitation,weather_code,cloud_cover,visibility,' +
+              'wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day';
+    var hr  = 'precipitation_probability,precipitation,visibility,cloud_cover,wind_gusts_10m,weather_code';
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(3) + '&longitude=' + lon.toFixed(3) +
+              '&current=' + cur + '&hourly=' + hr + '&daily=sunrise,sunset&forecast_hours=24&forecast_days=2' +
+              '&wind_speed_unit=kn&timezone=GMT';
+    fetch(url).then(function(r){
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(d){
+      if(seq !== wxSeq) return;          // a newer site was picked meanwhile
+      var c = d.current || {}, h = d.hourly || {}, dy = d.daily || {};
+      function num(v, dp){ return v == null || isNaN(v) ? '\u2014' : Number(v).toFixed(dp || 0); }
+      var t = c.temperature_2m, vis = c.visibility;
+      var visTxt = vis == null ? '\u2014' : vis >= 10000 ? '10+ km' : (vis/1000).toFixed(vis < 2000 ? 1 : 0) + ' km';
+      var gustHi = c.wind_gusts_10m != null && c.wind_gusts_10m >= 25;
+      /* next 24 hours: the extremes are what matter for planning */
+      var times = h.time || [], maxG = -1, maxGt = null, maxP = -1, maxPt = null, minV = Infinity, minVt = null, rain = 0;
+      for(var i = 0; i < times.length; i++){
+        var g = (h.wind_gusts_10m||[])[i], pp = (h.precipitation_probability||[])[i], v = (h.visibility||[])[i];
+        if(g != null && g > maxG){ maxG = g; maxGt = times[i]; }
+        if(pp != null && pp > maxP){ maxP = pp; maxPt = times[i]; }
+        if(v != null && v < minV){ minV = v; minVt = times[i]; }
+        rain += (h.precipitation||[])[i] || 0;
+      }
+      var next = [];
+      if(maxG >= 0) next.push('gusts to <b>' + Math.round(maxG) + ' kn</b> ~' + hhmm(maxGt));
+      if(maxP >= 0) next.push(maxP >= 20 ? '<b>' + maxP + '%</b> chance of precipitation ~' + hhmm(maxPt) +
+                                           (rain > 0.1 ? ' (' + rain.toFixed(1) + ' mm total)' : '')
+                                         : 'dry (\u2264' + maxP + '% chance)');
+      if(minV < Infinity) next.push('visibility down to <b>' + (minV >= 10000 ? '10+ km' : (minV/1000).toFixed(1) + ' km') + '</b>' +
+                                    (minV < 5000 ? ' ~' + hhmm(minVt) : ''));
+      var sun = (dy.sunrise || []).length ? 'sunrise ' + hhmm(dy.sunrise[0]) + ' \u00b7 sunset ' + hhmm((dy.sunset||[])[0]) : '';
+      box.innerHTML =
+        '<div class="wx-h"><span class="wx-k">WEATHER AT SITE &middot; ' + (c.is_day === 0 ? 'NIGHT' : 'DAY') + '</span>' +
+          '<span>' + esc(hhmm(c.time)) + '</span></div>' +
+        '<div class="wx-now">' + esc(WX_CODE[c.weather_code] || 'Conditions n/a') + ', ' +
+          num(t) + '\u00b0C <span style="font-weight:400;color:var(--ink-dim);font-size:.75em">' +
+          (t == null ? '' : Math.round(t*9/5 + 32) + '\u00b0F') + '</span></div>' +
+        '<div class="wx-grid">' +
+          '<span>WIND <b' + (gustHi ? ' class="warn"' : '') + '>' + num(c.wind_speed_10m) + ' kn ' +
+            (c.wind_direction_10m == null ? '' : 'from ' + compass(c.wind_direction_10m)) + '</b></span>' +
+          '<span>GUSTS <b' + (gustHi ? ' class="warn"' : '') + '>' + num(c.wind_gusts_10m) + ' kn</b></span>' +
+          '<span>VISIBILITY <b' + (vis != null && vis < 5000 ? ' class="warn"' : '') + '>' + visTxt + '</b></span>' +
+          '<span>CLOUD <b>' + num(c.cloud_cover) + '%</b></span>' +
+          '<span>PRECIP <b>' + num(c.precipitation, 1) + ' mm</b></span>' +
+          '<span>HUMIDITY <b>' + num(c.relative_humidity_2m) + '%</b></span>' +
+        '</div>' +
+        '<div class="wx-next">NEXT 24H: ' + next.join(' &middot; ') + (sun ? '<br>' + sun : '') + '</div>' +
+        '<div class="wx-src">model forecast, not an observation &middot; ' +
+          '<a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (CC BY 4.0)</div>';
+    }).catch(function(e){
+      if(seq !== wxSeq) return;
+      box.innerHTML = '<div class="wx-h"><span class="wx-k">WEATHER AT SITE</span></div>' +
+        '<span style="color:#f87171">not available (' + esc(String(e.message || e).slice(0, 60)) + ')</span>';
+    });
+  }
+
   function go(lat, lon, km, layer){
     var hint = document.getElementById('trHint');
     hint.textContent = 'reading the ground\u2026';
     picks = [];
+    wxLoad(lat, lon);
     build(lat, lon, km, function(G){
       document.getElementById('trResult').style.display = '';
       VIS = null; SMOOTH = null;
@@ -5402,6 +5788,43 @@ function focusGlobe(lat, lon, zoom){
   });
 })();
 
+/* Fold a band down to its heading line. The long, rarely-needed sections sit
+   closed so the page stays short; the choice is remembered per section. */
+function foldable(id, foldedByDefault){
+  var band = document.getElementById(id);
+  if(!band || band.dataset.foldable) return;
+  band.dataset.foldable = '1';
+  var head = band.querySelector('.band-head'), key = 'trident_fold_' + id;
+  var btn = document.createElement('button');
+  btn.className = 'fold-btn'; btn.type = 'button';
+  head.classList.add('foldable'); head.appendChild(btn);
+  function set(f){
+    band.classList.toggle('folded', f);
+    btn.textContent = f ? '\u25b8 show' : '\u25be hide';
+    btn.setAttribute('aria-expanded', f ? 'false' : 'true');
+    try{ localStorage.setItem(key, f ? '1' : '0'); }catch(_){}
+    // canvases inside were laid out at zero size while hidden
+    if(!f) setTimeout(function(){ dispatchEvent(new Event('resize')); }, 30);
+  }
+  var saved = null;
+  try{ saved = localStorage.getItem(key); }catch(_){}
+  set(saved == null ? !!foldedByDefault : saved === '1');
+  btn.onclick = function(){ set(!band.classList.contains('folded')); };
+  head.querySelector('h2').onclick = function(){ set(!band.classList.contains('folded')); };
+}
+foldable('flyBand', true);
+foldable('archiveBand', true);
+
+/* Appalachistan runs from its own file so the service worker can keep it on
+   the phone. It loads Leaflet only when the section comes into view. */
+(function(){
+  var sc = document.createElement('script');
+  sc.src = 'assets/appalachistan.js'; sc.defer = true;
+  document.body.appendChild(sc);
+  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost'))
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+})();
+
 function openArch(a){
   var m = document.getElementById('archModal');
   document.getElementById('archTitle').textContent = 'ARCHIVE · ' + a.date;
@@ -5721,6 +6144,28 @@ async function boot(){
     return l;
   })();
 
+  /* GPS interference cells as translucent squares on the surface. Like the
+     warning areas, baked into the page, so built once. */
+  const jamMesh = (function(){
+    const J = window.TB.JAM || [];
+    if(!J.length) return null;
+    const pos = [], cols = [], c = new THREE.Color();
+    for(const j of J){
+      const a = ll2v(j.lat0, j.lon0, 0.002), b = ll2v(j.lat0, j.lon0+1, 0.002),
+            d = ll2v(j.lat0+1, j.lon0+1, 0.002), e = ll2v(j.lat0+1, j.lon0, 0.002);
+      pos.push(...a, ...b, ...d, ...a, ...d, ...e);
+      c.set(window.TB.jamColor(j.pct));
+      for(let k=0; k<6; k++) cols.push(c.r, c.g, c.b);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+    const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({vertexColors:true, transparent:true, opacity:.55,
+                                                             depthWrite:false, side:THREE.DoubleSide}));
+    world.add(m);
+    return m;
+  })();
+
   const meta = [];   // parallel to the point cloud, for click resolution
   const col = new THREE.Color();
   function ll2v(lat, lon, alt){
@@ -5789,6 +6234,9 @@ async function boot(){
     if(L.navwarn) for(const w of (T.FEEDS.navwarn||[])) if(w.lat!=null && i<CAP)
       push(i++, w.lat, w.lon, 0.006, K.navwarn.color, 7, {k:'navwarn', d:w, lat:w.lat, lon:w.lon}, TL.hazard, 1);
     if(navLines) navLines.visible = !!L.navwarn;
+    if(L.jam) for(const j of (T.JAM||[])) if(i<CAP)
+      push(i++, j.lat, j.lon, 0.006, T.jamColor(j.pct), 3.2, {k:'jam', d:j, lat:j.lat, lon:j.lon}, TL.dot, 1);
+    if(jamMesh) jamMesh.visible = !!L.jam;
     const S = T.G.satsRaw, ok = T.G.satOk;
     if(S && ok){
       const KO = T.KIND_OF;
