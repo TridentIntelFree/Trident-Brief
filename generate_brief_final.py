@@ -733,6 +733,13 @@ field entirely if the source does not say, rather than using the time you read i
 url must be one you actually retrieved. Valid JSON only, no comments, no trailing
 commas. If there are no locatable events, output {{"events":[]}}.
 
+BEFORE YOU SEND, check:
+- every section ends with an **Assessment** carrying an estimative term and a confidence
+  (low / moderate / high, with the reason);
+- every link is the item's own, written inline as [text](url);
+- no theatre is called quiet while a headline above covers it;
+- no X query you ran contained OR.
+
 Begin collection now."""
 
 
@@ -1911,7 +1918,8 @@ def wire_lines(items, cap=WIRE_MAX):
             when = i['time'].strftime('%d %b %H:%MZ') if i['time'] else ''
             src = ', '.join(i['src'])
             summ = f" -- {i['summary']}" if i['summary'] and i['desk'] != 'reddit' else ''
-            out.append(f"- [{src}{' ' + when if when else ''}] {i['title']}{summ} <{i['url']}>")
+            title = i['title'].replace('[', '(').replace(']', ')')
+            out.append(f"- {src}{' (' + when + ')' if when else ''}: [{title}]({i['url']}){summ}")
     return out
 
 
@@ -2008,9 +2016,14 @@ def leads_block(leads, hours):
                 *wire_lines(wire),
                 '',
                 'The pipeline retrieved these this run, so each IS a retrieved source for what its',
-                'headline and summary say: cite it as the outlet, tagged [OSINT - WEB], linking the',
-                'URL in angle brackets. Several outlets in one bracket means several reported it -',
+                'headline and summary say: cite it as the outlet, tagged [OSINT - WEB], by copying',
+                'ITS markdown link exactly. Several outlets on one line means several reported it -',
                 'that is corroboration. For anything beyond the headline, search.',
+                'LINKS: every item carries its own link. Never put one item\'s link on another item,',
+                'and never number links as footnotes - the first 1.3.0 run hung the same X post on a',
+                'CISA advisory and a Supreme Court ruling. An item with no link of its own gets none.',
+                'QUIET: before calling a theatre quiet, check every desk above for it, WORLD DESKS',
+                'included. A theatre with a headline in the window is not quiet - carry the headline.',
                 'This list is the web half of the sweep, already done. Do not spend a web_search',
                 'finding a story that is here; spend it on detail, confirmation, or a lead with no',
                 'headline.' + (f' Feeds that failed this run: {", ".join(down)}.' if down else ''),
@@ -2406,6 +2419,12 @@ def brief_quality(content, prior_n=0):
         print("  WARNING: no social sourcing in this brief - x_search appears unused")
     if reported and not social['reddit']:
         print("  note: no Reddit sourcing (Reddit now comes from the headline feeds, when reachable)")
+    # One link on several different items means the citations were numbered or
+    # copied, not attached: the reader follows it and finds another story.
+    reused = {u: n for u, n in ((u, urls.count(u)) for u in set(urls)) if n > 2}
+    if reused:
+        print("  WARNING: same link cited on several items - " +
+              '; '.join(f'{n}x {u[:70]}' for u, n in reused.items()))
     u = (LAST_TOOL_USE or {}).get('usage') or {}
     if isinstance(u.get('num_server_side_tools_used'), int):
         n = u['num_server_side_tools_used']

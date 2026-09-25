@@ -4,6 +4,22 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.3.1 — 2026-09-25
+
+### Brief
+- **Wrong links.** The first 1.3.0 brief cost $0.148 (six searches, down from
+  ten to twelve) but cited the headline list badly: it numbered its links as
+  footnotes and hung the same X post on a CISA advisory, a Supreme Court ruling
+  and the Ukrainian General Staff report. Headlines are now handed over as
+  ready-made markdown links, the tasking says each item carries its own, and the
+  run log warns when one link is cited on several items.
+- **Quiet theatres with headlines.** It called the Americas, South Asia and
+  Strategic quiet with 106 headlines in hand. A theatre with a headline in the
+  window may no longer be called quiet.
+- **Assessments dropped.** It wrote no section Assessments and no confidence
+  statements. A short checklist at the end of the tasking now covers
+  Assessments, links, quiet verdicts and OR queries.
+
 ## 1.3.0 — 2026-09-25
 
 ### Brief
