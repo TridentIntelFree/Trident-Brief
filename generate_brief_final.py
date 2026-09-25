@@ -22,6 +22,24 @@ WINDOW_HOURS = int(os.environ.get('COLLECTION_WINDOW_HOURS', '12'))
 # sweep, not a target: Rule 5 tells the model length follows the world.
 MAX_OUTPUT_TOKENS = int(os.environ.get('MAX_OUTPUT_TOKENS', '10000'))
 WATCHLIST_FILE = 'watchlist.json'
+
+
+def read_version():
+    """The build version, from the VERSION file at the repo root.
+
+    MAJOR.MINOR.PATCH: bump PATCH for fixes, MINOR for a new feature or layer,
+    MAJOR for a change to what the brief is. The file is the single place it
+    lives; the page header, footer and feed-status file all read it from here.
+    """
+    try:
+        with open('VERSION', 'r', encoding='utf-8') as f:
+            v = f.read().strip()
+        return v if re.match(r'^\d+\.\d+\.\d+$', v) else 'dev'
+    except OSError:
+        return 'dev'
+
+
+VERSION = read_version()
 SYSTEM_PROMPT = (
     'You are the duty intelligence analyst writing the watch brief that hands off to '
     'the next shift. You have real-time X/Twitter search and web search. '
@@ -309,6 +327,11 @@ def previous_digest(previous):
     lines = []
     for raw in previous.splitlines():
         line = raw.strip()
+        # Everything from the first closing block on is forecast, verdict or open
+        # question. Feeding those back as "already reported" told the next run it
+        # had reported events that were only ever predictions.
+        if _CLOSING.match(line):
+            break
         if not line or line.startswith('```') or line.startswith('#'):
             continue
         clean = re.sub(r'\[\[\d+\]\]\([^)]*\)', '', line)       # strip [[1]](url) citations
@@ -322,7 +345,65 @@ def previous_digest(previous):
     return '\n'.join(lines) if lines else "Previous brief contained no parseable items."
 
 
-def build_prompt(window_start, window_end, prev_digest, watchlist='', deep=True):
+# ------------------------------------------------- forecast accountability ----
+
+_HEADING = re.compile(r'^(#{1,4}\s|\*\*[^*]+\*\*\s*:?\s*$)')
+_CLOSING = re.compile(r'^[*#\s]*(FORECAST CHECK|INDICATORS AND WARNINGS|INDICATORS|COLLECTION GAPS)\b', re.I)
+
+
+def closing_items(content, name):
+    """The list items under one of the brief's closing headings.
+
+    Both shapes the model uses are accepted -- "## INDICATORS AND WARNINGS" and a
+    bare "**INDICATORS AND WARNINGS**" line -- and any other heading ends the
+    block, so an Assessment paragraph that follows is not swept in.
+    """
+    out, on = [], False
+    for raw in (content or '').splitlines():
+        line = raw.strip()
+        if _HEADING.match(line):
+            on = bool(re.search(name, line, re.I))
+            continue
+        if on and re.match(r'^([-*]|\d+[.)])\s+\S', line):
+            out.append(re.sub(r'^([-*]|\d+[.)])\s+', '', line).strip())
+    return out
+
+
+def prior_indicators(previous):
+    items = closing_items(previous, r'INDICATORS')
+    return [re.sub(r'\s+', ' ', i)[:300] for i in items][:8]
+
+
+def forecast_block(indicators):
+    if not indicators:
+        return ('=== RULE 7: ACCOUNT FOR YOUR LAST FORECASTS ===\n'
+                'No indicators were recovered from the previous brief, so there is nothing to\n'
+                'check this run. Omit the FORECAST CHECK block.\n')
+    listed = '\n'.join(f'{n}. {t}' for n, t in enumerate(indicators, 1))
+    return f"""=== RULE 7: ACCOUNT FOR YOUR LAST FORECASTS ===
+The previous brief made these calls. A watch brief that never looks back at its own
+warnings cannot tell a good analyst from a lucky one, and the reader cannot either.
+
+{listed}
+
+Check each against what you found this run. Put a **FORECAST CHECK** block after the
+sections and BEFORE Indicators and Warnings, one numbered line per call above, same
+order, same numbers:
+  1. TRIGGERED - one sentence saying what happened and where it is reported above
+VERDICT is exactly one of:
+  TRIGGERED      it happened. Point to the tagged item in this brief that shows it.
+  NOT TRIGGERED  its window has passed and it did not happen.
+  OPEN           still inside its window, no sign either way yet.
+  OVERTAKEN      events made the call moot; say which events.
+A TRIGGERED verdict with no supporting item above is a fabrication under Rule 1: if
+you did not retrieve the evidence this run, the verdict is OPEN or NOT TRIGGERED. Expect
+a mix. A check where every line carries the same verdict was probably not done, and
+you should look again before writing it.
+"""
+
+
+def build_prompt(window_start, window_end, prev_digest, watchlist='', deep=True,
+                 leads='', forecasts=''):
     slow_sections = SLOW_SECTIONS if deep else (
         '(Sections 5 and 6 - UAP and frontier research - are collected on the daily\n'
         'deep run only. Do not search for or report them now.)')
@@ -415,6 +496,8 @@ changed and how.
 
 {prev_digest}
 
+{forecasts}
+{leads}
 === RULE 5: CALIBRATION ===
 Do not pad, and do not ration. If fifteen things of consequence happened, report fifteen.
 If three did, report three. Length follows the world, not a target - but the sweep in
@@ -568,11 +651,30 @@ or worsened, and what it implies - rather than restating the bullets in other wo
 Where the evidence supports more than one reading, give the alternative explicitly and
 say which you favour and why.
 
-After the sections, two blocks:
+ESTIMATIVE LANGUAGE. Every judgement - in an Assessment or an indicator - carries one
+of these terms, and each means exactly this range (the US Intelligence Community
+standard, ICD 203):
+  almost no chance 1-5% | very unlikely 5-20% | unlikely 20-45% | roughly even chance
+  45-55% | likely 55-80% | very likely 80-95% | almost certain 95-99%
+Do not carry a judgement with could, may, might, possibly, potentially or probably.
+Those words have no range: the reader cannot tell a 10% call from a 60% one, and
+neither can the next run checking it.
+Separately, end each Assessment with a confidence - low, moderate or high - and the
+reason for it: the quality and independence of what it rests on, and how much of it
+is inference. Likelihood is how probable the outcome is; confidence is how good your
+evidence is. They are different axes, and a likely outcome resting on one partisan
+source is likely with low confidence, which the reader needs to know.
+
+After the sections, the closing blocks - FORECAST CHECK per Rule 7 if it applies, then:
 
 **INDICATORS AND WARNINGS** - three to six things that would materially change the
 picture if they occurred in the next 24-48 hours. Each written as:
-indicator -> what it would mean -> where it would show up first.
+indicator -> what it would mean -> where it would show up first -> likelihood in the
+window, as one of the terms above.
+Make each one checkable: name a threshold and a window a reader could test next run.
+"Tensions may rise" cannot be scored; ">20 PLA aircraft across the median line within
+48h - unlikely" can. The next brief will score every one of these, so a vague indicator
+only postpones being wrong.
 These are forward-looking judgements, so they are not bound by Rule 1's retrieval
 requirement - but they must follow from what you actually reported above.
 
@@ -582,7 +684,9 @@ requirement - but they must follow from what you actually reported above.
 Markdown, with real headings: `##` for the numbered sections, `###` for each theatre
 inside Section 1. Bold text is not a heading and breaks the page's navigation.
 Open with a BLUF of three to five lines covering only what matters most and why - not a
-list of everything below. Then the sections, then the two closing blocks.
+list of everything below. Then the sections, then the closing blocks: FORECAST CHECK
+(when Rule 7 gives you calls to check), INDICATORS AND WARNINGS, COLLECTION GAPS - each
+under its own `##` heading. The closing blocks take no classification tags.
 Items as bullets, each starting with its classification tag (reported items only - see
 Rule 6). Keep each item to two or three sentences: what, who reported it, why it matters.
 
@@ -593,15 +697,17 @@ for each reported item that has a real physical location. Omit items with no loc
 
 ```json
 {{"events":[
-  {{"lat":44.72,"lon":37.77,"place":"Novorossiysk, Russia","headline":"one line, under 100 chars","section":"geopolitical","classification":"SIGINT - VERIFIED","confidence":"high","priority":4,"url":"https://..."}}
+  {{"lat":44.72,"lon":37.77,"place":"Novorossiysk, Russia","headline":"one line, under 100 chars","section":"geopolitical","classification":"SIGINT - VERIFIED","confidence":"high","priority":4,"when":"2026-09-24T14:10Z","url":"https://..."}}
 ]}}
 ```
 
 Rules for this block: lat/lon numeric decimal degrees for the place the event occurred;
 section is one of geopolitical, technology, homeland, uap, research; confidence is high, medium or
 low; priority is 1-5, where 5 demands immediate attention and 1 is routine, scored
-higher for anything matching the standing requirements above; url must be one you
-actually retrieved. Valid JSON only, no comments, no trailing
+higher for anything matching the standing requirements above; when is the UTC time
+the event itself happened, as the source gives it - a date alone is fine, and omit the
+field entirely if the source does not say, rather than using the time you read it;
+url must be one you actually retrieved. Valid JSON only, no comments, no trailing
 commas. If there are no locatable events, output {{"events":[]}}.
 
 Begin collection now."""
@@ -651,6 +757,11 @@ def extract_events(text):
                 'confidence': str(e.get('confidence', ''))[:20],
                 'url': str(e.get('url', ''))[:500],
             })
+            # only a real date survives: the page asks for imagery either side of
+            # it, and a guessed one would put the "before" pass after the event
+            w = str(e.get('when') or '').strip()
+            if re.match(r'^\d{4}-\d{2}-\d{2}', w):
+                events[-1]['when'] = w[:20]
         prose = (text[:m.start()] + text[m.end():]).strip()
         print(f"Parsed {len(events)} geolocated events from model output")
         return events, prose
@@ -1206,7 +1317,337 @@ def fetch_gfx_assets():
     return ok == len(GFX_ASSETS)
 
 
-def fetch_server_feeds():
+# ------------------------------------------------- primary-source leads ----
+#
+# The brief kept coming back as a press review: search, find the wire story,
+# write it up. These two feeds arrive as structured data before the model
+# starts, so it has to account for things no headline led it to.
+#
+# Neither host could be reached from the environment this was written in, so
+# both parsers are built to say what they actually received when it is not
+# what they expected. The first Actions run is the test: a wrong guess about
+# the format shows up in the log and in assets/feed-status.json as the real
+# field names, not as a silent empty list.
+
+LEAD_REFRESH_HOURS = 2      # GDELT window on the half-hourly feeds-only run
+
+NAVWARN_URLS = [
+    'https://msi.nga.mil/api/publications/broadcast-warn?output=json&status=A',
+    'https://msi.nga.mil/api/publications/broadcast-warn?output=json',
+]
+NAVWARN_PAGE = 'https://msi.nga.mil/NavWarnings'
+NAVAREA_LABEL = {'4': 'NAVAREA IV', 'IV': 'NAVAREA IV', '12': 'NAVAREA XII', 'XII': 'NAVAREA XII',
+                 'A': 'HYDROLANT', 'P': 'HYDROPAC', 'C': 'HYDROARC'}
+# First match wins, so the space-launch pattern sits ahead of the missile one:
+# "ROCKET LAUNCH" is a launch notice, not a weapons test.
+_NAVWARN_KIND = [
+    ('space launch/debris', re.compile(r'SPACE DEBRIS|SPACE LAUNCH|LAUNCH VEHICLE|ROCKET LAUNCH|'
+                                       r'ROCKET STAGE|REENTRY|RE-ENTRY', re.I)),
+    ('missile/rocket', re.compile(r'\bMISSILES?\b|\bROCKETS?\b|\bBALLISTIC\b', re.I)),
+    ('live fire', re.compile(r'GUNNERY|\bFIRING\b|LIVE[- ]FIRE|WEAPONS? (FIRING|EXERCISE|TESTING)|'
+                             r'\bORDNANCE\b', re.I)),
+    ('military exercise', re.compile(r'(NAVAL|MILITARY) (EXERCISES?|OPERATIONS)|\bSUBMARINES?\b|'
+                                     r'AIRCRAFT CARRIER', re.I)),
+    ('hazardous ops', re.compile(r'HAZARDOUS OPERATIONS|UNDERWATER OPERATIONS|\bEXPLOSIVES?\b|'
+                                 r'\bMINES?\b|MINEFIELD|UNEXPLODED', re.I)),
+    ('security incident', re.compile(r'\bATTACK(ED|S)?\b|HIJACK|PIRACY|\bARMED\b|\bDRONES?\b|'
+                                     r'UNMANNED', re.I)),
+]
+_KIND_RANK = {k: i for i, (k, _) in enumerate(_NAVWARN_KIND)}
+# NGA writes positions as 36-12.00N 125-30.00E
+_NGA_LL = re.compile(r'\b(\d{1,2})-(\d{1,2}(?:\.\d+)?)\s?([NS])\s*,?\s*(\d{1,3})-(\d{1,2}(?:\.\d+)?)\s?([EW])\b')
+
+
+def _nga_points(text):
+    pts = []
+    for m in _NGA_LL.finditer(text):
+        la = int(m.group(1)) + float(m.group(2)) / 60
+        lo = int(m.group(4)) + float(m.group(5)) / 60
+        if m.group(3) == 'S':
+            la = -la
+        if m.group(6) == 'W':
+            lo = -lo
+        if -90 <= la <= 90 and -180 <= lo <= 180 and float(m.group(2)) < 60 and float(m.group(5)) < 60:
+            pts.append((la, lo))
+    return pts
+
+
+def _nga_time(s):
+    try:
+        return datetime.strptime(str(s).strip().upper(), '%d%H%MZ %b %Y').replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return None
+
+
+def _navwarn_rows(d):
+    if isinstance(d, list):
+        return d
+    if isinstance(d, dict):
+        for k in ('broadcast-warn', 'broadcastWarn', 'warnings', 'data', 'results'):
+            if isinstance(d.get(k), list):
+                return d[k]
+        for v in d.values():
+            if isinstance(v, list) and v and isinstance(v[0], dict):
+                return v
+    return None
+
+
+def fetch_navwarnings():
+    """Active NGA broadcast warnings, filtered to the military, launch and hazard ones.
+
+    These are official notices to mariners: a closure area for a missile
+    firing, a rocket stage drop zone, a live-fire exercise box. They are often
+    published before anyone writes about the event, and they are primary
+    documents rather than somebody's account of one.
+    """
+    d, err = _try(NAVWARN_URLS, timeout=30)
+    if d is None:
+        return None, err
+    rows = _navwarn_rows(d)
+    if rows is None:
+        shape = list(d.keys())[:10] if isinstance(d, dict) else type(d).__name__
+        return None, f'unexpected response shape, top level: {shape}'
+    out, total = [], 0
+    for w in rows:
+        if not isinstance(w, dict):
+            continue
+        text = ' '.join(str(w.get('text') or w.get('msgText') or '').split())
+        if not text:
+            continue
+        total += 1
+        kind = next((k for k, rx in _NAVWARN_KIND if rx.search(text)), None)
+        if not kind:
+            continue
+        area = str(w.get('navArea') or w.get('area') or '').strip()
+        label = NAVAREA_LABEL.get(area.upper(), f'NAVAREA {area}' if area else 'NAVWARN')
+        num, yr = w.get('msgNumber'), w.get('msgYear')
+        item = {'id': f'{label} {num}/{str(yr)[-2:]}' if num and yr else label,
+                'kind': kind,
+                'issued': str(w.get('issueDate') or '')[:40],
+                'authority': str(w.get('authority') or '')[:80],
+                'text': text[:600]}
+        pts = _nga_points(text)
+        if pts:
+            item['lat'] = round(sum(p[0] for p in pts) / len(pts), 3)
+            item['lon'] = round(sum(p[1] for p in pts) / len(pts), 3)
+            item['points'] = len(pts)
+        t = _nga_time(item['issued'])
+        item['_t'] = t.timestamp() if t else 0
+        out.append(item)
+    if not total:
+        first = list(rows[0].keys())[:14] if rows and isinstance(rows[0], dict) else None
+        return None, f'{len(rows)} rows but no warning text; first row fields: {first}'
+    # launches and weapons first, then the ones that can be put on a map, then recency
+    out.sort(key=lambda i: (_KIND_RANK[i['kind']], 'lat' not in i, -i['_t']))
+    for i in out:
+        i.pop('_t', None)
+    print(f"  navwarn: {len(out)} of {total} active warnings are military, launch or hazard; "
+          f"{sum(1 for i in out if 'lat' in i)} carry positions")
+    return out[:80], None
+
+
+GDELT_BASE = 'http://data.gdeltproject.org/gdeltv2/'
+# CAMEO base codes that mean organised armed force rather than street crime.
+# GDELT codes every "assault" in every local paper, so a straight root-code
+# filter on 18/19 returns the day's crime blotter from American cities.
+GDELT_CODES = {
+    '152': 'military alert raised', '153': 'forces mobilised', '154': 'cyber forces mobilised',
+    '183': 'bombing', '185': 'assassination', '186': 'assassination attempt',
+    '190': 'conventional military force', '191': 'blockade', '192': 'territory occupied',
+    '193': 'small-arms fighting', '194': 'artillery and armour', '195': 'aerial weapons',
+    '196': 'ceasefire violated', '200': 'mass violence', '201': 'mass expulsion',
+    '202': 'mass killing', '203': 'ethnic cleansing', '204': 'weapons of mass destruction',
+    # these three only count when an armed actor is on one side
+    '180': 'unconventional violence', '181': 'abduction', '182': 'armed assault',
+}
+_GDELT_NEEDS_ARMED = {'180', '181', '182'}
+_ARMED = {'MIL', 'REB', 'INS', 'SEP', 'UAF', 'SPY'}
+
+
+def _gdelt_slice(url):
+    import io, zipfile
+    r = requests.get(url, timeout=40, headers={'User-Agent': 'TridentBrief/1.0'})
+    if r.status_code != 200:
+        raise RuntimeError(f'HTTP {r.status_code}')
+    with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+        name = z.namelist()[0]
+        return z.read(name).decode('utf-8', errors='replace')
+
+
+def fetch_gdelt(hours):
+    """Where armed-conflict events clustered in the last few hours, per GDELT.
+
+    GDELT is machine-coded from world news every 15 minutes: broad, fast and
+    noisy by construction. It is used here as a map of where to look, never as
+    evidence that something happened -- the prompt says so, and a hotspot has
+    to be reported by at least three separate outlets to be listed at all.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    from collections import Counter
+    from urllib.parse import urlparse
+    try:
+        r = requests.get(GDELT_BASE + 'lastupdate.txt', timeout=20,
+                         headers={'User-Agent': 'TridentBrief/1.0'})
+        if r.status_code != 200:
+            return None, None, f'lastupdate HTTP {r.status_code}'
+        m = re.search(r'(\d{14})\.export\.CSV\.zip', r.text)
+        if not m:
+            return None, None, f'no export file named in lastupdate: {r.text[:120]!r}'
+    except Exception as e:
+        return None, None, f'lastupdate: {str(e)[:120]}'
+    latest = datetime.strptime(m.group(1), '%Y%m%d%H%M%S')
+    urls = [GDELT_BASE + (latest - timedelta(minutes=15 * i)).strftime('%Y%m%d%H%M%S') + '.export.CSV.zip'
+            for i in range(max(1, int(hours * 4)))]
+
+    def grab(u):
+        try:
+            return _gdelt_slice(u)
+        except Exception:
+            return None
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        texts = list(ex.map(grab, urls))
+    got = [t for t in texts if t]
+    if not got:
+        return None, None, f'none of {len(urls)} export slices downloaded'
+
+    spots, rows, bad, kept = {}, 0, 0, 0
+    for text in got:
+        for line in text.split('\n'):
+            if not line:
+                continue
+            f = line.split('\t')
+            rows += 1
+            if len(f) != 61:
+                bad += 1
+                continue
+            base = f[27]
+            if base not in GDELT_CODES or f[25] != '1':
+                continue
+            if base in _GDELT_NEEDS_ARMED and not ({f[12], f[22]} & _ARMED):
+                continue
+            if f[51] not in ('3', '4'):          # city-level only: a country centroid is not a place
+                continue
+            try:
+                la, lo = float(f[56]), float(f[57])
+                mentions = int(f[31] or 0)
+            except ValueError:
+                bad += 1
+                continue
+            kept += 1
+            s = spots.setdefault(f[58] or f'{la:.2f},{lo:.2f}', {
+                'place': f[52][:100], 'country': f[53], 'lat': round(la, 3), 'lon': round(lo, 3),
+                'events': 0, 'mentions': 0, 'domains': set(), 'what': Counter(), 'urls': {}})
+            s['events'] += 1
+            s['mentions'] += mentions
+            s['what'][GDELT_CODES[base]] += 1
+            url = f[60].strip()
+            if url.startswith('http'):
+                s['domains'].add(urlparse(url).netloc.lower().replace('www.', ''))
+                s['urls'][url] = max(s['urls'].get(url, 0), mentions)
+    # A format change would show up as every row the wrong width; say so rather
+    # than returning an empty list that reads as a quiet world.
+    if rows and bad > rows * 0.2:
+        return None, None, f'{bad} of {rows} rows malformed - GDELT export format may have changed'
+    out = []
+    for s in spots.values():
+        if len(s['domains']) < 3:
+            continue
+        top = sorted(s['urls'].items(), key=lambda kv: -kv[1])[:2]
+        out.append({'place': s['place'], 'country': s['country'], 'lat': s['lat'], 'lon': s['lon'],
+                    'events': s['events'], 'outlets': len(s['domains']), 'mentions': s['mentions'],
+                    'what': [k for k, _ in s['what'].most_common(2)],
+                    'urls': [u for u, _ in top]})
+    out.sort(key=lambda s: (-s['outlets'], -s['events']))
+    meta = {'slices': len(got), 'asked': len(urls), 'rows': rows, 'conflict_rows': kept,
+            'hotspots': len(out), 'latest': latest.strftime('%Y-%m-%d %H:%M UTC')}
+    print(f"  gdelt: {len(got)}/{len(urls)} slices, {rows} rows, {kept} armed-conflict events, "
+          f"{len(out)} hotspots with 3+ outlets")
+    return out[:30], meta, None
+
+
+def fetch_primary_leads(hours):
+    leads, errors = {}, {}
+    nw, err = fetch_navwarnings()
+    if nw is None:
+        errors['navwarn'] = err
+        print(f"  navwarn failed: {err}")
+    else:
+        leads['navwarn'] = nw
+    gd, meta, err = fetch_gdelt(hours)
+    if gd is None:
+        errors['gdelt'] = err
+        print(f"  gdelt failed: {err}")
+    else:
+        leads['gdelt'] = gd
+        leads['gdelt_meta'] = meta
+    leads['errors'] = errors
+    return leads
+
+
+def leads_block(leads, hours):
+    """The primary-source leads as prompt text, with what to do about each kind."""
+    if not leads:
+        return ''
+    errs = leads.get('errors') or {}
+    out = ['=== PRIMARY-SOURCE LEADS (collected by the pipeline before you started) ===',
+           'These did not come from a search, so they are not biased toward what is already',
+           'in the news - which is the point of them. Work them: each one is either carried',
+           'in the brief or knowingly passed over, and the difference is recorded below.', '']
+    nw = leads.get('navwarn')
+    out.append('MARITIME NAVIGATIONAL WARNINGS - NGA, active, filtered to military, launch and hazard:')
+    if nw:
+        for w in nw[:25]:
+            pos = f"{abs(w['lat']):.1f}{'N' if w['lat'] >= 0 else 'S'} {abs(w['lon']):.1f}" \
+                  f"{'E' if w['lon'] >= 0 else 'W'}" if 'lat' in w else 'no position'
+            out.append(f"- {w['id']} | {w['kind']} | issued {w['issued'] or '?'} | {pos} | "
+                       f"{w['text'][:260]}")
+        out += ['',
+                'A navigational warning is an official publication the pipeline retrieved this run,',
+                'so it IS a source for its own contents: a declared missile-firing or rocket-debris',
+                'area is a fact about what a government announced. Report one tagged',
+                f'[SIGINT - VERIFIED], cite it by its ID, and link {NAVWARN_PAGE} . It is NOT a',
+                'source for anything beyond its text - that a test happened, who ran it or why -',
+                'which needs its own retrieved source under Rule 1. The ones that matter are the',
+                'ones whose area, timing or issuing authority lines up with something in the',
+                'theatres; routine gunnery off a home port does not.']
+    elif 'navwarn' in errs:
+        out.append(f"- unavailable this run ({str(errs['navwarn'])[:100]}). Do not treat this as")
+        out.append('  "no warnings": it means none were collected.')
+    else:
+        out.append('- none active in these categories.')
+    out.append('')
+    gd = leads.get('gdelt')
+    out.append(f'GDELT ARMED-CONFLICT HOTSPOTS - last {hours}h, places reported by 3+ separate outlets:')
+    if gd:
+        for s in gd[:20]:
+            pos = f"{abs(s['lat']):.2f}{'N' if s['lat'] >= 0 else 'S'} {abs(s['lon']):.2f}" \
+                  f"{'E' if s['lon'] >= 0 else 'W'}"
+            out.append(f"- {s['place']} ({pos}): {s['events']} events, {s['outlets']} outlets | "
+                       f"{', '.join(s['what'])} | e.g. {' '.join(s['urls'])}")
+        out += ['',
+                'GDELT is machine-coded from news by software, not read by anyone. It miscodes',
+                'constantly - a "fight" over a budget, a film review, an anniversary of a battle.',
+                'It is NEVER a source: never cite GDELT, and never report one of these places on',
+                'the strength of this list. Use it as a map of where to search. For each hotspot',
+                'in a theatre you cover, search the place by name; if real reporting comes back,',
+                'report THAT source normally. A hotspot you searched and could not substantiate',
+                'belongs in Collection Gaps as exactly that. A cluster with no western wire',
+                'coverage is the most valuable kind: it is what the press review would miss.']
+    elif 'gdelt' in errs:
+        out.append(f"- unavailable this run ({str(errs['gdelt'])[:100]}).")
+    else:
+        out.append('- none cleared the three-outlet bar.')
+    if not (nw or gd):
+        return '\n'.join(out) + '\n'
+    out += ['',
+            'Close Section 2 with ONE line, after the last theatre: "leads worked: " then how',
+            'many warnings you carried and how many you passed over, and which hotspots you',
+            'searched, carried, or could not substantiate. Like the "searched:" line in Section',
+            '1, this exists so a skipped step is visible rather than silent.', '']
+    return '\n'.join(out)
+
+
+def fetch_server_feeds(leads=None):
     """Fetch the rate-limited / CORS-awkward feeds here instead of in the browser.
 
     These run on the Actions runner: no CORS, and the rate limit is not tied to
@@ -1215,6 +1656,16 @@ def fetch_server_feeds():
     feeds = {}
 
     errors = {}
+
+    # A full run collected these before writing the prompt; a feeds-only run
+    # fetches a short window of its own, which is also what exercises both
+    # collectors every half hour without spending anything on the model.
+    if leads is None:
+        leads = fetch_primary_leads(LEAD_REFRESH_HOURS)
+    for k in ('navwarn', 'gdelt', 'gdelt_meta'):
+        if k in leads:
+            feeds[k] = leads[k]
+    errors.update(leads.get('errors') or {})
 
     # all_day carries every recorded event (~250-400/day) rather than the ~30
     # that clear M2.5. Magnitude drives point size on the globe.
@@ -1306,8 +1757,9 @@ def write_feed_status(feeds):
     site, where it can be read directly.
     """
     counts = {}
-    for k in ('quakes', 'launches', 'alerts', 'disasters', 'vessels'):
+    for k in ('quakes', 'launches', 'alerts', 'disasters', 'vessels', 'navwarn', 'gdelt'):
         counts[k] = len(feeds[k]) if isinstance(feeds.get(k), list) else None
+    counts['gdelt_detail'] = feeds.get('gdelt_meta')
     counts['aircraft'] = feeds.get('aircount')
     counts['satellites'] = feeds.get('satcounts')
     # Which basemap actually reached the page. The globe silently degrades to the
@@ -1317,7 +1769,8 @@ def write_feed_status(feeds):
     for name in ('earth_day.jpg', 'earth_night.png', 'three.module.js'):
         path = os.path.join('assets', name)
         gfx[name] = (os.path.getsize(path) // 1024 if os.path.exists(path) else None)
-    status = {'fetched_at': feeds.get('fetched_at'),
+    status = {'version': VERSION,
+              'fetched_at': feeds.get('fetched_at'),
               'collected': counts,
               'assets_kb': gfx,
               'collection': LAST_TOOL_USE or None,
@@ -1514,7 +1967,7 @@ def fly_novelty(tags_state, tag, now, halflife_days=FLY_HALFLIFE_DAYS):
     return round(novelty, 3), round(seen, 3), warm
 
 
-def brief_quality(content):
+def brief_quality(content, prior_n=0):
     """Report format compliance to the run log.
 
     Written because the first measurement of this was wrong: counting tags
@@ -1529,7 +1982,7 @@ def brief_quality(content):
     tags = {}
     for raw in content.splitlines():
         line = raw.strip()
-        if re.match(r'^[*#\s]*(INDICATORS AND WARNINGS|COLLECTION GAPS)', line, re.I):
+        if _CLOSING.match(line):
             closing = True
         if re.match(r'^###\s+\S', line):
             theatres += 1
@@ -1574,6 +2027,35 @@ def brief_quality(content):
         print("  note: Section 1 did not list the queries it ran")
     if aggregators:
         print(f"  WARNING: {aggregators} citation(s) point at an aggregator, which Rule 1 bans")
+
+    # Forecast accountability: did it score last run's calls, and does it make
+    # calls that can be scored? A check line per prior indicator, and every new
+    # indicator carrying one of the defined probability terms.
+    verdicts = {}
+    for item in closing_items(content, r'FORECAST CHECK'):
+        m = re.search(r'\b(NOT TRIGGERED|TRIGGERED|OPEN|OVERTAKEN)\b', item, re.I)
+        if m:
+            v = m.group(1).upper()
+            verdicts[v] = verdicts.get(v, 0) + 1
+    checked = sum(verdicts.values())
+    if prior_n:
+        print(f"  forecast check: {checked}/{prior_n} prior calls scored - " +
+              (', '.join(f'{k} {v}' for k, v in sorted(verdicts.items())) or 'none'))
+        if checked < prior_n:
+            print("  WARNING: not every prior indicator was scored")
+        if checked >= 3 and len(verdicts) == 1:
+            print("  note: every verdict is the same - the check may not have been done")
+    wep = re.compile(r'almost no chance|very unlikely|\bunlikely\b|roughly even chance|'
+                     r'\blikely\b|very likely|almost certain', re.I)
+    iw = closing_items(content, r'INDICATORS')
+    scored = sum(1 for i in iw if wep.search(i))
+    hedges = len(re.findall(r'\b(could|may|might|possibly|potentially|probably)\b',
+                            ' '.join(iw) + ' ' + ' '.join(
+                                re.findall(r'\*\*Assessment[^*]*\*\*([^\n]*)', content)), re.I))
+    conf = len(re.findall(r'\b(low|moderate|high) confidence\b|confidence[:\s]+(low|moderate|high)',
+                          content, re.I))
+    print(f"  estimative: {scored}/{len(iw)} indicators carry a probability term, "
+          f"{conf} confidence statements, {hedges} unranged hedge words in judgements")
     return {'reported': reported, 'tagged': tagged, 'theatres': theatres,
             'indicators': iw, 'gaps': gaps, 'social': social, 'tags': tags,
             'aggregators': aggregators}
@@ -1723,7 +2205,8 @@ def js_json(value):
             .replace(' ', '\\u2029'))
 
 
-def render(content, provider, badge, timestamp, archive, events, feeds, stale=False, history=None):
+def render(content, provider, badge, timestamp, archive, events, feeds, stale=False, history=None,
+           collected_at=None):
     """Fill template.html and write index.html.
 
     Brief text is injected as a JSON string literal, never as raw HTML, so a
@@ -1762,8 +2245,21 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
     if grok_key:
         print('WARNING: embedding GROK_API_KEY in index.html - it will be public')
 
+    # The page is re-rendered every half hour by the feeds-only job, so "now" is
+    # when the feeds were refreshed, not when the brief was collected. The header
+    # used to show the refresh time as the collection time and report "0m since
+    # collection" on a brief eleven hours old. The two are now kept apart.
+    try:
+        coll = datetime.fromisoformat(collected_at) if collected_at else datetime.now(timezone.utc)
+    except (TypeError, ValueError):
+        coll = datetime.now(timezone.utc)
+    if coll.tzinfo is None:
+        coll = coll.replace(tzinfo=timezone.utc)
     subs = {
-        '__TIMESTAMP__': escape(timestamp),
+        '__TIMESTAMP__': escape(coll.strftime('%Y-%m-%d %H:%M UTC')),
+        '__REFRESHED__': escape(datetime.now(timezone.utc).strftime('%H:%M UTC')),
+        '__COLLECTED_AT_JSON__': js_json(coll.isoformat()),
+        '__VERSION__': escape(VERSION),
         '__BADGE__': escape(badge),
         '__PROVIDER__': escape(provider),
         '__BRIEF_JSON__': js_json(content),
@@ -1810,7 +2306,8 @@ def main():
         print('Refreshing feeds only (no collection)...')
         feeds = fetch_server_feeds()
         render(content, cache.get('provider', 'CACHED'), 'FEEDS-REFRESH', timestamp,
-               index_archive(), cache.get('events', []), feeds, False, load_history())
+               index_archive(), cache.get('events', []), feeds, False, load_history(),
+               collected_at=cache.get('generated_at'))
         cache['feeds'] = feeds
         with open(CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump(cache, f, indent=2)
@@ -1828,7 +2325,8 @@ def main():
         if not events:
             events = cache.get('events', [])
         render(content, 'CACHED - offline re-render', 'CACHE-RENDER', timestamp,
-               index_archive(), events, cache.get('feeds', {}), True, load_history())
+               index_archive(), events, cache.get('feeds', {}), True, load_history(),
+               collected_at=cache.get('generated_at'))
         print('Re-rendered index.html from cache (offline mode)')
         return
 
@@ -1836,8 +2334,15 @@ def main():
     window_start = now - timedelta(hours=WINDOW_HOURS)
     deep = deep_run(now)
     print(f"Collection depth: {'deep (all sections)' if deep else 'core (sections 1-2)'}")
-    prompt = build_prompt(window_start, window_end, previous_digest(load_cached_brief()),
-                          load_watchlist(), deep)
+    previous = load_cached_brief()
+    prior = prior_indicators(previous)
+    print(f"Prior indicators carried forward for checking: {len(prior)}")
+    print("Collecting primary-source leads...")
+    leads = fetch_primary_leads(WINDOW_HOURS)
+    prompt = build_prompt(window_start, window_end, previous_digest(previous),
+                          load_watchlist(), deep,
+                          leads=leads_block(leads, WINDOW_HOURS),
+                          forecasts=forecast_block(prior))
 
     stale = False
     print(f"Initiating collection, {WINDOW_HOURS}h window, Grok 4.1 + x_search + web_search...")
@@ -1870,14 +2375,15 @@ def main():
     else:
         events, content = extract_events(content)
         print("Fetching server-side feeds...")
-        feeds = fetch_server_feeds()
+        feeds = fetch_server_feeds(leads)
 
     archive = write_archive(content, now)
     if not stale:
-        brief_quality(content)
+        brief_quality(content, len(prior))
     hist = update_history(events, (archive[0]['path'] if archive else ''), content, now) \
         if not stale else load_history()
-    render(content, provider, badge, timestamp, archive, events, feeds, stale, hist)
+    render(content, provider, badge, timestamp, archive, events, feeds, stale, hist,
+           collected_at=(load_cache().get('generated_at') if stale else None))
     write_cache(content, provider, events, feeds)
     print(f"Brief generated successfully at {timestamp}")
 
