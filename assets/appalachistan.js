@@ -309,6 +309,9 @@ function loadData(){
     if(!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(d){
+    if(!d.segs || !d.segs.length)
+      throw new Error(d.failed_at ? 'the last build attempt failed at ' + String(d.failed_at).slice(0, 16).replace('T', ' ') +
+                                    'Z; it is retried automatically' : 'not built yet');
     DATA = d;
     var L = window.L, ren = L.canvas({padding:.3});
     (d.segs || []).forEach(function(s){

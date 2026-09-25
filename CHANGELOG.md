@@ -4,6 +4,21 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.1 — 2026-09-25
+
+### Appalachistan
+- **Trail data did not build.** The first run asked Overpass for the whole
+  trail and everything near it in one request, and all three public servers
+  answered 504 (gateway timeout). The trail is now fetched the way it is
+  mapped: two tiny queries find the relation and its sections, then each
+  section's line and nearby points come in a request of their own, with a
+  pause between them.
+- **No hammering while Overpass is down.** A failed build leaves a small marker
+  on the site, and the half-hourly refresh waits three hours before trying
+  again instead of spending five minutes on it every run. A build missing any
+  section is published but retried the next day until it is complete. The map
+  says when the trail data is still being built.
+
 ## 1.5.0 — 2026-09-25
 
 ### Appalachistan
