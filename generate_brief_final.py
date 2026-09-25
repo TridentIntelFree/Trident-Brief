@@ -1711,11 +1711,13 @@ WIRE_FEEDS = [
     ('France 24', 'world', 'https://www.france24.com/en/rss'),
     ('NPR', 'world', 'https://feeds.npr.org/1004/rss.xml'),
     ('Kyiv Independent', 'europe', 'https://kyivindependent.com/news-archive/rss/'),
-    ('ISW', 'europe', 'https://www.understandingwar.org/rss.xml'),
-    ('Times of Israel', 'mideast', 'https://www.timesofisrael.com/feed/'),
+    # ISW and Times of Israel answer a runner with 403; these carry the same beats.
+    ('Ukrainska Pravda', 'europe', 'https://www.pravda.com.ua/eng/rss/'),
+    ('Middle East Eye', 'mideast', 'https://www.middleeasteye.net/rss'),
+    ('Jerusalem Post', 'mideast', 'https://www.jpost.com/rss/rssfeedsfrontpage.aspx'),
     ('The Diplomat', 'indopac', 'https://thediplomat.com/feed/'),
     ('NK News', 'indopac', 'https://www.nknews.org/feed/'),
-    ('Focus Taiwan', 'indopac', 'https://focustaiwan.tw/rss/aall.xml'),
+    ('Taipei Times', 'indopac', 'https://www.taipeitimes.com/xml/index.rss'),
     ('Africanews', 'africa', 'https://www.africanews.com/feed/rss'),
     ('USNI News', 'defense', 'https://news.usni.org/feed'),
     ('The War Zone', 'defense', 'https://www.twz.com/feed'),
@@ -1728,12 +1730,12 @@ WIRE_FEEDS = [
     ('Krebs', 'cyber', 'https://krebsonsecurity.com/feed/'),
     ('CISA advisories', 'cyber', 'https://www.cisa.gov/cybersecurity-advisories/all.xml'),
     ('NPR US', 'homeland', 'https://feeds.npr.org/1003/rss.xml'),
-    # Reddit often refuses datacenter IPs. When it does, the brief says so and
-    # moves on -- it is not worth a paid search per subreddit to get around it.
-    ('r/CredibleDefense', 'reddit', 'https://www.reddit.com/r/CredibleDefense/new/.rss?limit=25'),
-    ('r/geopolitics', 'reddit', 'https://www.reddit.com/r/geopolitics/new/.rss?limit=25'),
-    ('r/UkraineWarVideoReport', 'reddit', 'https://www.reddit.com/r/UkraineWarVideoReport/new/.rss?limit=25'),
-    ('r/LessCredibleDefence', 'reddit', 'https://www.reddit.com/r/LessCredibleDefence/new/.rss?limit=25'),
+    # One request for all four subreddits: four in parallel drew HTTP 429 on all
+    # but the first. Each post is labelled with its own subreddit from the feed.
+    # If Reddit refuses the runner, the brief says so and moves on -- it is not
+    # worth a paid search per subreddit to get around it.
+    ('Reddit', 'reddit', 'https://www.reddit.com/r/CredibleDefense+geopolitics+'
+                         'UkraineWarVideoReport+LessCredibleDefence/new/.rss?limit=50'),
 ]
 WIRE_KEV = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 WIRE_KEV_PAGE = 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'
@@ -1784,10 +1786,12 @@ def parse_feed(xml_bytes):
     for el in root.iter():
         if _local(el.tag) not in ('item', 'entry'):
             continue
-        f = {'title': '', 'url': '', 'time': None, 'summary': ''}
+        f = {'title': '', 'url': '', 'time': None, 'summary': '', 'cat': ''}
         for ch in el:
             k = _local(ch.tag)
-            if k == 'title':
+            if k == 'category' and ch.get('term') and not f['cat']:
+                f['cat'] = ch.get('term')
+            elif k == 'title':
                 f['title'] = _wire_text(''.join(ch.itertext()), 180)
             elif k == 'link':
                 href = ch.get('href')
@@ -1812,7 +1816,8 @@ def _wire_one(label, url, since):
         raise RuntimeError(f'HTTP {r.status_code}')
     items = [i for i in parse_feed(r.content) if i['time'] and i['time'] >= since]
     items.sort(key=lambda i: i['time'], reverse=True)
-    return items[:WIRE_PER_FEED]
+    # The combined subreddit feed is four feeds in one, so it gets four shares.
+    return items[:WIRE_PER_FEED * (4 if label == 'Reddit' else 1)]
 
 
 def _wire_kev(since_days=3):
@@ -1857,7 +1862,8 @@ def fetch_wire(hours):
                 continue
             detail[label] = len(items)
             for i in items:
-                i.update(src=[label], desk=desk)
+                src = f"r/{i['cat']}" if desk == 'reddit' and i.get('cat') else label
+                i.update(src=[src], desk=desk)
                 got.append(i)
     try:
         kev = _wire_kev()
@@ -2011,7 +2017,7 @@ def leads_block(leads, hours):
     if wire:
         detail = leads.get('wire_detail') or {}
         down = [k for k, v in detail.items() if isinstance(v, str)]
-        reddit_ok = any(isinstance(v, int) for k, v in detail.items() if k.startswith('r/'))
+        reddit_ok = isinstance(detail.get('Reddit'), int)
         out += [f'HEADLINES - last {hours}h, read from the outlets\' own feeds by the pipeline, free:',
                 *wire_lines(wire),
                 '',

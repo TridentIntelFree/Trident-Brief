@@ -4,6 +4,16 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.3.2 — 2026-09-25
+
+### Brief
+- **Headline feeds that failed.** The first live run read 23 of 29 feeds.
+  Reddit answered the first subreddit and rate-limited the other three, so the
+  four now come in one request, each post still labelled with its subreddit.
+  ISW and Times of Israel refuse the runner (403) and Focus Taiwan's feed is gone
+  (404); Ukrainska Pravda, Middle East Eye, the Jerusalem Post and the Taipei
+  Times stand in for them.
+
 ## 1.3.1 — 2026-09-25
 
 ### Brief
