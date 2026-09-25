@@ -4,6 +4,20 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.3 — 2026-09-25
+
+### Appalachistan
+- **The trail fills in over several runs.** The first build in its own job
+  found all 14 of the trail's relations but got only 3 of them (153 miles, no
+  points) before every Overpass server was answering 429 or 504. Each section
+  is now kept in `data/trail_sections.json` as soon as it arrives, and the
+  next run fetches only what is still missing, so a bad night costs nothing
+  already won. The build runs daily -- and returns immediately, without
+  querying Overpass, once the data is complete and under a month old. Requests
+  are spaced twelve seconds apart, and a "too many requests" answer is waited
+  out for a minute rather than counted as a failure.
+- The map says when the trail data is incomplete and how many sections are in.
+
 ## 1.5.2 — 2026-09-25
 
 ### Appalachistan

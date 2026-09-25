@@ -935,7 +935,8 @@ function paintPanel(){
       h += '<h4>ON THE TRAIL' + (me ? '' : ' &middot; <span class="ap-dim">for the map centre (no GPS fix)</span>') + '</h4>';
       if(!DATA) h += '<div class="ap-dim">loading trail data…</div>';
       else if(DATA.error) h += '<div class="ap-warn">Trail data is not on this site yet (' + esc(DATA.error) + '). It is built on the next site refresh; the maps work without it.</div>';
-      else if(!t) h += '<div class="ap-dim">Trail miles are not available in this build of the trail data.</div>';
+      else if(!t) h += '<div class="ap-dim">Trail miles appear once the whole trail is in the data' +
+        (DATA.sections ? ' (' + DATA.sections.lines + ' of ' + DATA.sections.total + ' sections so far; it fills in daily)' : '') + '.</div>';
       else {
         h += '<div class="ap-grid">' + kv('AT MILE', '≈ ' + t.mile.toFixed(1) + ' <span class="ap-dim">of ' + CUM[CUM.length-1].toFixed(0) + '</span>') +
              kv('OFF TRAIL', fmtDist(t.off)) + '</div>';
@@ -1043,6 +1044,9 @@ function paintPanel(){
                        : ('serviceWorker' in navigator ? '<span class="ap-warn">Offline mode starts after the page is loaded once more.</span> Reload now while you have signal.'
                                                        : '<span class="ap-bad">This browser does not support offline pages.</span>')) + '</div>';
     h += '<div id="apStore" class="ap-dim"></div>';
+    if(DATA && DATA.complete === false) h += '<div class="ap-warn">Trail data is still incomplete' +
+      (DATA.sections ? ': ' + DATA.sections.lines + ' of ' + DATA.sections.total + ' sections, points for ' + DATA.sections.points + ' of ' + DATA.sections.with_ways : '') +
+      '. It fills in daily; open the page with signal to pick up the rest.</div>';
     h += '<div class="ap-dim">Trail data built ' + (DATA && DATA.built_at ? esc(DATA.built_at.slice(0, 10)) : '—') +
          ' from OpenStreetMap. Every USGS map tile you look at is also kept, up to a limit.</div>';
     if(job && !job.finished){
