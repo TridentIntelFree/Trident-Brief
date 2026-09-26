@@ -1842,11 +1842,14 @@ WIRE_FEEDS = [
     # but the first. Each post is labelled with its own subreddit from the feed.
     # If Reddit refuses the runner, the brief says so and moves on -- it is not
     # worth a paid search per subreddit to get around it.
-    # The same request carries the signal-monitoring communities, whose posts
-    # are sorted onto the SIGNALS desk below.
     ('Reddit', 'reddit', 'https://www.reddit.com/r/CredibleDefense+geopolitics+'
-                         'UkraineWarVideoReport+LessCredibleDefence+uvb76+numbersstations+'
-                         'shortwave+HFGCS/new/.rss?limit=100'),
+                         'UkraineWarVideoReport+LessCredibleDefence/new/.rss?limit=100'),
+    # The signal-monitoring communities need a request of their own: the busy
+    # defence subreddits fill a shared feed's 100 posts within hours, and these
+    # reports are kept for a week. Sent a few seconds after the first so Reddit
+    # does not refuse it as a burst.
+    ('Reddit signals', 'signals', 'https://www.reddit.com/r/uvb76+numbersstations+HFGCS+'
+                                  'shortwave/new/.rss?limit=100'),
     ('Numbers Stations', 'signals', 'https://www.numbers-stations.com/feed/'),
 ]
 # Signals: the people who monitor UVB-76 ("the Buzzer", 4625 kHz) and the US Air
@@ -1933,15 +1936,20 @@ def parse_feed(xml_bytes):
 
 
 def _wire_one(label, url, since, keep_since=None):
-    r = requests.get(url, timeout=12, headers={
-        'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)',
-        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'})
+    hdrs = {'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)',
+            'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'}
+    if label == 'Reddit signals':
+        time.sleep(5)
+    r = requests.get(url, timeout=12, headers=hdrs)
+    if r.status_code == 429 and label.startswith('Reddit'):
+        time.sleep(12)
+        r = requests.get(url, timeout=12, headers=hdrs)
     if r.status_code != 200:
         raise RuntimeError(f'HTTP {r.status_code}')
     items = [i for i in parse_feed(r.content) if i['time'] and i['time'] >= (keep_since or since)]
     items.sort(key=lambda i: i['time'], reverse=True)
     # The combined subreddit feed is several feeds in one, so it gets more room.
-    return items[:WIRE_PER_FEED * (8 if label == 'Reddit' else 1)]
+    return items[:WIRE_PER_FEED * (8 if label.startswith('Reddit') else 1)]
 
 
 def _wire_kev(since_days=3):
@@ -1977,7 +1985,7 @@ def fetch_wire(hours):
     def run(feed):
         label, desk, url = feed
         try:
-            wide = label == 'Reddit' or desk == 'signals'
+            wide = desk == 'signals'
             return feed, _wire_one(label, url, since, long_since if wide else None), None
         except Exception as e:
             return feed, None, str(e)[:80]
@@ -1989,15 +1997,12 @@ def fetch_wire(hours):
                 continue
             detail[label] = len(items)
             for i in items:
-                src = f"r/{i['cat']}" if desk == 'reddit' and i.get('cat') else label
-                d = desk
-                if desk == 'reddit':
+                src = f"r/{i['cat']}" if label.startswith('Reddit') and i.get('cat') else label
+                if label == 'Reddit signals':
                     sub = (i.get('cat') or '').lower()
-                    if sub in SIGNAL_SUBS or (sub == 'shortwave' and SIGNAL_RE.search(i['title'])):
-                        d = 'signals'
-                    elif sub == 'shortwave' or i['time'] < since:
-                        continue              # off-topic shortwave, or older than the window
-                i.update(src=[src], desk=d)
+                    if not (sub in SIGNAL_SUBS or SIGNAL_RE.search(i['title'])):
+                        continue              # general shortwave chatter
+                i.update(src=[src], desk=desk)
                 got.append(i)
     try:
         kev = _wire_kev()

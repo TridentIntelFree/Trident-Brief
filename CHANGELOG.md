@@ -15,6 +15,11 @@ MAJOR for a change to what the brief is.
   - Where the browser will not open a tab at all (an in-app browser), the
     receiver opens in place. Coming back lands on the Signals section with a
     note on how to run both together.
+- **Monitor reports get their own Reddit request.** Sharing one feed with the
+  busy defence subreddits pushed a week of UVB-76/HFGCS posts out of Reddit's
+  100-post window within hours. r/uvb76, r/numbersstations, r/HFGCS and
+  r/shortwave are now fetched separately, a few seconds after the first
+  request, with one retry if Reddit answers 429.
 
 ## 1.7.0 — 2026-09-26
 
