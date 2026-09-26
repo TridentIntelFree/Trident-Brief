@@ -50,7 +50,8 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
   color:var(--ink-dim);text-transform:uppercase;display:flex;align-items:center;gap:10px}
 .brand::after{content:"";flex:0 1 90px;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
 .header h1{margin-top:4px}
-.ver{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-dim);
+.ver{touch-action:manipulation;-webkit-user-select:none;user-select:none;cursor:default;
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-dim);
   border:1px solid var(--line);border-radius:3px;padding:4px 8px}
 .meta{color:var(--ink-dim);font-size:.86em;font-family:var(--mono);display:flex;flex-wrap:wrap;gap:2px 18px}
 .meta span{white-space:nowrap}
@@ -530,8 +531,10 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .key-opts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:9px;font-size:.8em;color:var(--ink-dim)}
 .key-opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
 .key-opts a,.key-opts button.linkish{color:var(--cyan);background:none;border:0;cursor:pointer;font:inherit;text-decoration:underline;padding:0}
-.owner-box{flex-basis:100%}
-.owner-box summary{cursor:pointer;color:var(--ink-faint);font-family:var(--mono);font-size:.95em;letter-spacing:.05em}
+.own-btn{margin-top:12px;background:none;border:1px dashed var(--line);color:var(--ink-faint);font-family:var(--mono);
+  font-size:.72em;letter-spacing:.06em;padding:6px 10px;border-radius:6px;cursor:pointer}
+.own-btn:hover{color:var(--cyan);border-color:var(--cyan)}
+#ownContent{margin-top:14px}
 .success-msg{color:var(--green);font-size:.85em;margin-top:11px}
 .note-msg{color:var(--ink-dim);font-size:.85em;margin-top:11px}
 #localBriefContent{margin-top:18px;padding:18px;background:rgba(7,11,28,.6);border:1px solid var(--line2);border-radius:8px;display:none}
@@ -847,20 +850,35 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
     <div class="key-opts">
       <label><input type="checkbox" id="rememberKey"> remember my key in this browser</label>
       <span id="keyState"></span>
-      <details class="owner-box"><summary>owner code</summary>
-        <div class="access-form" style="margin-top:8px">
-          <input type="password" id="accessCode" placeholder="owner code" inputmode="numeric" autocomplete="off">
-        </div>
-        <div class="hint" style="font-size:.78em;color:var(--ink-faint);margin-top:6px">
-          For the owner's own devices. The first time on a device, enter the code <i>and</i> your key: the key is
-          saved in this browser, locked with the code. After that the code alone unlocks it. On any other device the
-          code unlocks nothing, because no key is stored there. A short code only guards against someone picking up
-          your unlocked phone, not against a determined attacker who has it.
-        </div>
-      </details>
     </div>
     <div id="accessMessage"></div>
     <div id="localBriefContent"></div>
+    <button class="own-btn" id="ownBtn" type="button" style="display:none" onclick="openOwner()">&#9873; my local brief</button>
+  </div>
+
+  <!-- Owner's panel. Opened by tapping the version number five times; shown as a
+       button only on a device where the owner has saved their key. -->
+  <div class="modal" id="ownerModal" onclick="if(event.target===this)closeOwner()">
+    <div class="modal-box" style="max-width:760px">
+      <div class="modal-bar"><h3>MY LOCAL BRIEF</h3><button class="x-btn" onclick="closeOwner()">&times;</button></div>
+      <div style="padding:18px 20px">
+        <div id="ownSetup">
+          <p class="hint" style="color:var(--ink-dim);font-size:.87em;margin-bottom:10px">Paste your xAI key once. It is saved
+            on this device only &mdash; never in the page, never uploaded &mdash; and this panel then opens from a button that
+            only this device shows.</p>
+          <div class="access-form"><input type="password" id="ownKeyIn" placeholder="your xAI API key (xai-...)" autocomplete="off" spellcheck="false">
+            <button type="button" onclick="ownerSave()">Save on this device</button></div>
+        </div>
+        <div id="ownRun" style="display:none">
+          <div class="access-form"><input type="text" id="ownZip" placeholder="ZIP code" maxlength="5" inputmode="numeric" autocomplete="postal-code">
+            <button id="ownBtnGo" type="button" onclick="ownerGenerate()">Generate</button></div>
+          <div class="key-opts"><span>key saved on this device</span>
+            <button class="linkish" type="button" onclick="ownerForget()">forget this device</button></div>
+        </div>
+        <div id="ownMsg"></div>
+        <div id="ownContent" class="local-brief-out"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ============ MUSHROOM BODY ============ -->
@@ -3054,96 +3072,107 @@ window.TB = {
    LOCAL BRIEF  --  unchanged Grok call, same model / tools / prompt
    ===================================================================== */
 /* Keys for the local brief. Nothing secret can live in this page -- it is
-   public, and anyone can read its source -- so there is no built-in key and no
-   access code in it. A visitor uses their own xAI key, optionally remembered in
-   their own browser. The owner can lock their key on their own devices with a
-   code: the key is stored AES-GCM-encrypted under a PBKDF2 key derived from the
-   code, and the code itself is stored nowhere. */
-var KEY_PLAIN = 'trident_grok_key', KEY_VAULT = 'trident_owner_vault';
+   public, and its source is readable by anyone -- so there is no built-in key
+   and no code in it. A visitor uses their own xAI key, optionally remembered in
+   their own browser. The owner's key is saved only on the owner's own devices,
+   and their panel opens from a button that only those devices show. Hiding the
+   way in is not what protects the key -- keeping it off the page is. */
+var KEY_PLAIN = 'trident_grok_key', KEY_OWNER = 'trident_owner_key';
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }
 function lsSet(k, v){ try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); return true; }catch(_){ return false; } }
-function b64(u8){ return btoa(String.fromCharCode.apply(null, Array.from(u8))); }
-function unb64(s){ return Uint8Array.from(atob(s), function(c){ return c.charCodeAt(0); }); }
-async function vaultKey(code, salt){
-  var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2', salt:salt, iterations:310000, hash:'SHA-256'}, base,
-                                 {name:'AES-GCM', length:256}, false, ['encrypt', 'decrypt']);
-}
-async function vaultLock(code, apiKeyText){
-  var salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
-  var ct = await crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, await vaultKey(code, salt), new TextEncoder().encode(apiKeyText));
-  return lsSet(KEY_VAULT, JSON.stringify({s:b64(salt), i:b64(iv), c:b64(new Uint8Array(ct))}));
-}
-async function vaultOpen(code){
-  var v = lsGet(KEY_VAULT);
-  if(!v) return {none:true};
-  try{
-    v = JSON.parse(v);
-    var pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(v.i)}, await vaultKey(code, unb64(v.s)), unb64(v.c));
-    return {key:new TextDecoder().decode(pt)};
-  }catch(_){ return {wrong:true}; }
-}
+lsSet('trident_owner_vault', null);       // the earlier code-locked form of the owner key
 function keyStateLine(){
   var el = document.getElementById('keyState'); if(!el) return;
-  var bits = [];
-  if(lsGet(KEY_PLAIN)) bits.push('a key is remembered in this browser');
-  if(lsGet(KEY_VAULT)) bits.push('an owner key is locked on this device');
-  el.innerHTML = bits.length ? esc(bits.join(' \u00b7 ')) + ' \u00b7 <button class="linkish" type="button" onclick="forgetKeys()">forget</button>' : '';
+  el.innerHTML = lsGet(KEY_PLAIN) ? 'a key is remembered in this browser \u00b7 <button class="linkish" type="button" onclick="forgetKeys()">forget</button>' : '';
 }
 function forgetKeys(){
-  if(!confirm('Remove every xAI key saved in this browser?')) return;
-  lsSet(KEY_PLAIN, null); lsSet(KEY_VAULT, null);
+  lsSet(KEY_PLAIN, null);
+  var rk = document.getElementById('rememberKey'); if(rk) rk.checked = false;
   keyStateLine();
 }
-(function(){
-  var rk = document.getElementById('rememberKey');
-  if(rk && lsGet(KEY_PLAIN)) rk.checked = true;
-  keyStateLine();
-})();
-
-/* Which key this run uses: one typed into the box, else the owner's locked key
-   if a code was given, else a remembered one. Returns {key} or {error}. */
 async function resolveKey(){
   var typed = (document.getElementById('userKey').value || '').trim();
-  var code = (document.getElementById('accessCode').value || '').trim();
-  var remember = document.getElementById('rememberKey').checked;
   if(typed){
-    if(code){
-      if(code.length < 4) return {error:'Use an owner code of at least 4 characters.'};
-      if(!window.crypto || !crypto.subtle) return {error:'This browser cannot lock a key.'};
-      await vaultLock(code, typed);
-    } else if(remember) lsSet(KEY_PLAIN, typed);
-    else lsSet(KEY_PLAIN, null);
+    lsSet(KEY_PLAIN, document.getElementById('rememberKey').checked ? typed : null);
     document.getElementById('userKey').value = '';
     keyStateLine();
     return {key:typed};
-  }
-  if(code){
-    if(!window.crypto || !crypto.subtle) return {error:'This browser cannot unlock a saved key.'};
-    var o = await vaultOpen(code);
-    if(o.key) return {key:o.key};
-    if(o.wrong) return {error:'That code does not unlock the key saved on this device.'};
-    return {error:'No key is locked on this device yet. Enter the code and your xAI key once to save it here.'};
   }
   var saved = lsGet(KEY_PLAIN);
   if(saved) return {key:saved};
   return {error:'Enter your xAI API key to run a local brief (get one at console.x.ai).'};
 }
 
+/* ---- owner panel ---- */
+function ownerState(){
+  var has = !!lsGet(KEY_OWNER);
+  var b = document.getElementById('ownBtn'); if(b) b.style.display = has ? '' : 'none';
+  var su = document.getElementById('ownSetup'), ru = document.getElementById('ownRun');
+  if(su) su.style.display = has ? 'none' : '';
+  if(ru) ru.style.display = has ? '' : 'none';
+  var z = document.getElementById('ownZip'); if(z && !z.value) z.value = lsGet('trident_owner_zip') || '';
+}
+function openOwner(){
+  ownerState();
+  document.getElementById('ownerModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeOwner(){
+  document.getElementById('ownerModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function ownerSave(){
+  var k = (document.getElementById('ownKeyIn').value || '').trim();
+  var m = document.getElementById('ownMsg');
+  if(k.length < 20){ m.innerHTML = '<p class="error-msg">That does not look like an xAI API key.</p>'; return; }
+  if(!lsSet(KEY_OWNER, k)){ m.innerHTML = '<p class="error-msg">This browser would not save it (private browsing?).</p>'; return; }
+  document.getElementById('ownKeyIn').value = '';
+  m.innerHTML = '<p class="success-msg">Saved on this device. The \u201cmy local brief\u201d button now appears here, and only here.</p>';
+  ownerState();
+}
+function ownerForget(){
+  if(!confirm('Remove your key from this device? You can add it again with the hidden gesture.')) return;
+  lsSet(KEY_OWNER, null);
+  document.getElementById('ownMsg').innerHTML = '<p class="success-msg">Removed from this device.</p>';
+  ownerState();
+}
+function ownerGenerate(){
+  var zip = (document.getElementById('ownZip').value || '').trim(), key = lsGet(KEY_OWNER);
+  var m = document.getElementById('ownMsg'), out = document.getElementById('ownContent');
+  if(!key){ ownerState(); return; }
+  if(!/^\d{5}$/.test(zip)){ m.innerHTML = '<p class="error-msg">Enter a 5-digit ZIP code.</p>'; return; }
+  lsSet('trident_owner_zip', zip);
+  runLocalBrief(zip, key, m, out, document.getElementById('ownBtnGo'));
+}
+/* The way in on a new device: tap the version number five times quickly. */
+(function(){
+  var v = document.querySelector('.hdr-top .ver'), taps = [];
+  if(v) v.addEventListener('click', function(){
+    var t = Date.now();
+    taps = taps.filter(function(x){ return t - x < 2500; }).concat([t]);
+    if(taps.length >= 5){ taps = []; openOwner(); }
+  });
+  var rk = document.getElementById('rememberKey');
+  if(rk && lsGet(KEY_PLAIN)) rk.checked = true;
+  keyStateLine();
+  ownerState();
+})();
+
 async function generateLocalBrief(){
   const zip  = document.getElementById('zipCode').value;
   const msgDiv = document.getElementById('accessMessage');
   const contentDiv = document.getElementById('localBriefContent');
-  const btn = document.getElementById('localBtn');
-
   msgDiv.innerHTML = '';
   contentDiv.style.display = 'none';
-
   if(!/^\d{5}$/.test(zip)){ msgDiv.innerHTML = '<p class="error-msg">Enter a 5-digit ZIP code.</p>'; return; }
   const got = await resolveKey();
   if(got.error){ msgDiv.innerHTML = '<p class="error-msg">' + esc(got.error) + '</p>'; return; }
-  const key = got.key;
+  return runLocalBrief(zip, got.key, msgDiv, contentDiv, document.getElementById('localBtn'));
+}
 
+async function runLocalBrief(zip, key, msgDiv, contentDiv, btn){
+  msgDiv.innerHTML = '';
+  contentDiv.style.display = 'none';
   retarget(zip);
 
   btn.disabled = true;

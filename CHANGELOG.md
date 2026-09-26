@@ -4,6 +4,20 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.8 — 2026-09-26
+
+### Local Intelligence Brief
+- **A private panel instead of a code.** The owner's controls are gone from the
+  public page. Tapping the version number in the header five times opens a
+  private panel where the owner pastes their xAI key once; it is saved on that
+  device only. From then on that device -- and only that device -- shows a small
+  "my local brief" button with a ZIP box, remembering the last ZIP, and a
+  "forget this device" link. The public section keeps only the
+  bring-your-own-key box. What protects the owner's key is that it never leaves
+  their devices; hiding the way in just keeps the controls out of sight.
+- xAI confirmed it accepts browser requests from the site (CORS preflight 200,
+  any origin, any header), so both boxes work from the live page.
+
 ## 1.5.7 — 2026-09-26
 
 ### Local Intelligence Brief
