@@ -1938,11 +1938,16 @@ def parse_feed(xml_bytes):
 def _wire_one(label, url, since, keep_since=None):
     hdrs = {'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)',
             'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'}
-    if label == 'Reddit signals':
-        time.sleep(5)
+    # Reddit tends to answer only the first of two requests from a runner, so
+    # the half-hourly feed refreshes take turns over which goes first; the
+    # brief's own collection always puts the defence subreddits first.
+    now = datetime.now(timezone.utc)
+    signals_first = '--feeds-only' in sys.argv and (now.hour*2 + now.minute//30) % 2 == 1
+    if label == ('Reddit' if signals_first else 'Reddit signals'):
+        time.sleep(20)                # after the other Reddit request, not with it
     r = requests.get(url, timeout=12, headers=hdrs)
     if r.status_code == 429 and label.startswith('Reddit'):
-        time.sleep(12)
+        time.sleep(30)
         r = requests.get(url, timeout=12, headers=hdrs)
     if r.status_code != 200:
         raise RuntimeError(f'HTTP {r.status_code}')
@@ -1968,6 +1973,43 @@ def _wire_kev(since_days=3):
 
 def _wire_key(title):
     return frozenset(w for w in _WORD.findall(title.lower()) if w not in _STOP and len(w) > 2)
+
+
+def signals_carry(fresh):
+    """A week of monitor reports, kept from run to run.
+
+    Reddit often refuses a second request from GitHub's shared runners, so any
+    one run may get nothing from the signal subreddits. The week so far is
+    read back from the copy deployed with the live site, this run's reports
+    are added, and the result is written for the next run to read.
+    """
+    now = datetime.now(timezone.utc)
+    cut = now - timedelta(days=SIGNAL_DAYS)
+    by = {}
+    try:
+        r = requests.get(_pages_asset('signals.json'), timeout=10, headers={'Cache-Control': 'no-cache'})
+        if r.status_code == 200:
+            for o in r.json().get('items') or []:
+                try:
+                    t = datetime.strptime(o['at'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+                except Exception:
+                    continue
+                if t >= cut and re.match(r'https?://', o.get('u', '')):
+                    by[o['u']] = {'title': o['t'], 'url': o['u'], 'time': t, 'summary': '',
+                                  'src': list(o.get('s') or []), 'desk': 'signals'}
+    except Exception as e:
+        print(f"  signals: no earlier reports ({str(e)[:60]})")
+    for i in fresh:
+        if i['time'] and i['time'] >= cut:
+            by[i['url']] = i
+    items = sorted(by.values(), key=lambda i: i['time'], reverse=True)[:60]
+    os.makedirs('assets', exist_ok=True)
+    with open('assets/signals.json', 'w', encoding='utf-8') as f:
+        json.dump({'saved_at': now.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                   'items': [{'t': i['title'], 'u': i['url'], 's': i['src'],
+                              'at': i['time'].strftime('%Y-%m-%dT%H:%M:%SZ')} for i in items]},
+                  f, separators=(',', ':'))
+    return items
 
 
 def fetch_wire(hours):
@@ -2012,6 +2054,13 @@ def fetch_wire(hours):
         got = kev + got
     except Exception as e:
         detail['CISA KEV'] = 'ERR ' + str(e)[:80]
+
+    try:
+        sig = signals_carry([i for i in got if i['desk'] == 'signals'])
+        got = [i for i in got if i['desk'] != 'signals'] + sig
+        detail['signals kept'] = len(sig)
+    except Exception as e:
+        print(f"  signals: carry-over failed ({str(e)[:80]})")
 
     # One story, several outlets: merge on shared headline words. Corroboration
     # across outlets is itself worth showing, and it saves the duplicate lines.
