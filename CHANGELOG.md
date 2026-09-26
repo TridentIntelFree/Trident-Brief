@@ -18,8 +18,13 @@ MAJOR for a change to what the brief is.
 - **Monitor reports get their own Reddit request.** Sharing one feed with the
   busy defence subreddits pushed a week of UVB-76/HFGCS posts out of Reddit's
   100-post window within hours. r/uvb76, r/numbersstations, r/HFGCS and
-  r/shortwave are now fetched separately, a few seconds after the first
-  request, with one retry if Reddit answers 429.
+  r/shortwave are now fetched separately, 20 s after the first request, with
+  one retry if Reddit answers 429. The half-hourly refreshes alternate which
+  Reddit request goes first, since the runner's second request is often
+  refused.
+- **The week of reports survives a refused request.** Each run reads the
+  reports already published (`assets/signals.json`, deployed, not committed),
+  adds what it got, and drops anything older than 7 days.
 
 ## 1.7.0 — 2026-09-26
 
