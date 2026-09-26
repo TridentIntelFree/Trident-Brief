@@ -4,6 +4,18 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.7.1 — 2026-09-26
+
+### Signals
+- **LISTEN no longer takes you off the page.** The receivers are plain-http
+  sites, which an https page may not embed, so they open in a tab of their own.
+  - That tab is reused and retuned for each station.
+  - A note under the cards says what to do next: SHARE TAB AUDIO on a
+    desktop, MICROPHONE or a recording on a phone.
+  - Where the browser will not open a tab at all (an in-app browser), the
+    receiver opens in place. Coming back lands on the Signals section with a
+    note on how to run both together.
+
 ## 1.7.0 — 2026-09-26
 
 ### Signals — UVB-76 & HFGCS (new section)

@@ -407,6 +407,7 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .sig-tag{font-family:var(--mono);font-size:.72em;border:1px solid;border-radius:4px;padding:0 5px}
 .sig-when,.sig-src-n{font-family:var(--mono);font-size:.72em;color:var(--ink-faint)}
 .sig-empty{color:var(--ink-faint);font-size:.82em;padding:6px 0}
+.sig-rxmsg{border:1px solid rgba(34,211,238,.45);background:rgba(34,211,238,.08);color:var(--ink);border-radius:8px;padding:9px 12px;font-size:.85em;line-height:1.5;margin:0 0 10px}
 @media (max-width:640px){.sig-canvas{height:320px}}
 .ap-dim{color:var(--ink-faint)}
 .ap-warn{color:#fbbf24}
@@ -866,8 +867,8 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
           1970s. Now and then the buzz stops for a voice reading a callsign, a codeword and numbers in Russian. Monitors log
           every message; what they mean is not public.</p>
         <div class="sig-links">
-          <a class="ap-btn" href="http://websdr.ewi.utwente.nl:8901/?tune=4625usb" target="_blank" rel="noopener noreferrer">&#9654; LISTEN (Twente, USB)</a>
-          <a class="ap-btn" href="http://websdr.ewi.utwente.nl:8901/?tune=4625am" target="_blank" rel="noopener noreferrer">AM</a>
+          <a class="ap-btn sig-rx" href="http://websdr.ewi.utwente.nl:8901/?tune=4625usb" target="_blank" rel="noopener noreferrer">&#9654; LISTEN (Twente, USB)</a>
+          <a class="ap-btn sig-rx" href="http://websdr.ewi.utwente.nl:8901/?tune=4625am" target="_blank" rel="noopener noreferrer">AM</a>
           <a class="ap-btn" href="https://priyom.org/military-stations/russia/the-buzzer" target="_blank" rel="noopener noreferrer">monitor logs</a>
         </div>
       </div>
@@ -877,12 +878,13 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
           Emergency Action Messages: a long block of letters and numbers after &ldquo;Skyking&rdquo; or a callsign. They are
           encrypted; what is worth watching is how many, and when. Also 4724, 6739, 13200, 15016 kHz, all upper sideband.</p>
         <div class="sig-links">
-          <a class="ap-btn" href="http://websdr.ewi.utwente.nl:8901/?tune=8992usb" target="_blank" rel="noopener noreferrer">&#9654; 8992 USB</a>
-          <a class="ap-btn" href="http://websdr.ewi.utwente.nl:8901/?tune=11175usb" target="_blank" rel="noopener noreferrer">&#9654; 11175 USB</a>
+          <a class="ap-btn sig-rx" href="http://websdr.ewi.utwente.nl:8901/?tune=8992usb" target="_blank" rel="noopener noreferrer">&#9654; 8992 USB</a>
+          <a class="ap-btn sig-rx" href="http://websdr.ewi.utwente.nl:8901/?tune=11175usb" target="_blank" rel="noopener noreferrer">&#9654; 11175 USB</a>
           <a class="ap-btn" href="https://www.reddit.com/r/HFGCS/new/" target="_blank" rel="noopener noreferrer">monitor logs</a>
         </div>
       </div>
     </div>
+    <div class="sig-rxmsg" id="sigRxMsg" style="display:none"></div>
     <p class="sig-note">Twente (the Netherlands) hears both well. For a receiver nearer you, pick one on the
       <a href="http://rx.linkfanel.net/" target="_blank" rel="noopener noreferrer">KiwiSDR map</a> or the
       <a href="http://kiwisdr.com/public/" target="_blank" rel="noopener noreferrer">public list</a> and tune the same frequency.
