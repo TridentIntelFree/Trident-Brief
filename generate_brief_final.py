@@ -77,7 +77,10 @@ THEATRES = """- EUROPE / RUSSIA-UKRAINE: front-line movement, deep strikes, ener
   Venezuela, Haiti, Colombia, and hemispheric military deployments.
 - STRATEGIC AND SPACE: nuclear forces and doctrine, missile and hypersonic tests,
   ASAT and counterspace activity, military launches, Arctic, undersea cables and
-  pipelines, GPS jamming and spoofing.
+  pipelines, GPS jamming and spoofing. Strategic radio: UVB-76 voice messages and
+  bursts of US HFGCS Emergency Action Messages, as logged by the monitors on the
+  SIGNALS desk -- report timing and volume against normal, never guess at content
+  (it is encrypted or coded), and treat a burst as weak evidence on its own.
 - ECONOMIC AND ENERGY PRESSURE: sanctions and export controls, oil/gas/LNG and
   critical-mineral shocks, maritime chokepoints (Hormuz, Bab el-Mandeb, Suez, Panama,
   Malacca), shadow-fleet and insurance measures, sovereign financial stress."""
@@ -1839,9 +1842,22 @@ WIRE_FEEDS = [
     # but the first. Each post is labelled with its own subreddit from the feed.
     # If Reddit refuses the runner, the brief says so and moves on -- it is not
     # worth a paid search per subreddit to get around it.
+    # The same request carries the signal-monitoring communities, whose posts
+    # are sorted onto the SIGNALS desk below.
     ('Reddit', 'reddit', 'https://www.reddit.com/r/CredibleDefense+geopolitics+'
-                         'UkraineWarVideoReport+LessCredibleDefence/new/.rss?limit=50'),
+                         'UkraineWarVideoReport+LessCredibleDefence+uvb76+numbersstations+'
+                         'shortwave+HFGCS/new/.rss?limit=100'),
+    ('Numbers Stations', 'signals', 'https://www.numbers-stations.com/feed/'),
 ]
+# Signals: the people who monitor UVB-76 ("the Buzzer", 4625 kHz) and the US Air
+# Force HFGCS network (8992 / 11175 kHz) around the clock, and post each voice
+# message or burst of Emergency Action Messages as it happens. Their reports are
+# rare, so they are kept for a week instead of the collection window. From the
+# general shortwave community only posts about these stations are kept.
+SIGNAL_SUBS = {'uvb76', 'numbersstations', 'hfgcs'}
+SIGNAL_RE = re.compile(r'uvb[- ]?76|buzzer|4625|mdzhb|hfgcs|\beams?\b|emergency action|sky ?king|'
+                       r'8992|11175|numbers? station|\bs28\b|\bpip\b|squeaky wheel', re.I)
+SIGNAL_DAYS = 7
 WIRE_KEV = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 WIRE_KEV_PAGE = 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'
 WIRE_PER_FEED = 8        # newest items kept from any one feed
@@ -1849,7 +1865,8 @@ WIRE_MAX = 70            # lines handed to the model (~4k tokens, a fraction of 
 WIRE_DESKS = [('europe', 'EUROPE / RUSSIA-UKRAINE'), ('mideast', 'MIDDLE EAST'),
               ('indopac', 'INDO-PACIFIC'), ('africa', 'AFRICA'), ('world', 'WORLD DESKS'),
               ('defense', 'DEFENCE'), ('maritime', 'MARITIME'), ('space', 'SPACE'),
-              ('cyber', 'CYBER'), ('homeland', 'US HOMELAND'), ('reddit', 'REDDIT')]
+              ('cyber', 'CYBER'), ('homeland', 'US HOMELAND'), ('reddit', 'REDDIT'),
+              ('signals', 'SIGNALS (UVB-76 / HFGCS MONITORS)')]
 _TAG = re.compile(r'<[^>]+>')
 _WORD = re.compile(r'[a-z0-9]+')
 _STOP = set('the a an of in on to for and or at by with from as is are was were be after '
@@ -1915,16 +1932,16 @@ def parse_feed(xml_bytes):
     return out
 
 
-def _wire_one(label, url, since):
+def _wire_one(label, url, since, keep_since=None):
     r = requests.get(url, timeout=12, headers={
         'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)',
         'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'})
     if r.status_code != 200:
         raise RuntimeError(f'HTTP {r.status_code}')
-    items = [i for i in parse_feed(r.content) if i['time'] and i['time'] >= since]
+    items = [i for i in parse_feed(r.content) if i['time'] and i['time'] >= (keep_since or since)]
     items.sort(key=lambda i: i['time'], reverse=True)
-    # The combined subreddit feed is four feeds in one, so it gets four shares.
-    return items[:WIRE_PER_FEED * (4 if label == 'Reddit' else 1)]
+    # The combined subreddit feed is several feeds in one, so it gets more room.
+    return items[:WIRE_PER_FEED * (8 if label == 'Reddit' else 1)]
 
 
 def _wire_kev(since_days=3):
@@ -1955,10 +1972,13 @@ def fetch_wire(hours):
     since = datetime.now(timezone.utc) - timedelta(hours=hours)
     detail, got = {}, []
 
+    long_since = datetime.now(timezone.utc) - timedelta(days=SIGNAL_DAYS)
+
     def run(feed):
         label, desk, url = feed
         try:
-            return feed, _wire_one(label, url, since), None
+            wide = label == 'Reddit' or desk == 'signals'
+            return feed, _wire_one(label, url, since, long_since if wide else None), None
         except Exception as e:
             return feed, None, str(e)[:80]
 
@@ -1970,7 +1990,14 @@ def fetch_wire(hours):
             detail[label] = len(items)
             for i in items:
                 src = f"r/{i['cat']}" if desk == 'reddit' and i.get('cat') else label
-                i.update(src=[src], desk=desk)
+                d = desk
+                if desk == 'reddit':
+                    sub = (i.get('cat') or '').lower()
+                    if sub in SIGNAL_SUBS or (sub == 'shortwave' and SIGNAL_RE.search(i['title'])):
+                        d = 'signals'
+                    elif sub == 'shortwave' or i['time'] < since:
+                        continue              # off-topic shortwave, or older than the window
+                i.update(src=[src], desk=d)
                 got.append(i)
     try:
         kev = _wire_kev()
@@ -2004,11 +2031,13 @@ def fetch_wire(hours):
 
 
 def wire_for_page(items, cap=160):
-    """The headlines in the page's own compact shape, newest first."""
-    rows = sorted(items, key=lambda i: (i['time'] or datetime.min.replace(tzinfo=timezone.utc)),
-                  reverse=True)
+    """The headlines in the page's own compact shape, newest first. Signal
+    reports are kept whatever the cap, since they are few and a week long."""
+    key = lambda i: (i['time'] or datetime.min.replace(tzinfo=timezone.utc))
+    sig = sorted([i for i in items if i['desk'] == 'signals'], key=key, reverse=True)[:40]
+    rest = sorted([i for i in items if i['desk'] != 'signals'], key=key, reverse=True)[:cap]
     out = []
-    for i in rows[:cap]:
+    for i in sorted(sig + rest, key=key, reverse=True):
         r = {'s': i['src'], 'd': i['desk'], 't': i['title'], 'u': i['url']}
         if i['time']:
             r['at'] = i['time'].strftime('%Y-%m-%dT%H:%M:%SZ')

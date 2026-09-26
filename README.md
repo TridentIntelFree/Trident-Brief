@@ -30,6 +30,25 @@ globe's GPS JAM layer marks where many aircraft at once report degraded GPS
 accuracy (the gpsjam.org method, over a rolling six hours), and the terrain
 panel shows the site's weather from Open-Meteo. None of these calls a model.
 
+## Signals
+
+The UVB-76 and HFGCS section (`assets/signals.js`). Its station cards link to
+public web receivers already tuned: the University of Twente WebSDR, plus the
+KiwiSDR directories for a receiver nearer you. The analyzer is a spectrogram
+that runs entirely in the browser (Web Audio). It takes another tab's audio
+(desktop Chrome or Edge), the microphone, or a recording, and nothing is
+uploaded. Two detectors run on their own fixed 2048-point spectrum:
+- *pulse train*: periodicity of the energy in eight sub-bands over 12 s, which
+  gives the Buzzer's rate;
+- *voice?*: the median frame-to-frame change of the speech-band level.
+
+In live mode the audio stream clocks both the detectors and the waterfall, so
+they keep running in a background tab. The monitor reports are the wire's
+`signals` desk. The generator files r/uvb76, r/numbersstations and r/HFGCS
+there, as well as r/shortwave posts that match the stations, plus
+numbers-stations.com, and keeps a week of them. The model is told the same
+reports are timing evidence only.
+
 ## Appalachistan
 
 The trail-map section at the bottom of the page (`assets/appalachistan.js`,
@@ -132,7 +151,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.6.0) and appears in the page
+The build version lives in `VERSION` (currently 1.7.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).
