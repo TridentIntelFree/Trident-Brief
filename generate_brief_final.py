@@ -2630,6 +2630,29 @@ def build_trail_data():
           f"{'complete' if data.get('complete') else 'incomplete: ' + json.dumps(data.get('sections'))}")
 
 
+def probe_xai_browser():
+    """Would xAI accept the local brief's request from the live page?
+
+    The local brief calls api.x.ai straight from the visitor's browser. That
+    only works if xAI answers the browser's CORS preflight for this site's
+    origin. This asks the same question the browser does (it costs nothing:
+    a preflight is never billed) and records the answer in feed-status."""
+    repo = os.environ.get('GITHUB_REPOSITORY', 'TridentIntelFree/Trident-Brief')
+    origin = f"https://{repo.split('/')[0].lower()}.github.io"
+    try:
+        r = requests.options('https://api.x.ai/v1/responses', timeout=15, headers={
+            'Origin': origin, 'Access-Control-Request-Method': 'POST',
+            'Access-Control-Request-Headers': 'authorization,content-type'})
+        allow = r.headers.get('Access-Control-Allow-Origin')
+        ok = r.status_code < 400 and allow in ('*', origin)
+        print(f"  xai browser access: preflight {r.status_code}, allow-origin {allow!r} -> "
+              f"{'local brief can run in the browser' if ok else 'browsers will be refused'}")
+        return {'ok': ok, 'status': r.status_code, 'allow_origin': allow,
+                'allow_headers': r.headers.get('Access-Control-Allow-Headers')}
+    except Exception as e:
+        return {'ok': None, 'error': str(e)[:120]}
+
+
 def fetch_server_feeds(leads=None):
     """Fetch the rate-limited / CORS-awkward feeds here instead of in the browser.
 
@@ -2723,6 +2746,7 @@ def fetch_server_feeds(leads=None):
         feeds['satcounts'] = sats
 
     feeds['appalachia'] = appalachia_status()
+    feeds['xai_browser'] = probe_xai_browser()
 
     dis, err = fetch_disasters()
     if dis is None:
@@ -2755,6 +2779,7 @@ def write_feed_status(feeds):
     counts['wire_detail'] = feeds.get('wire_detail')
     counts['aircraft'] = feeds.get('aircount')
     counts['appalachia'] = feeds.get('appalachia')
+    counts['xai_browser'] = feeds.get('xai_browser')
     gj = feeds.get('gpsjam') or {}
     counts['gpsjam'] = {k: gj.get(k) for k in ('runs', 'checked', 'cells_seen')} | \
         {'flagged': len(gj.get('cells') or [])} if gj else None
@@ -3243,22 +3268,10 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
         print(f"Land polygons unavailable ({e}); globe draws unfilled")
         land = {'rings': []}
 
-    # The collection key is NOT written into the page by default.
-    #
-    # index.html is published to GitHub Pages, so anything in it is readable by
-    # every visitor via View Source -- the key was never leaked by GitHub
-    # Secrets, it was leaked by this line putting it in a public file. The page
-    # falls back to asking the viewer for their own key and keeping it in their
-    # own browser, so the local-brief feature still works without publishing
-    # anyone's credentials.
-    #
-    # Setting PUBLISH_GROK_KEY=1 restores the old behaviour. No workflow sets
-    # it, and it should stay that way unless the key is one you are content to
-    # make public.
-    grok_key = (os.environ.get('GROK_API_KEY', '')
-                if os.environ.get('PUBLISH_GROK_KEY') == '1' else '')
-    if grok_key:
-        print('WARNING: embedding GROK_API_KEY in index.html - it will be public')
+    # The collection key is never written into the page. index.html is public,
+    # so anything in it is readable by every visitor -- that is how the key once
+    # leaked. The local brief runs on the visitor's own key, typed into the page
+    # and kept only in their browser.
 
     # The page is re-rendered every half hour by the feeds-only job, so "now" is
     # when the feeds were refreshed, not when the brief was collected. The header
@@ -3291,7 +3304,6 @@ def render(content, provider, badge, timestamp, archive, events, feeds, stale=Fa
                                  'wiring': fly_wiring_b64(),
                                  'trace': ((history or load_history()) or {}).get('flytrace', []),
                                  'traced': len((((history or load_history()) or {}).get('fly') or {}).get('w', {}))}),
-        '__GROK_KEY_JSON__': js_json(grok_key),
     }
     for token, value in subs.items():
         html = html.replace(token, value)

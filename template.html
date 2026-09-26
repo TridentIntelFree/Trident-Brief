@@ -527,6 +527,11 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .access-form button:hover:not(:disabled){background:#2563eb}
 .access-form button:disabled{opacity:.55;cursor:not-allowed}
 .error-msg{color:var(--red);font-size:.85em;margin-top:11px}
+.key-opts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:9px;font-size:.8em;color:var(--ink-dim)}
+.key-opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.key-opts a,.key-opts button.linkish{color:var(--cyan);background:none;border:0;cursor:pointer;font:inherit;text-decoration:underline;padding:0}
+.owner-box{flex-basis:100%}
+.owner-box summary{cursor:pointer;color:var(--ink-faint);font-family:var(--mono);font-size:.95em;letter-spacing:.05em}
 .success-msg{color:var(--green);font-size:.85em;margin-top:11px}
 .note-msg{color:var(--ink-dim);font-size:.85em;margin-top:11px}
 #localBriefContent{margin-top:18px;padding:18px;background:rgba(7,11,28,.6);border:1px solid var(--line2);border-radius:8px;display:none}
@@ -826,18 +831,33 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 
   <!-- ============ LOCAL INTEL ============ -->
   <div class="local-intel">
-    <h2>&#127919; Local Intelligence Brief (Restricted Access)</h2>
+    <h2>&#127919; Local Intelligence Brief</h2>
     <p class="hint">
       Generate a localized intelligence brief for your area (200-mile radius): local law enforcement activity,
       crime trends, political developments, business intelligence, and regional threats &mdash; via X search + web search.
       Entering a ZIP also re-targets the God's Eye feeds above onto that area.
-      Collection runs from your browser using your own xAI key, kept in this browser only &mdash;
-      no key is published in this page.
+      It runs from your browser on <b>your own xAI API key</b> (from <a href="https://console.x.ai" target="_blank" rel="noopener">console.x.ai</a>,
+      billed to you, a few cents a brief). The key goes only to xAI; it is never uploaded here or published in this page.
     </p>
     <div class="access-form">
-      <input type="password" id="accessCode" placeholder="4-digit access code" maxlength="4" inputmode="numeric" autocomplete="off">
       <input type="text" id="zipCode" placeholder="ZIP code" maxlength="5" inputmode="numeric" autocomplete="postal-code">
+      <input type="password" id="userKey" placeholder="your xAI API key (xai-...)" autocomplete="off" spellcheck="false">
       <button id="localBtn" onclick="generateLocalBrief()">Generate Local Brief</button>
+    </div>
+    <div class="key-opts">
+      <label><input type="checkbox" id="rememberKey"> remember my key in this browser</label>
+      <span id="keyState"></span>
+      <details class="owner-box"><summary>owner code</summary>
+        <div class="access-form" style="margin-top:8px">
+          <input type="password" id="accessCode" placeholder="owner code" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="hint" style="font-size:.78em;color:var(--ink-faint);margin-top:6px">
+          For the owner's own devices. The first time on a device, enter the code <i>and</i> your key: the key is
+          saved in this browser, locked with the code. After that the code alone unlocks it. On any other device the
+          code unlocks nothing, because no key is stored there. A short code only guards against someone picking up
+          your unlocked phone, not against a determined attacker who has it.
+        </div>
+      </details>
     </div>
     <div id="accessMessage"></div>
     <div id="localBriefContent"></div>
@@ -962,8 +982,6 @@ const COASTLINE  = __COASTLINE_JSON__;
 const LAND       = __LAND_JSON__;
 const HISTORY    = __HISTORY_JSON__;
 const FLY        = __FLY_JSON__;
-const GROK_KEY   = __GROK_KEY_JSON__;
-const ACCESS_CODE= "0330";
 
 /* =====================================================================
    Minimal markdown renderer (self-contained, no CDN)
@@ -3035,13 +3053,84 @@ window.TB = {
 /* =====================================================================
    LOCAL BRIEF  --  unchanged Grok call, same model / tools / prompt
    ===================================================================== */
-function apiKey(){
-  if(GROK_KEY) return GROK_KEY;
-  try { return localStorage.getItem('trident_grok_key') || ''; } catch(_){ return ''; }
+/* Keys for the local brief. Nothing secret can live in this page -- it is
+   public, and anyone can read its source -- so there is no built-in key and no
+   access code in it. A visitor uses their own xAI key, optionally remembered in
+   their own browser. The owner can lock their key on their own devices with a
+   code: the key is stored AES-GCM-encrypted under a PBKDF2 key derived from the
+   code, and the code itself is stored nowhere. */
+var KEY_PLAIN = 'trident_grok_key', KEY_VAULT = 'trident_owner_vault';
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }
+function lsSet(k, v){ try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); return true; }catch(_){ return false; } }
+function b64(u8){ return btoa(String.fromCharCode.apply(null, Array.from(u8))); }
+function unb64(s){ return Uint8Array.from(atob(s), function(c){ return c.charCodeAt(0); }); }
+async function vaultKey(code, salt){
+  var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt:salt, iterations:310000, hash:'SHA-256'}, base,
+                                 {name:'AES-GCM', length:256}, false, ['encrypt', 'decrypt']);
+}
+async function vaultLock(code, apiKeyText){
+  var salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  var ct = await crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, await vaultKey(code, salt), new TextEncoder().encode(apiKeyText));
+  return lsSet(KEY_VAULT, JSON.stringify({s:b64(salt), i:b64(iv), c:b64(new Uint8Array(ct))}));
+}
+async function vaultOpen(code){
+  var v = lsGet(KEY_VAULT);
+  if(!v) return {none:true};
+  try{
+    v = JSON.parse(v);
+    var pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(v.i)}, await vaultKey(code, unb64(v.s)), unb64(v.c));
+    return {key:new TextDecoder().decode(pt)};
+  }catch(_){ return {wrong:true}; }
+}
+function keyStateLine(){
+  var el = document.getElementById('keyState'); if(!el) return;
+  var bits = [];
+  if(lsGet(KEY_PLAIN)) bits.push('a key is remembered in this browser');
+  if(lsGet(KEY_VAULT)) bits.push('an owner key is locked on this device');
+  el.innerHTML = bits.length ? esc(bits.join(' \u00b7 ')) + ' \u00b7 <button class="linkish" type="button" onclick="forgetKeys()">forget</button>' : '';
+}
+function forgetKeys(){
+  if(!confirm('Remove every xAI key saved in this browser?')) return;
+  lsSet(KEY_PLAIN, null); lsSet(KEY_VAULT, null);
+  keyStateLine();
+}
+(function(){
+  var rk = document.getElementById('rememberKey');
+  if(rk && lsGet(KEY_PLAIN)) rk.checked = true;
+  keyStateLine();
+})();
+
+/* Which key this run uses: one typed into the box, else the owner's locked key
+   if a code was given, else a remembered one. Returns {key} or {error}. */
+async function resolveKey(){
+  var typed = (document.getElementById('userKey').value || '').trim();
+  var code = (document.getElementById('accessCode').value || '').trim();
+  var remember = document.getElementById('rememberKey').checked;
+  if(typed){
+    if(code){
+      if(code.length < 4) return {error:'Use an owner code of at least 4 characters.'};
+      if(!window.crypto || !crypto.subtle) return {error:'This browser cannot lock a key.'};
+      await vaultLock(code, typed);
+    } else if(remember) lsSet(KEY_PLAIN, typed);
+    else lsSet(KEY_PLAIN, null);
+    document.getElementById('userKey').value = '';
+    keyStateLine();
+    return {key:typed};
+  }
+  if(code){
+    if(!window.crypto || !crypto.subtle) return {error:'This browser cannot unlock a saved key.'};
+    var o = await vaultOpen(code);
+    if(o.key) return {key:o.key};
+    if(o.wrong) return {error:'That code does not unlock the key saved on this device.'};
+    return {error:'No key is locked on this device yet. Enter the code and your xAI key once to save it here.'};
+  }
+  var saved = lsGet(KEY_PLAIN);
+  if(saved) return {key:saved};
+  return {error:'Enter your xAI API key to run a local brief (get one at console.x.ai).'};
 }
 
 async function generateLocalBrief(){
-  const code = document.getElementById('accessCode').value;
   const zip  = document.getElementById('zipCode').value;
   const msgDiv = document.getElementById('accessMessage');
   const contentDiv = document.getElementById('localBriefContent');
@@ -3050,18 +3139,10 @@ async function generateLocalBrief(){
   msgDiv.innerHTML = '';
   contentDiv.style.display = 'none';
 
-  if(code !== ACCESS_CODE){ msgDiv.innerHTML = '<p class="error-msg">Invalid access code</p>'; return; }
-  if(!/^\d{5}$/.test(zip)){ msgDiv.innerHTML = '<p class="error-msg">Invalid ZIP code format</p>'; return; }
-
-  let key = apiKey();
-  if(!key){
-    key = prompt('This page does not ship an API key, by design \u2014 anything in a\n'
-               + 'published page is readable by every visitor.\n\n'
-               + 'Paste your own xAI API key. It is stored only in this browser\n'
-               + '(localStorage) and is never uploaded or published.') || '';
-    if(!key){ msgDiv.innerHTML = '<p class="error-msg">No API key available — cannot task collection</p>'; return; }
-    try { localStorage.setItem('trident_grok_key', key); } catch(_){}
-  }
+  if(!/^\d{5}$/.test(zip)){ msgDiv.innerHTML = '<p class="error-msg">Enter a 5-digit ZIP code.</p>'; return; }
+  const got = await resolveKey();
+  if(got.error){ msgDiv.innerHTML = '<p class="error-msg">' + esc(got.error) + '</p>'; return; }
+  const key = got.key;
 
   retarget(zip);
 
@@ -3136,7 +3217,15 @@ async function generateLocalBrief(){
     msgDiv.innerHTML = '<p class="success-msg">Multi-source local brief generated · God’s Eye re-targeted to ' + zip + '</p>';
 
   } catch(error){
-    msgDiv.innerHTML = '<p class="error-msg">Error generating brief: ' + esc(error.message) + '</p>';
+    /* A fetch that fails outright, with no HTTP status, is almost always the
+       browser refusing the cross-site call because xAI did not allow it -- not
+       a problem with the key. Say which it is. */
+    var m = String(error && error.message || error);
+    if(error instanceof TypeError || /Failed to fetch|NetworkError|Load failed/i.test(m))
+      m = 'the request never reached xAI. Either there is no connection, or xAI does not accept requests sent directly from a web page (browser security). The key was not the problem.';
+    else if(/API request failed: (401|403)\b/.test(m))
+      m = 'xAI rejected the key (' + m.slice(0, 160) + '). Check it at console.x.ai.';
+    msgDiv.innerHTML = '<p class="error-msg">Error generating brief: ' + esc(m) + '</p>';
   } finally {
     btn.disabled = false;
   }

@@ -4,6 +4,26 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.7 — 2026-09-26
+
+### Local Intelligence Brief
+- **Usable with your own key.** The section said to use your own xAI key but
+  gave nowhere to enter one: the only way in was a four-digit access code, and
+  the key was asked for in a pop-up that many phone browsers block. There is now
+  a key box on the page -- no code needed -- with an option to remember the key
+  in that browser and a link to forget it.
+- **The owner code means something.** The old code, 0330, was written in the
+  page's source for anyone to read. It is gone. The owner enters a code and
+  their key once per device; the key is saved there encrypted under the code
+  (PBKDF2 + AES-GCM), and the code is stored nowhere. On any other device the
+  code unlocks nothing.
+- **Plain errors.** A key xAI rejects says so; a request the browser refuses to
+  send says that instead, and that the key was not the problem.
+- **Does xAI allow it?** Each feed refresh now asks xAI the same CORS question a
+  browser does and records the answer in `assets/feed-status.json`
+  (`xai_browser`), so it is known whether the local brief can run from the page.
+- The switch that could publish the collection key in the page is removed.
+
 ## 1.5.6 — 2026-09-26
 
 ### Appalachistan
