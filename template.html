@@ -366,6 +366,48 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .ap-li{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line2);border-radius:8px;padding:6px 9px}
 .ap-li .nm{color:#fff}
 .ap-li small{color:var(--ink-faint);font-family:var(--mono)}
+/* signals */
+.sig-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:10px}
+.sig-card{border:1px solid var(--line2);border-radius:10px;padding:12px 14px;background:rgba(10,17,36,.9)}
+.sig-card-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px}
+.sig-card-h b{color:#fff}
+.sig-f{font-family:var(--mono);font-size:.78em;color:var(--cyan)}
+.sig-card p{color:var(--ink-dim);font-size:.86em;line-height:1.5;margin:0 0 8px}
+.sig-links{display:flex;flex-wrap:wrap;gap:6px}
+.sig-links a{text-decoration:none}
+.sig-note{color:var(--ink-faint);font-size:.8em;line-height:1.55;margin:8px 0 12px}
+.sig-note a{color:var(--cyan)}
+.sig-src{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.sig-src > span{display:inline-flex;flex-wrap:wrap;gap:6px}
+.sig-file{position:relative;cursor:pointer}
+.sig-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.sig-chk{font-family:var(--mono);font-size:.72em;color:var(--ink-dim);display:inline-flex;gap:5px;align-items:center}
+.sig-status{font-family:var(--mono);font-size:.74em;color:var(--ink-dim);margin:4px 0 6px;min-height:1.2em}
+.sig-status.bad{color:#fca5a5}
+.sig-canvas{display:block;width:100%;height:380px;border:1px solid var(--line);border-radius:8px;background:#05070f;touch-action:none;cursor:crosshair}
+.sig-read{font-family:var(--mono);font-size:.76em;color:var(--ink-dim);margin:6px 0;min-height:1.2em}
+.sig-read .ok{color:#34d399}
+.sig-read .hot{color:#facc15}
+.sig-set{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:4px 0 12px}
+.sig-set label{font-family:var(--mono);font-size:.7em;color:var(--ink-faint);display:inline-flex;gap:5px;align-items:center}
+.sig-set select{background:#0a1226;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:4px 6px;font-family:var(--mono);font-size:1em}
+.sig-set input[type=range]{width:110px}
+.sig-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.sig-h{font-family:var(--mono);font-size:.7em;letter-spacing:.12em;color:var(--ink-faint);margin:0 0 6px;font-weight:600}
+.sig-events,.sig-reports{max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.sig-ev{text-align:left;background:rgba(15,23,48,.8);border:1px solid var(--line2);border-left:3px solid #64748b;color:var(--ink-dim);
+  border-radius:6px;padding:5px 8px;font-size:.8em;cursor:pointer}
+.sig-ev b{font-family:var(--mono);color:#fff;font-weight:600;margin-right:4px}
+.sig-ev.pulses{border-left-color:#22d3ee}
+.sig-ev.voice{border-left-color:#facc15}
+.sig-ev.mark{border-left-color:#a78bfa}
+.sig-rep{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;border:1px solid var(--line2);border-radius:6px;padding:6px 8px;font-size:.84em}
+.sig-rep a{color:var(--ink);text-decoration:none;flex:1 1 200px}
+.sig-rep a:hover{color:#fff;text-decoration:underline}
+.sig-tag{font-family:var(--mono);font-size:.72em;border:1px solid;border-radius:4px;padding:0 5px}
+.sig-when,.sig-src-n{font-family:var(--mono);font-size:.72em;color:var(--ink-faint)}
+.sig-empty{color:var(--ink-faint);font-size:.82em;padding:6px 0}
+@media (max-width:640px){.sig-canvas{height:320px}}
 .ap-dim{color:var(--ink-faint)}
 .ap-warn{color:#fbbf24}
 .ap-bad{color:#f87171}
@@ -809,6 +851,93 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
     <div class="ev-filters" id="wireFilters"></div>
     <div class="wire-list" id="wireList"></div>
     <button class="ev-f wire-more" id="wireMore" style="display:none"></button>
+  </div>
+
+  <!-- ============ SIGNALS ============ -->
+  <div class="section-band" id="sigBand">
+    <div class="band-head">
+      <h2>&#128225; Signals &mdash; UVB-76 &amp; HFGCS</h2>
+      <div class="sub">listen live through public web receivers &middot; see it on a spectrogram &middot; what the monitors are reporting</div>
+    </div>
+    <div class="sig-cards">
+      <div class="sig-card">
+        <div class="sig-card-h"><b>UVB-76 &middot; &ldquo;The Buzzer&rdquo;</b><span class="sig-f">4625 kHz</span></div>
+        <p>A Russian military station that has sounded a short buzz, about 20&ndash;35 a minute, around the clock since the
+          1970s. Now and then the buzz stops for a voice reading a callsign, a codeword and numbers in Russian. Monitors log
+          every message; what they mean is not public.</p>
+        <div class="sig-links">
+          <a class="ap-btn" href="http://websdr.ewi.utwente.nl:8901/?tune=4625usb" target="_blank" rel="noopener noreferrer">&#9654; LISTEN (Twente, USB)</a>
+          <a class="ap-btn" href="http://websdr.ewi.utwente.nl:8901/?tune=4625am" target="_blank" rel="noopener noreferrer">AM</a>
+          <a class="ap-btn" href="https://priyom.org/military-stations/russia/the-buzzer" target="_blank" rel="noopener noreferrer">monitor logs</a>
+        </div>
+      </div>
+      <div class="sig-card">
+        <div class="sig-card-h"><b>HFGCS &middot; US Air Force</b><span class="sig-f">8992 &middot; 11175 kHz</span></div>
+        <p>The High Frequency Global Communications System, which reaches US aircraft anywhere. Listeners track its
+          Emergency Action Messages: a long block of letters and numbers after &ldquo;Skyking&rdquo; or a callsign. They are
+          encrypted; what is worth watching is how many, and when. Also 4724, 6739, 13200, 15016 kHz, all upper sideband.</p>
+        <div class="sig-links">
+          <a class="ap-btn" href="http://websdr.ewi.utwente.nl:8901/?tune=8992usb" target="_blank" rel="noopener noreferrer">&#9654; 8992 USB</a>
+          <a class="ap-btn" href="http://websdr.ewi.utwente.nl:8901/?tune=11175usb" target="_blank" rel="noopener noreferrer">&#9654; 11175 USB</a>
+          <a class="ap-btn" href="https://www.reddit.com/r/HFGCS/new/" target="_blank" rel="noopener noreferrer">monitor logs</a>
+        </div>
+      </div>
+    </div>
+    <p class="sig-note">Twente (the Netherlands) hears both well. For a receiver nearer you, pick one on the
+      <a href="http://rx.linkfanel.net/" target="_blank" rel="noopener noreferrer">KiwiSDR map</a> or the
+      <a href="http://kiwisdr.com/public/" target="_blank" rel="noopener noreferrer">public list</a> and tune the same frequency.
+      <b>To analyse it:</b> open a receiver in another tab, come back and press <b>SHARE TAB AUDIO</b>, choose that tab and tick
+      &ldquo;Also share tab audio&rdquo; (desktop Chrome or Edge). On a phone use <b>MICROPHONE</b> next to the speaker, or use the
+      receiver&rsquo;s record button and <b>OPEN RECORDING</b>.</p>
+
+    <div class="sig-src">
+      <button class="ap-btn" id="sigTab" type="button">&#128421; SHARE TAB AUDIO</button>
+      <button class="ap-btn" id="sigMic" type="button">&#127908; MICROPHONE</button>
+      <label class="ap-btn sig-file">&#128194; OPEN RECORDING<input type="file" id="sigFileIn" accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.webm"></label>
+      <label class="sig-chk" title="play the shared tab through this page too"><input type="checkbox" id="sigMonitor"> hear it here</label>
+      <span id="sigLiveBar" style="display:none">
+        <button class="ap-btn" id="sigPause" type="button">&#10074;&#10074; FREEZE</button>
+        <button class="ap-btn" id="sigMark" type="button">&#9873; MARK</button>
+        <button class="ap-btn" id="sigRec" type="button">&#9679; RECORD CLIP</button>
+        <button class="ap-btn warn" id="sigStop" type="button">&#9632; STOP</button>
+      </span>
+      <span id="sigFileBar" style="display:none">
+        <button class="ap-btn" id="sigPlay" type="button">&#9654; PLAY</button>
+      </span>
+    </div>
+    <div class="sig-status" id="sigStatus">Choose a source. Nothing you capture leaves this device.</div>
+    <canvas id="sigCanvas" class="sig-canvas"></canvas>
+    <div class="sig-read" id="sigRead">idle</div>
+    <div class="sig-set">
+      <label>range <select id="sigRange"><option value="3000">0&ndash;3 kHz</option><option value="3500">0&ndash;3.5 kHz</option>
+        <option value="5000">0&ndash;5 kHz</option><option value="8000">0&ndash;8 kHz</option><option value="12000">0&ndash;12 kHz</option>
+        <option value="24000">0&ndash;24 kHz</option></select></label>
+      <label>detail <select id="sigFft"><option value="1024">1024 (fast)</option><option value="2048">2048</option>
+        <option value="4096">4096</option><option value="8192">8192</option><option value="16384">16384 (fine)</option></select></label>
+      <label>colour <select id="sigMap"><option value="thermal">thermal</option><option value="ocean">ocean</option>
+        <option value="green">green</option><option value="gray">grey</option></select></label>
+      <label>speed <select id="sigSpeed"><option value="10">slow</option><option value="20">normal</option><option value="40">fast</option></select></label>
+      <label>floor <input type="range" id="sigLo" min="-160" max="-20" step="1"></label>
+      <label>ceiling <input type="range" id="sigHi" min="-120" max="0" step="1"></label>
+      <button class="ap-btn" id="sigAuto" type="button" title="set floor and ceiling from what is on screen">AUTO LEVEL</button>
+      <button class="ap-btn" id="sigShot" type="button">&#128247; PNG</button>
+      <button class="ap-btn" id="sigCsv" type="button">EVENTS CSV</button>
+    </div>
+    <div class="sig-cols">
+      <div>
+        <h4 class="sig-h">DETECTIONS</h4>
+        <div class="sig-events" id="sigEvents"></div>
+      </div>
+      <div>
+        <h4 class="sig-h">MONITOR REPORTS &middot; LAST 7 DAYS</h4>
+        <div class="sig-reports" id="sigReports"></div>
+      </div>
+    </div>
+    <p class="sig-note">Listening to these broadcasts is legal and they are public; the messages themselves are coded, and
+      nothing here decodes them. The detectors are rules of thumb: <b>pulse train</b> is a steady repeating burst (the Buzzer&rsquo;s
+      rhythm), <b>voice?</b> is sound in the speech band that keeps changing moment to moment, as speech does and a buzz or
+      carrier does not. They keep running while you look at another tab. Confirm by ear.
+      Reports are pulled from r/uvb76, r/numbersstations, r/HFGCS, r/shortwave and numbers-stations.com.</p>
   </div>
 
   <!-- ============ RECURRENCE ============ -->
@@ -3689,7 +3818,7 @@ var WIRE_DESK = {
   europe:['Europe / Ukraine','#60a5fa'], mideast:['Middle East','#f59e0b'], indopac:['Indo-Pacific','#34d399'],
   africa:['Africa','#fb923c'], world:['World desks','#94a3b8'], defense:['Defence','#ef4444'],
   maritime:['Maritime','#22d3ee'], space:['Space','#a78bfa'], cyber:['Cyber','#c084fc'],
-  homeland:['US homeland','#fbbf24'], reddit:['Reddit','#ff6a2b']
+  homeland:['US homeland','#fbbf24'], reddit:['Reddit','#ff6a2b'], signals:['Signals','#f59e0b']
 };
 function escA(s){ return esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function agoShort(ms){
@@ -6058,6 +6187,7 @@ function foldable(id, foldedByDefault){
 }
 foldable('flyBand', true);
 foldable('archiveBand', true);
+foldable('sigBand', false);
 
 /* Appalachistan runs from its own file so the service worker can keep it on
    the phone. It loads Leaflet only when the section comes into view. */
@@ -6065,6 +6195,9 @@ foldable('archiveBand', true);
   var sc = document.createElement('script');
   sc.src = 'assets/appalachistan.js'; sc.defer = true;
   document.body.appendChild(sc);
+  var sg = document.createElement('script');
+  sg.src = 'assets/signals.js'; sg.defer = true;
+  document.body.appendChild(sg);
   if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost'))
     navigator.serviceWorker.register('sw.js').catch(function(){});
 })();

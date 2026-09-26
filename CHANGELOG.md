@@ -4,6 +4,46 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.7.0 — 2026-09-26
+
+### Signals — UVB-76 & HFGCS (new section)
+- **Listen live:** each station card has buttons that open a public web
+  receiver already tuned:
+  - UVB-76 on 4625 kHz, USB or AM;
+  - HFGCS on 8992 and 11175 kHz, USB;
+  - links to the KiwiSDR map and list for a receiver nearer you.
+- **Spectrum analyzer in the page** (Web Audio; nothing is uploaded):
+  - *Sources:* another tab's audio (share the receiver's tab, desktop
+    Chrome/Edge), the microphone, or a recording.
+  - *Live view:* a scrolling waterfall with UTC ticks, a spectrum line with
+    peak hold, and a cursor readout of frequency, level and time.
+  - *Recording view:* a full time-by-frequency picture with a time axis; tap
+    it to play from that point.
+  - *Settings:* range 3–24 kHz, FFT 1024–16384, four colour maps, floor and
+    ceiling, and auto level.
+  - *Saving:* PNG snapshot, recorded clips (webm), marks, and events as CSV.
+- **Detectors,** on their own fixed spectrum so settings never change what they
+  find:
+  - *pulse train:* sub-band periodicity, which reports the Buzzer's rate per
+    minute;
+  - *voice?:* the moment-to-moment change of the speech band, a stretch of
+    it;
+  - pulse trains starting and stopping.
+
+  Tested on synthetic buzz, voice and noise recordings, including a buzz 2 dB
+  under the noise: rates were measured to within 0.1/min, and noise with
+  static crashes gave no detections. Live monitoring keeps running while the
+  tab is in the background.
+- **Monitor reports:** a new `signals` wire desk kept for 7 days, fed by:
+  - r/uvb76, r/numbersstations and r/HFGCS;
+  - r/shortwave posts that match the stations;
+  - numbers-stations.com.
+
+  Each report is tagged UVB-76 or HFGCS, and they are listed in the section
+  and on the wire.
+- The brief's STRATEGIC line may cite strategic radio activity, as timing only:
+  the content is encrypted, so it is weak evidence.
+
 ## 1.6.0 — 2026-09-26
 
 ### Local Intelligence Brief
