@@ -132,7 +132,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.5.8) and appears in the page
+The build version lives in `VERSION` (currently 1.6.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).
@@ -159,8 +159,14 @@ daily commit keeps the repo active so the schedule cannot expire again.
 every deploy. No API key is ever written into the page: a static host has
 nowhere to keep a secret, so anything in it is readable by every visitor. The
 Local Intelligence Brief runs on the visitor's own xAI key, typed into the page
-and kept only in their browser. The owner's key is saved only on the owner's
-own devices, which then show a "my local brief" button; a new device is set up
-by tapping the version number in the header five times. Whether xAI accepts calls made
+and kept only in their browser. The owner's local brief runs on GitHub
+instead (`.github/workflows/local-brief.yml`, `local_brief.py`), with the Grok
+key already in the repository's secrets, so the key never reaches a phone. The
+owner's panel -- opened by tapping the version number in the header five times
+-- holds only a fine-grained GitHub token (Actions: read and write, Contents:
+read-only) and the passphrase also stored as the `LOCAL_BRIEF_PASSPHRASE`
+secret. Because the repository is public, the ZIP is sent encrypted with that
+passphrase and the brief is committed encrypted to `data/local-brief/`, where
+only the panel can open it. Whether xAI accepts calls made
 straight from a browser is checked on every feed refresh and recorded in
 `assets/feed-status.json` under `xai_browser`.

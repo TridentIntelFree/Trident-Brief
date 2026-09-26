@@ -535,6 +535,9 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
   font-size:.72em;letter-spacing:.06em;padding:6px 10px;border-radius:6px;cursor:pointer}
 .own-btn:hover{color:var(--cyan);border-color:var(--cyan)}
 #ownContent{margin-top:14px}
+.own-steps{margin:0 0 12px 18px;color:var(--ink-dim);font-size:.84em;line-height:1.6}
+.own-steps li{margin-bottom:6px}
+.own-steps code{font-family:var(--mono);color:var(--cyan)}
 .success-msg{color:var(--green);font-size:.85em;margin-top:11px}
 .note-msg{color:var(--ink-dim);font-size:.85em;margin-top:11px}
 #localBriefContent{margin-top:18px;padding:18px;background:rgba(7,11,28,.6);border:1px solid var(--line2);border-radius:8px;display:none}
@@ -863,16 +866,29 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
       <div class="modal-bar"><h3>MY LOCAL BRIEF</h3><button class="x-btn" onclick="closeOwner()">&times;</button></div>
       <div style="padding:18px 20px">
         <div id="ownSetup">
-          <p class="hint" style="color:var(--ink-dim);font-size:.87em;margin-bottom:10px">Paste your xAI key once. It is saved
-            on this device only &mdash; never in the page, never uploaded &mdash; and this panel then opens from a button that
-            only this device shows.</p>
-          <div class="access-form"><input type="password" id="ownKeyIn" placeholder="your xAI API key (xai-...)" autocomplete="off" spellcheck="false">
-            <button type="button" onclick="ownerSave()">Save on this device</button></div>
+          <p class="hint" style="color:var(--ink-dim);font-size:.87em;margin-bottom:10px">Runs on GitHub with the Grok key
+            already in your repository's secrets; the key never comes to this phone. Set up once per device:</p>
+          <ol class="own-steps">
+            <li>In the repository on GitHub: <b>Settings &rarr; Secrets and variables &rarr; Actions &rarr; New repository
+              secret</b>, named <code>LOCAL_BRIEF_PASSPHRASE</code>, holding a long passphrase (a few words). It locks your
+              ZIP and your brief, which pass through the public repository.</li>
+            <li>On GitHub: <b>your picture &rarr; Settings &rarr; Developer settings &rarr; Personal access tokens &rarr;
+              Fine-grained tokens &rarr; Generate new token</b>. Repository access: <i>only</i> Trident-Brief.
+              Permissions: <b>Actions: Read and write</b> and <b>Contents: Read-only</b>, nothing else. It can start
+              runs of this repository's workflows and read their results; it cannot read secrets or change code.</li>
+            <li>Paste both here.</li>
+          </ol>
+          <div class="access-form">
+            <input type="password" id="ownTokIn" placeholder="GitHub token (github_pat_...)" autocomplete="off" spellcheck="false">
+            <input type="password" id="ownPassIn" placeholder="the same passphrase" autocomplete="off" spellcheck="false">
+            <button type="button" onclick="ownerSave()">Save on this device</button>
+          </div>
         </div>
         <div id="ownRun" style="display:none">
           <div class="access-form"><input type="text" id="ownZip" placeholder="ZIP code" maxlength="5" inputmode="numeric" autocomplete="postal-code">
             <button id="ownBtnGo" type="button" onclick="ownerGenerate()">Generate</button></div>
-          <div class="key-opts"><span>key saved on this device</span>
+          <div class="key-opts"><span>runs on GitHub with your Grok key &middot; about 2 minutes</span>
+            <button class="linkish" type="button" onclick="ownerLast()">show last brief</button>
             <button class="linkish" type="button" onclick="ownerForget()">forget this device</button></div>
         </div>
         <div id="ownMsg"></div>
@@ -3077,7 +3093,7 @@ window.TB = {
    their own browser. The owner's key is saved only on the owner's own devices,
    and their panel opens from a button that only those devices show. Hiding the
    way in is not what protects the key -- keeping it off the page is. */
-var KEY_PLAIN = 'trident_grok_key', KEY_OWNER = 'trident_owner_key';
+var KEY_PLAIN = 'trident_grok_key';
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }
 function lsSet(k, v){ try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); return true; }catch(_){ return false; } }
 lsSet('trident_owner_vault', null);       // the earlier code-locked form of the owner key
@@ -3103,9 +3119,23 @@ async function resolveKey(){
   return {error:'Enter your xAI API key to run a local brief (get one at console.x.ai).'};
 }
 
-/* ---- owner panel ---- */
+/* ---- owner panel ----
+   The owner's brief runs on GitHub (.github/workflows/local-brief.yml), with
+   the Grok key that is already in the repository's secrets; this device never
+   holds it. The panel keeps two things: a fine-grained GitHub token that can
+   only start and read Actions runs of this repository, and the passphrase that
+   is also stored as the LOCAL_BRIEF_PASSPHRASE secret. The repository is
+   public, so the ZIP is sent encrypted with that passphrase and the brief comes
+   back encrypted with it (PBKDF2-SHA256 + AES-GCM, matching local_brief.py). */
+var OWN_TOK = 'trident_owner_gh', OWN_PASS = 'trident_owner_pass';
+lsSet('trident_owner_key', null);          // v1.5.8 kept a copy of the xAI key here
+var GH_REPO = (function(){
+  var owner = location.hostname.split('.')[0], repo = location.pathname.split('/')[1];
+  return /github\.io$/.test(location.hostname) && repo ? owner + '/' + repo : 'TridentIntelFree/Trident-Brief';
+})();
+function ownerReady(){ return !!(lsGet(OWN_TOK) && lsGet(OWN_PASS)); }
 function ownerState(){
-  var has = !!lsGet(KEY_OWNER);
+  var has = ownerReady();
   var b = document.getElementById('ownBtn'); if(b) b.style.display = has ? '' : 'none';
   var su = document.getElementById('ownSetup'), ru = document.getElementById('ownRun');
   if(su) su.style.display = has ? 'none' : '';
@@ -3121,28 +3151,122 @@ function closeOwner(){
   document.getElementById('ownerModal').classList.remove('open');
   document.body.style.overflow = '';
 }
+function ownMsg(html, bad){
+  document.getElementById('ownMsg').innerHTML = '<p class="' + (bad ? 'error-msg' : 'success-msg') + '">' + html + '</p>';
+}
 function ownerSave(){
-  var k = (document.getElementById('ownKeyIn').value || '').trim();
-  var m = document.getElementById('ownMsg');
-  if(k.length < 20){ m.innerHTML = '<p class="error-msg">That does not look like an xAI API key.</p>'; return; }
-  if(!lsSet(KEY_OWNER, k)){ m.innerHTML = '<p class="error-msg">This browser would not save it (private browsing?).</p>'; return; }
-  document.getElementById('ownKeyIn').value = '';
-  m.innerHTML = '<p class="success-msg">Saved on this device. The \u201cmy local brief\u201d button now appears here, and only here.</p>';
+  var t = (document.getElementById('ownTokIn').value || '').trim();
+  var p = document.getElementById('ownPassIn').value || '';
+  if(!/^(github_pat_|ghp_)[A-Za-z0-9_]{20,}$/.test(t)){ ownMsg('That does not look like a GitHub token (github_pat_...).', true); return; }
+  if(p.length < 8){ ownMsg('Use the passphrase you saved as LOCAL_BRIEF_PASSPHRASE (at least 8 characters).', true); return; }
+  if(!lsSet(OWN_TOK, t) || !lsSet(OWN_PASS, p)){ ownMsg('This browser would not save them (private browsing?).', true); return; }
+  document.getElementById('ownTokIn').value = ''; document.getElementById('ownPassIn').value = '';
+  ownMsg('Saved on this device. The \u201cmy local brief\u201d button now appears here, and only here.');
   ownerState();
 }
 function ownerForget(){
-  if(!confirm('Remove your key from this device? You can add it again with the hidden gesture.')) return;
-  lsSet(KEY_OWNER, null);
-  document.getElementById('ownMsg').innerHTML = '<p class="success-msg">Removed from this device.</p>';
+  if(!confirm('Remove the GitHub token and passphrase from this device? You can add them again with the hidden gesture.')) return;
+  lsSet(OWN_TOK, null); lsSet(OWN_PASS, null); lsSet('trident_owner_last', null);
+  ownMsg('Removed from this device.');
   ownerState();
 }
-function ownerGenerate(){
-  var zip = (document.getElementById('ownZip').value || '').trim(), key = lsGet(KEY_OWNER);
-  var m = document.getElementById('ownMsg'), out = document.getElementById('ownContent');
-  if(!key){ ownerState(); return; }
-  if(!/^\d{5}$/.test(zip)){ m.innerHTML = '<p class="error-msg">Enter a 5-digit ZIP code.</p>'; return; }
+
+function b64(u8){ return btoa(String.fromCharCode.apply(null, Array.from(u8))); }
+function unb64(s){ return Uint8Array.from(atob(s), function(c){ return c.charCodeAt(0); }); }
+async function passKey(pass, salt){
+  var base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt:salt, iterations:310000, hash:'SHA-256'}, base,
+                                 {name:'AES-GCM', length:256}, false, ['encrypt', 'decrypt']);
+}
+async function lockText(text, pass){
+  var salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  var ct = await crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, await passKey(pass, salt), new TextEncoder().encode(text));
+  var j = JSON.stringify({s:b64(salt), i:b64(iv), c:b64(new Uint8Array(ct))});
+  return btoa(j).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function unlockBlob(blob, pass){
+  var pt = await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(blob.i)}, await passKey(pass, unb64(blob.s)), unb64(blob.c));
+  return new TextDecoder().decode(pt);
+}
+async function gh(path, opts){
+  opts = opts || {};
+  var r = await fetch('https://api.github.com/repos/' + GH_REPO + path, {
+    method: opts.method || 'GET', cache: 'no-store',
+    headers: Object.assign({'Accept':'application/vnd.github+json', 'Authorization':'Bearer ' + lsGet(OWN_TOK),
+                            'X-GitHub-Api-Version':'2022-11-28'}, opts.body ? {'Content-Type':'application/json'} : {}),
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  return r;
+}
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+async function ownerShow(req){
+  var r = await gh('/contents/data/local-brief/' + req + '.json?ref=main');
+  if(r.status === 404) return null;
+  if(!r.ok) throw new Error('GitHub answered ' + r.status + ' reading the result' + (r.status === 403 ? ' (the token needs Contents: Read-only)' : ''));
+  var file = JSON.parse(atob((await r.json()).content.replace(/\n/g, '')));
+  var res;
+  try { res = JSON.parse(await unlockBlob(file.blob, lsGet(OWN_PASS))); }
+  catch(_){ throw new Error('the result would not unlock with the passphrase saved here'); }
+  if(res.error) throw new Error(esc(res.error));
+  var out = document.getElementById('ownContent');
+  try { out.innerHTML = renderMD(res.brief); } catch(_){ out.innerHTML = '<pre class="raw">' + esc(res.brief) + '</pre>'; }
+  out.style.display = 'block';
+  ownMsg('Local brief for ' + esc(res.zip || '') + ' \u00b7 ' + esc(String(res.at || '').replace('T', ' ').replace('Z', ' UTC')) +
+         (res.cost_usd != null ? ' \u00b7 cost $' + Number(res.cost_usd).toFixed(3) : ''));
+  if(res.zip) retarget(res.zip);
+  return true;
+}
+async function ownerLast(){
+  var req = lsGet('trident_owner_last');
+  if(!req){ ownMsg('No brief from this device yet.', true); return; }
+  try { if(!(await ownerShow(req))) ownMsg('That brief is no longer stored (only the last ten are kept).', true); }
+  catch(e){ ownMsg(esc(e.message), true); }
+}
+async function ownerGenerate(){
+  var zip = (document.getElementById('ownZip').value || '').trim(), btn = document.getElementById('ownBtnGo');
+  if(!ownerReady()){ ownerState(); return; }
+  if(!/^\d{5}$/.test(zip)){ ownMsg('Enter a 5-digit ZIP code.', true); return; }
+  if(!window.crypto || !crypto.subtle){ ownMsg('This browser cannot encrypt; use a current browser.', true); return; }
   lsSet('trident_owner_zip', zip);
-  runLocalBrief(zip, key, m, out, document.getElementById('ownBtnGo'));
+  document.getElementById('ownContent').style.display = 'none';
+  btn.disabled = true;
+  var req = Array.from(crypto.getRandomValues(new Uint8Array(10)), function(x){ return ('0' + x.toString(16)).slice(-2); }).join('');
+  try {
+    ownMsg('<span class="spin"></span>Asking GitHub to run your local brief\u2026');
+    var r = await gh('/actions/workflows/local-brief.yml/dispatches', {method:'POST',
+      body:{ref:'main', inputs:{req_id:req, zip_enc: await lockText(zip, lsGet(OWN_PASS))}}});
+    if(r.status === 401) throw new Error('GitHub rejected the token (expired or mistyped). Forget this device and set it up again.');
+    if(r.status === 403 || r.status === 404) throw new Error('the token is not allowed to start this workflow: it needs Actions: Read and write (and Contents: Read-only) on Trident-Brief.');
+    if(!r.ok) throw new Error('GitHub answered ' + r.status + ' starting the run.');
+    lsSet('trident_owner_last', req);
+    var t0 = Date.now(), runUrl = '';
+    while(Date.now() - t0 < 9 * 60e3){
+      await sleep(9000);
+      var secs = Math.round((Date.now() - t0) / 1000);
+      if(await ownerShow(req)) return;
+      /* Watch the run itself, so a failure shows up here, not as a timeout. */
+      var runs = await gh('/actions/workflows/local-brief.yml/runs?event=workflow_dispatch&per_page=10');
+      var run = runs.ok ? ((await runs.json()).workflow_runs || []).filter(function(x){
+        return String(x.display_title || '').indexOf(req) > -1; })[0] : null;
+      if(run){
+        runUrl = run.html_url;
+        if(run.status === 'completed' && run.conclusion !== 'success'){
+          await sleep(4000);
+          if(await ownerShow(req)) return;
+          throw new Error('the GitHub run ended (' + esc(run.conclusion) + '). If this is the first run, check that the ' +
+                          'LOCAL_BRIEF_PASSPHRASE secret exists. <a href="' + esc(runUrl) + '" target="_blank" rel="noopener">Open the run</a>.');
+        }
+      }
+      ownMsg('<span class="spin"></span>' + (run ? (run.status === 'queued' ? 'Queued on GitHub' : 'Running on GitHub') : 'Waiting for GitHub') +
+             ' \u00b7 ' + secs + ' s' + (runUrl ? ' \u00b7 <a href="' + esc(runUrl) + '" target="_blank" rel="noopener">watch</a>' : ''));
+    }
+    throw new Error('no result after nine minutes.' + (runUrl ? ' <a href="' + esc(runUrl) + '" target="_blank" rel="noopener">Check the run</a>.' : ''));
+  } catch(e){
+    var m = String(e && e.message || e);
+    if(e instanceof TypeError) m = 'could not reach GitHub (no connection?).';
+    ownMsg('Local brief failed: ' + m, true);
+  } finally { btn.disabled = false; }
 }
 /* The way in on a new device: tap the version number five times quickly. */
 (function(){

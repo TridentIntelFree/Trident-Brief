@@ -4,6 +4,26 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.6.0 — 2026-09-26
+
+### Local Intelligence Brief
+- **The owner's brief runs on GitHub, on the key already there.** The hidden
+  panel (five taps on the version number) no longer holds an xAI key; the copy
+  v1.5.8 saved is wiped. It asks GitHub to run the new *Local Brief* workflow,
+  which calls Grok with the `GROK_API_KEY` secret, exactly as the main brief
+  does, then shows the result about two minutes later.
+- **Private in a public repository.** Everything about a run is public, so the
+  panel encrypts the ZIP with the owner's passphrase before sending it, the
+  workflow masks it in the log, and the finished brief is committed encrypted
+  (PBKDF2 + AES-GCM) to `data/local-brief/`; the last ten are kept. The same
+  passphrase is stored as the `LOCAL_BRIEF_PASSPHRASE` secret.
+- **The phone holds only** a fine-grained GitHub token limited to running and
+  reading this repository's Actions -- it cannot read secrets or change code --
+  and the passphrase. "Forget this device" removes both.
+- The panel follows the run and says what went wrong: a rejected token, a token
+  without the right permission, a failed run (with a link to it), or a
+  passphrase that does not match the secret.
+
 ## 1.5.8 — 2026-09-26
 
 ### Local Intelligence Brief
