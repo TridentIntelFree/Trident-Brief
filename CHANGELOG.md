@@ -4,6 +4,20 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.5.6 — 2026-09-26
+
+### Appalachistan
+- **Honest about what the data is.** Rebuilt with full-geometry lengths, the
+  trail measures 2,108 miles (was 2,077) against the official ~2,197 -- OSM's
+  line is smoother than the trail as measured on the ground. The HERE tab now
+  says so with this build's own numbers (about 90 miles low at Katahdin, less
+  further south), and the fine print no longer promises a close match.
+- **Water warning.** OpenStreetMap has only 219 water sources along the whole
+  trail, a small fraction of the real springs and streams; at Damascus the
+  "next water" it listed was 21 miles on. The list now says in plain terms that
+  a gap does not mean there is no water, and to plan water from a current guide
+  or recent hiker reports.
+
 ## 1.5.5 — 2026-09-26
 
 ### Appalachistan
