@@ -593,6 +593,56 @@ function wire(){
 }
 function reopen(){ if(S.file && S.file.buf) analyse(S.file.buf, S.file.name); }
 
+/* Receivers. The web receivers are plain http, so no https page may embed
+   them; they have to open on their own. They open in one tab, reused for
+   every station (the Twente receiver retunes from its address), so this
+   page and the analyzer stay where they are. If the browser will not open a
+   tab (an in-app browser, a home-screen app), it goes in this tab and the
+   page brings you back to this section when you return. */
+function rxHelp(label, cameBack){
+  var m = $('sigRxMsg'); if(!m) return;
+  if(cameBack){
+    m.innerHTML = 'Back from <b>' + esc(label) + '</b>. This browser opened the receiver in place of this page, so the two cannot ' +
+      'run together here. Open this site in Safari or Chrome itself (not inside another app) and the receiver gets its own tab ' +
+      'while the analyzer stays open. Or record on the receiver and use <b>OPEN RECORDING</b>.';
+    m.style.display = ''; return;
+  }
+  var desk = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) && !/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  m.innerHTML = '<b>' + esc(label) + '</b> opened in its own tab; this page is still here. ' +
+    (desk ? 'Press play on the receiver if it is silent, then come back and press <b>SHARE TAB AUDIO</b> and pick that tab (tick “Also share tab audio”).'
+          : 'Press play on the receiver, then switch back to this tab: <b>MICROPHONE</b> draws what the speaker plays, or use the receiver’s record button and <b>OPEN RECORDING</b>.');
+  m.style.display = '';
+}
+var rxWin = null;
+BAND.querySelectorAll('a.sig-rx').forEach(function(a){
+  a.addEventListener('click', function(e){
+    e.preventDefault();
+    var label = a.textContent.replace(/^\W+/, '').trim(), w = null;
+    try{
+      if(rxWin && !rxWin.closed){ rxWin.location.href = a.href; rxWin.focus(); w = rxWin; }
+      else w = rxWin = window.open(a.href, '_blank');
+    }catch(_){ rxWin = null; }
+    if(w){ rxHelp(label); return; }
+    try{ sessionStorage.setItem('sig_return', label); }catch(_){}
+    location.href = a.href;
+  });
+});
+(function back(){
+  var label = null;
+  try{ label = sessionStorage.getItem('sig_return'); sessionStorage.removeItem('sig_return'); }catch(_){}
+  if(!label) return;
+  if(BAND.classList.contains('folded')){ var fb = BAND.querySelector('.fold-btn'); if(fb) fb.click(); }
+  rxHelp(label, true);
+  /* again once the page above has laid out, and after scroll restoration */
+  [300, 1500].forEach(function(ms){ setTimeout(function(){ BAND.scrollIntoView({block:'start'}); }, ms); });
+})();
+addEventListener('pageshow', function(e){
+  if(!e.persisted) return;
+  var label = null;
+  try{ label = sessionStorage.getItem('sig_return'); sessionStorage.removeItem('sig_return'); }catch(_){}
+  if(label){ BAND.scrollIntoView({block:'start'}); rxHelp(label, true); }
+});
+
 wire();
 size();
 window.SIGNALS = {state:S, fftDb:fftDb, logEvent:logEvent};
