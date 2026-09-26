@@ -132,7 +132,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.5.6) and appears in the page
+The build version lives in `VERSION` (currently 1.5.7) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).
@@ -155,6 +155,11 @@ is deliberate: GitHub disables scheduled workflows after 60 days with no
 repository activity, which is what silently stopped this brief in May 2026. The
 daily commit keeps the repo active so the schedule cannot expire again.
 
-`index.html` is excluded from that commit because the local-brief feature embeds
-`GROK_API_KEY` into the page at render time. A static host has nowhere to keep a
-secret, so any key used by browser-side code is readable by visitors.
+`index.html` is excluded from that commit; it is a build artifact, rebuilt on
+every deploy. No API key is ever written into the page: a static host has
+nowhere to keep a secret, so anything in it is readable by every visitor. The
+Local Intelligence Brief runs on the visitor's own xAI key, typed into the page
+and kept only in their browser; the owner can lock their key on their own
+devices with a code, which is stored nowhere. Whether xAI accepts calls made
+straight from a browser is checked on every feed refresh and recorded in
+`assets/feed-status.json` under `xai_browser`.

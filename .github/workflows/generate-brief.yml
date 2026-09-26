@@ -58,9 +58,9 @@ jobs:
     # (state: disabled_inactivity), which is why the site froze on old content.
     # A daily commit keeps the repo active so the cron never expires again.
     #
-    # index.html is deliberately NOT committed: it is a build artifact that has
-    # GROK_API_KEY baked into it at render time, and committing it would write
-    # that key into public git history. It is rebuilt from latest-brief.json and
+    # index.html is deliberately NOT committed: it is a build artifact (it once
+    # carried GROK_API_KEY, which is why it was kept out of git history; no key
+    # is written into it any more). It is rebuilt from latest-brief.json and
     # template.html on every deploy, and can be regenerated locally with
     # `python3 generate_brief_final.py --offline`.
     - name: Commit brief to repository
