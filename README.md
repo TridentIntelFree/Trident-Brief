@@ -30,6 +30,22 @@ globe's GPS JAM layer marks where many aircraft at once report degraded GPS
 accuracy (the gpsjam.org method, over a rolling six hours), and the terrain
 panel shows the site's weather from Open-Meteo. None of these calls a model.
 
+## Brief me
+
+`assets/briefing.js` reads the brief aloud as a spoken briefing, using the
+speech voices already on the device (Web Speech API): no key, no cost, nothing
+uploaded, and it works offline once the page has loaded. The written brief is
+turned into a script for the ear first:
+- X handles, citation numbers and the collector's notes are left out;
+- classification chips become words;
+- times are read the military way;
+- indicator lines become "watch for / that would mean / first sign /
+  assessed".
+
+There are two modes: the full brief, or key judgements (the bottom line,
+assessments, forecast check and indicators). The player highlights the line
+being read and has section skip, speed and voice controls.
+
 ## Signals
 
 The UVB-76 and HFGCS section (`assets/signals.js`). Its station cards link to
@@ -151,7 +167,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.7.1) and appears in the page
+The build version lives in `VERSION` (currently 1.8.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).

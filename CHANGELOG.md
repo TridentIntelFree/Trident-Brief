@@ -4,6 +4,40 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.8.0 — 2026-09-26
+
+### Brief me (new)
+- **The brief, read aloud as a briefing.** 🔊 BRIEF ME in the toolbar opens a
+  player at the bottom of the screen. It uses the device's own speech voices:
+  free, nothing uploaded, and it works offline once the page has loaded.
+- **Written for the ear.** The text is rewritten into a spoken script before
+  it is read:
+  - It opens with the collection time in Zulu. It says "Section one",
+    "Bottom line up front" and "Assessment:".
+  - Chips are spoken as "From social media:", "Reported:", "Confirmed:" and
+    "Unverified chatter:".
+  - X handles become "accounts on X", and citation numbers, links, the
+    "searched:" notes and "(Section 2)" references are dropped.
+  - Times are spoken as "fourteen zero three Zulu". The collection date is not
+    repeated on every line.
+  - Symbols are spoken as words: "~" → "about", ">150" → "more than 150",
+    "24–48h" → "24 to 48 hours".
+  - Acronyms a voice would say as a word are spelled out (U.S., P.L.A.,
+    A.D.I.Z.).
+  - Forecasts are read as "Forecast two: open", and each indicator as "Watch
+    for… That would mean… First sign… Assessed…".
+- **Two modes.** *Full brief* runs about 7 minutes today. *Key judgements*
+  reads the bottom line, each theatre's assessment, the forecast check and the
+  indicators, in about 3.
+- **Player controls:**
+  - play/pause, line and section skip, and a progress bar you can tap to jump;
+  - speed from 0.85× to 1.5×;
+  - a voice picker that ranks the device's best English voices first and
+    leaves out the novelty ones;
+  - the line being read is highlighted and followed down the page, and
+    tapping any line reads from there;
+  - the screen stays awake while it plays.
+
 ## 1.7.1 — 2026-09-26
 
 ### Signals

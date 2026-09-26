@@ -14,7 +14,7 @@ const TILES = 'tb-tiles-v1';      // areas saved on purpose: never trimmed
 const BROWSE = 'tb-browse-v1';    // tiles kept from ordinary browsing: capped
 const SHELL_FILES = ['./', 'assets/leaflet/leaflet.js', 'assets/leaflet/leaflet.css',
                      'assets/leaflet/images/layers.png', 'assets/leaflet/images/layers-2x.png',
-                     'assets/appalachistan.js', 'assets/appalachia.json'];
+                     'assets/appalachistan.js', 'assets/appalachia.json', 'assets/briefing.js'];
 const TILE_HOSTS = ['basemap.nationalmap.gov', 'elevation.nationalmap.gov'];
 const BROWSE_CAP = 6000;          // tiles kept from ordinary browsing
 const noCors = {};                // hosts that refused CORS
@@ -117,7 +117,8 @@ self.addEventListener('fetch', e => {
   if(url.origin !== self.location.origin) return;
   if(req.mode === 'navigate'){ e.respondWith(networkFirst(req, e)); return; }
   const p = url.pathname;
-  if(p.includes('/assets/leaflet/') || p.endsWith('/assets/appalachistan.js') || p.endsWith('/assets/appalachia.json'))
+  if(p.includes('/assets/leaflet/') || p.endsWith('/assets/appalachistan.js') || p.endsWith('/assets/appalachia.json') ||
+     p.endsWith('/assets/briefing.js'))
     e.respondWith(cacheFirstRefresh(req, e));
 });
 
