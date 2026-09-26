@@ -944,8 +944,16 @@ function paintPanel(){
       else if(!t) h += '<div class="ap-dim">Trail miles appear once the whole trail is in the data' +
         (DATA.sections ? ' (' + DATA.sections.lines + ' of ' + DATA.sections.total + ' sections so far; it fills in daily)' : '') + '.</div>';
       else {
-        h += '<div class="ap-grid">' + kv('AT MILE', '≈ ' + t.mile.toFixed(1) + ' <span class="ap-dim">of ' + CUM[CUM.length-1].toFixed(0) + '</span>') +
+        var whole = CUM[CUM.length-1], OFFICIAL = 2197;
+        h += '<div class="ap-grid">' + kv('AT MILE', '≈ ' + t.mile.toFixed(1) + ' <span class="ap-dim">of ' + whole.toFixed(0) + '</span>') +
              kv('OFF TRAIL', fmtDist(t.off)) + '</div>';
+        /* Said plainly, with this build's own numbers: OSM's line is smoother
+           than the trail on the ground, so these miles read low, more so the
+           further north you are. */
+        if(whole < OFFICIAL - 5)
+          h += '<div class="ap-dim">Measured on OpenStreetMap\u2019s line, this build makes the whole trail ' + whole.toFixed(0) +
+               ' miles against the official ~' + OFFICIAL.toLocaleString() + ', so its mile numbers read below a guidebook\u2019s ' +
+               '\u2014 by about ' + Math.round(OFFICIAL - whole) + ' at Katahdin, less further south. Distances between nearby points are close.</div>';
         if(t.off < 3000){
           h += '<div class="ap-list">';
           [['water','Water'],['shelter','Shelter'],['camp','Campsite']].forEach(function(k){
@@ -958,7 +966,8 @@ function paintPanel(){
                    '<button class="ap-btn" data-ap-goto="' + p.lat + ',' + p.lon + '" data-ap-name="' + esc(p.name || KIND_ONE[p.k]) + '">GO</button></span></div>';
             });
           });
-          h += '</div><div class="ap-dim" style="margin-top:4px">NOBO = northbound toward Katahdin, SOBO = southbound toward Springer. Only water mapped in OpenStreetMap is listed; springs run dry, so carry enough to reach the next two.</div>';
+          h += '</div><div class="ap-dim" style="margin-top:4px">NOBO = northbound toward Katahdin, SOBO = southbound toward Springer.</div>' +
+               '<div class="ap-warn" style="margin-top:4px">Water: OpenStreetMap has only a fraction of the trail\u2019s springs and streams, so a long gap here does <b>not</b> mean there is no water \u2014 and a listed spring can be dry. Plan water from a current guide or recent hiker reports, not from this list.</div>';
         } else h += '<div class="ap-dim">More than 3 km from the trail, so nothing is listed by trail mile. Nearest by straight line:</div>';
       }
       if(POIS.length){
