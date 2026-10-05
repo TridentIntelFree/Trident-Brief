@@ -4,6 +4,15 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.9.1 — 2026-10-05
+
+### Area brief
+- **Names and specifics.** Police and court items now give names, ages and
+  hometowns as the source reports them, plus the exact charges, bond, jail,
+  court and next court date, the road or address, the agencies and officers
+  involved, and times. Minors stay unnamed unless an official source names
+  them, and charges are written as charges, not convictions.
+
 ## 1.9.0 — 2026-10-05
 
 ### Area brief: Tazewell County (owner only)
