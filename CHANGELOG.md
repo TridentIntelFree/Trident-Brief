@@ -4,6 +4,35 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.9.0 — 2026-10-05
+
+### Area brief: Tazewell County (owner only, hidden)
+- **A daily area brief** for Tazewell County, VA (24651): Tazewell, North
+  Tazewell, Richlands, Cedar Bluff and Bluefield, with Bluefield WV and Mercer
+  County, plus neighbouring counties when something spills over.
+  - **Topics:** law enforcement and courts (sheriff, state police, town
+    police), fire/EMS/rescue, hazards (NWS alerts, flooding, roads, power,
+    water), and local and state politics.
+  - **Schedule:** written every morning at about 6:47 a.m. Eastern by a new
+    *Area Brief* workflow, using the existing `GROK_API_KEY` secret and
+    nothing else.
+  - **Names and specifics:** police and court items give names, ages and
+    hometowns as the source reports them, plus the charges, bond, court dates,
+    locations, agencies and times. Minors stay unnamed unless an official
+    source names them, and charges are written as charges.
+  - **Free leads first:** NWS alerts for seven counties, Google News, and
+    local outlets (WVVA, Bluefield Daily Telegraph, Richlands News-Press, WJHL,
+    WVNS, Cardinal News, Lootpress, WOAY). Game-stream listings and obituaries
+    are filtered out. Grok then searches X and the web with a budget of about
+    8 searches.
+- **Hidden on the page** until the owner's gesture, with no passphrase or
+  setup. It is hidden, not locked: the file sits in the public repository.
+  It can be read aloud with Brief me.
+- **Brief me** can now read any brief on the page, not only the main one.
+- **Brief me fix:** words before a mid-word stop such as "U.S.", "P.L.A." or
+  "6:47" were skipped when spoken. Text is now split word by word, so
+  nothing is dropped.
+
 ## 1.8.0 — 2026-09-26
 
 ### Brief me (new)

@@ -30,6 +30,25 @@ globe's GPS JAM layer marks where many aircraft at once report degraded GPS
 accuracy (the gpsjam.org method, over a rolling six hours), and the terrain
 panel shows the site's weather from Open-Meteo. None of these calls a model.
 
+## Area brief (owner only)
+
+`area_brief.py`, run each morning by `.github/workflows/area-brief.yml`
+(10:47 UTC, about 6:47 a.m. Eastern). It covers Tazewell County, Virginia
+(24651): Tazewell, Richlands, Cedar Bluff and Bluefield, with Bluefield WV and
+Mercer County.
+- **Topics:** law enforcement and courts; fire, EMS and rescue; hazards,
+  weather and roads; government and politics.
+- **Free leads first:** NWS alerts for the county and its neighbours, and
+  local headlines from Google News and the area's outlets. Grok then searches
+  X and the web.
+- **Secret:** only `GROK_API_KEY`, nothing else.
+- **Output:** written to `data/area/tazewell.json`. The page shows it only
+  through a hidden gesture; it is hidden, not locked.
+- **Names and specifics:** police and court items carry names, charges, bond
+  and court dates as the source reports them (`NAME_PRIVATE` in the script).
+- **Testing sources:** run the workflow by hand with *dry run* ticked to see
+  which free sources answer, without calling Grok.
+
 ## Brief me
 
 `assets/briefing.js` reads the brief aloud as a spoken briefing, using the
@@ -167,7 +186,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.8.0) and appears in the page
+The build version lives in `VERSION` (currently 1.9.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).

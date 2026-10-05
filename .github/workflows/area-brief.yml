@@ -1,0 +1,62 @@
+name: Area Brief
+
+# The owner's daily area brief for Tazewell County, VA and surrounds; see
+# area_brief.py. Written to data/area/tazewell.json, which the page shows only
+# through a hidden gesture. Uses the GROK_API_KEY secret, nothing else.
+on:
+  schedule:
+    - cron: '47 10 * * *'      # 6:47 a.m. EDT / 5:47 a.m. EST
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only collect the free leads and print them (no Grok call, nothing written)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: area-brief
+  cancel-in-progress: false
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install requests cryptography
+
+      - name: Collect leads only
+        if: ${{ inputs.dry_run }}
+        run: python3 area_brief.py --dry-run
+
+      - name: Generate the area brief
+        if: ${{ !inputs.dry_run }}
+        env:
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        run: python3 area_brief.py
+
+      - name: Commit the brief
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "Trident Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/area/tazewell.json
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "Area brief"
+          for i in 1 2 3 4; do
+            git push origin HEAD:main && break
+            echo "Push failed (attempt $i); refreshing and retrying"
+            git pull --rebase origin main || true
+            sleep $((i * 4))
+          done
