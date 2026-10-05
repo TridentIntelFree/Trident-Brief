@@ -16,8 +16,8 @@ MAJOR for a change to what the brief is.
   - **Schedule:** written every morning at about 6:47 a.m. Eastern by a new
     *Area Brief* workflow.
   - **Free leads first:** NWS alerts for seven counties, Google News, WVVA,
-    Bluefield Daily Telegraph, Richlands News-Press, WJHL, WVNS and Cardinal
-    News. Grok then searches X and the web with a budget of about 8 searches.
+    Bluefield Daily Telegraph, Richlands News-Press, WJHL, WVNS, Cardinal News,
+    Lootpress and WOAY. Game-stream listings and obituaries are filtered out. Grok then searches X and the web with a budget of about 8 searches.
   - **Default:** private people in police items are described, not named.
 - **Encrypted, hidden.** The brief is encrypted with the owner's passphrase
   (the `LOCAL_BRIEF_PASSPHRASE` secret) before it reaches the public

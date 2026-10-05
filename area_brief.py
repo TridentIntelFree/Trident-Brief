@@ -63,7 +63,12 @@ OUTLETS = [  # local outlets' own feeds; only items naming a place in the area a
     ('WJHL', 'https://www.wjhl.com/feed/'),
     ('WVNS 59News', 'https://www.wvnstv.com/feed/'),
     ('Cardinal News', 'https://cardinalnews.org/feed/'),
+    ('Lootpress', 'https://www.lootpress.com/feed/'),
+    ('WOAY', 'https://woay.com/feed/'),
 ]
+# Listings that match a town name but are not news: game streams, obituaries.
+JUNK = re.compile(r'NFHS|watch live|on demand|\bvs\.? .* - (girls|boys)|obituar|legacy\.com|- legacy\b|'
+                  r'funeral home|tributes?\b', re.I)
 
 
 def gnews_url(q):
@@ -75,11 +80,19 @@ def fetch_feed(label, url, since, filt):
     r = requests.get(url, timeout=15, headers=dict(UA, Accept='application/rss+xml, application/xml, text/xml'))
     if r.status_code != 200:
         raise RuntimeError(f'HTTP {r.status_code}')
+    try:
+        got = parse_feed(r.content)
+    except Exception:
+        # Some local CMS feeds carry bare ampersands or control characters.
+        clean = re.sub(rb'&(?!#?\w+;)', b'&amp;', r.content)
+        got = parse_feed(re.sub(rb'[\x00-\x08\x0b\x0c\x0e-\x1f]', b'', clean))
     out = []
-    for i in parse_feed(r.content):
+    for i in got:
         if i['time'] and i['time'] < since:
             continue
         if filt and not PLACES.search(i['title'] + ' ' + i['summary']):
+            continue
+        if JUNK.search(i['title']):
             continue
         i['src'] = label
         out.append(i)
