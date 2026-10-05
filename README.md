@@ -46,8 +46,9 @@ Mercer County.
   `data/area/tazewell.json`. It is never written in the clear, and the run
   fails if the secret is missing. The page shows it only through a hidden
   gesture.
-- **Privacy default:** private individuals in police items are described,
-  not named (`NAME_PRIVATE` in the script).
+- **Names and specifics:** police and court items carry names, ages,
+  hometowns, charges, bond and court dates as the source reports them (minors
+  excepted). `NAME_PRIVATE = False` in the script switches to descriptions.
 - **Testing sources:** run the workflow by hand with *dry run* ticked to see
   which free sources answer, without calling Grok.
 
@@ -188,7 +189,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.9.0) and appears in the page
+The build version lives in `VERSION` (currently 1.9.1) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).
