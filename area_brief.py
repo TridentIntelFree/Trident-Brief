@@ -36,10 +36,10 @@ from local_brief import lock
 OUT = 'data/area/tazewell.json'
 HOURS = 36                    # look-back for leads; the brief reports the last 24 h first
 SEARCH_BUDGET = int(os.environ.get('AREA_SEARCH_BUDGET') or 8)
-# The owner wants names and specifics: people are named as the source names
-# them (minors stay unnamed, as the sources leave them). Set False to describe
-# private people by role and town instead ("a Richlands man, 34").
-NAME_PRIVATE = True
+# Private people in police and court items -- suspects, victims, minors -- are
+# described by role and town ("a Richlands man, 34"), not named. Officials,
+# agencies and public figures are named. Set True to name them as the source does.
+NAME_PRIVATE = False
 
 UA = {'User-Agent': 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'}
 
@@ -150,11 +150,7 @@ def prompt_for(now, heads, alerts):
     lines = '\n'.join(f"- {i['time'].strftime('%d %b %H:%MZ') if i['time'] else 'undated'} | {i['src']} | "
                       f"{i['title']} | {i['url']}" for i in heads) or '- (no headlines came back)'
     warn = '\n'.join('- ' + a for a in alerts) or '- none active'
-    names = ('Give names and specifics as the source reports them: full names, ages and hometowns of those '
-             'charged, arrested, wanted, missing or killed; the exact charges, bond, jail, court and next court '
-             'date; the road, intersection or address; the agencies and officers involved; times. Write '
-             '"charged with" and "alleged" -- a charge is not a conviction. Do not name minors unless an official '
-             'source does.' if NAME_PRIVATE else
+    names = ('Name people as the source does.' if NAME_PRIVATE else
              'Do not name private individuals -- suspects, defendants, victims, patients, minors. Describe them by '
              'role, age if given, and town ("a 34-year-old Richlands man"). Name agencies, officials, candidates '
              'and public figures.')
