@@ -20,6 +20,11 @@
 var synth = window.speechSynthesis;
 var BODY = document.getElementById('briefBody'), GO = document.getElementById('bmGo');
 if(!BODY || !GO) return;
+/* What is being read: the main brief, or another brief on the page (the
+   hidden area brief hands itself over through BRIEFME.read). */
+var MAIN = {root:BODY, label:'TRIDENT BRIEF', title:'The Trident Brief, from Appalachian Intel.',
+            at:typeof COLLECTED_AT !== 'undefined' && COLLECTED_AT ? COLLECTED_AT : (typeof BUILT_AT !== 'undefined' ? BUILT_AT : null)};
+var SRC = MAIN;
 if(!synth || !window.SpeechSynthesisUtterance){
   GO.disabled = true; GO.title = 'This browser has no speech voices';
   return;
@@ -142,14 +147,14 @@ function build(mode){
     if(text.length < 2) return;
     items.push({el:el, text:text, kind:kind});
   }
-  var when = new Date(typeof COLLECTED_AT !== 'undefined' && COLLECTED_AT ? COLLECTED_AT :
-                      (typeof BUILT_AT !== 'undefined' ? BUILT_AT : Date.now()));
-  var open = 'The Trident Brief, from Appalachian Intel.';
+  var when = new Date(SRC.at || Date.now());
+  var open = SRC.title;
   if(!isNaN(when)){
     TODAY = when.getUTCDate() + ' ' + MONTH_N[when.getUTCMonth()];
     var yd = new Date(when - 86400000); YESTERDAY = yd.getUTCDate() + ' ' + MONTH_N[yd.getUTCMonth()];
     var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    open += ' Collected ' + days[when.getUTCDay()] + ', ' + when.getUTCDate() + ' ' + MONTH_N[when.getUTCMonth()] +
+    if(SRC.when) open += ' Collected ' + SRC.when + '.';
+    else open += ' Collected ' + days[when.getUTCDay()] + ', ' + when.getUTCDate() + ' ' + MONTH_N[when.getUTCMonth()] +
             ', at ' + hhmm(when.getUTCHours(), when.getUTCMinutes()) + ' Zulu.';
     var age = (Date.now() - when)/3600000;
     if(age > 14) open += ' Note: this collection is ' + Math.round(age) + ' hours old.';
@@ -157,7 +162,7 @@ function build(mode){
   if(mode === 'quick') open += ' Key judgements follow.';
   items.push({el:null, text:open, kind:'open'});
 
-  var nodes = BODY.querySelectorAll('h2, h3, h4, p, li, blockquote, tr');
+  var nodes = SRC.root.querySelectorAll('h2, h3, h4, p, li, blockquote, tr');
   Array.prototype.forEach.call(nodes, function(el){
     if(!visible(el) || el.closest('.bm-skip')) return;
     if(el.tagName === 'LI' && el.parentElement.closest('li')) return;      // nested lists read with their parent
@@ -206,11 +211,13 @@ function build(mode){
 /* long text in sentence-sized pieces: some engines stop partway through a
    long utterance, and a piece is also the unit pause/resume works from */
 function pieces(text){
-  var s = text.match(/[^.!?;:]+(?:[.!?;:]+(?=\s|$)|$)/g) || [text], out = [], cur = '';
-  s.forEach(function(x){
-    x = x.trim(); if(!x) return;
-    if((cur + ' ' + x).length > 220 && cur){ out.push(cur); cur = x; }
-    else cur = cur ? cur + ' ' + x : x;
+  /* Word by word, so nothing can fall between pieces: a piece ends at the end
+     of a sentence once it is long enough, or at a word break if it gets long. */
+  var out = [], cur = '';
+  text.split(/\s+/).forEach(function(w){
+    if(!w) return;
+    cur = cur ? cur + ' ' + w : w;
+    if((/[.!?;:]$/.test(w) && !/^([A-Z]\.)+$/.test(w) && cur.length >= 80) || cur.length >= 220){ out.push(cur); cur = ''; }
   });
   if(cur) out.push(cur);
   return out;
@@ -327,8 +334,11 @@ document.addEventListener('visibilitychange', function(){
 });
 
 /* ---------------------------------------------------------------- UI */
-function open(){
+function open(src){
+  if(P.playing) stop(false);
+  SRC = src || MAIN;
   var bar = $('bmBar');
+  bar.querySelector('.bm-info b').textContent = SRC.label;
   bar.hidden = false; document.body.classList.add('bm-on');
   loadVoices();
   P.items = build(P.mode); P.i = 0; P.k = 0; P.parts = [];
@@ -336,7 +346,7 @@ function open(){
   play();
 }
 function close(){ stop(false); $('bmBar').hidden = true; document.body.classList.remove('bm-on'); }
-GO.onclick = function(){ $('bmBar').hidden ? open() : (P.playing ? pause() : play()); };
+GO.onclick = function(){ $('bmBar').hidden || SRC !== MAIN ? open(MAIN) : (P.playing ? pause() : play()); };
 $('bmPlay').onclick = function(){ P.playing ? pause() : play(); };
 $('bmPrev').onclick = function(){ jump(P.i - 1); };
 $('bmNext').onclick = function(){ jump(P.i + 1); };
@@ -357,8 +367,8 @@ $('bmProg').onclick = function(e){
   var r = this.getBoundingClientRect(); jump(Math.round((e.clientX - r.left)/r.width*(P.items.length - 1)));
 };
 /* while the player is open, tap any line of the brief to read from there */
-BODY.addEventListener('click', function(e){
-  if($('bmBar').hidden || e.target.closest('a, button, input, select')) return;
+document.addEventListener('click', function(e){
+  if($('bmBar').hidden || !SRC.root.contains(e.target) || e.target.closest('a, button, input, select')) return;
   var el = e.target.closest('h2, h3, h4, p, li, blockquote, tr');
   for(var j = 0; el && j < P.items.length; j++) if(P.items[j].el === el){ jump(j); if(!P.playing) play(); return; }
 });
@@ -369,5 +379,6 @@ addEventListener('pagehide', function(){ synth.cancel(); });
 /* Chrome keeps speaking after a reload unless told otherwise */
 synth.cancel();
 
-window.BRIEFME = {build:build, speakable:speakable, state:P};
+window.BRIEFME = {build:build, speakable:speakable, state:P,
+                  read:function(src){ open(src); }, stop:function(){ close(); }};
 })();
