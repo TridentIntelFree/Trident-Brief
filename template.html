@@ -600,11 +600,6 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .access-form button:hover:not(:disabled){background:#2563eb}
 .access-form button:disabled{opacity:.55;cursor:not-allowed}
 .error-msg{color:var(--red);font-size:.85em;margin-top:11px}
-.tz-band{border-top:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.035)}
-.tz-band[hidden]{display:none}
-.tz-body{padding:6px 0 0}
-.brand{-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 .key-opts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:9px;font-size:.8em;color:var(--ink-dim)}
 .key-opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
 .key-opts a,.key-opts button.linkish{color:var(--cyan);background:none;border:0;cursor:pointer;font:inherit;text-decoration:underline;padding:0}
@@ -1018,29 +1013,6 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 
   <!-- ============ BRIEF ============ -->
   <div class="content" id="briefBody"></div>
-
-  <!-- Owner's daily area brief (area_brief.py). Not shown until the hidden
-       gesture; the file it opens is encrypted. -->
-  <div class="section-band tz-band" id="tzBand" hidden>
-    <div class="band-head">
-      <h2>&#128205; Tazewell County &mdash; Area Brief</h2>
-      <div class="sub" id="tzSub"></div>
-    </div>
-    <div id="tzLock" style="display:none">
-      <div class="access-form">
-        <input type="password" id="tzPass" placeholder="your passphrase" autocomplete="off" spellcheck="false">
-        <button type="button" id="tzOpen">Unlock</button>
-      </div>
-      <div class="key-opts"><label><input type="checkbox" id="tzRemember" checked> remember on this device</label></div>
-    </div>
-    <div class="key-opts" id="tzTools" style="display:none">
-      <button class="bm-go" id="tzRead" type="button">&#128266; READ IT TO ME</button>
-      <button class="linkish" id="tzHide" type="button">hide</button>
-      <button class="linkish" id="tzForget" type="button">forget passphrase here</button>
-    </div>
-    <div id="tzMsg"></div>
-    <div class="content tz-body" id="tzBody"></div>
-  </div>
 
   <!-- ============ LOCAL INTEL ============ -->
   <div class="local-intel">
@@ -3475,94 +3447,6 @@ async function ownerGenerate(){
     ownMsg('Local brief failed: ' + m, true);
   } finally { btn.disabled = false; }
 }
-/* =====================================================================
-   AREA BRIEF -- Tazewell County, written each morning by area_brief.py
-   Hidden until the owner's gesture, which also closes it again.
-   The file is encrypted with the owner's passphrase, the same one as the
-   local brief; a device that already has it opens straight away.
-   ===================================================================== */
-var TZ_PASS = 'trident_area_pass';
-function tzMsg(html, bad){ document.getElementById('tzMsg').innerHTML = html ? '<p class="' + (bad ? 'error-msg' : 'success-msg') + '">' + html + '</p>' : ''; }
-async function tzFetch(){
-  var t = Date.now(), urls = ['data/area/tazewell.json?t=' + t,
-    'https://raw.githubusercontent.com/' + GH_REPO + '/main/data/area/tazewell.json?t=' + t];
-  var got = await Promise.all(urls.map(function(u){
-    return fetch(u, {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
-  }));
-  /* the deployed copy can trail the repository by up to half an hour; take the newer */
-  return got.filter(function(d){ return d && d.blob; }).sort(function(a, b){ return a.at < b.at ? 1 : -1; })[0] || null;
-}
-var TZ = {data:null, brief:null};
-async function tzShow(){
-  var band = document.getElementById('tzBand');
-  band.hidden = false;
-  band.scrollIntoView({behavior:'smooth', block:'start'});
-  if(TZ.brief) return;
-  tzMsg('Opening&hellip;');
-  TZ.data = await tzFetch();
-  if(!TZ.data){
-    tzMsg('No area brief yet. One is written every morning at 6:47 a.m. Eastern; the first appears after that run.', true);
-    return;
-  }
-  var pass = lsGet(OWN_PASS) || lsGet(TZ_PASS);
-  if(pass && await tzUnlock(pass, false)) return;
-  if(!pass) tzMsg('');
-  document.getElementById('tzLock').style.display = '';
-  document.getElementById('tzPass').focus();
-}
-async function tzUnlock(pass, remember){
-  try{
-    var j = JSON.parse(await unlockBlob(TZ.data.blob, pass));
-    TZ.brief = j;
-    if(remember && !lsGet(OWN_PASS)) lsSet(TZ_PASS, pass);
-  }catch(e){
-    tzMsg('That passphrase does not open it. It is the one saved as the LOCAL_BRIEF_PASSPHRASE secret.', true);
-    return false;
-  }
-  document.getElementById('tzLock').style.display = 'none';
-  document.getElementById('tzTools').style.display = '';
-  var at = new Date(j.at), age = (Date.now() - at)/3600000;
-  var when = at.toLocaleString([], {weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit', timeZone:'America/New_York'});
-  document.getElementById('tzSub').textContent = 'collected ' + when + ' Eastern' +
-    (j.leads ? ' · ' + j.leads.headlines + ' local headlines and ' + j.leads.alerts + ' weather alerts checked' : '') +
-    (age > 30 ? ' · ' + Math.round(age) + ' hours old' : '');
-  var body = document.getElementById('tzBody');
-  try{ body.innerHTML = renderMD(j.brief); }catch(e){ body.innerHTML = '<pre class="raw">' + esc(j.brief) + '</pre>'; }
-  tzMsg('');
-  return true;
-}
-(function(){
-  var brand = document.querySelector('.brand'), taps = [];
-  if(!brand) return;
-  brand.addEventListener('click', function(){
-    var t = Date.now();
-    taps = taps.filter(function(x){ return t - x < 1500; }).concat([t]);
-    if(taps.length < 3) return;
-    taps = [];
-    var band = document.getElementById('tzBand');
-    if(band.hidden) tzShow();
-    else { band.hidden = true; if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
-  });
-  document.getElementById('tzOpen').onclick = function(){
-    var p = document.getElementById('tzPass').value;
-    if(p) tzUnlock(p, document.getElementById('tzRemember').checked).then(function(ok){ if(ok) document.getElementById('tzPass').value = ''; });
-  };
-  document.getElementById('tzPass').addEventListener('keydown', function(e){ if(e.key === 'Enter') document.getElementById('tzOpen').click(); });
-  document.getElementById('tzHide').onclick = function(){ document.getElementById('tzBand').hidden = true; };
-  document.getElementById('tzForget').onclick = function(){
-    lsSet(TZ_PASS, null);
-    tzMsg(lsGet(OWN_PASS) ? 'Forgotten here. It still opens because the owner panel keeps the same passphrase on this device; use “forget this device” there to remove that too.'
-                          : 'Forgotten on this device.');
-  };
-  document.getElementById('tzRead').onclick = function(){
-    if(!window.BRIEFME || !TZ.brief) return;
-    BRIEFME.read({root:document.getElementById('tzBody'), label:'TAZEWELL AREA BRIEF', at:TZ.brief.at,
-                  title:'Area brief for Tazewell County and surrounding areas.',
-                  when:new Date(TZ.brief.at).toLocaleString('en-US', {weekday:'long', hour:'numeric', minute:'2-digit',
-                                                                       timeZone:'America/New_York'}) + ' Eastern'});
-  };
-})();
-
 /* The way in on a new device: tap the version number five times quickly. */
 (function(){
   var v = document.querySelector('.hdr-top .ver'), taps = [];
