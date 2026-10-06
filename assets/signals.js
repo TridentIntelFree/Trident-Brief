@@ -1,18 +1,15 @@
 /* =====================================================================
-   SIGNALS -- UVB-76 and HFGCS: listen, look, and what the monitors report
+   SIGNALS -- UVB-76 and HFGCS: real recordings, a 48-hour timeline, and an
+   in-browser spectrum analyzer
 
-   The analyzer is a spectrogram that runs entirely in the browser (Web
-   Audio). It can take three sources:
-     - the sound of another browser tab (desktop Chrome / Edge): open a web
-       receiver tuned to the station, share that tab here, and the analyzer
-       draws what the receiver hears;
-     - the microphone: a phone held to a radio;
-     - a recording: most web receivers have a record button.
-   Nothing is uploaded anywhere. The detectors are heuristics and say so: the
+   The recordings come from radio_monitor.py: a relay of public shortwave
+   receivers, two minutes each, published to the radio-data branch. Any slice
+   can be played or loaded into the analyzer here. The analyzer itself also
+   takes the sound of another tab (desktop Chrome / Edge), the microphone, or a
+   file, and nothing is uploaded. The detectors are heuristics and say so: the
    Buzzer's pulse rate is measured from the envelope's periodicity, and a
-   "voice?" mark is sustained, fluctuating energy in the speech band that the
-   pulse pattern does not explain.
-   ===================================================================== */
+   "voice?" mark is sustained, changing energy in the speech band.
+   ===================== */
 (function(){
 'use strict';
 var BAND = document.getElementById('sigBand');
@@ -23,28 +20,114 @@ function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(
 function utc(ms){ return new Date(ms).toISOString().slice(11, 19) + 'Z'; }
 function fmtHz(f){ return f >= 1000 ? (f/1000).toFixed(f >= 10000 ? 1 : 2) + ' kHz' : Math.round(f) + ' Hz'; }
 
-/* ---------------------------------------------------------- reports */
-(function reports(){
-  var box = $('sigReports'); if(!box) return;
-  var W = ((typeof FEEDS !== 'undefined' && FEEDS && FEEDS.wire) || []).filter(function(w){
-    return w && w.d === 'signals' && /^https?:\/\//i.test(w.u || '');
-  });
-  if(!W.length){
-    box.innerHTML = '<div class="sig-empty">No monitor reports in the last week. They are posted when something happens; a quiet week is normal.</div>';
+/* ------------------------------------------------- real recordings */
+/* radio_monitor.py records each channel through a relay of public receivers
+   and publishes the slices, the voice events and a 48-hour timeline to the
+   repository's radio-data branch, which is read from here. */
+var RADIO = 'https://raw.githubusercontent.com/' +
+  ((typeof GH_REPO !== 'undefined' && GH_REPO) || 'TridentIntelFree/Trident-Brief') + '/radio-data/';
+var CHAN = [
+  {id:'uvb76', name:'UVB-76', f:'4625 kHz AM', about:'Russian military “Buzzer”: a buzz 20–35 times a minute around the clock, broken now and then by a voice reading a callsign, codeword and numbers.'},
+  {id:'hfgcs8992', name:'HFGCS 8992', f:'8992 kHz USB', about:'US Air Force global network: Emergency Action Messages and Skyking broadcasts, coded; their number and timing are what matter.'},
+  {id:'hfgcs11175', name:'HFGCS 11175', f:'11175 kHz USB', about:'The same network’s other main frequency, heard best by day.'}
+];
+function ago(iso){
+  var m = Math.max(0, Math.round((Date.now() - Date.parse(iso))/60000));
+  return m < 60 ? m + ' min ago' : m < 2880 ? Math.round(m/60) + ' h ago' : Math.round(m/1440) + ' days ago';
+}
+function stateText(c){
+  if(c.state === 'voice') return 'VOICE · ' + Math.round((c.voice || []).reduce(function(a, v){ return a + v[1] - v[0]; }, 0) || c.voice_s || 0) + ' s';
+  if(c.state === 'buzz') return 'BUZZING' + (c.pulse_per_min ? ' · ' + c.pulse_per_min + '/min' : '');
+  return {signal:'SIGNAL', quiet:'QUIET', short:'TOO SHORT', none:'NO RECORDING'}[c.state] || String(c.state || '').toUpperCase();
+}
+async function clipBlob(rel){
+  var r = await fetch(RADIO + rel, {cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  return new Blob([await r.arrayBuffer()], {type:'audio/mpeg'});      // raw files come untyped
+}
+var player = null, playing = null;
+async function playClip(rel, btn){
+  if(player && playing === rel){ player.pause(); player = null; playing = null; btn.innerHTML = '&#9654; PLAY'; return; }
+  if(player){ player.pause(); }
+  BAND.querySelectorAll('.sig-play').forEach(function(b){ b.innerHTML = '&#9654; PLAY'; });
+  btn.textContent = 'loading…';
+  try{
+    var url = URL.createObjectURL(await clipBlob(rel));
+    player = new Audio(url); playing = rel;
+    player.onended = function(){ btn.innerHTML = '&#9654; PLAY'; playing = null; };
+    await player.play();
+    btn.innerHTML = '&#10074;&#10074; STOP';
+  }catch(e){ btn.innerHTML = '&#9654; PLAY'; status('That recording could not be played (' + esc(e.message) + ').', true); }
+}
+async function analyseClip(rel, label){
+  status('Fetching ' + esc(label) + '…');
+  try{
+    var b = await clipBlob(rel);
+    await openFile(new File([b], label + '.mp3', {type:'audio/mpeg'}));
+    cv.scrollIntoView({behavior:'smooth', block:'center'});
+  }catch(e){ status('That recording could not be fetched (' + esc(e.message) + ').', true); }
+}
+function paintRadio(d){
+  var box = $('sigLive');
+  if(!d){
+    box.innerHTML = '<div class="sig-empty">No recordings yet. The receiver relay runs every half hour; the first slices appear after its first run.</div>';
     return;
   }
-  function tag(t){
-    if(/uvb|buzzer|4625|mdzhb/i.test(t)) return ['UVB-76', '#f59e0b'];
-    if(/hfgcs|\beams?\b|emergency action|sky ?king|8992|11175/i.test(t)) return ['HFGCS', '#22d3ee'];
-    return ['SIGNALS', '#94a3b8'];
-  }
-  box.innerHTML = W.slice(0, 25).map(function(w){
-    var g = tag(w.t), when = w.at ? w.at.replace('T', ' ').slice(0, 16) + 'Z' : '';
-    return '<div class="sig-rep"><span class="sig-tag" style="color:' + g[1] + ';border-color:' + g[1] + '">' + g[0] + '</span>' +
-      '<span class="sig-when">' + esc(when) + '</span><a href="' + esc(w.u) + '" target="_blank" rel="noopener noreferrer">' +
-      esc(w.t) + '</a><span class="sig-src-n">' + esc((w.s || []).join(', ')) + '</span></div>';
-  }).join('');
-})();
+  var now = Date.now(), SLOT = 30*60000, h = '<div class="sig-tl"><h4 class="sig-h">LAST 48 HOURS</h4>';
+  var rank = {voice:4, buzz:3, signal:2, quiet:1};
+  var covered = 0;
+  CHAN.forEach(function(ch){
+    var cells = [];
+    for(var i = 0; i < 96; i++) cells.push(null);
+    (d.timeline || []).forEach(function(t){
+      if(t.channel !== ch.id) return;
+      var k = 95 - Math.floor((now - Date.parse(t.at))/SLOT);
+      if(k < 0 || k > 95) return;
+      var c = cells[k] || (cells[k] = {state:'quiet', n:0, voice:0, pulse:null});
+      c.n++; c.voice += t.voice_s || 0; if(t.pulse_per_min) c.pulse = t.pulse_per_min;
+      if((rank[t.state] || 0) > (rank[c.state] || 0)) c.state = t.state;
+    });
+    covered += cells.filter(Boolean).length;
+    h += '<div class="sig-tl-row"><b>' + esc(ch.name) + '</b><div class="sig-tl-cells">' + cells.map(function(c, i){
+      var at = new Date(now - (95 - i)*SLOT);
+      var tip = at.toISOString().slice(5, 16).replace('T', ' ') + 'Z – ' + (c ? c.state + (c.pulse ? ' ' + c.pulse + '/min' : '') +
+                (c.voice ? ', ' + Math.round(c.voice) + ' s voice' : '') + ' (' + c.n + ' slice' + (c.n > 1 ? 's' : '') + ')' : 'not recorded');
+      return '<i class="' + (c ? c.state : '') + '" title="' + esc(tip) + '"></i>';
+    }).join('') + '</div></div>';
+  });
+  h += '<div class="sig-tl-axis"><span>48 h ago</span><span>24 h</span><span>now</span></div>' +
+       '<div class="sig-tl-key"><span style="--c:#facc15">voice</span><span style="--c:#0e7490">buzzing</span>' +
+       '<span style="--c:#334155">signal</span><span style="--c:#1e293b">quiet</span><span style="--c:rgba(148,163,184,.08)">not recorded</span>' +
+       '<span>covered ' + Math.round(covered/(96*CHAN.length)*100) + '% of the last 48 h</span></div></div>';
+  var clips = {};
+  (d.clips || []).forEach(function(c){ clips[c.channel] = c; });
+  h += '<div class="sig-chs">' + CHAN.map(function(ch){
+    var c = clips[ch.id];
+    return '<div class="sig-ch"><div class="sig-ch-h"><b>' + esc(ch.name) + '</b><span class="sig-f">' + esc(ch.f) + '</span></div>' +
+      (c ? '<span class="sig-st ' + esc(c.state) + '">' + esc(stateText(c)) + '</span>' +
+           '<div class="sig-small">latest slice ' + esc(ago(c.at)) + ' · ' + esc(Math.round(c.seconds || 0)) + ' s' +
+           (c.rx && c.rx.loc ? ' · receiver in ' + esc(c.rx.loc) : '') + '</div>' +
+           (c.file ? '<div style="margin-top:7px"><button class="ap-btn sig-play" data-f="' + esc(c.file) + '" type="button">&#9654; PLAY</button>' +
+                     '<button class="ap-btn sig-an" data-f="' + esc(c.file) + '" data-n="' + esc(ch.name) + '" type="button">&#128202; ANALYZE</button></div>' : '')
+         : '<span class="sig-st none">NO RECORDING YET</span>') +
+      '<p class="sig-small" style="margin:8px 0 0">' + esc(ch.about) + '</p></div>';
+  }).join('') + '</div>';
+  var ev = d.events || [];
+  h += '<h4 class="sig-h">VOICE EVENTS</h4>' + (ev.length ? '<div class="sig-events">' + ev.slice(0, 20).map(function(e){
+    var secs = Math.round((e.voice || []).reduce(function(a, v){ return a + v[1] - v[0]; }, 0));
+    return '<div class="sig-ev voice"><b>' + esc(e.at.slice(5, 16).replace('T', ' ')) + 'Z</b> ' + esc(e.name) + ' · ' + secs +
+      ' s of voice · via ' + esc(e.rx || '?') + ' <button class="linkish sig-play" data-f="' + esc(e.file) + '" type="button">&#9654; PLAY</button> ' +
+      '<button class="linkish sig-an" data-f="' + esc(e.file) + '" data-n="' + esc(e.name + ' ' + e.at.slice(0, 16)) + '" type="button">analyze</button></div>';
+  }).join('') + '</div>' : '<div class="sig-empty">No voice heard in the recorded slices yet. The Buzzer usually just buzzes; messages are rare.</div>');
+  box.innerHTML = h;
+  box.querySelectorAll('.sig-play').forEach(function(b){ b.onclick = function(){ playClip(b.dataset.f, b); }; });
+  box.querySelectorAll('.sig-an').forEach(function(b){ b.onclick = function(){ analyseClip(b.dataset.f, b.dataset.n); }; });
+}
+function loadRadio(){
+  fetch(RADIO + 'radio/radio.json?t=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+    .then(paintRadio);
+}
 
 /* ------------------------------------------------------ colour maps */
 var MAPS = {
@@ -593,57 +676,9 @@ function wire(){
 }
 function reopen(){ if(S.file && S.file.buf) analyse(S.file.buf, S.file.name); }
 
-/* Receivers. The web receivers are plain http, so no https page may embed
-   them; they have to open on their own. They open in one tab, reused for
-   every station (the Twente receiver retunes from its address), so this
-   page and the analyzer stay where they are. If the browser will not open a
-   tab (an in-app browser, a home-screen app), it goes in this tab and the
-   page brings you back to this section when you return. */
-function rxHelp(label, cameBack){
-  var m = $('sigRxMsg'); if(!m) return;
-  if(cameBack){
-    m.innerHTML = 'Back from <b>' + esc(label) + '</b>. This browser opened the receiver in place of this page, so the two cannot ' +
-      'run together here. Open this site in Safari or Chrome itself (not inside another app) and the receiver gets its own tab ' +
-      'while the analyzer stays open. Or record on the receiver and use <b>OPEN RECORDING</b>.';
-    m.style.display = ''; return;
-  }
-  var desk = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) && !/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  m.innerHTML = '<b>' + esc(label) + '</b> opened in its own tab; this page is still here. ' +
-    (desk ? 'Press play on the receiver if it is silent, then come back and press <b>SHARE TAB AUDIO</b> and pick that tab (tick “Also share tab audio”).'
-          : 'Press play on the receiver, then switch back to this tab: <b>MICROPHONE</b> draws what the speaker plays, or use the receiver’s record button and <b>OPEN RECORDING</b>.');
-  m.style.display = '';
-}
-var rxWin = null;
-BAND.querySelectorAll('a.sig-rx').forEach(function(a){
-  a.addEventListener('click', function(e){
-    e.preventDefault();
-    var label = a.textContent.replace(/^\W+/, '').trim(), w = null;
-    try{
-      if(rxWin && !rxWin.closed){ rxWin.location.href = a.href; rxWin.focus(); w = rxWin; }
-      else w = rxWin = window.open(a.href, '_blank');
-    }catch(_){ rxWin = null; }
-    if(w){ rxHelp(label); return; }
-    try{ sessionStorage.setItem('sig_return', label); }catch(_){}
-    location.href = a.href;
-  });
-});
-(function back(){
-  var label = null;
-  try{ label = sessionStorage.getItem('sig_return'); sessionStorage.removeItem('sig_return'); }catch(_){}
-  if(!label) return;
-  if(BAND.classList.contains('folded')){ var fb = BAND.querySelector('.fold-btn'); if(fb) fb.click(); }
-  rxHelp(label, true);
-  /* again once the page above has laid out, and after scroll restoration */
-  [300, 1500].forEach(function(ms){ setTimeout(function(){ BAND.scrollIntoView({block:'start'}); }, ms); });
-})();
-addEventListener('pageshow', function(e){
-  if(!e.persisted) return;
-  var label = null;
-  try{ label = sessionStorage.getItem('sig_return'); sessionStorage.removeItem('sig_return'); }catch(_){}
-  if(label){ BAND.scrollIntoView({block:'start'}); rxHelp(label, true); }
-});
-
 wire();
 size();
+loadRadio();
+setInterval(loadRadio, 10*60000);       // new slices land through the half hour
 window.SIGNALS = {state:S, fftDb:fftDb, logEvent:logEvent};
 })();

@@ -392,6 +392,27 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .sig-set label{font-family:var(--mono);font-size:.7em;color:var(--ink-faint);display:inline-flex;gap:5px;align-items:center}
 .sig-set select{background:#0a1226;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:4px 6px;font-family:var(--mono);font-size:1em}
 .sig-set input[type=range]{width:110px}
+.sig-live{margin-bottom:14px}
+.sig-small{font-size:.78em;color:var(--ink-faint)}
+.sig-ev .linkish{background:none;border:0;color:var(--cyan);text-decoration:underline;cursor:pointer;font:inherit;padding:0 3px}
+.sig-tl{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:rgba(10,17,36,.9);margin-bottom:10px}
+.sig-tl-row{display:flex;align-items:center;gap:8px;margin:4px 0}
+.sig-tl-row b{flex:none;width:92px;font-family:var(--mono);font-size:.7em;color:var(--ink-dim);font-weight:600}
+.sig-tl-cells{flex:1;display:grid;grid-template-columns:repeat(96,1fr);gap:1px;min-width:0}
+.sig-tl-cells i{height:16px;border-radius:1px;background:rgba(148,163,184,.08)}
+.sig-tl-cells i.buzz{background:#0e7490}.sig-tl-cells i.voice{background:#facc15}.sig-tl-cells i.signal{background:#334155}
+.sig-tl-cells i.quiet{background:#1e293b}
+.sig-tl-axis{display:flex;justify-content:space-between;margin-left:100px;font-family:var(--mono);font-size:.62em;color:var(--ink-faint)}
+.sig-tl-key{font-size:.72em;color:var(--ink-faint);margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 12px}
+.sig-tl-key span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--c)}
+.sig-chs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px;margin-bottom:10px}
+.sig-ch{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:rgba(10,17,36,.9)}
+.sig-ch-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sig-ch-h b{color:#fff}
+.sig-st{display:inline-block;font-family:var(--mono);font-size:.7em;letter-spacing:.06em;border:1px solid;border-radius:5px;padding:1px 7px;margin:6px 0}
+.sig-st.buzz{color:#22d3ee;border-color:#0e7490}.sig-st.voice{color:#facc15;border-color:#a16207}
+.sig-st.signal,.sig-st.quiet,.sig-st.none{color:var(--ink-dim);border-color:var(--line)}
+.sig-ch .ap-btn{margin-right:4px}
 .sig-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
 .sig-h{font-family:var(--mono);font-size:.7em;letter-spacing:.12em;color:var(--ink-faint);margin:0 0 6px;font-weight:600}
 .sig-events,.sig-reports{max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:4px}
@@ -920,39 +941,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
   <div class="section-band" id="sigBand">
     <div class="band-head">
       <h2>&#128225; Signals &mdash; UVB-76 &amp; HFGCS</h2>
-      <div class="sub">listen live through public web receivers &middot; see it on a spectrogram &middot; what the monitors are reporting</div>
+      <div class="sub">real shortwave, recorded round the clock through a relay of public receivers &middot; analyse any slice &middot; 48-hour activity</div>
     </div>
-    <div class="sig-cards">
-      <div class="sig-card">
-        <div class="sig-card-h"><b>UVB-76 &middot; &ldquo;The Buzzer&rdquo;</b><span class="sig-f">4625 kHz</span></div>
-        <p>A Russian military station that has sounded a short buzz, about 20&ndash;35 a minute, around the clock since the
-          1970s. Now and then the buzz stops for a voice reading a callsign, a codeword and numbers in Russian. Monitors log
-          every message; what they mean is not public.</p>
-        <div class="sig-links">
-          <a class="ap-btn sig-rx" href="http://websdr.ewi.utwente.nl:8901/?tune=4625usb" target="_blank" rel="noopener noreferrer">&#9654; LISTEN (Twente, USB)</a>
-          <a class="ap-btn sig-rx" href="http://websdr.ewi.utwente.nl:8901/?tune=4625am" target="_blank" rel="noopener noreferrer">AM</a>
-          <a class="ap-btn" href="https://priyom.org/military-stations/russia/the-buzzer" target="_blank" rel="noopener noreferrer">monitor logs</a>
-        </div>
-      </div>
-      <div class="sig-card">
-        <div class="sig-card-h"><b>HFGCS &middot; US Air Force</b><span class="sig-f">8992 &middot; 11175 kHz</span></div>
-        <p>The High Frequency Global Communications System, which reaches US aircraft anywhere. Listeners track its
-          Emergency Action Messages: a long block of letters and numbers after &ldquo;Skyking&rdquo; or a callsign. They are
-          encrypted; what is worth watching is how many, and when. Also 4724, 6739, 13200, 15016 kHz, all upper sideband.</p>
-        <div class="sig-links">
-          <a class="ap-btn sig-rx" href="http://websdr.ewi.utwente.nl:8901/?tune=8992usb" target="_blank" rel="noopener noreferrer">&#9654; 8992 USB</a>
-          <a class="ap-btn sig-rx" href="http://websdr.ewi.utwente.nl:8901/?tune=11175usb" target="_blank" rel="noopener noreferrer">&#9654; 11175 USB</a>
-          <a class="ap-btn" href="https://www.reddit.com/r/HFGCS/new/" target="_blank" rel="noopener noreferrer">monitor logs</a>
-        </div>
-      </div>
-    </div>
-    <div class="sig-rxmsg" id="sigRxMsg" style="display:none"></div>
-    <p class="sig-note">Twente (the Netherlands) hears both well. For a receiver nearer you, pick one on the
-      <a href="http://rx.linkfanel.net/" target="_blank" rel="noopener noreferrer">KiwiSDR map</a> or the
-      <a href="http://kiwisdr.com/public/" target="_blank" rel="noopener noreferrer">public list</a> and tune the same frequency.
-      <b>To analyse it:</b> open a receiver in another tab, come back and press <b>SHARE TAB AUDIO</b>, choose that tab and tick
-      &ldquo;Also share tab audio&rdquo; (desktop Chrome or Edge). On a phone use <b>MICROPHONE</b> next to the speaker, or use the
-      receiver&rsquo;s record button and <b>OPEN RECORDING</b>.</p>
+    <div class="sig-live" id="sigLive"><div class="sig-empty">Loading the latest recordings&hellip;</div></div>
 
     <div class="sig-src">
       <button class="ap-btn" id="sigTab" type="button">&#128421; SHARE TAB AUDIO</button>
@@ -989,19 +980,17 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     </div>
     <div class="sig-cols">
       <div>
-        <h4 class="sig-h">DETECTIONS</h4>
+        <h4 class="sig-h">DETECTIONS IN THE ANALYZER</h4>
         <div class="sig-events" id="sigEvents"></div>
       </div>
-      <div>
-        <h4 class="sig-h">MONITOR REPORTS &middot; LAST 7 DAYS</h4>
-        <div class="sig-reports" id="sigReports"></div>
-      </div>
     </div>
-    <p class="sig-note">Listening to these broadcasts is legal and they are public; the messages themselves are coded, and
-      nothing here decodes them. The detectors are rules of thumb: <b>pulse train</b> is a steady repeating burst (the Buzzer&rsquo;s
-      rhythm), <b>voice?</b> is sound in the speech band that keeps changing moment to moment, as speech does and a buzz or
-      carrier does not. They keep running while you look at another tab. Confirm by ear.
-      Reports are pulled from r/uvb76, r/numbersstations, r/HFGCS, r/shortwave and numbers-stations.com.</p>
+    <p class="sig-note">How the recordings work: a phone cannot receive shortwave, so the site borrows public
+      KiwiSDR receivers. For most of every half
+      hour each channel is recorded in 2-minute slices, moving to a different receiver for each slice and only using receivers
+      with spare places, so no one&rsquo;s radio is tied up. Each slice is checked for the Buzzer&rsquo;s pulse rate and for voice;
+      slices with voice are kept as events. The detectors are rules of thumb &mdash; confirm by ear. Listening is legal; the messages
+      are coded and nothing here decodes them.</p>
+
   </div>
 
   <!-- ============ RECURRENCE ============ -->

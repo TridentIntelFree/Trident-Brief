@@ -4,6 +4,34 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.12.0 — 2026-10-06
+
+### Signals: real recordings, no outside links
+- **Real shortwave audio.** A phone cannot receive shortwave, so a new *Radio
+  Watch* workflow borrows public KiwiSDR receivers. It runs a relay for about
+  24 minutes of every half hour, covering UVB-76 (4625 kHz AM) and HFGCS
+  (8992 and 11175 kHz USB) at the same time.
+  - **2-minute slices**, each from a different receiver. No receiver is used
+    twice in a row.
+  - **Only receivers with at least two free places**, so no one's last slot is
+    taken.
+  - **Regions:** UVB-76 from receivers in Europe; HFGCS from North America or
+    Europe.
+  - **Identified** to receiver owners as "TridentBrief".
+- **Every slice is analysed:** the Buzzer's pulse rate, voice, and signal
+  level.
+  - The latest slice per channel can be played or loaded straight into the
+    spectrum analyzer.
+  - Slices with voice (a UVB-76 message or an HFGCS broadcast) are kept as
+    timestamped events.
+  - A 48-hour timeline shows when each channel was buzzing, carried voice,
+    was quiet, or was not recorded.
+- **Storage:** results go to a separate `radio-data` branch, replaced on every
+  run, so audio never builds up in the repository's history. The site
+  reads them from there.
+- **Removed** the outside receiver links and the Reddit monitor reports from
+  the section. The analyzer's own sources (tab audio, microphone, file) stay.
+
 ## 1.11.0 — 2026-10-06
 
 ### Crystal Ball (owner only, hidden)
