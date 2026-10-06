@@ -55,27 +55,50 @@ CHANNELS = [
 
 
 # ------------------------------------------------------------ receivers
-def receivers():
-    """Public KiwiSDRs from kiwisdr.com/public: each entry's fields sit in HTML comments."""
-    r = requests.get('http://kiwisdr.com/public/', timeout=30, headers={'User-Agent': UA})
-    r.raise_for_status()
-    out, cur = [], None
-    for line in r.text.splitlines():
-        if "<div class='cl-info'>" in line:
-            cur = {}
-            continue
-        if cur is None:
-            continue
-        m = re.search(r'<!-- (\w+)=(.*) -->', line)
-        if m:
-            cur[m.group(1)] = m.group(2).strip()
-            continue
-        m = re.search(r'>(https?://[^<]+)</a>', line)
-        if m:
-            cur['url'] = m.group(1).strip()
-            out.append(cur)
-        cur = None
+def _from_html(text):
+    """kiwisdr.com/public: per receiver, a 'cl-info' block of <!-- key=value --> comments and a link."""
+    out = []
+    for seg in re.split(r"class=[\"']cl-info[\"']", text)[1:]:
+        seg = seg[:6000]
+        rx = {k: v.strip() for k, v in re.findall(r'<!--\s*(\w+)=(.*?)\s*-->', seg)}
+        m = (re.search(r'>\s*(https?://[^<\s]+)\s*</a>', seg) or re.search(r'href=["\'](https?://[^"\']+)["\']', seg))
+        if m and rx:
+            rx['url'] = m.group(1)
+            out.append(rx)
     return out
+
+
+def _from_js(text):
+    """rx.linkfanel.net/kiwisdr_com.js: a javascript array of objects (trailing commas, not strict JSON)."""
+    out = []
+    for obj in re.findall(r'\{[^{}]*\}', text, re.S):
+        try:
+            rx = json.loads(re.sub(r',\s*}', '}', obj))
+        except Exception:
+            continue
+        if isinstance(rx, dict) and rx.get('url'):
+            out.append({k: str(v) for k, v in rx.items()})
+    return out
+
+
+def receivers():
+    """Public KiwiSDRs, from either of the two published lists."""
+    tried = []
+    for url, parse in (('http://kiwisdr.com/public/', _from_html), ('http://rx.linkfanel.net/kiwisdr_com.js', _from_js)):
+        try:
+            r = requests.get(url, timeout=30, headers={'User-Agent': UA})
+            got = parse(r.text) if r.status_code == 200 else []
+            tried.append(f'{url} HTTP {r.status_code}, {len(r.text)} bytes, {len(got)} parsed')
+            if got:
+                return got
+            if r.status_code == 200:
+                i = r.text.find('<!--')
+                print(f'radio: nothing parsed from {url}; sample: ' +
+                      re.sub(r'\s+', ' ', r.text[max(0, i - 300):i + 700] if i >= 0 else r.text[:1000]))
+        except Exception as e:
+            tried.append(f'{url} failed: {str(e)[:80]}')
+    print('radio: receiver lists: ' + ' | '.join(tried))
+    return []
 
 
 def usable(rx, ch):
