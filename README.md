@@ -104,6 +104,21 @@ being read and has section skip, speed and voice controls.
 
 ## Signals
 
+**Real recordings.** `radio_monitor.py`, run by
+`.github/workflows/radio-watch.yml` at :01 and :31 past each hour, records
+UVB-76 (4625 kHz AM) and HFGCS (8992 and 11175 kHz USB).
+- **Recording:** public KiwiSDR receivers (from kiwisdr.com/public) are used
+  in a relay of 2-minute slices, each from a different receiver, and only
+  receivers with at least two free places. Recordings use kiwirecorder from
+  jks-prv/kiwiclient. `RADIO_MINUTES` (default 24) sets how long each run
+  watches.
+- **Analysis:** each slice is checked for pulse rate and voice.
+- **Output:** the latest slice per channel and the voice events (as MP3),
+  plus a 48-hour timeline, go to the `radio-data` branch. That branch is
+  force-replaced on every run; the page reads it from raw.githubusercontent.com.
+
+**The section itself:**
+
 The UVB-76 and HFGCS section (`assets/signals.js`). Its station cards link to
 public web receivers already tuned: the University of Twente WebSDR, plus the
 KiwiSDR directories for a receiver nearer you. The analyzer is a spectrogram
@@ -223,7 +238,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.11.0) and appears in the page
+The build version lives in `VERSION` (currently 1.12.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).
