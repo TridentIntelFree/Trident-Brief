@@ -4,6 +4,14 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.13.2 — 2026-10-06
+
+### Translation fix
+- The first live run got nothing from either free translator from GitHub's
+  servers. Requests now identify as a browser, a third free endpoint is
+  tried (the one Chrome's dictionary extension uses, 20 posts per request),
+  and the refresh log records each translator's response code.
+
 ## 1.13.1 — 2026-10-06
 
 ### Telegram posts in English
