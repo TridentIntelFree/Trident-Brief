@@ -603,6 +603,11 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .tz-band{border-top:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.035)}
 .tz-band[hidden]{display:none}
 .tz-body{padding:6px 0 0}
+.ad-who{margin-top:14px;font-size:.84em;color:var(--ink-dim)}
+.ad-who summary{cursor:pointer;font-family:var(--mono);font-size:.85em;letter-spacing:.06em;color:var(--cyan)}
+.ad-who a{color:var(--ink)}
+.ad-who .ad-new{color:#34d399;font-family:var(--mono);font-size:.85em}
+h1 .ttl{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .brand{-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 .key-opts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:9px;font-size:.8em;color:var(--ink-dim)}
@@ -1031,6 +1036,21 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     </div>
     <div id="tzMsg"></div>
     <div class="content tz-body" id="tzBody"></div>
+  </div>
+
+  <!-- Owner's Analyst Desk (analyst_desk.py). Not shown until the hidden gesture. -->
+  <div class="section-band tz-band" id="adBand" hidden>
+    <div class="band-head">
+      <h2>&#128373; Analyst Desk &mdash; OSINT on X, last 48h</h2>
+      <div class="sub" id="adSub"></div>
+    </div>
+    <div class="key-opts" id="adTools" style="display:none">
+      <button class="bm-go" id="adRead" type="button">&#128266; READ IT TO ME</button>
+      <button class="linkish" id="adHide" type="button">hide</button>
+    </div>
+    <div id="adMsg"></div>
+    <div class="content tz-body" id="adBody"></div>
+    <details class="ad-who" id="adWho" style="display:none"><summary>Accounts followed</summary><div id="adWhoList"></div></details>
   </div>
 
   <!-- ============ LOCAL INTEL ============ -->
@@ -3522,6 +3542,70 @@ async function tzShow(){
                   title:'Area brief for Tazewell County and surrounding areas.',
                   when:new Date(TZ.brief.at).toLocaleString('en-US', {weekday:'long', hour:'numeric', minute:'2-digit',
                                                                        timeZone:'America/New_York'}) + ' Eastern'});
+  };
+})();
+
+/* =====================================================================
+   ANALYST DESK -- the OSINT/analyst community on X, from analyst_desk.py
+   Hidden until the owner's gesture, which also closes it again.
+   ===================================================================== */
+var AD = {desk:null};
+function adMsg(html, bad){ document.getElementById('adMsg').innerHTML = html ? '<p class="' + (bad ? 'error-msg' : 'success-msg') + '">' + html + '</p>' : ''; }
+async function adShow(){
+  var band = document.getElementById('adBand');
+  band.hidden = false;
+  band.scrollIntoView({behavior:'smooth', block:'start'});
+  if(AD.desk) return;
+  adMsg('Opening&hellip;');
+  var t = Date.now(), urls = ['data/analyst/desk.json?t=' + t,
+    'https://raw.githubusercontent.com/' + GH_REPO + '/main/data/analyst/desk.json?t=' + t];
+  var got = await Promise.all(urls.map(function(u){
+    return fetch(u, {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+  }));
+  var d = got.filter(function(x){ return x && x.desk; }).sort(function(a, b){ return a.at < b.at ? 1 : -1; })[0];
+  if(!d){ adMsg('No analyst desk yet. It is written every morning at about 8:15 a.m. Eastern.', true); return; }
+  AD.desk = d;
+  var at = new Date(d.at), age = (Date.now() - at)/3600000;
+  document.getElementById('adSub').textContent = 'collected ' +
+    at.toLocaleString([], {weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit', timeZone:'America/New_York'}) +
+    ' Eastern · ' + (d.accounts_with_claims || 0) + ' of ' + (d.followed || []).length + ' accounts posting · ' +
+    (d.claims || 0) + ' claims' + (age > 30 ? ' · ' + Math.round(age) + ' hours old' : '');
+  var body = document.getElementById('adBody');
+  try{ body.innerHTML = renderMD(d.desk); }catch(e){ body.innerHTML = '<pre class="raw">' + esc(d.desk) + '</pre>'; }
+  var who = (d.followed || []).map(function(h){
+    var isNew = (d.promoted || []).indexOf(h) >= 0;
+    return '<a href="https://x.com/' + encodeURIComponent(h) + '" target="_blank" rel="noopener">@' + esc(h) + '</a>' +
+           (isNew ? ' <span class="ad-new">NEW</span>' : '');
+  }).join(' · ');
+  var found = (d.found_today || []).filter(function(f){ return (d.followed || []).indexOf(f.handle) < 0; });
+  if(found.length) who += '<p style="margin-top:8px">Found today (followed once seen again): ' + found.map(function(f){
+    return '<a href="https://x.com/' + encodeURIComponent(f.handle) + '" target="_blank" rel="noopener">@' + esc(f.handle) + '</a>' +
+           (f.why ? ' – ' + esc(f.why) : '');
+  }).join('; ') + '</p>';
+  document.getElementById('adWhoList').innerHTML = who;
+  document.getElementById('adWho').style.display = '';
+  document.getElementById('adTools').style.display = '';
+  adMsg('');
+}
+(function(){
+  var ttl = document.querySelector('h1 .ttl'), taps = [];
+  if(!ttl) return;
+  ttl.addEventListener('click', function(){
+    var t = Date.now();
+    taps = taps.filter(function(x){ return t - x < 1500; }).concat([t]);
+    if(taps.length < 3) return;
+    taps = [];
+    var band = document.getElementById('adBand');
+    if(band.hidden) adShow();
+    else { band.hidden = true; if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
+  });
+  document.getElementById('adHide').onclick = function(){ document.getElementById('adBand').hidden = true; };
+  document.getElementById('adRead').onclick = function(){
+    if(!window.BRIEFME || !AD.desk) return;
+    BRIEFME.read({root:document.getElementById('adBody'), label:'ANALYST DESK', at:AD.desk.at,
+                  title:'Analyst desk: what the open-source analyst community on X has been saying over the last 48 hours.',
+                  when:new Date(AD.desk.at).toLocaleString('en-US', {weekday:'long', hour:'numeric', minute:'2-digit',
+                                                                     timeZone:'America/New_York'}) + ' Eastern'});
   };
 })();
 

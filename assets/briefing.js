@@ -61,6 +61,7 @@ function speakable(t){
   t = t.replace(/\(\s*Section\s+\d+\s*\)/gi, '');
   t = t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, '');
   t = t.replace(/https?:\/\/\S+/g, '');
+  t = t.replace(/(^|[\s(\[])@(?=\w)/g, '$1');        // "@IntelCrab reports" -> "IntelCrab reports"
   /* times: 14:03Z, 1403Z, 13:52–14:42 UTC, ~14:44 UTC */
   t = t.replace(/(\d{1,2}):?(\d{2})\s*[–-]\s*(\d{1,2}):?(\d{2})\s*(?:UTC|Z|GMT)\b/g,
                 function(_, a, b, c, d){ return 'from ' + hhmm(a, b) + ' to ' + hhmm(c, d) + ' Zulu'; });
