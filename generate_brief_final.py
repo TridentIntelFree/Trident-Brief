@@ -2134,6 +2134,201 @@ def wire_lines(items, cap=WIRE_MAX):
     return out
 
 
+# ============================================================ partner OSINT ==
+# Other open-source projects already collect what this brief cannot cheaply:
+# - situationmonitor (github.com/hassmax/situationmonitor) turns Bluesky,
+#   Telegram and news posts into structured conflict events every 15 minutes,
+#   published on its "data" branch;
+# - tracker-data (github.com/gutmanis/tracker-data) scrapes 40-odd Telegram
+#   war channels every 6 hours, each post tagged with its channel's lean, and
+#   keeps DeepStateMap's line of Russian-held territory with a daily history.
+# Both are read here, cut down, and passed on as claims with their source and
+# lean -- many of the Telegram channels are Russian state or pro-Russian.
+OSINT_SM = 'https://raw.githubusercontent.com/hassmax/situationmonitor/data/events.json'
+OSINT_TG = 'https://raw.githubusercontent.com/gutmanis/tracker-data/master/events/latest.json'
+OSINT_FRONT = 'https://raw.githubusercontent.com/gutmanis/tracker-data/master/territory/{}.geojson'
+
+
+def _osint_time(s):
+    try:
+        return datetime.fromisoformat(str(s).replace('Z', '+00:00'))
+    except Exception:
+        return None
+
+
+def _http_url(u):
+    return u if isinstance(u, str) and re.match(r'https?://', u) else None
+
+
+def _ring_km2(ring):
+    """Area of a lon/lat ring in km2, flat projection at its own latitude (fine at this scale)."""
+    if len(ring) < 3:
+        return 0.0
+    lat0 = math.radians(sum(p[1] for p in ring) / len(ring))
+    kx, ky = 111.32 * math.cos(lat0), 110.57
+    a = 0.0
+    for (x1, y1), (x2, y2) in zip(ring, ring[1:] + ring[:1]):
+        a += (x1 * kx) * (y2 * ky) - (x2 * kx) * (y1 * ky)
+    return abs(a) / 2
+
+
+def _front(day):
+    """DeepStateMap's Russian-held territory for one day: area and outline rings."""
+    r = requests.get(OSINT_FRONT.format(day), timeout=30, headers={'User-Agent': 'TridentBrief/1.0'})
+    if r.status_code != 200:
+        return None
+    area, rings = 0.0, []
+    for f in r.json().get('features') or []:
+        g = f.get('geometry') or {}
+        polys = g.get('coordinates') or []
+        polys = [polys] if g.get('type') == 'Polygon' else polys
+        for poly in polys:
+            for k, ring in enumerate(poly):
+                pts = [(float(p[0]), float(p[1])) for p in ring]
+                area += _ring_km2(pts) * (1 if k == 0 else -1)      # holes subtract
+                rings.append(pts)
+    return {'km2': round(area), 'rings': rings}
+
+
+def fetch_osint_partners():
+    now = datetime.now(timezone.utc)
+    out, notes = {}, {}
+    hdr = {'User-Agent': 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'}
+    # situationmonitor: structured events, English
+    try:
+        d = requests.get(OSINT_SM, timeout=60, headers=hdr).json()
+        cut = now - timedelta(hours=48)
+        ev = []
+        for e in d.get('events') or []:
+            t = _osint_time(e.get('updated') or e.get('time'))
+            if not t or t < cut or e.get('lat') is None:
+                continue
+            reps = e.get('reports') or []
+            sides = sorted({r.get('side') for r in reps if r.get('side')})
+            ev.append({'id': str(e.get('id', ''))[:16], 'th': e.get('theater'), 'ty': e.get('type'),
+                       'sm': str(e.get('summary', ''))[:240], 'pl': str(e.get('place', ''))[:60],
+                       'lat': round(float(e['lat']), 3), 'lon': round(float(e['lon']), 3),
+                       'sev': e.get('severity') or 0, 'k': e.get('killed'), 'inj': e.get('injured'),
+                       'at': t.strftime('%Y-%m-%dT%H:%M:%SZ'), 'st': e.get('status'), 'n': e.get('sources_count') or len(reps),
+                       'u': next((_http_url(r.get('url')) for r in reps if _http_url(r.get('url'))), None),
+                       'src': (reps[0].get('source') if reps else '')[:40], 'side': sides[:3]})
+        # most consequential first: severity, then corroboration, then recency
+        ev.sort(key=lambda e: (e['ty'] != 'diplomacy', e['sev'] or 0, e['n'] or 0, e['at']), reverse=True)
+        out['sm'] = ev[:320]
+        notes['sm'] = f"{len(ev)} events in 48h"
+    except Exception as e:
+        notes['sm'] = 'ERR ' + str(e)[:80]
+    # tracker-data: Telegram war channels, tagged by lean
+    try:
+        d = requests.get(OSINT_TG, timeout=60, headers=hdr).json()
+        cut = now - timedelta(hours=24)
+        tg, cells = [], {}
+        for e in d if isinstance(d, list) else []:
+            t = _osint_time(e.get('startDate') or e.get('createdAt'))
+            if not t or t < cut:
+                continue
+            md = e.get('metadata') or {}
+            loc = e.get('location') or {}
+            text = re.sub(r'\s+', ' ', str(e.get('description') or e.get('title') or '')).strip()
+            item = {'ty': e.get('type'), 's': str(e.get('source', '')).replace('Telegram: ', '')[:40],
+                    'b': md.get('bias') or 'unknown', 'u': _http_url(md.get('telegramUrl')),
+                    'r': str(md.get('region') or '')[:40], 'at': t.strftime('%Y-%m-%dT%H:%M:%SZ'), 't': text[:220]}
+            # posts tracker-data could not place are parked at one default point; they stay in the
+            # list but are kept off the map, where they would look like one huge hotspot
+            placed = item['r'] and item['r'].lower() not in ('unspecified', 'unknown')
+            if placed and loc.get('lat') is not None and loc.get('lng') is not None:
+                item['lat'], item['lon'] = round(float(loc['lat']), 2), round(float(loc['lng']), 2)
+                key = (round(item['lat'] * 2) / 2, round(item['lon'] * 2) / 2)
+                c = cells.setdefault(key, {'lat': key[0], 'lon': key[1], 'n': 0, 'bias': {}, 'r': item['r'], 'latest': []})
+                c['n'] += 1
+                c['bias'][item['b']] = c['bias'].get(item['b'], 0) + 1
+                c['latest'].append(item)
+            tg.append(item)
+        tg.sort(key=lambda i: i['at'], reverse=True)
+        for c in cells.values():
+            c['latest'] = sorted(c['latest'], key=lambda i: i['at'], reverse=True)[:4]
+        out['tg'] = tg[:260]
+        out['tgcells'] = sorted(cells.values(), key=lambda c: -c['n'])[:120]
+        lean = {}
+        for i in tg:
+            lean[i['b']] = lean.get(i['b'], 0) + 1
+        out['tg_lean'] = lean
+        notes['tg'] = f"{len(tg)} posts in 24h"
+    except Exception as e:
+        notes['tg'] = 'ERR ' + str(e)[:80]
+    # the front line, and how it moved
+    try:
+        cur = _front('latest')
+        if cur:
+            fr = {'km2': cur['km2'], 'as_of': now.strftime('%Y-%m-%d')}
+            for days in (7, 30):
+                old = _front((now - timedelta(days=days)).strftime('%Y%m%d'))
+                if old:
+                    fr[f'change_{days}d'] = cur['km2'] - old['km2']
+            # outline for the globe: simplified to about a kilometre, rounded
+            fr['rings'] = [[[round(p[0], 3), round(p[1], 3)] for p in _rdp([(y, x) for x, y in ring], 800)]
+                           for ring in cur['rings'] if len(ring) >= 4]          # [lat, lon], as the nav areas
+            out['front'] = fr
+            notes['front'] = f"{fr['km2']} km2, 7d {fr.get('change_7d', '?')}"
+    except Exception as e:
+        notes['front'] = 'ERR ' + str(e)[:80]
+    out['notes'] = notes
+    out['fetched_at'] = now.strftime('%Y-%m-%dT%H:%M:%SZ')
+    print('  osint partners: ' + '; '.join(f'{k} {v}' for k, v in notes.items()))
+    return out
+
+
+def osint_lines(o, sm_max=25, tg_max=15):
+    """The partner OSINT as prompt lines (shared by the brief and the crystal ball)."""
+    if not o:
+        return []
+    out = []
+    fr = o.get('front')
+    if fr:
+        ch = lambda k: (f"{fr[k]:+,} km2" if isinstance(fr.get(k), int) else 'n/a')
+        out += [f"FRONT LINE - DeepStateMap via tracker-data: Russian-held territory {fr['km2']:,} km2; "
+                f"change over 7 days {ch('change_7d')}, over 30 days {ch('change_30d')} (positive = Russian gain).", '']
+    day = (datetime.now(timezone.utc) - timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%SZ')
+    sm = sorted((e for e in o.get('sm') or [] if e.get('ty') != 'diplomacy'),
+                key=lambda e: (e['at'] >= day, e.get('sev') or 0, e.get('n') or 0, e['at']), reverse=True)[:sm_max]
+    link = lambda u: f" | {u}" if u and len(u) <= 160 else ''       # long redirect links cost tokens and add nothing
+    if sm:
+        out.append('STRUCTURED EVENTS - situationmonitor (Bluesky, Telegram, news; machine-structured), last 48h, '
+                   'most severe and most corroborated first:')
+        for e in sm:
+            cas = ', '.join(x for x in (f"{e['k']} killed" if e.get('k') else '', f"{e['inj']} injured" if e.get('inj') else '') if x)
+            out.append(f"- {e['at'][5:16].replace('T', ' ')}Z | {e['th']} | {e['ty']} | {e['pl']} | {e['st']}, "
+                       f"{e['n']} report(s) | {e['sm']}" + (f" ({cas})" if cas else '') + link(e.get('u')))
+        out.append('')
+    tg = o.get('tg') or []
+    if tg:
+        lean = o.get('tg_lean') or {}
+        out.append('TELEGRAM WAR CHANNELS - tracker-data, last 24h: ' + ', '.join(f'{v} {k}' for k, v in lean.items()) +
+                   ' posts. Newest, with the channel and its lean (many are Russian state media):')
+        for i in tg[:tg_max]:
+            out.append(f"- {i['at'][11:16]}Z | {i['s']} ({i['b']}) | {i['r'] or '?'} | {i['t'][:140]}" + link(i.get('u')))
+        out.append('')
+    if out:
+        out += ["These come from other open-source projects, not from this pipeline's own collection. Treat",
+                "every line as a CLAIM: a Telegram post from a state or partisan channel is that side's",
+                'account, not a fact. Use them to find what to search, to date things, and to see what each',
+                'side is saying; cite one only as the channel or source it names, tagged [OSINT - SOCIAL],',
+                'with its own link. Corroborate before stating anything as happened.', '']
+    return out
+
+
+def osint_for_page(o):
+    """The page's copy: the prompts get everything, the page a trimmed set so it stays light."""
+    def short(u):
+        return u if u and len(u) <= 300 else None       # Google News redirect links run to 600+ characters
+    sm = [dict(e, sm=e['sm'][:180], u=short(e.get('u'))) for e in (o.get('sm') or [])[:170]]
+    tg = [dict(i, t=i['t'][:150]) for i in (o.get('tg') or [])[:140]]
+    cells = [dict(c, latest=[{k: i.get(k) for k in ('s', 'b', 'u', 'at', 't', 'ty')} | {'t': i['t'][:110]}
+                             for i in c['latest'][:3]]) for c in (o.get('tgcells') or [])[:60]]
+    return {k: v for k, v in {'sm': sm, 'tg': tg, 'tgcells': cells, 'tg_lean': o.get('tg_lean'),
+                              'front': o.get('front'), 'notes': o.get('notes'), 'fetched_at': o.get('fetched_at')}.items() if v}
+
+
 def fetch_primary_leads(hours, wire_hours=None):
     leads, errors = {}, {}
     nw, err = fetch_navwarnings()
@@ -2158,6 +2353,10 @@ def fetch_primary_leads(hours, wire_hours=None):
     except Exception as e:
         errors['wire'] = str(e)[:160]
         print(f"  wire failed: {e}")
+    try:
+        leads['osint'] = fetch_osint_partners()
+    except Exception as e:
+        errors['osint'] = str(e)[:160]
     leads['errors'] = errors
     return leads
 
@@ -2243,6 +2442,7 @@ def leads_block(leads, hours):
                  'Reddit refused the pipeline this run. Say so in one line in Section 1; do not'
                  ' spend searches working around it.'),
                 '']
+    out += osint_lines(leads.get('osint'))
     if not (nw or gd):
         return '\n'.join(out) + '\n'
     out += ['',
@@ -2756,6 +2956,8 @@ def fetch_server_feeds(leads=None):
     for k in ('navwarn', 'gdelt', 'gdelt_meta', 'wire_detail'):
         if k in leads:
             feeds[k] = leads[k]
+    if leads.get('osint'):
+        feeds['osint'] = osint_for_page(leads['osint'])
     if leads.get('wire'):
         feeds['wire'] = wire_for_page(leads['wire'])
     errors.update(leads.get('errors') or {})

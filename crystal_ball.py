@@ -32,7 +32,7 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
-from generate_brief_final import closing_items
+from generate_brief_final import closing_items, osint_lines
 
 DIR = 'data/crystal'
 OUT = os.path.join(DIR, 'ball.json')
@@ -150,6 +150,16 @@ def snapshot(feeds):
     s['signals_reports'] = [f"{(w.get('at') or '')[:16]} {w.get('t')}" for w in desks.get('signals', [])[:10]]
     counts['wire_by_desk'] = {d: len(ws) for d, ws in desks.items()}
     counts['signals_reports'] = len(desks.get('signals', []))
+    o = feeds.get('osint') or {}
+    th = {}
+    for e in o.get('sm') or []:
+        if e.get('ty') != 'diplomacy':
+            th[e.get('th') or '?'] = th.get(e.get('th') or '?', 0) + 1
+    counts['osint_events_by_theater'] = th
+    counts['telegram_posts'] = sum((o.get('tg_lean') or {}).values()) or None
+    if o.get('front'):
+        counts['front_km2'] = o['front'].get('km2')
+    s['osint'] = osint_lines(o, sm_max=20, tg_max=12)
     counts['aircraft'] = feeds.get('aircount')
     counts['vessels'] = len(feeds.get('vessels') or [])
     return s, counts
@@ -175,6 +185,9 @@ def movers(log, today):
         check(f'GPS jamming: {r}', n, [(p.get('jam_regions') or {}).get(r, 0) for p in past], 3)
     for pl, n in (cur.get('gdelt_places') or {}).items():
         check(f'GDELT conflict events: {pl}', n, [(p.get('gdelt_places') or {}).get(pl, 0) for p in past], 8)
+    for t, n in (cur.get('osint_events_by_theater') or {}).items():
+        check(f'structured conflict events: {t}', n, [(p.get('osint_events_by_theater') or {}).get(t, 0) for p in past], 6)
+    check('Telegram war-channel posts', cur.get('telegram_posts'), [p.get('telegram_posts') for p in past], 50)
     for d, n in (cur.get('wire_by_desk') or {}).items():
         check(f'headlines, {d} desk', n, [(p.get('wire_by_desk') or {}).get(d, 0) for p in past], 6)
     out.sort(key=lambda m: -m['x'])
@@ -261,6 +274,9 @@ Upcoming launches:
 {lines(snap.get('launches', []))}
 UVB-76 / HFGCS monitor reports (strategic radio; timing only, content is coded):
 {lines(snap.get('signals_reports', []))}
+
+== PARTNER OSINT (other open-source projects; claims, with their lean) ==
+{chr(10).join(snap.get('osint') or ['- not available this run'])}
 
 == RISING AGAINST BASELINE ==
 {rising}
