@@ -38,7 +38,7 @@ function ago(iso){
 function stateText(c){
   if(c.state === 'voice') return 'VOICE · ' + Math.round((c.voice || []).reduce(function(a, v){ return a + v[1] - v[0]; }, 0) || c.voice_s || 0) + ' s';
   if(c.state === 'buzz') return 'BUZZING' + (c.pulse_per_min ? ' · ' + c.pulse_per_min + '/min' : '');
-  return {signal:'SIGNAL', quiet:'QUIET', short:'TOO SHORT', none:'NO RECORDING'}[c.state] || String(c.state || '').toUpperCase();
+  return {signal:'SIGNAL', quiet:'NOISE ONLY', short:'TOO SHORT', none:'NO RECORDING'}[c.state] || String(c.state || '').toUpperCase();
 }
 async function clipBlob(rel){
   var r = await fetch(RADIO + rel, {cache:'no-store'});
@@ -97,7 +97,7 @@ function paintRadio(d){
   });
   h += '<div class="sig-tl-axis"><span>48 h ago</span><span>24 h</span><span>now</span></div>' +
        '<div class="sig-tl-key"><span style="--c:#facc15">voice</span><span style="--c:#0e7490">buzzing</span>' +
-       '<span style="--c:#334155">signal</span><span style="--c:#1e293b">quiet</span><span style="--c:rgba(148,163,184,.08)">not recorded</span>' +
+       '<span style="--c:#334155">signal</span><span style="--c:#1e293b">noise only</span><span style="--c:rgba(148,163,184,.08)">not recorded</span>' +
        '<span>covered ' + Math.round(covered/(96*CHAN.length)*100) + '% of the last 48 h</span></div></div>';
   var clips = {};
   (d.clips || []).forEach(function(c){ clips[c.channel] = c; });
@@ -408,17 +408,24 @@ function detect(db, sr, now){
   var hz = sr/2/db.length, b = [];
   for(var k = 0; k < 8; k++) b.push(10*Math.log10(bandPow(db, hz, SUB[k], SUB[k+1]) + 1e-20));
   var sv = 10*Math.log10(bandPow(db, hz, 300, 3000) + 1e-20), env = S.env;
-  env.push({t:now, b:b, s:sv});
+  /* spectral flatness, 250-2600 Hz: radio noise and static sit near 0.55; speech,
+     with its harmonics and formants, well below */
+  var lg = 0, ar = 0, nb = 0;
+  for(var q = Math.ceil(250/hz); q <= Math.min(db.length - 1, Math.floor(2600/hz)); q++){
+    var pw = Math.pow(10, db[q]/10) + 1e-20; lg += Math.log(pw); ar += pw; nb++;
+  }
+  var fl = nb ? Math.exp(lg/nb)/(ar/nb) : 1;
+  env.push({t:now, b:b, s:sv, f:fl});
   while(env.length && env[0].t < now - 30000) env.shift();
   S.detK++;
   if(S.detK % 20 === 1) S.sFloor = pct(env.map(function(r){ return r.s; }), 0.1);
   if(env.length < S.detHz*3) return;
   /* voice? */
-  var w = [], steps = [];
-  for(var i = env.length - 1; i >= 0 && env[i].t > now - 3000; i--) w.push(env[i].s);
+  var w = [], steps = [], flats = [];
+  for(var i = env.length - 1; i >= 0 && env[i].t > now - 3000; i--){ w.push(env[i].s); flats.push(env[i].f); }
   for(i = 1; i < w.length; i++) steps.push(Math.abs(w[i] - w[i-1]));
   var lvl = w.reduce(function(a, c){ return a + c; }, 0)/w.length - S.sFloor;
-  var voice = pct(steps, 0.5) > 1.2 && lvl > 1.5;
+  var voice = pct(steps, 0.5) > 1.2 && lvl > 1.5 && pct(flats, 0.25) < 0.42;
   if(voice){
     if(!S.voiceOn) S.voiceOn = now - 1500;         // the 3 s window centres on its start
     S.voiceLast = now;

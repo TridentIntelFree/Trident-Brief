@@ -4,6 +4,21 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.12.1 — 2026-10-06
+
+### Signals: calibrated on real recordings
+- **The first live relay worked**, with real slices from receivers in France
+  and England. It also showed the voice detector taking static crashes for
+  speech. Voice now has to be *peaky* as well as changing: speech has
+  harmonics and formants, while radio noise and static are spectrally flat
+  (flatness about 0.55 on the real slices). Checked on the real slices (no
+  false voice) and on test recordings (voice still found). The same rule
+  applies in the recorder and in the page's analyzer.
+- A slice with only static is labelled **NOISE ONLY**, not "signal".
+- **UVB-76** prefers receivers in central and eastern Europe and the Nordics,
+  nearer the transmitter, and widens to all of Europe when too few are free.
+- Removed a stray coordinates file the recorder left beside the audio.
+
 ## 1.12.0 — 2026-10-06
 
 ### Signals: real recordings, no outside links
