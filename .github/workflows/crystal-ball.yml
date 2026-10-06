@@ -1,0 +1,52 @@
+name: Crystal Ball
+
+# A projected forecast from what the site has already gathered; see
+# crystal_ball.py. One reasoning call, no searching. Uses the GROK_API_KEY
+# secret, nothing else. Written to data/crystal/, which the page shows only
+# through a hidden gesture.
+on:
+  schedule:
+    - cron: '43 12 * * *'      # after the 11:00 brief and the 12:13 analyst desk
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: crystal-ball
+  cancel-in-progress: false
+
+jobs:
+  ball:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install requests
+
+      - name: Make the forecast
+        env:
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        run: python3 crystal_ball.py
+
+      - name: Commit the forecast
+        run: |
+          git config user.name "Trident Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/crystal
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "Crystal ball"
+          for i in 1 2 3 4; do
+            git push origin HEAD:main && break
+            echo "Push failed (attempt $i); refreshing and retrying"
+            git pull --rebase origin main || true
+            sleep $((i * 4))
+          done

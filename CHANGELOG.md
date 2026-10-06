@@ -4,6 +4,40 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.11.0 — 2026-10-06
+
+### Crystal Ball (owner only, hidden)
+- **A projected forecast, not a retelling.** Once a day, around 8:45 a.m.
+  Eastern, a new *Crystal Ball* workflow makes one reasoning call with no
+  searching (cents a run), using only `GROK_API_KEY`. It works from what the
+  site already gathered:
+  - the latest brief;
+  - the live layers: headlines by desk, GDELT conflict hotspots, GPS-jamming
+    regions, severe alerts, disasters, quakes, launches, and UVB-76/HFGCS
+    reports;
+  - the Analyst Desk's contested and single-source claims (the pre-headline
+    layer).
+- **Its forecasts:** 7–10 of them across 24 hours, 72 hours and 7 days. Each
+  gives the event, a probability with its estimative term, the signals behind
+  it, the earliest sign to watch for, and what would prove it wrong.
+- **Also on the box:**
+  - **Pre-headline signals:** what is moving that is not in the news yet.
+  - **A nuclear-risk read for the week:** steady, rising or easing.
+  - **The Doomsday Clock**, read daily from the Bulletin of the Atomic
+    Scientists (85 seconds to midnight, set 27 January 2026).
+- **Keeps score:**
+  - **Its own forecasts** are resolved when their window closes, scored with
+    a Brier score, and fed back into the next forecast.
+  - **The brief's past warnings** are scored by the odds they stated (80
+    warnings from 65 briefs): "likely" came true 76%, "roughly even chance"
+    41% and "unlikely" 5%. Grok is told to correct for that.
+- **Learns what's rising.** A daily indicator log builds a baseline. After five
+  days, anything running well above its own average is listed.
+- **Hidden on the page** behind its own gesture, separate from the Tazewell
+  brief and the Analyst Desk. It can be read aloud.
+- **Brief me** now reads card layouts cleanly (pauses between lines, labels
+  spoken).
+
 ## 1.10.1 — 2026-10-06
 
 ### Analyst Desk: built to be cheap

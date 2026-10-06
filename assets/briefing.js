@@ -114,6 +114,10 @@ var TAG_SAY = [[/CHATTER|UNVERIF|RUMOU?R/, 'Unverified chatter:'], [/SOCIAL/, 'F
 function elText(el){
   var c = el.cloneNode(true);
   c.querySelectorAll('a.cite, sup, .bm-skip').forEach(function(n){ n.remove(); });
+  /* block pieces inside one line get a pause, and data-say adds what the eye reads from layout */
+  c.querySelectorAll('[data-say]').forEach(function(n){ n.appendChild(document.createTextNode(n.getAttribute('data-say'))); });
+  c.querySelectorAll('div').forEach(function(n){ n.appendChild(document.createTextNode('. ')); });
+  c.querySelectorAll('br').forEach(function(n){ n.replaceWith(' '); });
   c.querySelectorAll('.cls').forEach(function(n){
     var t = n.textContent.toUpperCase(), s = '';
     for(var i = 0; i < TAG_SAY.length; i++) if(TAG_SAY[i][0].test(t)){ s = TAG_SAY[i][1]; break; }
