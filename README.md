@@ -35,7 +35,8 @@ panel shows the site's weather from Open-Meteo. None of these calls a model.
 `fetch_osint_partners()` in `generate_brief_final.py` reads three outside
 sources on every collection and refresh:
 - **situationmonitor's** structured events (its `data` branch);
-- **tracker-data's** Telegram war-channel posts, tagged by lean;
+- **tracker-data's** Telegram war-channel posts, tagged by lean and
+  machine-translated to English by a free translator (no key, no Grok spend);
 - **DeepStateMap's** front line via tracker-data, with the 7- and 30-day
   change in Russian-held area.
 

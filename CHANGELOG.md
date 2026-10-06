@@ -4,6 +4,21 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.13.1 — 2026-10-06
+
+### Telegram posts in English
+- The Russian and Ukrainian war-channel posts are machine-translated to
+  English on each feed refresh. The OSINT Feed, the globe's Telegram panels,
+  the brief and the Crystal Ball all read the English text.
+- **Free, with no key and no Grok spend.** It tries Microsoft's Edge
+  translator first, then Google's free web translator. Each post is
+  translated once: earlier translations are read back from the live site
+  (`assets/tg-en.json`), so a refresh only sends posts that are new since the
+  last one, about ten.
+- In the feed, "translated from Russian · original" under a post opens the
+  original text. If both translators refuse, posts stay in the original
+  language until a later refresh succeeds.
+
 ## 1.13.0 — 2026-10-06
 
 ### Partner OSINT: other open-source trackers, folded in

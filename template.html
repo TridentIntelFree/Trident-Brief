@@ -633,6 +633,8 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .os-it .os-meta{font-family:var(--mono);font-size:.72em;color:var(--ink-faint);display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:2px}
 .os-tag{border:1px solid currentColor;border-radius:4px;padding:0 5px;font-size:.95em}
 .os-it a{color:var(--cyan)}
+.os-orig{margin-top:4px;font-size:.92em;color:var(--ink-faint)}
+.os-orig summary{cursor:pointer;font-family:var(--mono);font-size:.78em;letter-spacing:.04em}
 .os-note{color:var(--ink-faint);font-size:.78em;line-height:1.55;margin:10px 0 0}
 .os-note a{color:var(--ink-dim)}
 .tz-band{border-top:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.035)}
@@ -1704,6 +1706,7 @@ var OSI = (typeof FEEDS !== 'undefined' && FEEDS && FEEDS.osint) || {};
 var OSI_TYPE = {missile_drone:'#f97316', airstrike:'#ef4444', ground:'#f43f5e', naval:'#38bdf8', hybrid:'#a78bfa',
                 incursion:'#facc15', deployment:'#94a3b8', arms_transfer:'#64748b', production:'#64748b', diplomacy:'#22c55e'};
 var LEAN_COLOR = {'pro-russian':'#ef4444', 'pro-ukrainian':'#3b82f6', 'neutral':'#e2e8f0', unknown:'#94a3b8'};
+var LANG_NAME = {ru:'Russian', uk:'Ukrainian', be:'Belarusian', bg:'Bulgarian', sr:'Serbian'};
 function osiColor(e){ return OSI_TYPE[e.ty] || KIND.osint.color; }
 function cellLean(c){
   var best = 'unknown', n = -1;
@@ -3925,7 +3928,8 @@ async function cbShow(){
       var lc = LEAN_COLOR[e.b] || LEAN_COLOR.unknown;
       return '<div class="os-it" style="--c:' + lc + '"><div class="os-meta"><span class="os-tag" style="color:' + lc + '">' + esc(String(e.b || '').toUpperCase()) +
         '</span><span>' + esc(e.s || '') + '</span><span>' + esc(e.r || '') + '</span><span>' + ago(e.at) + '</span></div>' + esc(e.t || '') +
-        (e.u ? ' <a href="' + escA(e.u) + '" target="_blank" rel="noopener noreferrer">post</a>' : '') + '</div>';
+        (e.u ? ' <a href="' + escA(e.u) + '" target="_blank" rel="noopener noreferrer">post</a>' : '') +
+        (e.o ? '<details class="os-orig"><summary>translated from ' + esc(LANG_NAME[e.l] || 'the original') + ' \u00b7 original</summary>' + esc(e.o) + '</details>' : '') + '</div>';
     }).join('') || '<div class="sig-empty">Nothing in this filter.</div>';
     var more = document.getElementById('osMore');
     more.style.display = list.length > shown ? '' : 'none';

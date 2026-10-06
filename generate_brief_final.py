@@ -2248,6 +2248,10 @@ def fetch_osint_partners():
         for c in cells.values():
             c['latest'] = sorted(c['latest'], key=lambda i: i['at'], reverse=True)[:4]
         out['tg'] = tg[:260]
+        try:
+            notes['tr'] = translate_posts(out['tg'])     # same dicts as the map cells, so both get English
+        except Exception as e:
+            notes['tr'] = 'ERR ' + str(e)[:80]
         out['tgcells'] = sorted(cells.values(), key=lambda c: -c['n'])[:120]
         lean = {}
         for i in tg:
@@ -2276,6 +2280,91 @@ def fetch_osint_partners():
     out['fetched_at'] = now.strftime('%Y-%m-%dT%H:%M:%SZ')
     print('  osint partners: ' + '; '.join(f'{k} {v}' for k, v in notes.items()))
     return out
+
+
+CYRILLIC = re.compile('[\u0400-\u04ff]')
+
+
+def _tr_microsoft(texts):
+    """Edge's built-in translator: a free token, then up to 50 posts per request."""
+    tok = requests.get('https://edge.microsoft.com/translate/auth', timeout=15).text.strip()
+    if len(tok) < 100:
+        raise RuntimeError('no token')
+    out = []
+    for k in range(0, len(texts), 50):
+        r = requests.post('https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en',
+                          timeout=30, json=[{'Text': t} for t in texts[k:k + 50]],
+                          headers={'Authorization': 'Bearer ' + tok})
+        r.raise_for_status()
+        for x in r.json():
+            out.append(((x.get('translations') or [{}])[0].get('text', ''),
+                        (x.get('detectedLanguage') or {}).get('language', '')))
+    return out
+
+
+def _tr_google(texts, budget):
+    """Google's free web endpoint, one post a request; stops at the first refusal or when time runs out."""
+    out = []
+    for t in texts:
+        if time.time() > budget:
+            break
+        r = requests.get('https://translate.googleapis.com/translate_a/single', timeout=15,
+                         params={'client': 'gtx', 'sl': 'auto', 'tl': 'en', 'dt': 't', 'q': t})
+        if r.status_code != 200:
+            break
+        d = r.json()
+        out.append((''.join(seg[0] for seg in d[0] if seg and seg[0]), d[2] if len(d) > 2 else ''))
+        time.sleep(0.2)
+    return out
+
+
+def translate_posts(items):
+    """English for the Russian and Ukrainian posts, at no cost.
+
+    Free translators only, no key and no Grok spend. Each post is translated
+    once: what earlier runs translated is read back from the copy deployed
+    with the live site, so a refresh only sends the posts that are new since
+    the last one. If both translators refuse, the original text stays.
+    """
+    def key(i):
+        return i.get('u') or hashlib.sha1(i['t'].encode()).hexdigest()[:16]
+    cache = {}
+    try:
+        r = requests.get(_pages_asset('tg-en.json'), timeout=10, headers={'Cache-Control': 'no-cache'})
+        if r.status_code == 200:
+            cache = r.json().get('items') or {}
+    except Exception:
+        pass
+    need = [i for i in items if CYRILLIC.search(i['t']) and key(i) not in cache]
+    note, done = '', []
+    if need:
+        texts = [i['t'] for i in need]
+        try:
+            done, note = _tr_microsoft(texts), 'microsoft'
+        except Exception as e:
+            note = 'microsoft ' + str(e)[:40] + '; '
+            try:
+                done = _tr_google(texts, time.time() + 90)
+                note += 'google'
+            except Exception as e2:
+                note += 'google ' + str(e2)[:40]
+        for i, (en, lang) in zip(need, done):
+            if en and not CYRILLIC.search(en[:40]):
+                cache[key(i)] = {'en': en[:260], 'l': lang}
+    kept, n = {}, 0
+    for i in items:
+        c = cache.get(key(i))
+        if c and CYRILLIC.search(i['t']):
+            i['o'], i['t'], i['l'] = i['t'], c['en'], c.get('l', '')
+            kept[key(i)] = c
+            n += 1
+    try:
+        with open('assets/tg-en.json', 'w', encoding='utf-8') as f:
+            json.dump({'at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'items': kept}, f, ensure_ascii=False)
+    except Exception:
+        pass
+    left = sum(1 for i in items if CYRILLIC.search(i['t']))
+    return f"{n} in English ({len(done)} new{', ' + note if note else ''}), {left} untranslated"
 
 
 def osint_lines(o, sm_max=25, tg_max=15):
@@ -2322,7 +2411,7 @@ def osint_for_page(o):
     def short(u):
         return u if u and len(u) <= 300 else None       # Google News redirect links run to 600+ characters
     sm = [dict(e, sm=e['sm'][:180], u=short(e.get('u'))) for e in (o.get('sm') or [])[:170]]
-    tg = [dict(i, t=i['t'][:150]) for i in (o.get('tg') or [])[:140]]
+    tg = [dict(i, t=i['t'][:150], **({'o': i['o'][:150]} if i.get('o') else {})) for i in (o.get('tg') or [])[:140]]
     cells = [dict(c, latest=[{k: i.get(k) for k in ('s', 'b', 'u', 'at', 't', 'ty')} | {'t': i['t'][:110]}
                              for i in c['latest'][:3]]) for c in (o.get('tgcells') or [])[:60]]
     return {k: v for k, v in {'sm': sm, 'tg': tg, 'tgcells': cells, 'tg_lean': o.get('tg_lean'),
