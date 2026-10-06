@@ -30,6 +30,23 @@ globe's GPS JAM layer marks where many aircraft at once report degraded GPS
 accuracy (the gpsjam.org method, over a rolling six hours), and the terrain
 panel shows the site's weather from Open-Meteo. None of these calls a model.
 
+## Partner OSINT
+
+`fetch_osint_partners()` in `generate_brief_final.py` reads three outside
+sources on every collection and refresh:
+- **situationmonitor's** structured events (its `data` branch);
+- **tracker-data's** Telegram war-channel posts, tagged by lean;
+- **DeepStateMap's** front line via tracker-data, with the 7- and 30-day
+  change in Russian-held area.
+
+Where it goes:
+- **Prompts:** the full set goes to the brief's leads and the Crystal Ball
+  (`osint_lines`).
+- **Page:** a trimmed set (`osint_for_page`) feeds the globe layers and the
+  OSINT Feed section.
+
+Everything is passed on as claims with source and lean.
+
 ## Area brief (owner only)
 
 `area_brief.py`, run each morning by `.github/workflows/area-brief.yml`
@@ -238,7 +255,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.12.3) and appears in the page
+The build version lives in `VERSION` (currently 1.13.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).

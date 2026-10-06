@@ -621,6 +621,20 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .access-form button:hover:not(:disabled){background:#2563eb}
 .access-form button:disabled{opacity:.55;cursor:not-allowed}
 .error-msg{color:var(--red);font-size:.85em;margin-top:11px}
+.os-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:10px}
+.os-card{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:rgba(10,17,36,.9)}
+.os-card h4{font-family:var(--mono);font-size:.68em;letter-spacing:.12em;color:var(--ink-faint);margin:0 0 6px;font-weight:600}
+.os-big{font-family:var(--mono);font-size:1.25em;color:#fff;font-weight:700}
+.os-small{font-size:.78em;color:var(--ink-dim)}
+.os-lean{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:7px 0 4px;background:rgba(148,163,184,.15)}
+.os-lean i{display:block;height:100%}
+.os-list{display:flex;flex-direction:column;gap:5px}
+.os-it{border:1px solid var(--line2);border-left:3px solid var(--c,#64748b);border-radius:7px;padding:7px 10px;background:rgba(15,23,48,.55);font-size:.86em;line-height:1.45}
+.os-it .os-meta{font-family:var(--mono);font-size:.72em;color:var(--ink-faint);display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:2px}
+.os-tag{border:1px solid currentColor;border-radius:4px;padding:0 5px;font-size:.95em}
+.os-it a{color:var(--cyan)}
+.os-note{color:var(--ink-faint);font-size:.78em;line-height:1.55;margin:10px 0 0}
+.os-note a{color:var(--ink-dim)}
 .tz-band{border-top:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.035)}
 .tz-band[hidden]{display:none}
 .tz-body{padding:6px 0 0}
@@ -767,6 +781,11 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <span class="lyr-group"><b>leads</b>
             <button class="lyr on" data-layer="conflict" title="GDELT armed-conflict hotspots: machine-coded from news, a place to look, not a source"><i style="background:#f472b6"></i>CONFLICT <b id="nConflict">0</b></button>
             <button class="lyr on" data-layer="navwarn" title="NGA navigational warnings from the last 45 days: missile firings, launch debris, live fire, ordnance"><i style="background:#a3e635"></i>NAV WARN <b id="nNavwarn">0</b></button>
+          </span>
+          <span class="lyr-group"><b>osint</b>
+            <button class="lyr on" data-layer="osint" title="Structured conflict events from situationmonitor (Bluesky, Telegram, news), last 48 hours"><i style="background:#fb7185"></i>EVENTS <b id="nOsint">0</b></button>
+            <button class="lyr on" data-layer="tg" title="Telegram war-channel posts from tracker-data, last 24 hours, coloured by the channels' lean"><i style="background:#ef4444"></i>TELEGRAM <b id="nTg">0</b></button>
+            <button class="lyr on" data-layer="front" title="Russian-held territory, DeepStateMap via tracker-data"><i style="background:#ff7a00"></i>FRONT LINE</button>
           </span>
           <span class="lyr-group"><b>orbital</b>
             <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
@@ -991,6 +1010,23 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       slices with voice are kept as events. The detectors are rules of thumb &mdash; confirm by ear. Listening is legal; the messages
       are coded and nothing here decodes them.</p>
 
+  </div>
+
+  <!-- ============ OSINT FEED ============ -->
+  <div class="section-band" id="osBand" style="display:none">
+    <div class="band-head">
+      <h2>&#128752; OSINT Feed &mdash; what other trackers are seeing</h2>
+      <div class="sub" id="osSub"></div>
+    </div>
+    <div class="os-top" id="osTop"></div>
+    <div class="ev-filters" id="osFilters"></div>
+    <div class="os-list" id="osList"></div>
+    <button class="ev-f wire-more" id="osMore" style="display:none"></button>
+    <p class="os-note">Collected by other open-source projects and passed through as they are: structured events from
+      <a href="https://github.com/hassmax/situationmonitor" target="_blank" rel="noopener">situationmonitor</a>, Telegram war-channel posts from
+      <a href="https://github.com/gutmanis/tracker-data" target="_blank" rel="noopener">tracker-data</a>, and the front line from DeepStateMap.
+      Every item is a claim from the named source; many Telegram channels are Russian state or pro-Russian media. Most posts are in Russian &mdash;
+      your browser can translate the page.</p>
   </div>
 
   <!-- ============ RECURRENCE ============ -->
@@ -1580,6 +1616,7 @@ function contactWhen(c){
     var mo = m ? 'JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC'.indexOf(m[2]) / 3 : -1;
     if(m && mo >= 0) return {date:m[3] + '-' + String(mo+1).padStart(2,'0') + '-' + m[1], basis:'notice'};
   }
+  if(c.k === 'osint' && d.at) return {date:String(d.at).slice(0,10), basis:'source'};
   if(c.k === 'conflict'){
     var lt = (FEEDS.gdelt_meta || {}).latest;
     if(lt) return {date:String(lt).slice(0,10), basis:'feed'};
@@ -1640,7 +1677,7 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 var G = {
   rot:[20,-15], R:0, baseR:0, zoom:1, cx:0, cy:0, spin:true, sel:null, drag:null,
   layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true,
-          conflict:true, navwarn:true, jam:true},
+          conflict:true, navwarn:true, jam:true, osint:true, tg:true, front:true},
   air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[]
 };
 
@@ -1657,8 +1694,25 @@ var KIND = {
   iss:   {color:'#a78bfa', label:'ORBITAL'},
   conflict:{color:'#f472b6', label:'CONFLICT HOTSPOT'},
   navwarn: {color:'#a3e635', label:'NAV WARNING'},
-  jam:     {color:'#f43f5e', label:'GPS INTERFERENCE'}
+  jam:     {color:'#f43f5e', label:'GPS INTERFERENCE'},
+  osint:   {color:'#fb7185', label:'OSINT EVENT'},
+  tg:      {color:'#ef4444', label:'TELEGRAM CLAIMS'}
 };
+/* Partner OSINT: other open-source projects' collections, baked in by the
+   pipeline (generate_brief_final.fetch_osint_partners). Claims, not findings. */
+var OSI = (typeof FEEDS !== 'undefined' && FEEDS && FEEDS.osint) || {};
+var OSI_TYPE = {missile_drone:'#f97316', airstrike:'#ef4444', ground:'#f43f5e', naval:'#38bdf8', hybrid:'#a78bfa',
+                incursion:'#facc15', deployment:'#94a3b8', arms_transfer:'#64748b', production:'#64748b', diplomacy:'#22c55e'};
+var LEAN_COLOR = {'pro-russian':'#ef4444', 'pro-ukrainian':'#3b82f6', 'neutral':'#e2e8f0', unknown:'#94a3b8'};
+function osiColor(e){ return OSI_TYPE[e.ty] || KIND.osint.color; }
+function cellLean(c){
+  var best = 'unknown', n = -1;
+  Object.keys(c.bias || {}).forEach(function(k){ if(c.bias[k] > n){ n = c.bias[k]; best = k; } });
+  return best;
+}
+function frontRings(){
+  return ((OSI.front || {}).rings || []).map(function(r){ return {pts:r}; });
+}
 /* GPS interference cells: 1-degree squares where airborne civil aircraft report
    degraded GPS, built server-side from the ADS-B picture over six hours.
    gpsjam.org's thresholds: over 10% of aircraft is high, 2-10% elevated. */
@@ -1884,6 +1938,25 @@ function navRings(){
   });
   return (navRings.cache = out);
 }
+function drawFront(){
+  if(!G.layers.front) return;
+  var rings = frontRings();
+  if(!rings.length) return;
+  ctx.save();
+  ctx.strokeStyle = '#ff7a00'; ctx.lineWidth = 1.4; ctx.globalAlpha = .9;
+  rings.forEach(function(r){
+    ctx.beginPath();
+    var on = false;
+    for(var i=0; i<r.pts.length; i++){
+      var q = project(r.pts[i][1], r.pts[i][0]);
+      if(q.z <= 0){ on = false; continue; }
+      if(on) ctx.lineTo(q.x, q.y); else { ctx.moveTo(q.x, q.y); on = true; }
+    }
+    ctx.stroke();
+  });
+  ctx.restore();
+}
+
 function drawNavAreas(){
   if(!G.layers.navwarn) return;
   var rings = navRings();
@@ -1956,6 +2029,13 @@ function contacts(){
     out.push({k:'conflict', lat:h.lat, lon:h.lon, r:3 + Math.min(4, (h.outlets||3)/3), d:h, id:'c'+i,
               color:KIND.conflict.color});
   });
+  if(G.layers.osint) (OSI.sm||[]).forEach(function(e,i){
+    if(e.lat==null) return;
+    out.push({k:'osint', lat:e.lat, lon:e.lon, r:2.4 + Math.min(3, (e.sev||1)*0.7), d:e, id:'o'+i, color:osiColor(e)});
+  });
+  if(G.layers.tg) (OSI.tgcells||[]).forEach(function(c,i){
+    out.push({k:'tg', lat:c.lat, lon:c.lon, r:2.6 + Math.min(5, Math.sqrt(c.n)/2), d:c, id:'t'+i, color:LEAN_COLOR[cellLean(c)]});
+  });
   if(G.layers.navwarn) (FEEDS.navwarn||[]).forEach(function(w,i){
     if(w.lat==null) return;
     out.push({k:'navwarn', lat:w.lat, lon:w.lon, r:3.6, d:w, id:'n'+i, color:KIND.navwarn.color});
@@ -2013,6 +2093,7 @@ function draw(){
 
   drawJamCells();
   drawNavAreas();
+  drawFront();
 
   /* contacts, far side first so near side draws on top */
   var pts = contacts().map(function(c){ var q=project(c.lon,c.lat); c.sx=q.x; c.sy=q.y; c.z=q.z; return c; })
@@ -2207,6 +2288,28 @@ function renderDetail(c){
            'a faulty receiver is not counted. This is a sample of airborne civil ADS-B traffic, not a survey: ' +
            'a cell with few sightings can mislead. The same signal gpsjam.org maps daily.';
     link = 'https://gpsjam.org/?lat=' + d.lat.toFixed(1) + '&lon=' + d.lon.toFixed(1) + '&z=6';
+  } else if(c.k==='osint'){
+    title = esc(String(d.ty || 'event').replace(/_/g, ' ').toUpperCase()) + ' &mdash; ' + esc(d.pl || '');
+    place = 'situationmonitor \u00b7 ' + esc(d.th || '') + ' \u00b7 machine-structured from posts and news';
+    rows.push(['WHAT', esc(d.sm || '')]);
+    rows.push(['STATUS', esc(d.st || '?') + ' \u00b7 ' + (d.n || 1) + ' report' + ((d.n || 1) > 1 ? 's' : '')]);
+    if(d.k != null || d.inj != null) rows.push(['CASUALTIES', (d.k != null ? d.k + ' killed' : '') + (d.k != null && d.inj != null ? ', ' : '') + (d.inj != null ? d.inj + ' injured' : '')]);
+    if(d.at) rows.push(['UPDATED', fmtTime(d.at)]);
+    if(d.src) rows.push(['FIRST SOURCE', esc(d.src)]);
+    note = 'From another open-source project that turns public posts and news into events with software. ' +
+           '"Unconfirmed" means one source; read the reporting before relying on it.';
+    link = d.u || '';
+  } else if(c.k==='tg'){
+    var lean = cellLean(d);
+    title = 'Telegram claims &mdash; ' + esc(d.r || 'this area');
+    place = 'tracker-data \u00b7 war channels \u00b7 last 24h';
+    rows.push(['POSTS', d.n + ' \u00b7 ' + Object.keys(d.bias || {}).map(function(k){ return d.bias[k] + ' ' + k; }).join(', ')]);
+    (d.latest || []).forEach(function(i, j){
+      rows.push([j ? '' : 'LATEST', esc((i.s || '') + ' (' + (i.b || '?') + ') ' + String(i.at || '').slice(11, 16) + 'Z: ' + (i.t || ''))]);
+    });
+    note = 'Posts from Telegram war channels, many of them Russian state or pro-Russian (' + esc(lean) + ' dominate here). ' +
+           'Each is that channel\u2019s claim, not a fact. Many posts are placed at a region\u2019s centre, not the exact spot.';
+    link = ((d.latest || [])[0] || {}).u || '';
   } else if(c.k==='conflict'){
     title = esc(d.place || 'Conflict hotspot');
     place = 'GDELT \u00b7 machine-coded from news';
@@ -2259,7 +2362,7 @@ function renderDetail(c){
        '" data-lon="'+c.lon+'" data-tint="'+esc(c.color)+'"></canvas></div>' : '') +
     '<div class="d-rows">'+rows.map(function(r){ return '<div class="d-row"><span>'+r[0]+'</span><span>'+esc(String(r[1]))+'</span></div>'; }).join('')+'</div>' +
     (note ? '<div class="d-note">'+esc(note)+'</div>' : '') +
-    (link ? '<a class="d-link" href="'+esc(link)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '') +
+    (link && /^https?:\/\//i.test(link) ? '<a class="d-link" href="'+escA(link)+'" target="_blank" rel="noopener">OPEN SOURCE &#8599;</a>' : '') +
     /* Every contact on this globe has coordinates, which is the whole input the
        terrain tool needs -- no geocoder, no place-name lookup, no third-party
        host that has to be reachable. Click a thing, look at the ground under it. */
@@ -2294,6 +2397,8 @@ function boxLabel(c){
   if(c.k === 'hazard')return d.event || d.name || 'hazard';
   if(c.k === 'navwarn') return (d.id || 'nav warning') + '  ' + (d.kind || '');
   if(c.k === 'conflict')return d.place || 'conflict hotspot';
+  if(c.k === 'osint')   return (d.pl || 'event') + '  ' + String(d.ty || '').replace(/_/g, ' ');
+  if(c.k === 'tg')      return 'Telegram claims  ' + (d.r || '');
   if(c.k === 'jam')     return 'GPS interference ' + d.lat0 + (d.lat0>=0?'N ':'S ') + d.lon0 + (d.lon0>=0?'E':'W');
   if(c.k === 'launch')return d.name || 'launch';
   if(c.k === 'iss')   return 'International Space Station';
@@ -2309,6 +2414,8 @@ function boxDetail(c){
         : Math.round(d.alt_baro).toLocaleString() + ' ft') : '');
   if(d.s) return Math.round(d.alt).toLocaleString() + ' km';
   if(c.k === 'conflict') return (d.outlets || 0) + ' outlets';
+  if(c.k === 'osint')    return (d.st || '') + ' \u00b7 ' + (d.n || 1) + ' rep.';
+  if(c.k === 'tg')       return d.n + ' posts';
   if(c.k === 'navwarn')  return d.age_days != null ? d.age_days + 'd ago' : '';
   if(c.k === 'jam')      return Math.round(d.pct*100) + '% of ' + d.n;
   return '';
@@ -2317,7 +2424,7 @@ function boxDetail(c){
 /* Ships and aircraft are what this was asked for, so they lead; the rest
    follow rather than being hidden, because a box over a coast catching a
    priority event as well as the shipping is worth knowing about. */
-var BOX_ORDER = ['events','naval','air','navwarn','jam','conflict','hazard','quake','launch','iss','rf','sats','rocket','debris'];
+var BOX_ORDER = ['events','osint','naval','air','navwarn','jam','tg','conflict','hazard','quake','launch','iss','rf','sats','rocket','debris'];
 
 function boxReport(hits, kmAcross){
   var out = document.getElementById('boxOut');
@@ -2984,6 +3091,8 @@ function paintBaked(){
   document.getElementById('nHaz').textContent =
     plottable(FEEDS.alerts) + plottable(FEEDS.disasters) + plottable(FEEDS.launches);
   document.getElementById('nConflict').textContent = plottable(FEEDS.gdelt);
+  document.getElementById('nOsint').textContent = plottable(OSI.sm);
+  document.getElementById('nTg').textContent = (OSI.tg || []).length;
   document.getElementById('nNavwarn').textContent = plottable(FEEDS.navwarn);
   document.getElementById('nJam').textContent = JAM.length;
 }
@@ -3284,6 +3393,9 @@ window.TB = {
   selMark: function(cv, x, y, c){ return selMark(cv, x, y, c); },
   selMiss: function(cv, x, y){ return selMiss(cv, x, y); },
   navRings: function(){ return navRings(); },
+  frontRings: function(){ return frontRings(); },
+  get OSI(){ return OSI; }, osiColor: function(e){ return osiColor(e); },
+  cellLean: function(c){ return cellLean(c); }, get LEAN_COLOR(){ return LEAN_COLOR; },
   get JAM(){ return JAM; },
   jamColor: function(p){ return jamColor(p); },
   setZoomLabel: function(z){ var e=document.getElementById('zoomLabel'); if(e) e.textContent = z.toFixed(1)+'\u00d7'; },
@@ -3745,6 +3857,83 @@ async function cbShow(){
                   when:new Date(CB.ball.at).toLocaleString('en-US', {weekday:'long', hour:'numeric', minute:'2-digit',
                                                                      timeZone:'America/New_York'}) + ' Eastern'});
   };
+})();
+
+/* =====================================================================
+   OSINT FEED -- partner projects' collections, newest first
+   ===================================================================== */
+(function(){
+  var o = OSI, band = document.getElementById('osBand');
+  if(!band || !((o.sm || []).length || (o.tg || []).length || o.front)) return;
+  band.style.display = '';
+  function ago(iso){
+    var m = Math.max(0, Math.round((Date.now() - Date.parse(iso))/60000));
+    return m < 60 ? m + 'm ago' : m < 2880 ? Math.round(m/60) + 'h ago' : Math.round(m/1440) + 'd ago';
+  }
+  var notes = o.notes || {};
+  document.getElementById('osSub').textContent = 'collected ' + (o.fetched_at ? ago(o.fetched_at) : '') +
+    ' · situationmonitor: ' + (notes.sm || '-') + ' · Telegram: ' + (notes.tg || '-');
+  var top = '';
+  if(o.front){
+    var f = o.front, sgn = function(v){ return v == null ? 'n/a' : (v > 0 ? '+' : '') + v.toLocaleString() + ' km²'; };
+    top += '<div class="os-card"><h4>FRONT LINE &middot; RUSSIAN-HELD TERRITORY</h4><div class="os-big">' + f.km2.toLocaleString() + ' km²</div>' +
+           '<div class="os-small">last 7 days ' + sgn(f.change_7d) + ' &middot; last 30 days ' + sgn(f.change_30d) +
+           ' <span title="positive means Russia gained ground">(+ = Russian gain)</span> &middot; DeepStateMap ' + esc(f.as_of || '') + '</div></div>';
+  }
+  var lean = o.tg_lean || {}, tot = Object.keys(lean).reduce(function(a, k){ return a + lean[k]; }, 0);
+  if(tot){
+    top += '<div class="os-card"><h4>TELEGRAM WAR CHANNELS &middot; 24H</h4><div class="os-big">' + tot + ' posts</div><div class="os-lean">' +
+      ['pro-russian', 'neutral', 'pro-ukrainian', 'unknown'].filter(function(k){ return lean[k]; }).map(function(k){
+        return '<i style="width:' + (lean[k]/tot*100).toFixed(1) + '%;background:' + LEAN_COLOR[k] + '" title="' + lean[k] + ' ' + k + '"></i>';
+      }).join('') + '</div><div class="os-small">' + Object.keys(lean).map(function(k){ return lean[k] + ' ' + k; }).join(' &middot; ') + '</div></div>';
+  }
+  var th = {};
+  (o.sm || []).forEach(function(e){ if(e.ty !== 'diplomacy') th[e.th] = (th[e.th] || 0) + 1; });
+  var thList = Object.keys(th).sort(function(a, b){ return th[b] - th[a]; });
+  if(thList.length) top += '<div class="os-card"><h4>STRUCTURED EVENTS &middot; 48H</h4><div class="os-big">' + (o.sm || []).length + ' events</div><div class="os-small">' +
+    thList.map(function(t){ return esc(t) + ' ' + th[t]; }).join(' &middot; ') + '</div></div>';
+  document.getElementById('osTop').innerHTML = top;
+
+  var items = (o.sm || []).map(function(e){ return {kind:'sm', at:e.at, e:e, th:e.th}; })
+    .concat((o.tg || []).map(function(i){ return {kind:'tg', at:i.at, e:i, th:'ukraine'}; }))
+    .sort(function(a, b){ return a.at < b.at ? 1 : -1; });
+  var filter = {src:'all', th:'all'}, shown = 15;
+  function fbtn(label, on, fn){
+    var b = document.createElement('button'); b.className = 'ev-f' + (on ? ' on' : ''); b.type = 'button';
+    b.textContent = label; b.onclick = fn; return b;
+  }
+  function paint(){
+    var fl = document.getElementById('osFilters'); fl.innerHTML = '';
+    [['all', 'All'], ['sm', 'Structured events'], ['tg', 'Telegram']].forEach(function(x){
+      fl.appendChild(fbtn(x[1], filter.src === x[0], function(){ filter.src = x[0]; shown = 15; paint(); }));
+    });
+    ['all'].concat(thList).forEach(function(t){
+      fl.appendChild(fbtn(t === 'all' ? 'all theatres' : t, filter.th === t, function(){ filter.th = t; shown = 15; paint(); }));
+    });
+    var list = items.filter(function(x){
+      return (filter.src === 'all' || x.kind === filter.src) && (filter.th === 'all' || x.th === filter.th);
+    });
+    document.getElementById('osList').innerHTML = list.slice(0, shown).map(function(x){
+      var e = x.e;
+      if(x.kind === 'sm'){
+        var cas = (e.k ? e.k + ' killed' : '') + (e.k && e.inj ? ', ' : '') + (e.inj ? e.inj + ' injured' : '');
+        return '<div class="os-it" style="--c:' + osiColor(e) + '"><div class="os-meta"><span class="os-tag" style="color:' + osiColor(e) + '">' +
+          esc(String(e.ty || '').replace(/_/g, ' ').toUpperCase()) + '</span><span>' + esc(e.th || '') + '</span><span>' + esc(e.pl || '') + '</span>' +
+          '<span>' + esc(e.st || '') + ' · ' + (e.n || 1) + ' rep.</span><span>' + ago(e.at) + '</span></div>' + esc(e.sm || '') +
+          (cas ? ' <b>(' + esc(cas) + ')</b>' : '') + (e.u ? ' <a href="' + escA(e.u) + '" target="_blank" rel="noopener noreferrer">source</a>' : '') + '</div>';
+      }
+      var lc = LEAN_COLOR[e.b] || LEAN_COLOR.unknown;
+      return '<div class="os-it" style="--c:' + lc + '"><div class="os-meta"><span class="os-tag" style="color:' + lc + '">' + esc(String(e.b || '').toUpperCase()) +
+        '</span><span>' + esc(e.s || '') + '</span><span>' + esc(e.r || '') + '</span><span>' + ago(e.at) + '</span></div>' + esc(e.t || '') +
+        (e.u ? ' <a href="' + escA(e.u) + '" target="_blank" rel="noopener noreferrer">post</a>' : '') + '</div>';
+    }).join('') || '<div class="sig-empty">Nothing in this filter.</div>';
+    var more = document.getElementById('osMore');
+    more.style.display = list.length > shown ? '' : 'none';
+    more.textContent = 'show more (' + (list.length - shown) + ')';
+    more.onclick = function(){ shown += 30; paint(); };
+  }
+  paint();
+  foldable('osBand', false);
 })();
 
 /* The way in on a new device: tap the version number five times quickly. */
@@ -6857,6 +7046,24 @@ async function boot(){
      The earth writes depth, so the far side of the planet hides them without
      any occlusion test of our own. Built once: the warnings are baked into
      the page and do not change until it is rebuilt. */
+  /* The front line, built the same way as the warning areas. */
+  const frontLines = (function(){
+    const rings = window.TB.frontRings ? window.TB.frontRings() : [];
+    if(!rings.length) return null;
+    const pos = [];
+    for(const r of rings){
+      for(let k=1; k<r.pts.length; k++){
+        const a = ll2v(r.pts[k-1][0], r.pts[k-1][1], 0.003), b = ll2v(r.pts[k][0], r.pts[k][1], 0.003);
+        pos.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+      }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({color:0xff7a00, transparent:true, opacity:.9}));
+    world.add(l);
+    return l;
+  })();
+
   const navLines = (function(){
     const rings = window.TB.navRings ? window.TB.navRings() : [];
     if(!rings.length) return null;
@@ -6964,6 +7171,11 @@ async function boot(){
     if(L.navwarn) for(const w of (T.FEEDS.navwarn||[])) if(w.lat!=null && i<CAP)
       push(i++, w.lat, w.lon, 0.006, K.navwarn.color, 7, {k:'navwarn', d:w, lat:w.lat, lon:w.lon}, TL.hazard, 1);
     if(navLines) navLines.visible = !!L.navwarn;
+    if(L.osint) for(const e of (T.OSI.sm||[])) if(e.lat!=null && i<CAP)
+      push(i++, e.lat, e.lon, 0.006, T.osiColor(e), 5 + Math.min(4, (e.sev||1)*1.2), {k:'osint', d:e, lat:e.lat, lon:e.lon}, TL.events, 0.95);
+    if(L.tg) for(const c of (T.OSI.tgcells||[])) if(i<CAP)
+      push(i++, c.lat, c.lon, 0.006, T.LEAN_COLOR[T.cellLean(c)], 5 + Math.min(8, Math.sqrt(c.n)), {k:'tg', d:c, lat:c.lat, lon:c.lon}, TL.dot, 0.9);
+    if(frontLines) frontLines.visible = !!L.front;
     if(L.jam) for(const j of (T.JAM||[])) if(i<CAP)
       push(i++, j.lat, j.lon, 0.006, T.jamColor(j.pct), 3.2, {k:'jam', d:j, lat:j.lat, lon:j.lon}, TL.dot, 1);
     if(jamMesh) jamMesh.visible = !!L.jam;

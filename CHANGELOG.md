@@ -4,6 +4,44 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.13.0 — 2026-10-06
+
+### Partner OSINT: other open-source trackers, folded in
+- **Three new sources**, read on every half-hourly refresh at no cost:
+  - **[situationmonitor](https://github.com/hassmax/situationmonitor):**
+    structured conflict events from Bluesky, Telegram and news, refreshed every
+    15 minutes. Each has a theatre, type, place, status (corroborated or
+    unconfirmed), number of reports and casualties. The last 48 hours are
+    kept (about 680 events today).
+  - **[tracker-data](https://github.com/gutmanis/tracker-data):** about 40
+    Telegram war channels, each post tagged with its channel's lean. The last
+    24 hours are kept (about 410 posts today, mostly from Russian state and
+    pro-Russian channels, which the page says plainly).
+  - **The front line:** DeepStateMap's Russian-held territory with its daily
+    history, so the change is measured. Today: 115,613 km², +22 km² in 7 days,
+    +93 km² in 30 days.
+- **On the globe:**
+  - **EVENTS:** coloured by type.
+  - **TELEGRAM:** clusters coloured by the channels' lean. Posts the source
+    could not place are kept off the map.
+  - **FRONT LINE:** the outline itself.
+
+  These work in both the 2D and 3D globes, with detail panels and box select.
+- **New OSINT Feed section:**
+  - a front-line card;
+  - the Telegram lean split;
+  - events by theatre;
+  - a merged, newest-first feed with source/theatre filters and links to the
+    original posts.
+- **Feeds the analysis:**
+  - the main brief's leads and the Crystal Ball both get the front-line
+    change, the most severe and corroborated events, and the newest Telegram
+    claims, with rules to treat each as a claim from its named source;
+  - the Crystal Ball's baseline log now tracks events by theatre, Telegram
+    volume and front-line area.
+- Links from outside sources are escaped as attributes, and only http(s)
+  links are followed.
+
 ## 1.12.3 — 2026-10-06
 
 ### Signals: learn from people already doing this
