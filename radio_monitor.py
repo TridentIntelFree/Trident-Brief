@@ -46,9 +46,10 @@ UA = 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'
 
 # Regions as (lat_min, lat_max, lon_min, lon_max).
 EUROPE = (36, 70, -11, 45)
+EAST_EUROPE = (45, 70, 10, 45)       # nearer the Buzzer: central/eastern Europe, the Nordics
 N_AMERICA = (24, 55, -125, -60)
 CHANNELS = [
-    {'id': 'uvb76', 'name': 'UVB-76', 'khz': 4625, 'mode': 'am', 'regions': [EUROPE]},
+    {'id': 'uvb76', 'name': 'UVB-76', 'khz': 4625, 'mode': 'am', 'regions': [EAST_EUROPE, EUROPE]},
     {'id': 'hfgcs8992', 'name': 'HFGCS 8992', 'khz': 8992, 'mode': 'usb', 'regions': [N_AMERICA, EUROPE]},
     {'id': 'hfgcs11175', 'name': 'HFGCS 11175', 'khz': 11175, 'mode': 'usb', 'regions': [N_AMERICA, EUROPE]},
 ]
@@ -114,11 +115,12 @@ def usable(rx, ch):
         if not lo <= ch['khz'] * 1000 <= hi:
             return None
         lat, lon = (float(x) for x in re.findall(r'-?\d+(?:\.\d+)?', rx.get('gps', ''))[:2])
-        if not any(a <= lat <= b and c <= lon <= d for a, b, c, d in ch['regions']):
+        rank = next((i for i, (a, b, c, d) in enumerate(ch['regions']) if a <= lat <= b and c <= lon <= d), None)
+        if rank is None:
             return None
         m = re.match(r'https?://([^:/]+)(?::(\d+))?', rx['url'])
         snr = int((re.findall(r'\d+', rx.get('snr', '')) or [0])[0])
-        return {'host': m.group(1), 'port': int(m.group(2) or 80), 'url': rx['url'], 'snr': snr,
+        return {'host': m.group(1), 'port': int(m.group(2) or 80), 'url': rx['url'], 'snr': snr, 'rank': rank,
                 'name': re.sub(r'<[^>]+>', '', rx.get('name', ''))[:80], 'loc': rx.get('loc', '')[:60],
                 'lat': lat, 'lon': lon}
     except Exception:
@@ -127,8 +129,12 @@ def usable(rx, ch):
 
 def candidates(all_rx, ch, n=4):
     ok = [u for u in (usable(r, ch) for r in all_rx) if u]
-    ok.sort(key=lambda u: -u['snr'])
-    top = ok[:12]
+    best = min((u['rank'] for u in ok), default=0)
+    pref = [u for u in ok if u['rank'] == best]
+    if len(pref) < 4:                  # too few in the preferred region: widen
+        pref = ok
+    pref.sort(key=lambda u: -u['snr'])
+    top = pref[:12]
     random.shuffle(top)             # spread the load across the good receivers
     return top[:n]
 
@@ -147,6 +153,8 @@ def record(ch, rx, path_base):
     # kiwirecorder names the file from --fn; take whatever .wav it wrote for this base
     got = sorted(glob.glob(path_base + '*.wav'), key=os.path.getmtime)
     wav = got[-1] if got else None
+    for t in glob.glob(os.path.join(os.path.dirname(path_base), '*.txt')):
+        os.remove(t)
     return wav if wav and os.path.getsize(wav) > 44 + 8000 else None
 
 
@@ -176,13 +184,16 @@ def analyse(x, sr):
     edges = np.geomspace(60, min(3400, sr / 2 - 100), 9)
     bands = [(f >= a) & (f < b) for a, b in zip(edges[:-1], edges[1:])]
     speech = (f >= 300) & (f <= 3000)
-    B, S, L = [], [], []
+    peaky = (f >= 250) & (f <= 2600)
+    B, S, L, FL = [], [], [], []
     for i in range(rows):
         X = np.abs(np.fft.rfft(x[i * hop:i * hop + N] * win)) ** 2 / (N * N) + 1e-20
         B.append([10 * np.log10(X[m].mean()) for m in bands])
         S.append(10 * np.log10(X[speech].mean()))
         L.append(10 * np.log10(X[(f >= 60) & (f <= 3400)].mean()))
-    B, S, L = np.array(B), np.array(S), np.array(L)
+        P = X[peaky]
+        FL.append(float(np.exp(np.log(P).mean()) / P.mean()))    # spectral flatness: noise ~0.55, speech well below
+    B, S, L, FL = np.array(B), np.array(S), np.array(L), np.array(FL)
     hz = sr / hop
     # pulses: autocorrelation per sub-band, periods 0.4-5 s
     best = (0.0, None)
@@ -198,13 +209,15 @@ def analyse(x, sr):
                 best = (float(ac[k]), (lo - 1 + k) / hz)
                 break
     pulses = best[1] if best[0] >= 0.5 else None
-    # voice: 3 s windows whose speech-band level keeps changing
+    # voice: 3 s windows whose speech-band level keeps changing AND whose spectrum is peaky
+    # (harmonics, formants) rather than flat -- static crashes change too, but they are flat
     w = int(3 * hz)
     floor = np.percentile(S, 10)
     voice_rows = np.zeros(rows, bool)
     for i in range(0, rows - w + 1, max(1, w // 3)):
         seg = S[i:i + w]
-        if np.median(np.abs(np.diff(seg))) > 1.2 and seg.mean() - floor > 1.5:
+        if (np.median(np.abs(np.diff(seg))) > 1.2 and seg.mean() - floor > 1.5
+                and np.percentile(FL[i:i + w], 25) < 0.42):
             voice_rows[i:i + w] = True
     segs, start = [], None
     for i, on in enumerate(list(voice_rows) + [False]):
@@ -215,10 +228,12 @@ def analyse(x, sr):
                 segs.append([round(start / hz, 1), round(i / hz, 1)])
             start = None
     spread = float(np.percentile(L, 90) - np.percentile(L, 10))
-    state = 'voice' if segs else 'buzz' if pulses else ('signal' if spread > 6 else 'quiet')
+    # "signal": something tonal or structured in the noise; a big level swing alone is just static
+    state = 'voice' if segs else 'buzz' if pulses else ('signal' if spread > 6 and np.median(FL) < 0.45 else 'quiet')
     return {'seconds': round(len(x) / sr, 1), 'sr': sr, 'state': state,
             'pulse_per_min': round(60 / pulses, 1) if pulses else None, 'pulse_score': round(best[0], 2),
-            'voice': segs[:12], 'level_db': round(float(np.median(L)), 1), 'spread_db': round(spread, 1)}
+            'voice': segs[:12], 'level_db': round(float(np.median(L)), 1), 'spread_db': round(spread, 1),
+            'flatness': round(float(np.median(FL)), 3)}
 
 
 def to_mp3(wav, mp3):
