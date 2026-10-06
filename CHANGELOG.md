@@ -4,6 +4,27 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.12.2 — 2026-10-06
+
+### Signals: only call what is really there
+- Listening confirmed what the analysis now says: the slices so far are
+  **noise**. There are only three labels:
+  - **VOICE:** speech.
+  - **BUZZING:** a real on/off pulse train, swinging 8 dB or more, at the
+    Buzzer's 12–50 per minute.
+  - **NOISE ONLY:** everything else. A steady hum or a fade is not the
+    station. (The 1.12.1 "SIGNAL" label is gone.)
+- **The relay learns which receivers hear the station.** Each receiver keeps
+  a score: how many of its slices actually had the buzz or voice.
+  - Receivers that have heard UVB-76 are preferred about two times in three.
+  - One slice in three still goes to an untried receiver, so new good ones
+    are found.
+  - A receiver is still never used twice running.
+  - Noise on HFGCS is normal; it is silent most of the time.
+- Slices recorded before the detectors were calibrated are dropped from the
+  timeline and events.
+- Receiver names with accents display correctly.
+
 ## 1.12.1 — 2026-10-06
 
 ### Signals: calibrated on real recordings

@@ -74,7 +74,7 @@ function paintRadio(d){
     return;
   }
   var now = Date.now(), SLOT = 30*60000, h = '<div class="sig-tl"><h4 class="sig-h">LAST 48 HOURS</h4>';
-  var rank = {voice:4, buzz:3, signal:2, quiet:1};
+  var rank = {voice:3, buzz:2, quiet:1};
   var covered = 0;
   CHAN.forEach(function(ch){
     var cells = [];
@@ -97,7 +97,7 @@ function paintRadio(d){
   });
   h += '<div class="sig-tl-axis"><span>48 h ago</span><span>24 h</span><span>now</span></div>' +
        '<div class="sig-tl-key"><span style="--c:#facc15">voice</span><span style="--c:#0e7490">buzzing</span>' +
-       '<span style="--c:#334155">signal</span><span style="--c:#1e293b">noise only</span><span style="--c:rgba(148,163,184,.08)">not recorded</span>' +
+       '<span style="--c:#1e293b">noise only</span><span style="--c:rgba(148,163,184,.08)">not recorded</span>' +
        '<span>covered ' + Math.round(covered/(96*CHAN.length)*100) + '% of the last 48 h</span></div></div>';
   var clips = {};
   (d.clips || []).forEach(function(c){ clips[c.channel] = c; });
@@ -398,7 +398,11 @@ function periodicity(rows){
     for(var k = 0; k < peaks.length; k++) if(ac[peaks[k]] >= 0.85*mx){
       L = peaks[k];
       var d = ac[L-1] - 2*ac[L] + ac[L+1], off = d < 0 ? 0.5*(ac[L-1] - ac[L+1])/d : 0;   // parabolic peak
-      if(!best || ac[L] > best.score) best = {score:ac[L], interval:(L + off)/hz};
+      if(!best || ac[L] > best.score){
+        /* a real pulse train switches on and off: its band must swing 6 dB or more */
+        var vals = rows.map(function(r){ return r.b[b]; });
+        best = {score:ac[L], interval:(L + off)/hz, depth:pct(vals, 0.9) - pct(vals, 0.1)};
+      }
       break;
     }
   }
@@ -436,7 +440,7 @@ function detect(db, sr, now){
   var cand = null;
   if(!S.voiceOn){
     var from = Math.max(now - 12000, S.voiceEnd), rows = env.filter(function(r){ return r.t > from; });
-    if(rows.length >= S.detHz*6){ var p = periodicity(rows); if(p && p.score >= 0.5) cand = p; }
+    if(rows.length >= S.detHz*6){ var p = periodicity(rows); if(p && p.score >= 0.5 && p.depth >= 8) cand = p; }
   }
   if(cand && S.cand && Math.abs(cand.interval - S.cand.interval) < 0.1*cand.interval) S.candN++;
   else S.candN = cand ? 1 : 0;

@@ -40,6 +40,7 @@ OUT = os.environ.get('RADIO_OUT') or 'radio-data/radio'
 KIWICLIENT = os.environ.get('KIWICLIENT', 'kiwiclient')
 SECONDS = int(os.environ.get('RADIO_SLICE') or 120)        # one slice per receiver, then hand off
 MINUTES = float(os.environ.get('RADIO_MINUTES') or 24)     # how long the relay runs each time
+CALIBRATED = '2026-10-06T03:05:00Z'                          # earlier slices used the uncalibrated detector
 EVENTS_KEPT = 12                                            # voice clips kept per channel
 KEEP_HOURS = 48
 UA = 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'
@@ -88,6 +89,7 @@ def receivers():
     for url, parse in (('http://kiwisdr.com/public/', _from_html), ('http://rx.linkfanel.net/kiwisdr_com.js', _from_js)):
         try:
             r = requests.get(url, timeout=30, headers={'User-Agent': UA})
+            r.encoding = 'utf-8'
             got = parse(r.text) if r.status_code == 200 else []
             tried.append(f'{url} HTTP {r.status_code}, {len(r.text)} bytes, {len(got)} parsed')
             if got:
@@ -127,8 +129,27 @@ def usable(rx, ch):
         return None
 
 
+RX_STATS = {}      # (channel, host) -> {'tries', 'hits'}, carried between runs in radio.json
+
+
+def heard(ch, state):
+    """A slice that proves the receiver hears the station."""
+    return state in ('buzz', 'voice')
+
+
 def candidates(all_rx, ch, n=4):
+    """Receivers for the next slice. Ones that have heard this station before come first
+    (by hit rate); one slice in three goes to an untried receiver so new good ones are found."""
     ok = [u for u in (usable(r, ch) for r in all_rx) if u]
+    def score(u):
+        st = RX_STATS.get(f"{ch['id']}|{u['host']}") or {}
+        return (st.get('hits', 0) + 0.5) / (st.get('tries', 0) + 1)
+    proven = sorted((u for u in ok if (RX_STATS.get(f"{ch['id']}|{u['host']}") or {}).get('hits')),
+                    key=score, reverse=True)
+    if proven and random.random() > 1 / 3:
+        rest = [u for u in ok if u not in proven]
+        random.shuffle(rest)
+        return (proven + rest)[:n]
     best = min((u['rank'] for u in ok), default=0)
     pref = [u for u in ok if u['rank'] == best]
     if len(pref) < 4:                  # too few in the preferred region: widen
@@ -196,7 +217,7 @@ def analyse(x, sr):
     B, S, L, FL = np.array(B), np.array(S), np.array(L), np.array(FL)
     hz = sr / hop
     # pulses: autocorrelation per sub-band, periods 0.4-5 s
-    best = (0.0, None)
+    best = (0.0, None, None)
     lo, hi = int(np.ceil(0.4 * hz)), min(int(5 * hz), int(rows / 2.5))
     for b in range(B.shape[1]):
         e = B[:, b] - B[:, b].mean()
@@ -206,9 +227,12 @@ def analyse(x, sr):
         ac = np.array([(e[:-L_] * e[L_:]).sum() / v for L_ in range(lo - 1, hi + 2)])
         for k in range(1, len(ac) - 1):
             if ac[k] >= ac[k - 1] and ac[k] >= ac[k + 1] and ac[k] > best[0]:
-                best = (float(ac[k]), (lo - 1 + k) / hz)
+                best = (float(ac[k]), (lo - 1 + k) / hz, b)
                 break
     pulses = best[1] if best[0] >= 0.5 else None
+    # a real pulse train switches on and off: its band must swing by 6 dB or more
+    depth = float(np.percentile(B[:, best[2]], 90) - np.percentile(B[:, best[2]], 10)) if pulses else 0.0
+    rate = 60 / pulses if pulses else None
     # voice: 3 s windows whose speech-band level keeps changing AND whose spectrum is peaky
     # (harmonics, formants) rather than flat -- static crashes change too, but they are flat
     w = int(3 * hz)
@@ -229,9 +253,12 @@ def analyse(x, sr):
             start = None
     spread = float(np.percentile(L, 90) - np.percentile(L, 10))
     # "signal": something tonal or structured in the noise; a big level swing alone is just static
-    state = 'voice' if segs else 'buzz' if pulses else ('signal' if spread > 6 and np.median(FL) < 0.45 else 'quiet')
+    buzzer = bool(pulses) and depth >= 8 and 12 <= rate <= 50          # the Buzzer: about 20-35 a minute
+    # three states only: a steady hum or a fade is not the station, so anything else is noise
+    state = 'voice' if segs else 'buzz' if buzzer else 'quiet'
     return {'seconds': round(len(x) / sr, 1), 'sr': sr, 'state': state,
-            'pulse_per_min': round(60 / pulses, 1) if pulses else None, 'pulse_score': round(best[0], 2),
+            'pulse_per_min': round(rate, 1) if buzzer else None, 'pulse_score': round(best[0], 2),
+            'pulse_depth_db': round(depth, 1),
             'voice': segs[:12], 'level_db': round(float(np.median(L)), 1), 'spread_db': round(spread, 1),
             'flatness': round(float(np.median(FL)), 3)}
 
@@ -283,6 +310,7 @@ def watch(ch, relay, deadline, state):
             os.remove(old)
         wav = record(ch, rx, base)
         recent.append(rx['host'])
+        st = RX_STATS.setdefault(f"{ch['id']}|{rx['host']}", {'tries': 0, 'hits': 0, 'loc': rx['loc']})
         if not wav:
             misses += 1
             if misses > 6:
@@ -291,6 +319,8 @@ def watch(ch, relay, deadline, state):
         misses = 0
         x, sr = read_wav(wav)
         a = analyse(x, sr)
+        st['tries'] += 1
+        st['hits'] += 1 if heard(ch, a['state']) else 0
         slices.append({'channel': ch['id'], 'at': stamp(start), 'secs': a.get('seconds'), 'state': a['state'],
                        'pulse_per_min': a.get('pulse_per_min'),
                        'voice_s': round(sum(e - b for b, e in a.get('voice') or []), 1), 'rx': rx['loc'] or rx['host']})
@@ -320,14 +350,21 @@ def main():
         prev = json.load(open(path, encoding='utf-8'))
     except Exception:
         prev = {}
-    state = {'clips': {c['channel']: c for c in prev.get('clips') or []}, 'events': list(prev.get('events') or [])}
+    state = {'clips': {c['channel']: c for c in prev.get('clips') or [] if c.get('at', '') >= CALIBRATED},
+             'events': [e for e in prev.get('events') or [] if e.get('at', '') >= CALIBRATED]}
+    for e in prev.get('events') or []:
+        if e.get('at', '') < CALIBRATED:
+            p = os.path.join(OUT, e['file'].split('radio/', 1)[1])
+            if os.path.exists(p):
+                os.remove(p)
+    RX_STATS.update({k: v for k, v in (prev.get('rx_stats') or {}).items() if isinstance(v, dict)})
     deadline = datetime.now(timezone.utc) + timedelta(minutes=MINUTES)
     relay = Relay()
     relay.get()
     with ThreadPoolExecutor(max_workers=len(CHANNELS)) as ex:
         runs = list(ex.map(lambda c: watch(c, relay, deadline, state), CHANNELS))
     cut = stamp(datetime.now(timezone.utc) - timedelta(hours=KEEP_HOURS))
-    timeline = [t for t in prev.get('timeline') or [] if t.get('at', '') >= cut] + [s for r in runs for s in r]
+    timeline = [t for t in prev.get('timeline') or [] if t.get('at', '') >= max(cut, CALIBRATED)] + [s for r in runs for s in r]
     # keep the newest event clips per channel; delete the files of the rest
     keep = []
     for ch in CHANNELS:
@@ -340,7 +377,8 @@ def main():
     with open(path, 'w', encoding='utf-8') as f:
         json.dump({'v': 2, 'at': stamp(), 'slice_seconds': SECONDS, 'minutes': MINUTES,
                    'clips': list(state['clips'].values()), 'events': sorted(keep, key=lambda e: e['at'], reverse=True),
-                   'timeline': timeline[-5000:]}, f, separators=(',', ':'))
+                   'timeline': timeline[-5000:],
+                   'rx_stats': dict(sorted(RX_STATS.items(), key=lambda kv: -kv[1]['hits'])[:300])}, f, separators=(',', ':'))
     print('radio: ' + ', '.join(f"{c['name']} {len(r)} slices" for c, r in zip(CHANNELS, runs)))
 
 
