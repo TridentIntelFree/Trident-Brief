@@ -4,6 +4,34 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.10.0 — 2026-10-06
+
+### Analyst Desk (owner only, hidden)
+- **The OSINT and analyst community on X, condensed.** Once a day, around
+  8:15 a.m. Eastern, a new *Analyst Desk* workflow does three steps, using only
+  `GROK_API_KEY`:
+  1. **Gather:** reads the last 48 hours of posts from the followed accounts
+     (batches of up to 20 per X search, falling back to 10).
+  2. **Discover:** finds other analyst accounts on the same stories, plus the
+     ones the followed accounts quote or credit.
+  3. **Condense:** writes a short box: bottom line, main threads (who is
+     saying what, linked to the posts), contested claims, single-source
+     claims marked unconfirmed, and what the analysts are watching. This pass
+     does no searching, so every link is a post the gather step returned.
+- **Self-growing list.** It starts with 20 accounts: @sentdefender,
+  @Osinttechnical, @IntelCrab, @Faytuks, @AuroraIntel, @ELINTNews,
+  @Global_Mil_Info, @RALee85, @KofmanMichael, @wartranslated, @Tendar,
+  @noelreports, @GeoConfirmed, @oryxspioenkop, @CalibreObscura, @detresfa_,
+  @TheStudyofWar, @JominiW, @Archer83Able and @CovertShores.
+  - An account found on two different days is followed from then on, up to
+    40 accounts.
+  - Found accounts not seen for three weeks are dropped.
+  - The list lives in `data/analyst/roster.json`.
+- **Hidden on the page** behind its own gesture, separate from the Tazewell
+  brief. It shows the followed accounts (new ones marked) and today's finds,
+  and can be read aloud.
+- Brief me says "IntelCrab reports", not "at IntelCrab reports".
+
 ## 1.9.0 — 2026-10-05
 
 ### Area brief: Tazewell County (owner only, hidden)
