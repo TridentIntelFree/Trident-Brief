@@ -2285,20 +2285,44 @@ def fetch_osint_partners():
 CYRILLIC = re.compile('[\u0400-\u04ff]')
 
 
+TR_UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                       'Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0'}
+
+
 def _tr_microsoft(texts):
     """Edge's built-in translator: a free token, then up to 50 posts per request."""
-    tok = requests.get('https://edge.microsoft.com/translate/auth', timeout=15).text.strip()
-    if len(tok) < 100:
-        raise RuntimeError('no token')
+    r = requests.get('https://edge.microsoft.com/translate/auth', timeout=15, headers=TR_UA)
+    tok = r.text.strip()
+    if r.status_code != 200 or len(tok) < 100:
+        raise RuntimeError(f'token {r.status_code}')
     out = []
     for k in range(0, len(texts), 50):
         r = requests.post('https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en',
                           timeout=30, json=[{'Text': t} for t in texts[k:k + 50]],
-                          headers={'Authorization': 'Bearer ' + tok})
-        r.raise_for_status()
+                          headers=dict(TR_UA, Authorization='Bearer ' + tok))
+        if r.status_code != 200:
+            raise RuntimeError(f'translate {r.status_code}')
         for x in r.json():
             out.append(((x.get('translations') or [{}])[0].get('text', ''),
                         (x.get('detectedLanguage') or {}).get('language', '')))
+    return out
+
+
+def _tr_google_batch(texts):
+    """The endpoint Chrome's dictionary extension uses: 20 posts per request."""
+    out = []
+    for k in range(0, len(texts), 20):
+        part = texts[k:k + 20]
+        r = requests.post('https://clients5.google.com/translate_a/t', timeout=30, headers=TR_UA,
+                          params={'client': 'dict-chrome-ex', 'sl': 'auto', 'tl': 'en'}, data={'q': part})
+        if r.status_code != 200:
+            raise RuntimeError(f'{r.status_code}')
+        d = r.json()
+        if len(d) != len(part):
+            raise RuntimeError('count')
+        for x in d:
+            out.append((x[0], x[1]) if isinstance(x, list) else (x, ''))
+        time.sleep(0.3)
     return out
 
 
@@ -2308,9 +2332,11 @@ def _tr_google(texts, budget):
     for t in texts:
         if time.time() > budget:
             break
-        r = requests.get('https://translate.googleapis.com/translate_a/single', timeout=15,
+        r = requests.get('https://translate.googleapis.com/translate_a/single', timeout=15, headers=TR_UA,
                          params={'client': 'gtx', 'sl': 'auto', 'tl': 'en', 'dt': 't', 'q': t})
         if r.status_code != 200:
+            if not out:
+                raise RuntimeError(f'{r.status_code}')
             break
         d = r.json()
         out.append((''.join(seg[0] for seg in d[0] if seg and seg[0]), d[2] if len(d) > 2 else ''))
@@ -2339,15 +2365,18 @@ def translate_posts(items):
     note, done = '', []
     if need:
         texts = [i['t'] for i in need]
-        try:
-            done, note = _tr_microsoft(texts), 'microsoft'
-        except Exception as e:
-            note = 'microsoft ' + str(e)[:40] + '; '
+        tries = [('microsoft', lambda: _tr_microsoft(texts)), ('google', lambda: _tr_google_batch(texts)),
+                 ('google web', lambda: _tr_google(texts, time.time() + 90))]
+        fails = []
+        for name, go in tries:
             try:
-                done = _tr_google(texts, time.time() + 90)
-                note += 'google'
-            except Exception as e2:
-                note += 'google ' + str(e2)[:40]
+                done = go()
+                note = '; '.join(fails + [name])
+                break
+            except Exception as e:
+                fails.append(f'{name} {str(e)[:30]}')
+        else:
+            note = '; '.join(fails)
         for i, (en, lang) in zip(need, done):
             if en and not CYRILLIC.search(en[:40]):
                 cache[key(i)] = {'en': en[:260], 'l': lang}
