@@ -43,6 +43,13 @@
    "url": "https://x.com/GlobalOSINTHQ/status/2107240175713554855",
    "why": "Global OSINT account providing real-time geopolitical analysis and situation reports on UK B-1B bomber evacuations due to Iranian threats, with sourced details."
   },
+  "SeanParnellASW": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on Hasan execution"
+  },
   "SitDeck": {
    "days": [
     "2026-10-06"
@@ -69,7 +76,7 @@
     "2026-10-06"
    ],
    "url": "",
-   "why": "quoted or credited 1x by followed accounts"
+   "why": "quoted or credited by followed accounts: quoted on B-1B withdrawal"
   },
   "osint42": {
    "days": [
@@ -101,5 +108,69 @@
   "Archer83Able",
   "CovertShores"
  ],
- "updated": "2026-10-06T01:12:21Z"
+ "stats": {
+  "Archer83Able": {
+   "checked": "2026-10-06"
+  },
+  "AuroraIntel": {
+   "checked": "2026-10-06"
+  },
+  "CalibreObscura": {
+   "checked": "2026-10-06"
+  },
+  "CovertShores": {
+   "checked": "2026-10-06"
+  },
+  "ELINTNews": {
+   "checked": "2026-10-06"
+  },
+  "Faytuks": {
+   "checked": "2026-10-06"
+  },
+  "GeoConfirmed": {
+   "checked": "2026-10-06"
+  },
+  "Global_Mil_Info": {
+   "checked": "2026-10-06"
+  },
+  "IntelCrab": {
+   "checked": "2026-10-06"
+  },
+  "JominiW": {
+   "checked": "2026-10-06"
+  },
+  "KofmanMichael": {
+   "checked": "2026-10-06"
+  },
+  "Osinttechnical": {
+   "checked": "2026-10-06",
+   "posted": "2026-10-06"
+  },
+  "RALee85": {
+   "checked": "2026-10-06"
+  },
+  "Tendar": {
+   "checked": "2026-10-06"
+  },
+  "TheStudyofWar": {
+   "checked": "2026-10-06"
+  },
+  "detresfa_": {
+   "checked": "2026-10-06"
+  },
+  "noelreports": {
+   "checked": "2026-10-06"
+  },
+  "oryxspioenkop": {
+   "checked": "2026-10-06"
+  },
+  "sentdefender": {
+   "checked": "2026-10-06",
+   "posted": "2026-10-06"
+  },
+  "wartranslated": {
+   "checked": "2026-10-06"
+  }
+ },
+ "updated": "2026-10-06T01:21:49Z"
 }
