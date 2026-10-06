@@ -50,7 +50,8 @@ EUROPE = (36, 70, -11, 45)
 EAST_EUROPE = (45, 70, 10, 45)       # nearer the Buzzer: central/eastern Europe, the Nordics
 N_AMERICA = (24, 55, -125, -60)
 CHANNELS = [
-    {'id': 'uvb76', 'name': 'UVB-76', 'khz': 4625, 'mode': 'am', 'regions': [EAST_EUROPE, EUROPE]},
+    {'id': 'uvb76', 'name': 'UVB-76', 'khz': 4625, 'mode': 'usb', 'pass': (50, 4000), 'regions': [EAST_EUROPE, EUROPE],
+     'seeds': 'https://raw.githubusercontent.com/noaa-apt/kiwi-reload/main/data/import.txt'},
     {'id': 'hfgcs8992', 'name': 'HFGCS 8992', 'khz': 8992, 'mode': 'usb', 'regions': [N_AMERICA, EUROPE]},
     {'id': 'hfgcs11175', 'name': 'HFGCS 11175', 'khz': 11175, 'mode': 'usb', 'regions': [N_AMERICA, EUROPE]},
 ]
@@ -129,6 +130,24 @@ def usable(rx, ch):
         return None
 
 
+SEEDS = {}         # channel -> receivers others already stream it from (host -> url)
+
+
+def load_seeds():
+    """kiwi-reload (github.com/noaa-apt/kiwi-reload) publishes the receivers its users stream
+    UVB-76 from -- mostly in Sweden and Finland, near the transmitter. Those are tried first."""
+    for ch in CHANNELS:
+        if not ch.get('seeds'):
+            continue
+        try:
+            r = requests.get(ch['seeds'], timeout=20, headers={'User-Agent': UA})
+            urls = re.findall(r'https?://[^\s]+', r.text) if r.status_code == 200 else []
+        except Exception:
+            urls = []
+        SEEDS[ch['id']] = {re.match(r'https?://([^:/]+)', u).group(1): u.rstrip('/') for u in urls}
+        print(f"radio: {len(SEEDS[ch['id']])} known {ch['name']} receivers from {ch['seeds'].split('/')[3]}")
+
+
 RX_STATS = {}      # (channel, host) -> {'tries', 'hits'}, carried between runs in radio.json
 
 
@@ -141,6 +160,16 @@ def candidates(all_rx, ch, n=4):
     """Receivers for the next slice. Ones that have heard this station before come first
     (by hit rate); one slice in three goes to an untried receiver so new good ones are found."""
     ok = [u for u in (usable(r, ch) for r in all_rx) if u]
+    # receivers others stream this station from: listed ones keep their slot checks; unlisted
+    # ones are tried as they are (a full one simply refuses, and the relay moves on)
+    seeds = SEEDS.get(ch['id']) or {}
+    listed = {u['host'] for u in ok}
+    seeded = [u for u in ok if u['host'] in seeds]
+    for host, url in seeds.items():
+        if host not in listed and not any(h == host for h in listed):
+            m = re.match(r'https?://([^:/]+)(?::(\d+))?', url)
+            seeded.append({'host': host, 'port': int(m.group(2) or 80), 'url': url, 'snr': 0, 'rank': 0,
+                           'name': host, 'loc': host, 'lat': None, 'lon': None})
     def score(u):
         st = RX_STATS.get(f"{ch['id']}|{u['host']}") or {}
         return (st.get('hits', 0) + 0.5) / (st.get('tries', 0) + 1)
@@ -150,6 +179,9 @@ def candidates(all_rx, ch, n=4):
         rest = [u for u in ok if u not in proven]
         random.shuffle(rest)
         return (proven + rest)[:n]
+    if seeded and random.random() > 1 / 4:
+        random.shuffle(seeded)
+        return seeded[:n]
     best = min((u['rank'] for u in ok), default=0)
     pref = [u for u in ok if u['rank'] == best]
     if len(pref) < 4:                  # too few in the preferred region: widen
@@ -166,7 +198,8 @@ def record(ch, rx, path_base):
            '--fn', os.path.basename(path_base), '-u', 'TridentBrief', '--connect-retries', '1',
            '--connect-timeout', '10', '--busy-retries', '0', '-q']
     if ch['mode'] == 'usb':
-        cmd += ['-L', '200', '-H', '2800']
+        lo, hi = ch.get('pass', (200, 2800))
+        cmd += ['-L', str(lo), '-H', str(hi)]
     try:
         subprocess.run(cmd, timeout=SECONDS + 45, capture_output=True, text=True)
     except subprocess.TimeoutExpired:
@@ -359,6 +392,7 @@ def main():
                 os.remove(p)
     RX_STATS.update({k: v for k, v in (prev.get('rx_stats') or {}).items() if isinstance(v, dict)})
     deadline = datetime.now(timezone.utc) + timedelta(minutes=MINUTES)
+    load_seeds()
     relay = Relay()
     relay.get()
     with ThreadPoolExecutor(max_workers=len(CHANNELS)) as ex:
