@@ -4,6 +4,21 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.12.3 — 2026-10-06
+
+### Signals: learn from people already doing this
+- **UVB-76 is tuned the way the 24/7 Buzzer streamers tune it:** 4625 kHz
+  upper sideband, 50–4000 Hz, not AM. This setting is taken from
+  [kiwi-reload](https://github.com/noaa-apt/kiwi-reload), the open-source
+  tool behind those streams.
+- **Receivers that already hear it come first.** Each run reads kiwi-reload's
+  published list of the KiwiSDRs its users stream UVB-76 from, mostly in
+  Sweden and Finland, near the transmitter.
+  - Those get most of the slices.
+  - Receivers the relay has proven itself come next, and the rest are still
+    explored.
+  - The no-repeat and free-slot rules are unchanged.
+
 ## 1.12.2 — 2026-10-06
 
 ### Signals: only call what is really there
