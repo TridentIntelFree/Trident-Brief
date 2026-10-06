@@ -4,6 +4,26 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.10.1 — 2026-10-06
+
+### Analyst Desk: built to be cheap
+- The first run cost $0.43. The desk now:
+  - **makes one call a day instead of three**: gathering and writing happen
+    in the same request;
+  - **tells Grok what costs money**: every search, every post pulled in,
+    every token thought or written. It gets a budget of 3 searches and is
+    asked to plan them first, never repeat one, and stop once it has the
+    main threads. The API is also asked to cap tool calls, where it accepts
+    that;
+  - **finds new accounts at no extra cost**, from who the followed accounts
+    quote or credit in posts already read. The open search for similar
+    accounts runs only on Sundays;
+  - **searches the best 20 each day** once more than 20 accounts are
+    followed: untried accounts first, then the most recently posting, then
+    the longest unchecked;
+  - **logs every run's spend** on searching, reading, thinking and writing,
+    and shows the cost on the box.
+
 ## 1.10.0 — 2026-10-06
 
 ### Analyst Desk (owner only, hidden)

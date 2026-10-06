@@ -52,17 +52,17 @@ Mercer County.
 ## Analyst Desk (owner only)
 
 `analyst_desk.py`, run each morning by `.github/workflows/analyst-desk.yml`
-(12:13 UTC), using only `GROK_API_KEY`. Each run has three steps:
-1. **Gather:** reads the last 48 hours of posts from the followed X accounts.
-   It uses Grok's X search limited to those handles, up to 20 per search.
-2. **Discover:** finds similar accounts.
-3. **Condense:** writes a short box from what was gathered, linking only
-   posts the gather step returned.
-
-Output goes to `data/analyst/desk.json`, and the followed list and found
-accounts to `data/analyst/roster.json`. An account found on two days is
-followed from then on. The page shows the box only through a hidden gesture;
-it is hidden, not locked.
+(12:13 UTC), using only `GROK_API_KEY`.
+- **One budget-aware call:** Grok's X search is limited to up to 20 followed
+  accounts and the last 48 hours. Grok is told the costs and given a budget of
+  3 searches, and writes the box in the same call.
+- **Finding accounts:** new accounts come from who the followed ones quote or
+  credit. An open search for similar accounts runs on Sundays only. An
+  account found on two days is followed from then on.
+- **Output:** `data/analyst/desk.json` holds the box and the per-run cost
+  breakdown; `data/analyst/roster.json` holds who is followed and found.
+- **On the page:** shown only through a hidden gesture; it is hidden, not
+  locked.
 
 ## Brief me
 
@@ -201,7 +201,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.10.0) and appears in the page
+The build version lives in `VERSION` (currently 1.10.1) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).

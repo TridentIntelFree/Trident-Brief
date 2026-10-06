@@ -3568,8 +3568,8 @@ async function adShow(){
   var at = new Date(d.at), age = (Date.now() - at)/3600000;
   document.getElementById('adSub').textContent = 'collected ' +
     at.toLocaleString([], {weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit', timeZone:'America/New_York'}) +
-    ' Eastern · ' + (d.accounts_with_claims || 0) + ' of ' + (d.followed || []).length + ' accounts posting · ' +
-    (d.claims || 0) + ' claims' + (age > 30 ? ' · ' + Math.round(age) + ' hours old' : '');
+    ' Eastern · ' + (d.accounts_with_claims || 0) + ' of ' + (d.searched || d.followed || []).length + ' accounts posting · ' +
+    (d.claims ? d.claims + ' claims' : '') + (d.cost_usd != null ? ' \u00b7 $' + d.cost_usd.toFixed(2) : '') + (age > 30 ? ' · ' + Math.round(age) + ' hours old' : '');
   var body = document.getElementById('adBody');
   try{ body.innerHTML = renderMD(d.desk); }catch(e){ body.innerHTML = '<pre class="raw">' + esc(d.desk) + '</pre>'; }
   var who = (d.followed || []).map(function(h){
