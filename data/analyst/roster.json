@@ -1,0 +1,105 @@
+{
+ "following": [
+  "sentdefender",
+  "Osinttechnical",
+  "IntelCrab",
+  "Faytuks",
+  "AuroraIntel",
+  "ELINTNews",
+  "Global_Mil_Info",
+  "RALee85",
+  "KofmanMichael",
+  "wartranslated",
+  "Tendar",
+  "noelreports",
+  "GeoConfirmed",
+  "oryxspioenkop",
+  "CalibreObscura",
+  "detresfa_",
+  "TheStudyofWar",
+  "JominiW",
+  "Archer83Able",
+  "CovertShores"
+ ],
+ "found": {
+  "DonaldPMitchell": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "",
+   "why": "quoted or credited 1x by followed accounts"
+  },
+  "ForwardlineSPOT": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "https://x.com/ForwardlineSPOT/status/2107270190475907383",
+   "why": "Ukraine-focused OSINT feed geolocating and citing Telegram sources for Russian UAV activity near Kharkiv."
+  },
+  "GlobalOSINTHQ": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "https://x.com/GlobalOSINTHQ/status/2107240175713554855",
+   "why": "Global OSINT account providing real-time geopolitical analysis and situation reports on UK B-1B bomber evacuations due to Iranian threats, with sourced details."
+  },
+  "SitDeck": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "https://x.com/SitDeck/status/2107275938442457404",
+   "why": "Global intelligence dashboard account analyzing Ukrainian Sky Sentinel drone defense systems in Kharkiv with combat testing details."
+  },
+  "UK_REPT": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "https://x.com/UK_REPT/status/2107230174345413118",
+   "why": "Mideast conflict and intelligence analyst posting sourced reporting on US B-1B bombers leaving UK bases amid Iranian drone threats."
+  },
+  "WarWired": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "https://x.com/WarWired/status/2107266236459724920",
+   "why": "Neutral conflict brief account citing official Ukrainian sources on Russian strikes in Kharkiv residential areas."
+  },
+  "havoc_aviation": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "",
+   "why": "quoted or credited 1x by followed accounts"
+  },
+  "osint42": {
+   "days": [
+    "2026-10-06"
+   ],
+   "url": "https://x.com/osint42/status/2106707264249712715",
+   "why": "OSINT account citing Finnish presidential statements on Russian military intelligence improvements and capabilities."
+  }
+ },
+ "starter": [
+  "sentdefender",
+  "Osinttechnical",
+  "IntelCrab",
+  "Faytuks",
+  "AuroraIntel",
+  "ELINTNews",
+  "Global_Mil_Info",
+  "RALee85",
+  "KofmanMichael",
+  "wartranslated",
+  "Tendar",
+  "noelreports",
+  "GeoConfirmed",
+  "oryxspioenkop",
+  "CalibreObscura",
+  "detresfa_",
+  "TheStudyofWar",
+  "JominiW",
+  "Archer83Able",
+  "CovertShores"
+ ],
+ "updated": "2026-10-06T01:12:21Z"
+}
