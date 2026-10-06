@@ -64,6 +64,28 @@ Mercer County.
 - **On the page:** shown only through a hidden gesture; it is hidden, not
   locked.
 
+## Crystal Ball (owner only)
+
+`crystal_ball.py`, run each morning by `.github/workflows/crystal-ball.yml`
+(12:43 UTC), using only `GROK_API_KEY`. It makes one reasoning call with no
+searching, over:
+- the latest brief and the live layers in `latest-brief.json`;
+- the Analyst Desk's single-source and contested claims;
+- a track record built from the archive: each brief's INDICATORS AND WARNINGS
+  scored by the next brief's FORECAST CHECK;
+- its own earlier forecasts.
+
+What it writes:
+- **`data/crystal/ball.json`:** forecasts with probabilities, pre-headline
+  signals, the nuclear-risk read, the Doomsday Clock (read from
+  thebulletin.org, with a fallback of 85 s), the scoreboard and the per-run
+  cost.
+- **`data/crystal/forecasts.json`:** every forecast and how it resolved.
+- **`data/crystal/log.json`:** the daily indicator counts behind "rising
+  against baseline".
+
+The page shows it only through a hidden gesture; it is hidden, not locked.
+
 ## Brief me
 
 `assets/briefing.js` reads the brief aloud as a spoken briefing, using the
@@ -201,7 +223,7 @@ quarter of what a desktop does for the same view.
 
 ## Versions
 
-The build version lives in `VERSION` (currently 1.10.1) and appears in the page
+The build version lives in `VERSION` (currently 1.11.0) and appears in the page
 header, the footer and `assets/feed-status.json`. MAJOR.MINOR.PATCH: PATCH for
 fixes, MINOR for a new feature or layer, MAJOR for a change to what the brief
 is. Changes per version are in [`CHANGELOG.md`](CHANGELOG.md).

@@ -603,6 +603,29 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .tz-band{border-top:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.035)}
 .tz-band[hidden]{display:none}
 .tz-body{padding:6px 0 0}
+.cb-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px;margin-bottom:12px}
+@media (max-width:640px){.cb-top{grid-template-columns:1fr}}
+.cb-card{border:1px solid var(--line2);border-radius:10px;padding:12px 14px;background:rgba(10,17,36,.9)}
+.cb-clock{display:flex;gap:12px;align-items:center}
+.cb-clock svg{flex:none;width:92px;height:92px}
+.cb-secs{font-family:var(--mono);font-size:1.5em;font-weight:700;color:#fca5a5;line-height:1.1}
+.cb-small{font-size:.78em;color:var(--ink-faint)}
+.cb-small a{color:var(--ink-dim)}
+.cb-trend{display:inline-block;font-family:var(--mono);font-size:.72em;letter-spacing:.08em;border:1px solid;border-radius:5px;padding:1px 7px;margin-bottom:6px}
+.cb-trend.rising{color:#fca5a5;border-color:#ef4444}.cb-trend.easing{color:#86efac;border-color:#22c55e}.cb-trend.steady{color:#fde68a;border-color:#f59e0b}
+.content ul.cb-list{list-style:none;padding:0;margin:6px 0 14px}
+.cb-list li.cb-f{border:1px solid var(--line2);border-radius:9px;padding:10px 12px;margin:0 0 8px;background:rgba(15,23,48,.6)}
+.cb-ev{color:#fff;font-weight:600}
+.cb-reg{font-family:var(--mono);font-size:.7em;color:var(--cyan);margin-right:6px}
+.cb-bar{display:flex;align-items:center;gap:8px;margin:7px 0 5px;font-family:var(--mono);font-size:.78em;color:var(--ink-dim)}
+.cb-bar i{flex:1;height:6px;border-radius:3px;background:rgba(148,163,184,.18);position:relative;overflow:hidden}
+.cb-bar i b{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.cb-kv{font-size:.83em;color:var(--ink-dim);margin-top:3px}
+.cb-kv span{font-family:var(--mono);font-size:.85em;color:var(--ink-faint);letter-spacing:.04em}
+.cb-table{width:100%;font-size:.84em;border-collapse:collapse;margin:6px 0 12px}
+.cb-table td,.cb-table th{border-bottom:1px solid var(--line2);padding:4px 6px;text-align:left}
+.cb-ok{color:#86efac}.cb-no{color:#fca5a5}
+h1 .tri{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .ad-who{margin-top:14px;font-size:.84em;color:var(--ink-dim)}
 .ad-who summary{cursor:pointer;font-family:var(--mono);font-size:.85em;letter-spacing:.06em;color:var(--cyan)}
 .ad-who a{color:var(--ink)}
@@ -1051,6 +1074,20 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     <div id="adMsg"></div>
     <div class="content tz-body" id="adBody"></div>
     <details class="ad-who" id="adWho" style="display:none"><summary>Accounts followed</summary><div id="adWhoList"></div></details>
+  </div>
+
+  <!-- Owner's Crystal Ball (crystal_ball.py). Not shown until the hidden gesture. -->
+  <div class="section-band tz-band cb-band" id="cbBand" hidden>
+    <div class="band-head">
+      <h2>&#128302; Crystal Ball &mdash; Projected Forecast</h2>
+      <div class="sub" id="cbSub"></div>
+    </div>
+    <div class="key-opts" id="cbTools" style="display:none">
+      <button class="bm-go" id="cbRead" type="button">&#128266; READ IT TO ME</button>
+      <button class="linkish" id="cbHide" type="button">hide</button>
+    </div>
+    <div id="cbMsg"></div>
+    <div class="content tz-body" id="cbBody"></div>
   </div>
 
   <!-- ============ LOCAL INTEL ============ -->
@@ -3605,6 +3642,118 @@ async function adShow(){
     BRIEFME.read({root:document.getElementById('adBody'), label:'ANALYST DESK', at:AD.desk.at,
                   title:'Analyst desk: what the open-source analyst community on X has been saying over the last 48 hours.',
                   when:new Date(AD.desk.at).toLocaleString('en-US', {weekday:'long', hour:'numeric', minute:'2-digit',
+                                                                     timeZone:'America/New_York'}) + ' Eastern'});
+  };
+})();
+
+/* =====================================================================
+   CRYSTAL BALL -- projected forecast from crystal_ball.py
+   Hidden until the owner's gesture, which also closes it again.
+   ===================================================================== */
+var CB = {ball:null};
+function cbMsg(html, bad){ document.getElementById('cbMsg').innerHTML = html ? '<p class="' + (bad ? 'error-msg' : 'success-msg') + '">' + html + '</p>' : ''; }
+function cbClock(sec){
+  /* the Bulletin's quarter dial, nine to twelve, minute hand short of midnight */
+  var cx = 86, cy = 86, r = 76, a = Math.max(0, Math.min(90, sec/3600*360))*Math.PI/180, ticks = '';
+  for(var m = 45; m <= 60; m++){
+    var t = (60 - m)*6*Math.PI/180, r1 = m % 5 ? r - 6 : r - 13;
+    ticks += '<line x1="' + (cx - r1*Math.sin(t)).toFixed(1) + '" y1="' + (cy - r1*Math.cos(t)).toFixed(1) +
+             '" x2="' + (cx - r*Math.sin(t)).toFixed(1) + '" y2="' + (cy - r*Math.cos(t)).toFixed(1) +
+             '" stroke="' + (m % 15 ? '#64748b' : '#e2e8f0') + '" stroke-width="' + (m % 5 ? 1 : 2.4) + '"/>';
+  }
+  return '<svg viewBox="0 0 92 92" aria-hidden="true"><path d="M' + cx + ' ' + cy + ' L' + (cx - r) + ' ' + cy + ' A' + r + ' ' + r +
+    ' 0 0 1 ' + cx + ' ' + (cy - r) + ' Z" fill="rgba(239,68,68,.06)" stroke="rgba(148,163,184,.35)"/>' + ticks +
+    '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx - (r - 8)*Math.sin(a)).toFixed(1) + '" y2="' + (cy - (r - 8)*Math.cos(a)).toFixed(1) +
+    '" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/><circle cx="' + cx + '" cy="' + cy + '" r="4" fill="#ef4444"/></svg>';
+}
+function cbBarColor(p){ return p >= 80 ? '#ef4444' : p >= 55 ? '#f59e0b' : p >= 45 ? '#eab308' : p >= 20 ? '#60a5fa' : '#64748b'; }
+async function cbShow(){
+  var band = document.getElementById('cbBand');
+  band.hidden = false;
+  band.scrollIntoView({behavior:'smooth', block:'start'});
+  if(CB.ball) return;
+  cbMsg('Opening&hellip;');
+  var t = Date.now(), urls = ['data/crystal/ball.json?t=' + t,
+    'https://raw.githubusercontent.com/' + GH_REPO + '/main/data/crystal/ball.json?t=' + t];
+  var got = await Promise.all(urls.map(function(u){
+    return fetch(u, {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+  }));
+  var b = got.filter(function(x){ return x && x.forecasts; }).sort(function(x, y){ return x.at < y.at ? 1 : -1; })[0];
+  if(!b){ cbMsg('No forecast yet. One is made every day at about 8:45 a.m. Eastern.', true); return; }
+  CB.ball = b;
+  var at = new Date(b.at);
+  document.getElementById('cbSub').textContent = 'made ' +
+    at.toLocaleString([], {weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit', timeZone:'America/New_York'}) +
+    ' Eastern from everything gathered · no searching' + (b.cost_usd != null ? ' · $' + b.cost_usd.toFixed(3) : '');
+  var h = '', c = b.clock || {}, n = b.nuclear || {}, tr = /^(rising|easing|steady)$/.test(n.trend) ? n.trend : 'steady';
+  h += '<div class="cb-top"><div class="cb-card cb-clock">' + cbClock(c.seconds || 85) +
+       '<div><p class="cb-secs" style="margin:0">' + esc(String(c.seconds || 85)) + ' seconds<br>to midnight</p>' +
+       '<p class="cb-small" style="margin:4px 0 0">Doomsday Clock, <a href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener">Bulletin of the Atomic Scientists</a>' +
+       (c.set ? ', set ' + esc(c.set) : '') + '</p></div></div>' +
+       '<div class="cb-card"><p style="margin:0"><span class="cb-trend ' + tr + '" data-say=". ">NUCLEAR RISK THIS WEEK: ' + tr.toUpperCase() + '</span><br>' +
+       esc(n.why || '') + '</p></div></div>';
+  if(b.bluf) h += '<p class="bluf"><strong>OUTLOOK:</strong> ' + esc(b.bluf) + '</p>';
+  [['24h', 'Next 24 hours'], ['72h', 'Next 72 hours'], ['7d', 'Next 7 days']].forEach(function(g){
+    var fs = (b.forecasts || []).filter(function(f){ return f.horizon === g[0]; })
+                                .sort(function(x, y){ return y.probability - x.probability; });
+    if(!fs.length) return;
+    h += '<h3>' + g[1] + '</h3><ul class="cb-list">' + fs.map(function(f){
+      var p = +f.probability || 0;
+      return '<li class="cb-f"><div>' + (f.region ? '<span class="cb-reg" data-say=": ">' + esc(f.region) + '</span>' : '') +
+        '<span class="cb-ev">' + esc(f.event) + '</span></div>' +
+        '<div class="cb-bar"><i><b style="width:' + p + '%;background:' + cbBarColor(p) + '"></b></i>' + p + '% · ' + esc(f.term || '') + '</div>' +
+        ((f.basis || []).length ? '<div class="cb-kv"><span>SIGNALS</span> ' + esc(f.basis.join('; ')) + '</div>' : '') +
+        (f.watch_for ? '<div class="cb-kv"><span>WATCH FOR</span> ' + esc(f.watch_for) + '</div>' : '') +
+        (f.wrong_if ? '<div class="cb-kv"><span>WRONG IF</span> ' + esc(f.wrong_if) + '</div>' : '') + '</li>';
+    }).join('') + '</ul>';
+  });
+  if((b.pre_headline || []).length){
+    h += '<h3>Pre-headline signals</h3><ul>' + b.pre_headline.map(function(x){
+      return '<li><strong>' + esc(x.signal) + '</strong>' + (x.why ? ' — ' + esc(x.why) : '') +
+             (x.source ? ' <span class="cb-small">(' + esc(x.source) + ')</span>' : '') + '</li>';
+    }).join('') + '</ul>';
+  }
+  var ri = b.rising || {};
+  h += '<h3>Rising against baseline</h3>';
+  if((ri.baseline_days || 0) < (ri.needed || 5)) h += '<p class="cb-small">Baseline building: ' + (ri.baseline_days || 0) + ' of ' + (ri.needed || 5) +
+    ' days logged. From then on, anything running well above its own average shows here.</p>';
+  else if(!(ri.rising || []).length) h += '<p class="cb-small">Nothing running unusually high.</p>';
+  else h += '<ul>' + ri.rising.map(function(m){ return '<li>' + esc(m.what) + ': ' + esc(String(m.now)) + ' vs usual ' + esc(String(m.usual)) + ' (' + esc(String(m.x)) + '×)</li>'; }).join('') + '</ul>';
+  var sc = b.score || {}, rec = (b.record || {}).by_term || {};
+  h += '<h3>Scoreboard</h3>';
+  h += sc.resolved ? '<p>' + sc.resolved + ' of its forecasts resolved · Brier score ' + sc.brier + ' (0 is perfect, 0.25 is a coin toss) · ' +
+       sc.right_side + ' on the right side of 50%.</p><ul>' + (sc.recent || []).map(function(r){
+         var ok = (r.p >= 50) === (r.outcome === 'happened');
+         return '<li><span class="' + (ok ? 'cb-ok' : 'cb-no') + '">' + (ok ? '✓' : '✗') + '</span> ' + esc(r.event) + ' — said ' + r.p + '%, ' + (r.outcome === 'happened' ? 'it happened' : 'it did not') + '</li>';
+       }).join('') + '</ul>'
+     : '<p class="cb-small">Its first forecasts resolve in a day; the score builds from there.</p>';
+  var terms = Object.keys(rec);
+  if(terms.length) h += '<p class="cb-small">How the brief’s own warnings have held up (' + ((b.record || {}).pairs || 0) + ' scored):</p><table class="cb-table"><tr><th>said</th><th>called</th><th>came true</th></tr>' +
+    terms.map(function(k){ var r = rec[k]; return '<tr><td>' + esc(k) + '</td><td>' + r.called + '</td><td>' + (r.rate == null ? '–' : Math.round(r.rate*100) + '%') + '</td></tr>'; }).join('') + '</table>';
+  if((b.open || []).length) h += '<h3>Still open from earlier days</h3><ul>' + b.open.map(function(o){
+    return '<li>' + esc(o.event) + ' — ' + o.probability + '% by ' + esc(String(o.deadline).slice(0, 10)) + '</li>'; }).join('') + '</ul>';
+  document.getElementById('cbBody').innerHTML = h;
+  document.getElementById('cbTools').style.display = '';
+  cbMsg('');
+}
+(function(){
+  var tri = document.querySelector('h1 .tri'), taps = [];
+  if(!tri) return;
+  tri.addEventListener('click', function(){
+    var t = Date.now();
+    taps = taps.filter(function(x){ return t - x < 1500; }).concat([t]);
+    if(taps.length < 3) return;
+    taps = [];
+    var band = document.getElementById('cbBand');
+    if(band.hidden) cbShow();
+    else { band.hidden = true; if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
+  });
+  document.getElementById('cbHide').onclick = function(){ document.getElementById('cbBand').hidden = true; };
+  document.getElementById('cbRead').onclick = function(){
+    if(!window.BRIEFME || !CB.ball) return;
+    BRIEFME.read({root:document.getElementById('cbBody'), label:'CRYSTAL BALL', at:CB.ball.at,
+                  title:'Crystal ball: the projected forecast.',
+                  when:new Date(CB.ball.at).toLocaleString('en-US', {weekday:'long', hour:'numeric', minute:'2-digit',
                                                                      timeZone:'America/New_York'}) + ' Eastern'});
   };
 })();
