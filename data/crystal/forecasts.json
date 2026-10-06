@@ -1,144 +1,130 @@
 [
  {
   "id": "2026-10-06-1",
-  "made": "2026-10-06T01:53:09Z",
+  "made": "2026-10-06T18:37:38Z",
   "horizon": "24h",
-  "deadline": "2026-10-07T01:53:09Z",
+  "deadline": "2026-10-07T18:37:38Z",
   "region": "Middle East",
-  "event": "UKMTO issues at least one new advisory for a fifth tanker strike or near-miss in the Strait of Hormuz",
+  "event": "UKMTO or gCaptain reports at least one additional unknown-projectile strike on a tanker in the Strait of Hormuz",
   "probability": 65,
   "term": "likely",
   "basis": [
-   "three or four prior incidents in 48 hours",
-   "UKMTO-linked observer reports"
+   "three prior incidents in ~48 hours",
+   "IRGC interference claims in OSINT chatter"
   ],
-  "watch_for": "next gCaptain or shipping X post confirming fresh hit",
-  "wrong_if": "no new incident reported by 06 Oct 2026 2359 UTC"
+  "watch_for": "new UKMTO advisory or satellite imagery post",
+  "wrong_if": "no new strike reports by 07 Oct 18:00 UTC"
  },
  {
   "id": "2026-10-06-2",
-  "made": "2026-10-06T01:53:09Z",
-  "horizon": "24h",
-  "deadline": "2026-10-07T01:53:09Z",
-  "region": "Ukraine",
-  "event": "Ukrainian sources release satellite or drone imagery of at least one additional Russian airbase strike beyond Khanskaya",
-  "probability": 40,
-  "term": "unlikely",
-  "basis": [
-   "SBU Alpha pattern on Su-35/Su-34",
-   "ongoing tit-for-tat escalation"
-  ],
-  "watch_for": "Ukrainska Pravda or Militarnyi post with new imagery",
-  "wrong_if": "no new base strike imagery released by 06 Oct 2026 2359 UTC"
- },
- {
-  "id": "2026-10-06-3",
-  "made": "2026-10-06T01:53:09Z",
+  "made": "2026-10-06T18:37:38Z",
   "horizon": "72h",
-  "deadline": "2026-10-09T01:53:09Z",
+  "deadline": "2026-10-09T18:37:38Z",
   "region": "Middle East",
-  "event": "Houthi forces publicly claim and show evidence of a missile or drone strike on Saudi-backed positions near Dhubab or Bab el-Mandeb",
+  "event": "Houthi forces claim at least one ballistic-missile strike on a Saudi target with reported casualties",
   "probability": 55,
   "term": "roughly even chance",
   "basis": [
-   "Houthis retain inland reach",
-   "threats of retaliation after losses"
+   "Abha airport claim already made",
+   "ongoing Saudi-backed coastal advances"
   ],
-  "watch_for": "Houthi statement or video on X or Telegram",
-  "wrong_if": "no verified Houthi claim or strike evidence by 08 Oct 2026 2359 UTC"
+  "watch_for": "Houthi Telegram or media statement",
+  "wrong_if": "no new Houthi ballistic-missile claims by 09 Oct 18:00 UTC"
  },
  {
-  "id": "2026-10-06-4",
-  "made": "2026-10-06T01:53:09Z",
+  "id": "2026-10-06-3",
+  "made": "2026-10-06T18:37:38Z",
   "horizon": "72h",
-  "deadline": "2026-10-09T01:53:09Z",
-  "region": "Africa",
-  "event": "Eritrean government issues statement accusing Ethiopia of border violations or airstrikes near Tigray",
-  "probability": 35,
-  "term": "unlikely",
-  "basis": [
-   "post-Mekelle strikes northwest of capital",
-   "risk of wider Horn spillover"
-  ],
-  "watch_for": "Asmara foreign ministry or state media release",
-  "wrong_if": "no Eritrean accusation by 08 Oct 2026 2359 UTC"
- },
- {
-  "id": "2026-10-06-5",
-  "made": "2026-10-06T01:53:09Z",
-  "horizon": "72h",
-  "deadline": "2026-10-09T01:53:09Z",
+  "deadline": "2026-10-09T18:37:38Z",
   "region": "Ukraine",
-  "event": "Russian forces strike Kyiv's Northern Bridge for a fifth consecutive day",
+  "event": "Ukrainian General Staff or Kyiv Independent reports at least one new long-range drone or missile strike on a Russian air base or oil facility",
   "probability": 70,
   "term": "likely",
   "basis": [
-   "four prior consecutive days confirmed"
+   "recent hits on Volodarsk and Khanskaya confirmed",
+   "reciprocal strike pattern ongoing"
   ],
-  "watch_for": "Kyiv Independent or local X reports of new drone activity",
-  "wrong_if": "no strike reported on 06 or 07 Oct 2026"
+  "watch_for": "Ukrainian General Staff release or Russian MoD denial",
+  "wrong_if": "no new Ukrainian deep-strike claims by 09 Oct 18:00 UTC"
+ },
+ {
+  "id": "2026-10-06-4",
+  "made": "2026-10-06T18:37:38Z",
+  "horizon": "7d",
+  "deadline": "2026-10-13T18:37:38Z",
+  "region": "Black Sea",
+  "event": "At least two additional commercial vessels damaged or sunk by drone strikes off Bulgaria or Romania",
+  "probability": 45,
+  "term": "unlikely",
+  "basis": [
+   "Alfa Watan and prior incidents already reported",
+   "escalating hybrid maritime attacks noted"
+  ],
+  "watch_for": "new maritime incident reports or crew-missing alerts",
+  "wrong_if": "zero new Black Sea commercial-vessel strikes by 13 Oct 18:00 UTC"
+ },
+ {
+  "id": "2026-10-06-5",
+  "made": "2026-10-06T18:37:38Z",
+  "horizon": "7d",
+  "deadline": "2026-10-13T18:37:38Z",
+  "region": "Ethiopia",
+  "event": "Reuters or Addis/Asmara statements confirm Eritrean military involvement in northern Tigray clashes",
+  "probability": 40,
+  "term": "unlikely",
+  "basis": [
+   "TPLF guerrilla-shift debate in local accounts",
+   "renewed northern clashes already occurring"
+  ],
+  "watch_for": "first Eritrean or Ethiopian federal statement naming Asmara forces",
+  "wrong_if": "no Eritrean involvement confirmed by 13 Oct 18:00 UTC"
  },
  {
   "id": "2026-10-06-6",
-  "made": "2026-10-06T01:53:09Z",
-  "horizon": "7d",
-  "deadline": "2026-10-13T01:53:09Z",
-  "region": "Middle East",
-  "event": "At least two additional Hormuz tanker incidents trigger a 15%+ spike in regional war-risk insurance premiums",
-  "probability": 50,
-  "term": "roughly even chance",
+  "made": "2026-10-06T18:37:38Z",
+  "horizon": "24h",
+  "deadline": "2026-10-07T18:37:38Z",
+  "region": "Taiwan",
+  "event": "Taiwan MND reports 25 or more PLA aircraft sorties with 15+ median-line crossings in a single day",
+  "probability": 20,
+  "term": "very unlikely",
   "basis": [
-   "accelerating rerouting already noted",
-   "multiple strikes in short window"
+   "current tempo at 14 sorties/9 crossings",
+   "below-norm activity sustained"
   ],
-  "watch_for": "Lloyd's or broker advisory on rate changes",
-  "wrong_if": "no premium spike reported by 13 Oct 2026"
+  "watch_for": "Taiwan MND daily summary spike",
+  "wrong_if": "no sortie surge above 20 by 07 Oct 18:00 UTC"
  },
  {
   "id": "2026-10-06-7",
-  "made": "2026-10-06T01:53:09Z",
-  "horizon": "7d",
-  "deadline": "2026-10-13T01:53:09Z",
+  "made": "2026-10-06T18:37:38Z",
+  "horizon": "72h",
+  "deadline": "2026-10-09T18:37:38Z",
   "region": "Cyber",
-  "event": "CISA or equivalent adds at least one new critical infrastructure victim of SharePoint CVE-2026-65660 exploitation",
-  "probability": 60,
-  "term": "likely",
+  "event": "CISA or utility operator reports at least one confirmed operational disruption from SharePoint CVE-2026-65660 exploitation",
+  "probability": 35,
+  "term": "unlikely",
   "basis": [
-   "active Warlock actor targeting of water/telecom"
+   "active exploitation against critical infrastructure flagged",
+   "patch lag on exposed on-prem instances"
   ],
-  "watch_for": "CISA KEV update or utility outage report",
-  "wrong_if": "no new confirmed victim by 13 Oct 2026"
+  "watch_for": "CISA KEV update or utility outage notice",
+  "wrong_if": "no confirmed CVE-linked disruption by 09 Oct 18:00 UTC"
  },
  {
   "id": "2026-10-06-8",
-  "made": "2026-10-06T01:53:09Z",
+  "made": "2026-10-06T18:37:38Z",
   "horizon": "7d",
-  "deadline": "2026-10-13T01:53:09Z",
-  "region": "Africa",
-  "event": "TPLF leadership publicly claims ongoing control of territory outside Mekelle or launches counter-attack",
-  "probability": 30,
-  "term": "unlikely",
+  "deadline": "2026-10-13T18:37:38Z",
+  "region": "Poland",
+  "event": "Polish MOD announces operational status for the new Patriot battery in Lublin region",
+  "probability": 50,
+  "term": "roughly even chance",
   "basis": [
-   "withdrawal from capital but strikes persist",
-   "limited independent verification"
+   "deployment decision already made",
+   "eastern-flank reinforcement pattern"
   ],
-  "watch_for": "TPLF statement or Reuters confirmation",
-  "wrong_if": "no TPLF claim or counter-attack by 13 Oct 2026"
- },
- {
-  "id": "2026-10-06-9",
-  "made": "2026-10-06T01:53:09Z",
-  "horizon": "7d",
-  "deadline": "2026-10-13T01:53:09Z",
-  "region": "Indo-Pacific",
-  "event": "Taiwan MND reports a single-day total of 9 or more PLA aircraft crossing the median line",
-  "probability": 25,
-  "term": "unlikely",
-  "basis": [
-   "September totals below norms",
-   "no surge signal yet"
-  ],
-  "watch_for": "Taiwan MND daily report",
-  "wrong_if": "no day exceeds 8 crossings by 13 Oct 2026"
+  "watch_for": "Polish MOD readiness statement",
+  "wrong_if": "no operational-status announcement by 13 Oct 18:00 UTC"
  }
 ]
