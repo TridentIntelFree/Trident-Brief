@@ -13,7 +13,10 @@
    "IRGC interference claims in OSINT chatter"
   ],
   "watch_for": "new UKMTO advisory or satellite imagery post",
-  "wrong_if": "no new strike reports by 07 Oct 18:00 UTC"
+  "wrong_if": "no new strike reports by 07 Oct 18:00 UTC",
+  "outcome": "happened",
+  "resolved": "2026-10-07T23:59:23Z",
+  "evidence": "Hormuz tanker attacks reached highest weekly level since Iran conflict began, per multiple maritime reports"
  },
  {
   "id": "2026-10-06-2",
@@ -132,130 +135,131 @@
  },
  {
   "id": "2026-10-07-1",
-  "made": "2026-10-07T19:04:56Z",
+  "made": "2026-10-07T23:59:23Z",
   "horizon": "24h",
-  "deadline": "2026-10-08T19:04:56Z",
+  "deadline": "2026-10-08T23:59:23Z",
   "region": "Ukraine",
-  "event": "Ukrainian General Staff or Russian MoD confirms at least one new long-range strike on a Russian energy facility or airbase",
-  "probability": 65,
-  "term": "likely",
+  "event": "UKMTO or gCaptain reports at least one additional unknown-projectile strike on a commercial vessel in the Black Sea EEZ",
+  "probability": 45,
+  "term": "unlikely",
   "basis": [
-   "Samara oil facility blaze already reported",
-   "ongoing Ukrainian drone claims in Telegram channels"
+   "ongoing drone attacks on Alfa Watan and Able",
+   "Bulgarian search termination"
   ],
-  "watch_for": "Russian MoD Telegram post on intercepted drones or fires",
-  "wrong_if": "No new Russian energy or airbase damage claims in next 24h"
+  "watch_for": "first UKMTO or Bulgarian maritime authority notice",
+  "wrong_if": "no new vessel incident reported by 08 Oct 23:59 UTC"
  },
  {
   "id": "2026-10-07-2",
-  "made": "2026-10-07T19:04:56Z",
+  "made": "2026-10-07T23:59:23Z",
   "horizon": "24h",
-  "deadline": "2026-10-08T19:04:56Z",
+  "deadline": "2026-10-08T23:59:23Z",
   "region": "Middle East",
-  "event": "UKMTO or gCaptain reports at least one new tanker strike or boarding attempt in Strait of Hormuz",
-  "probability": 55,
-  "term": "roughly even chance",
-  "basis": [
-   "attacks already at record weekly levels",
-   "multiple maritime advisories active"
-  ],
-  "watch_for": "new UKMTO alert or vessel AIS anomaly",
-  "wrong_if": "No new Hormuz incident reported by 08 Oct 19:00 UTC"
- },
- {
-  "id": "2026-10-07-3",
-  "made": "2026-10-07T19:04:56Z",
-  "horizon": "72h",
-  "deadline": "2026-10-10T19:04:56Z",
-  "region": "Middle East",
-  "event": "Saudi MoD or Houthi statement confirms successful ballistic missile impact on Saudi airport or oil facility",
-  "probability": 40,
-  "term": "unlikely",
-  "basis": [
-   "recent Houthi launches toward Abha, Khamis Mushait, Riyadh",
-   "intensified fighting near Bab el-Mandeb"
-  ],
-  "watch_for": "Saudi MoD interception failure report or Houthi claim of hit",
-  "wrong_if": "All Houthi missiles intercepted with no confirmed ground impact by 10 Oct"
- },
- {
-  "id": "2026-10-07-4",
-  "made": "2026-10-07T19:04:56Z",
-  "horizon": "72h",
-  "deadline": "2026-10-10T19:04:56Z",
-  "region": "Africa",
-  "event": "Ethiopian federal or TPLF statement acknowledges Eritrean troop deployment in Tigray",
+  "event": "Houthi ballistic missile or drone achieves confirmed hit on Saudi airport or oil facility",
   "probability": 35,
   "term": "unlikely",
   "basis": [
-   "local witness reports of Eritrean presence near Adigrat",
-   "no major announcement yet"
+   "record Hormuz attacks",
+   "recent strikes on Abha and Riyadh area"
   ],
-  "watch_for": "official Ethiopian statement or TPLF denial",
-  "wrong_if": "No Eritrean involvement statement from either side by 10 Oct"
+  "watch_for": "Saudi MoD or Houthi statement claiming impact",
+  "wrong_if": "all incoming projectiles intercepted with no confirmed damage"
+ },
+ {
+  "id": "2026-10-07-3",
+  "made": "2026-10-07T23:59:23Z",
+  "horizon": "24h",
+  "deadline": "2026-10-08T23:59:23Z",
+  "region": "Ukraine",
+  "event": "Ukrainian General Staff confirms long-range strike on Russian energy target beyond Samara",
+  "probability": 55,
+  "term": "roughly even chance",
+  "basis": [
+   "Samara oil facility blaze",
+   "pattern of rear-area effects"
+  ],
+  "watch_for": "Russian MoD or milblogger footage of new fire",
+  "wrong_if": "no new Russian energy facility incident confirmed"
+ },
+ {
+  "id": "2026-10-07-4",
+  "made": "2026-10-07T23:59:23Z",
+  "horizon": "72h",
+  "deadline": "2026-10-10T23:59:23Z",
+  "region": "Middle East",
+  "event": "Saudi-backed forces announce capture of additional territory within 20 km of Bab el-Mandeb",
+  "probability": 40,
+  "term": "unlikely",
+  "basis": [
+   "intensified fighting",
+   "recent territorial gains"
+  ],
+  "watch_for": "coalition statement or Houthi counter-claim",
+  "wrong_if": "front line static with no new gains claimed"
  },
  {
   "id": "2026-10-07-5",
-  "made": "2026-10-07T19:04:56Z",
+  "made": "2026-10-07T23:59:23Z",
   "horizon": "72h",
-  "deadline": "2026-10-10T19:04:56Z",
-  "region": "Black Sea",
-  "event": "Bulgarian or UKMTO report confirms additional vessel struck by drone in Black Sea EEZ",
+  "deadline": "2026-10-10T23:59:23Z",
+  "region": "Africa",
+  "event": "Ethiopian federal or TPLF issues public statement on Eritrean troop numbers in Tigray",
   "probability": 30,
   "term": "unlikely",
   "basis": [
-   "Alfa Watan search ended, Able still at risk",
-   "recent drone attack pattern"
+   "witness reports from Adigrat/Wekro",
+   "no announcement yet"
   ],
-  "watch_for": "new Bulgarian maritime authority notice",
-  "wrong_if": "No new Black Sea vessel incident by 10 Oct"
+  "watch_for": "official Ethiopian or Tigray statement",
+  "wrong_if": "no statement issued by 10 Oct 23:59 UTC"
  },
  {
   "id": "2026-10-07-6",
-  "made": "2026-10-07T19:04:56Z",
-  "horizon": "7d",
-  "deadline": "2026-10-14T19:04:56Z",
-  "region": "Ukraine",
-  "event": "Kyiv reports power or water outages affecting at least three additional oblasts beyond current disruptions",
-  "probability": 60,
-  "term": "likely",
-  "basis": [
-   "ongoing Russian energy infrastructure strikes",
-   "recent Kyiv outages"
-  ],
-  "watch_for": "Ukrenergo or local oblast emergency declarations",
-  "wrong_if": "No expansion of reported outages by 14 Oct"
- },
- {
-  "id": "2026-10-07-7",
-  "made": "2026-10-07T19:04:56Z",
-  "horizon": "7d",
-  "deadline": "2026-10-14T19:04:56Z",
+  "made": "2026-10-07T23:59:23Z",
+  "horizon": "72h",
+  "deadline": "2026-10-10T23:59:23Z",
   "region": "Indo-Pacific",
-  "event": "Taiwan MND reports a single day with 25+ PLA aircraft sorties and 15+ median-line crossings",
+  "event": "Taiwan MND reports single-day PLA total exceeding 25 aircraft sorties",
   "probability": 25,
   "term": "unlikely",
   "basis": [
-   "current tempo at 14 sorties/9 crossings",
-   "National Day period ending"
+   "recent 14-sortie day",
+   "suppressed tempo"
   ],
-  "watch_for": "Taiwan MND daily summary exceeding threshold",
-  "wrong_if": "No day reaches 25 sorties by 14 Oct"
+  "watch_for": "Taiwan MND daily tally",
+  "wrong_if": "no day exceeds 20 sorties"
+ },
+ {
+  "id": "2026-10-07-7",
+  "made": "2026-10-07T23:59:23Z",
+  "horizon": "7d",
+  "deadline": "2026-10-14T23:59:23Z",
+  "region": "Ukraine",
+  "event": "Russian strikes cause cumulative >100 civilian casualties across multiple cities",
+  "probability": 60,
+  "term": "likely",
+  "basis": [
+   "Pryluky 19 dead",
+   "Kremenchuk 47 injured",
+   "ongoing barrages"
+  ],
+  "watch_for": "Ukrainska Pravda or Kyiv Independent cumulative toll",
+  "wrong_if": "weekly civilian toll remains below 80"
  },
  {
   "id": "2026-10-07-8",
-  "made": "2026-10-07T19:04:56Z",
+  "made": "2026-10-07T23:59:23Z",
   "horizon": "7d",
-  "deadline": "2026-10-14T19:04:56Z",
+  "deadline": "2026-10-14T23:59:23Z",
   "region": "Middle East",
-  "event": "Pakistan or Turkey announces troop deployment to Saudi Arabia in response to Houthi attacks",
-  "probability": 20,
-  "term": "very unlikely",
+  "event": "Insurance premium advisory for Hormuz or Bab el-Mandeb transits rises by at least 15 percent",
+  "probability": 65,
+  "term": "likely",
   "basis": [
-   "earlier reports of agreement to deploy",
-   "escalating Houthi strikes"
+   "record weekly tanker attacks",
+   "dual chokepoint pressure"
   ],
-  "watch_for": "official Ankara or Islamabad statement",
-  "wrong_if": "No deployment announcement by 14 Oct"
+  "watch_for": "first maritime insurer or gCaptain advisory",
+  "wrong_if": "no premium increase announced"
  }
 ]
