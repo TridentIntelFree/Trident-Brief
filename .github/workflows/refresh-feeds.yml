@@ -6,7 +6,9 @@ name: Refresh Live Feeds
 # free on a public repository.
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    # Off the :00/:30 marks, when most of GitHub's scheduled jobs (and the
+    # sources' other visitors) arrive at once.
+    - cron: '11,41 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -32,6 +34,13 @@ jobs:
           python-version: '3.10'
 
       - run: pip install requests websockets
+
+      # China MSA articles already read, so each is fetched and translated once
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: feeds-cache-${{ github.run_id }}
+          restore-keys: feeds-cache-
 
       - name: Refresh feeds
         env:

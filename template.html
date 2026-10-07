@@ -796,7 +796,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     <div class="sigint">MULTI-INT FUSION | SIGINT + HUMINT + OSINT-WEB + CHATTER MONITORING</div>
     <div class="pills">
       <span class="pill"><span class="dot live" id="freshDot"></span><b id="freshAge">--</b>&nbsp;since collection</span>
-      <span class="pill" title="scheduled 11:00 and 23:00 UTC; GitHub can start a scheduled run late">NEXT COLLECTION <b id="nextRun">--</b></span>
+      <span class="pill" title="scheduled 11:04 and 23:04 UTC; GitHub can start a scheduled run late">NEXT COLLECTION <b id="nextRun">--</b></span>
       <span class="pill" id="stalePill" style="display:none"></span>
       <a class="pill" href="#godseye" style="text-decoration:none"><span class="dot live"></span>GOD'S EYE FEEDS</a>
       <a class="pill" href="#eventBand" style="text-decoration:none">EVENT BOARD <b id="pillEvents">0</b></a>
@@ -1756,10 +1756,10 @@ function terrainAttrs(c){
     var dot = document.getElementById('freshDot');
     // collections are twice a day, so a brief over 14h old has missed one
     dot.className = 'dot live' + (mins > 1560 ? ' dead' : (mins > 840 ? ' stale' : ''));
-    // scheduled at 11:00 and 23:00 UTC; this used to count down to 11:00 only
+    // scheduled at 11:04 and 23:04 UTC, off the hour
     var now = new Date(), next = null;
     [11, 23, 35].forEach(function(h){
-      var t = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), h, 0, 0));
+      var t = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), h, 4, 0));
       if(!next && t > now) next = t;
     });
     var left = Math.floor((next - now)/60000);

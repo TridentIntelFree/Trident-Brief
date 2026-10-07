@@ -313,7 +313,7 @@ quarter of what a desktop does for the same view.
 | `index.html` | Build artifact — regenerated on every deploy, not hand-edited |
 | `latest-brief.json` | Last successful brief, used as the cache fallback |
 | `archive/` | Prior briefs plus a generated `index.json` the page reads |
-| `.github/workflows/generate-brief.yml` | Daily schedule at 11:00 UTC, plus manual dispatch |
+| `.github/workflows/generate-brief.yml` | Twice daily at 11:04 and 23:04 UTC, plus manual dispatch |
 
 ## Versions
 

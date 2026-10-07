@@ -2,7 +2,7 @@ name: Daily Trident Brief AI Update
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # Every day at 00:00 UTC
+    - cron: '3 0 * * *'   # Every day at 00:03 UTC, off the hour
 
   workflow_dispatch:      # Lets you test manually too
 
