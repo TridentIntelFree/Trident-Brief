@@ -554,7 +554,7 @@ CLASSIFICATION TAGS:
                          you report such material; it does not require corroboration
                          before you may use it, only labelling. Reporting an
                          uncorroborated claim as uncorroborated is not a rule breach.
-[OSINT - SOCIAL]         What is circulating on X, Reddit or Telegram, reported as
+[OSINT - SOCIAL]         What is circulating on X or Telegram, reported as
                          circulation: who is posting, how widely, organic or pushed
 [OSINT - CONFIRMED]      Independently corroborated by two or more sources
 [OSINT - WEB]            Named publication, government portal or research institution
@@ -609,14 +609,11 @@ results for a theatre are news accounts restating the headline, that is the find
 report it as no independent chatter FOR THAT THEATRE, naming the query - not as a single
 sentence covering everything at once. "No significant chatter" as one line for the whole
 world is the shape of a step that was skipped, not a search that came back empty.
-Reddit comes to you free: the REDDIT lines in the headlines are the newest posts in
-r/CredibleDefense, r/geopolitics, r/UkraineWarVideoReport and r/LessCredibleDefence.
-Work those. Do not run site:reddit.com web searches - the last several runs spent five
-or six searches each on them and carried no Reddit thread at all. The one exception: a
-major incident with a city or country subreddit of its own, worth one search at most.
+Do not use Reddit: no site:reddit.com searches and no Reddit threads as sources. The
+owner has ruled it out; X, Telegram and the primary feeds cover the same ground.
 
 Report, for each item worth carrying:
-- WHAT is being said, and by whom - name the account or subreddit
+- WHAT is being said, and by whom - name the account or channel
 - HOW WIDELY - rough reach: a few hundred, or everywhere. Say if you cannot tell.
 - WHETHER IT HOLDS UP - corroborated, contradicted, or still open. Where footage or a
   photo is the evidence, say whether anyone has geolocated or dated it.
@@ -2051,28 +2048,13 @@ WIRE_FEEDS = [
     ('Krebs', 'cyber', 'https://krebsonsecurity.com/feed/'),
     ('CISA advisories', 'cyber', 'https://www.cisa.gov/cybersecurity-advisories/all.xml'),
     ('NPR US', 'homeland', 'https://feeds.npr.org/1003/rss.xml'),
-    # One request for all four subreddits: four in parallel drew HTTP 429 on all
-    # but the first. Each post is labelled with its own subreddit from the feed.
-    # If Reddit refuses the runner, the brief says so and moves on -- it is not
-    # worth a paid search per subreddit to get around it.
-    ('Reddit', 'reddit', 'https://www.reddit.com/r/CredibleDefense+geopolitics+'
-                         'UkraineWarVideoReport+LessCredibleDefence/new/.rss?limit=100'),
-    # The signal-monitoring communities need a request of their own: the busy
-    # defence subreddits fill a shared feed's 100 posts within hours, and these
-    # reports are kept for a week. Sent a few seconds after the first so Reddit
-    # does not refuse it as a burst.
-    ('Reddit signals', 'signals', 'https://www.reddit.com/r/uvb76+numbersstations+HFGCS+'
-                                  'shortwave/new/.rss?limit=100'),
+    # Reddit was dropped in 1.15.2 at the owner's request.
     ('Numbers Stations', 'signals', 'https://www.numbers-stations.com/feed/'),
 ]
 # Signals: the people who monitor UVB-76 ("the Buzzer", 4625 kHz) and the US Air
 # Force HFGCS network (8992 / 11175 kHz) around the clock, and post each voice
 # message or burst of Emergency Action Messages as it happens. Their reports are
-# rare, so they are kept for a week instead of the collection window. From the
-# general shortwave community only posts about these stations are kept.
-SIGNAL_SUBS = {'uvb76', 'numbersstations', 'hfgcs'}
-SIGNAL_RE = re.compile(r'uvb[- ]?76|buzzer|4625|mdzhb|hfgcs|\beams?\b|emergency action|sky ?king|'
-                       r'8992|11175|numbers? station|\bs28\b|\bpip\b|squeaky wheel', re.I)
+# rare, so they are kept for a week instead of the collection window.
 SIGNAL_DAYS = 7
 WIRE_KEV = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 WIRE_KEV_PAGE = 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'
@@ -2081,7 +2063,7 @@ WIRE_MAX = 70            # lines handed to the model (~4k tokens, a fraction of 
 WIRE_DESKS = [('europe', 'EUROPE / RUSSIA-UKRAINE'), ('mideast', 'MIDDLE EAST'),
               ('indopac', 'INDO-PACIFIC'), ('africa', 'AFRICA'), ('world', 'WORLD DESKS'),
               ('defense', 'DEFENCE'), ('maritime', 'MARITIME'), ('space', 'SPACE'),
-              ('cyber', 'CYBER'), ('homeland', 'US HOMELAND'), ('reddit', 'REDDIT'),
+              ('cyber', 'CYBER'), ('homeland', 'US HOMELAND'),
               ('signals', 'SIGNALS (UVB-76 / HFGCS MONITORS)')]
 _TAG = re.compile(r'<[^>]+>')
 _WORD = re.compile(r'[a-z0-9]+')
@@ -2151,23 +2133,12 @@ def parse_feed(xml_bytes):
 def _wire_one(label, url, since, keep_since=None):
     hdrs = {'User-Agent': 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)',
             'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml'}
-    # Reddit tends to answer only the first of two requests from a runner, so
-    # the half-hourly feed refreshes take turns over which goes first; the
-    # brief's own collection always puts the defence subreddits first.
-    now = datetime.now(timezone.utc)
-    signals_first = '--feeds-only' in sys.argv and (now.hour*2 + now.minute//30) % 2 == 1
-    if label == ('Reddit' if signals_first else 'Reddit signals'):
-        time.sleep(20)                # after the other Reddit request, not with it
     r = requests.get(url, timeout=12, headers=hdrs)
-    if r.status_code == 429 and label.startswith('Reddit'):
-        time.sleep(30)
-        r = requests.get(url, timeout=12, headers=hdrs)
     if r.status_code != 200:
         raise RuntimeError(f'HTTP {r.status_code}')
     items = [i for i in parse_feed(r.content) if i['time'] and i['time'] >= (keep_since or since)]
     items.sort(key=lambda i: i['time'], reverse=True)
-    # The combined subreddit feed is several feeds in one, so it gets more room.
-    return items[:WIRE_PER_FEED * (8 if label.startswith('Reddit') else 1)]
+    return items[:WIRE_PER_FEED]
 
 
 def _wire_kev(since_days=3):
@@ -2191,10 +2162,9 @@ def _wire_key(title):
 def signals_carry(fresh):
     """A week of monitor reports, kept from run to run.
 
-    Reddit often refuses a second request from GitHub's shared runners, so any
-    one run may get nothing from the signal subreddits. The week so far is
-    read back from the copy deployed with the live site, this run's reports
-    are added, and the result is written for the next run to read.
+    A monitor feed can be down on any one run. The week so far is read back
+    from the copy deployed with the live site, this run's reports are added,
+    and the result is written for the next run to read.
     """
     now = datetime.now(timezone.utc)
     cut = now - timedelta(days=SIGNAL_DAYS)
@@ -2207,7 +2177,7 @@ def signals_carry(fresh):
                     t = datetime.strptime(o['at'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
                 except Exception:
                     continue
-                if t >= cut and re.match(r'https?://', o.get('u', '')):
+                if t >= cut and re.match(r'https?://', o.get('u', '')) and 'reddit.com' not in o['u']:
                     by[o['u']] = {'title': o['t'], 'url': o['u'], 'time': t, 'summary': '',
                                   'src': list(o.get('s') or []), 'desk': 'signals'}
     except Exception as e:
@@ -2252,12 +2222,7 @@ def fetch_wire(hours):
                 continue
             detail[label] = len(items)
             for i in items:
-                src = f"r/{i['cat']}" if label.startswith('Reddit') and i.get('cat') else label
-                if label == 'Reddit signals':
-                    sub = (i.get('cat') or '').lower()
-                    if not (sub in SIGNAL_SUBS or SIGNAL_RE.search(i['title'])):
-                        continue              # general shortwave chatter
-                i.update(src=[src], desk=desk)
+                i.update(src=[label], desk=desk)
                 got.append(i)
     try:
         kev = _wire_kev()
@@ -2281,9 +2246,9 @@ def fetch_wire(hours):
     for i in got:
         k = _wire_key(i['title'])
         hit = None
-        if i['desk'] != 'reddit' and len(k) >= 4:
+        if len(k) >= 4:
             for m in merged:
-                if m['desk'] != 'reddit' and len(k & m['key']) / max(1, len(k | m['key'])) >= 0.5:
+                if len(k & m['key']) / max(1, len(k | m['key'])) >= 0.5:
                     hit = m
                     break
         if hit:
@@ -2308,7 +2273,7 @@ def wire_for_page(items, cap=160):
         r = {'s': i['src'], 'd': i['desk'], 't': i['title'], 'u': i['url']}
         if i['time']:
             r['at'] = i['time'].strftime('%Y-%m-%dT%H:%M:%SZ')
-        if i.get('summary') and i['desk'] != 'reddit':
+        if i.get('summary'):
             r['m'] = i['summary']
         out.append(r)
     return out
@@ -2341,7 +2306,7 @@ def wire_lines(items, cap=WIRE_MAX):
         for i in keep[d]:
             when = i['time'].strftime('%d %b %H:%MZ') if i['time'] else ''
             src = ', '.join(i['src'])
-            summ = f" -- {i['summary']}" if i['summary'] and i['desk'] != 'reddit' else ''
+            summ = f" -- {i['summary']}" if i['summary'] else ''
             title = i['title'].replace('[', '(').replace(']', ')')
             out.append(f"- {src}{' (' + when + ')' if when else ''}: [{title}]({i['url']}){summ}")
     return out
@@ -2753,7 +2718,6 @@ def leads_block(leads, hours):
     if wire:
         detail = leads.get('wire_detail') or {}
         down = [k for k, v in detail.items() if isinstance(v, str)]
-        reddit_ok = isinstance(detail.get('Reddit'), int)
         out += [f'HEADLINES - last {hours}h, read from the outlets\' own feeds by the pipeline, free:',
                 *wire_lines(wire),
                 '',
@@ -2769,10 +2733,6 @@ def leads_block(leads, hours):
                 'This list is the web half of the sweep, already done. Do not spend a web_search',
                 'finding a story that is here; spend it on detail, confirmation, or a lead with no',
                 'headline.' + (f' Feeds that failed this run: {", ".join(down)}.' if down else ''),
-                ('REDDIT lines are the newest posts in those subreddits: titles only, unverified,'
-                 ' tagged [OSINT - SOCIAL] if carried.' if reddit_ok else
-                 'Reddit refused the pipeline this run. Say so in one line in Section 1; do not'
-                 ' spend searches working around it.'),
                 '']
     out += osint_lines(leads.get('osint'))
     if not (nw or gd):
@@ -3649,19 +3609,17 @@ def brief_quality(content, prior_n=0):
     urls = re.findall(r'\((https?://[^)\s]+)\)', content)
     def hits(*needles):
         return sum(1 for u in urls if any(n in u.lower() for n in needles))
-    social = {'x': hits('x.com/', 'twitter.com/'), 'reddit': hits('reddit.com'),
-              'telegram': hits('t.me/', 'telegram.')}
+    social = {'x': hits('x.com/', 'twitter.com/'), 'telegram': hits('t.me/', 'telegram.')}
     # Aggregators the tasking bans outright; seeing one means an item was cited to
     # a route rather than a source, and it has happened twice.
     aggregators = hits('wikipedia.org', 'news.google.', 'flipboard.', 'msn.com/')
     web_only = bool(reported) and bool(tags) and set(tags) == {'OSINT - WEB'}
-    print(f"  sources: {len(urls)} citations - X {social['x']}, Reddit {social['reddit']}, "
-          f"Telegram {social['telegram']} | tags: " +
+    print(f"  sources: {len(urls)} citations - X {social['x']}, Telegram {social['telegram']} | tags: " +
           (', '.join(f'{k} x{v}' for k, v in sorted(tags.items())) or 'none'))
-    if web_only or (reported and not social['x'] and not social['reddit']):
+    if web_only or (reported and not social['x']):
         print("  WARNING: no social sourcing in this brief - x_search appears unused")
-    if reported and not social['reddit']:
-        print("  note: no Reddit sourcing (Reddit now comes from the headline feeds, when reachable)")
+    if hits('reddit.com'):
+        print(f"  WARNING: {hits('reddit.com')} Reddit citation(s), which the owner has ruled out")
     # One link on several different items means the citations were numbered or
     # copied, not attached: the reader follows it and finds another story.
     reused = {u: n for u, n in ((u, urls.count(u)) for u in set(urls)) if n > 2}

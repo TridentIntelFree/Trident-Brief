@@ -22,7 +22,7 @@ GDELT armed-conflict hotspots. Each run also
 scores the previous brief's indicators and warnings against what happened.
 
 It also reads about 25 outlets' own RSS feeds (world desks, theatre outlets,
-defence, maritime, space, cyber, US homeland, and four defence subreddits) plus
+defence, maritime, space, cyber, US homeland; no Reddit, by choice) plus
 CISA's Known Exploited Vulnerabilities list, and hands the model the headlines
 from the collection window. Those cost nothing, so the model's paid searches go
 to X and to detail rather than to finding stories a feed already had.
