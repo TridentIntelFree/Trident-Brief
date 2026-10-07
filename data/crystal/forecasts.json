@@ -93,7 +93,10 @@
    "below-norm activity sustained"
   ],
   "watch_for": "Taiwan MND daily summary spike",
-  "wrong_if": "no sortie surge above 20 by 07 Oct 18:00 UTC"
+  "wrong_if": "no sortie surge above 20 by 07 Oct 18:00 UTC",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-07T19:04:56Z",
+  "evidence": "Taiwan MND reported only 14 sorties and 9 crossings on 07 Oct"
  },
  {
   "id": "2026-10-06-7",
@@ -126,5 +129,133 @@
   ],
   "watch_for": "Polish MOD readiness statement",
   "wrong_if": "no operational-status announcement by 13 Oct 18:00 UTC"
+ },
+ {
+  "id": "2026-10-07-1",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "24h",
+  "deadline": "2026-10-08T19:04:56Z",
+  "region": "Ukraine",
+  "event": "Ukrainian General Staff or Russian MoD confirms at least one new long-range strike on a Russian energy facility or airbase",
+  "probability": 65,
+  "term": "likely",
+  "basis": [
+   "Samara oil facility blaze already reported",
+   "ongoing Ukrainian drone claims in Telegram channels"
+  ],
+  "watch_for": "Russian MoD Telegram post on intercepted drones or fires",
+  "wrong_if": "No new Russian energy or airbase damage claims in next 24h"
+ },
+ {
+  "id": "2026-10-07-2",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "24h",
+  "deadline": "2026-10-08T19:04:56Z",
+  "region": "Middle East",
+  "event": "UKMTO or gCaptain reports at least one new tanker strike or boarding attempt in Strait of Hormuz",
+  "probability": 55,
+  "term": "roughly even chance",
+  "basis": [
+   "attacks already at record weekly levels",
+   "multiple maritime advisories active"
+  ],
+  "watch_for": "new UKMTO alert or vessel AIS anomaly",
+  "wrong_if": "No new Hormuz incident reported by 08 Oct 19:00 UTC"
+ },
+ {
+  "id": "2026-10-07-3",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "72h",
+  "deadline": "2026-10-10T19:04:56Z",
+  "region": "Middle East",
+  "event": "Saudi MoD or Houthi statement confirms successful ballistic missile impact on Saudi airport or oil facility",
+  "probability": 40,
+  "term": "unlikely",
+  "basis": [
+   "recent Houthi launches toward Abha, Khamis Mushait, Riyadh",
+   "intensified fighting near Bab el-Mandeb"
+  ],
+  "watch_for": "Saudi MoD interception failure report or Houthi claim of hit",
+  "wrong_if": "All Houthi missiles intercepted with no confirmed ground impact by 10 Oct"
+ },
+ {
+  "id": "2026-10-07-4",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "72h",
+  "deadline": "2026-10-10T19:04:56Z",
+  "region": "Africa",
+  "event": "Ethiopian federal or TPLF statement acknowledges Eritrean troop deployment in Tigray",
+  "probability": 35,
+  "term": "unlikely",
+  "basis": [
+   "local witness reports of Eritrean presence near Adigrat",
+   "no major announcement yet"
+  ],
+  "watch_for": "official Ethiopian statement or TPLF denial",
+  "wrong_if": "No Eritrean involvement statement from either side by 10 Oct"
+ },
+ {
+  "id": "2026-10-07-5",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "72h",
+  "deadline": "2026-10-10T19:04:56Z",
+  "region": "Black Sea",
+  "event": "Bulgarian or UKMTO report confirms additional vessel struck by drone in Black Sea EEZ",
+  "probability": 30,
+  "term": "unlikely",
+  "basis": [
+   "Alfa Watan search ended, Able still at risk",
+   "recent drone attack pattern"
+  ],
+  "watch_for": "new Bulgarian maritime authority notice",
+  "wrong_if": "No new Black Sea vessel incident by 10 Oct"
+ },
+ {
+  "id": "2026-10-07-6",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "7d",
+  "deadline": "2026-10-14T19:04:56Z",
+  "region": "Ukraine",
+  "event": "Kyiv reports power or water outages affecting at least three additional oblasts beyond current disruptions",
+  "probability": 60,
+  "term": "likely",
+  "basis": [
+   "ongoing Russian energy infrastructure strikes",
+   "recent Kyiv outages"
+  ],
+  "watch_for": "Ukrenergo or local oblast emergency declarations",
+  "wrong_if": "No expansion of reported outages by 14 Oct"
+ },
+ {
+  "id": "2026-10-07-7",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "7d",
+  "deadline": "2026-10-14T19:04:56Z",
+  "region": "Indo-Pacific",
+  "event": "Taiwan MND reports a single day with 25+ PLA aircraft sorties and 15+ median-line crossings",
+  "probability": 25,
+  "term": "unlikely",
+  "basis": [
+   "current tempo at 14 sorties/9 crossings",
+   "National Day period ending"
+  ],
+  "watch_for": "Taiwan MND daily summary exceeding threshold",
+  "wrong_if": "No day reaches 25 sorties by 14 Oct"
+ },
+ {
+  "id": "2026-10-07-8",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "7d",
+  "deadline": "2026-10-14T19:04:56Z",
+  "region": "Middle East",
+  "event": "Pakistan or Turkey announces troop deployment to Saudi Arabia in response to Houthi attacks",
+  "probability": 20,
+  "term": "very unlikely",
+  "basis": [
+   "earlier reports of agreement to deploy",
+   "escalating Houthi strikes"
+  ],
+  "watch_for": "official Ankara or Islamabad statement",
+  "wrong_if": "No deployment announcement by 14 Oct"
  }
 ]
