@@ -1633,6 +1633,30 @@ PAGE_HEADERS = {'User-Agent': NAVWARN_BROWSER['User-Agent'],
                 'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8'}
 _MONTHS = 'JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC'.split()
 
+# Every site is asked as this app first, by name. Only a site that refuses that
+# (a 401/403/406/451, or a dropped connection) is asked again as a browser.
+# Each host is decided once a run, and the ones that needed a browser are
+# listed in the log, so it is plain which sites insist on one.
+HONEST_UA = 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'
+UA_NEEDS_BROWSER = {}
+
+
+def polite(method, url, headers, **kw):
+    """requests.request, as TridentBrief first and as the browser in `headers` only if refused."""
+    from urllib.parse import urlparse
+    host = urlparse(url).hostname or url
+    if host not in UA_NEEDS_BROWSER:
+        try:
+            r = requests.request(method, url, headers=dict(headers, **{'User-Agent': HONEST_UA}), **kw)
+            if r.status_code not in (401, 403, 406, 451):
+                return r
+            why = f'HTTP {r.status_code}'
+        except requests.ConnectionError as e:
+            why = type(e).__name__
+        UA_NEEDS_BROWSER[host] = why
+        print(f'  {host} refused the TridentBrief User-Agent ({why}); asking as a browser this run')
+    return requests.request(method, url, headers=headers, **kw)
+
 
 def _nga_stamp(t):
     """A datetime in NGA's notation, which the rest of the pipeline and the page read."""
@@ -1647,7 +1671,7 @@ def _nga_rows(now):
                      (f"{NAVWARN_BASE}&status=active&_={int(now.timestamp())}", NAVWARN_BROWSER)):
         try:
             if hdr:
-                r = requests.get(url, timeout=30, headers=hdr)
+                r = polite('GET', url, hdr, timeout=30)
                 if r.status_code != 200:
                     raise RuntimeError(f'HTTP {r.status_code}')
                 d = r.json()
@@ -1674,7 +1698,7 @@ def _nga_rows(now):
 def _ukho_rows(now):
     """UK Hydrographic Office: NAVAREA I and UK coastal warnings in force, full text on one page."""
     import html as H
-    r = requests.get(UKHO_RNW, timeout=40, headers=PAGE_HEADERS)
+    r = polite('GET', UKHO_RNW, PAGE_HEADERS, timeout=40)
     if r.status_code != 200:
         raise RuntimeError(f'HTTP {r.status_code}')
     t = r.text
@@ -1706,8 +1730,8 @@ def _jcg_rows(now):
     years = [now.year] + ([now.year - 1] if now.timetuple().tm_yday <= NAVWARN_MAX_AGE_DAYS else [])
     members = []
     for y in years:
-        r = requests.post(JCG_LIST, timeout=30, data=f'YEAR={y}&TYPE=NAVAREA11&LANG=EG',
-                          headers=dict(PAGE_HEADERS, **{'Content-Type': 'application/x-www-form-urlencoded'}))
+        r = polite('POST', JCG_LIST, dict(PAGE_HEADERS, **{'Content-Type': 'application/x-www-form-urlencoded'}),
+                   timeout=30, data=f'YEAR={y}&TYPE=NAVAREA11&LANG=EG')
         if r.status_code != 200:
             raise RuntimeError(f'list HTTP {r.status_code}')
         for m in re.finditer(r'<Member>(.*?)</Member>', r.text, re.S):
@@ -1719,7 +1743,7 @@ def _jcg_rows(now):
     rows = []
     for f in want[:40]:
         try:
-            r = requests.get(JCG_TEXT.format(f['tana']), timeout=20, headers=PAGE_HEADERS)
+            r = polite('GET', JCG_TEXT.format(f['tana']), PAGE_HEADERS, timeout=20)
             r.encoding = 'utf-8'
         except Exception:
             continue
@@ -1748,13 +1772,37 @@ def _msa_norm(text):
     return re.sub(r'([NS])(?=\d)', r'\1 ', text)
 
 
+# The articles already read, between runs (the workflows keep .cache/ in the
+# Actions cache), so each warning is fetched and translated once, not every
+# half hour. Only the bureaus' index pages are read every run.
+MSA_CACHE = '.cache/msa_articles.json'
+
+
+def _msa_cache_load():
+    try:
+        with open(MSA_CACHE, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _msa_cache_save(cache, listed):
+    """Keep the articles still listed by a bureau; the rest have aged off."""
+    try:
+        os.makedirs(os.path.dirname(MSA_CACHE), exist_ok=True)
+        with open(MSA_CACHE, 'w', encoding='utf-8') as f:
+            json.dump({u: w for u, w in cache.items() if u in listed}, f, ensure_ascii=False)
+    except Exception as e:
+        print(f'  navwarn: China MSA cache not saved ({str(e)[:60]})')
+
+
 def _msa_rows(now):
     """China Maritime Safety Administration: the coastal bureaus' military warnings,
     machine-translated to English (free; the Chinese text is kept for positions)."""
     found, refused = [], []
     for name, cid in MSA_BUREAUS.items():
         try:
-            r = requests.get(f'https://www.msa.gov.cn/{cid}/index.jhtml', timeout=30, headers=PAGE_HEADERS)
+            r = polite('GET', f'https://www.msa.gov.cn/{cid}/index.jhtml', PAGE_HEADERS, timeout=30)
             if r.status_code != 200:
                 raise RuntimeError(r.status_code)
         except Exception as e:
@@ -1777,10 +1825,14 @@ def _msa_rows(now):
             found.append({'bureau': name, 'u': 'https://www.msa.gov.cn' + href, 'title': title, 'kind': kind,
                           'day': day, 'num': num.group(0) if num else ''})
     found.sort(key=lambda f: f['day'], reverse=True)
-    rows = []
+    cache = _msa_cache_load()
+    rows, new = [], []
     for f in found[:MSA_MAX_ARTICLES]:
+        if f['u'] in cache:                     # a published warning does not change; read it once
+            rows.append(cache[f['u']])
+            continue
         try:
-            r = requests.get(f['u'], timeout=20, headers=PAGE_HEADERS)
+            r = polite('GET', f['u'], PAGE_HEADERS, timeout=20)
         except Exception:
             continue
         t = re.sub(r'<script.*?</script>|<style.*?</style>', ' ', r.content.decode('utf-8', 'ignore'), flags=re.S)
@@ -1793,20 +1845,23 @@ def _msa_rows(now):
                      'zh': _msa_norm(body)[:900], 'text': f['title'] + '. ' + body[:500],
                      'issueDate': _nga_stamp(when), 'authority': f"China MSA ({f['bureau']})",
                      'src': 'China Maritime Safety Administration', 'u': f['u']})
-    if rows:
+        new.append(rows[-1])
+    if new:
         try:
             # 航警 is "navigational warning"; translated alone it comes out as "Aviation Police"
             done = _tr_google_batch([re.sub(r'[\u4e00-\u9fff]?航警\s*(\d+/\d+)', r'NAVWARN \1', w['text'][:500])
-                                     .replace('航警', 'navigational warning') for w in rows])
-            for w, (en, _) in zip(rows, done):
+                                     .replace('航警', 'navigational warning') for w in new])
+            for w, (en, _) in zip(new, done):
                 if en and not CYRILLIC.search(en) and not re.search('[\u4e00-\u9fff]{4}', en):
                     w['o'], w['text'] = w['text'], en
+                cache[w['u']] = w               # kept once the translator has seen it; if it fails, read again next run
         except Exception as e:
             print(f"  navwarn: China MSA translation failed ({str(e)[:60]}), Chinese text kept")
+    _msa_cache_save(cache, {f['u'] for f in found})
     if len(refused) == len(MSA_BUREAUS):
         raise RuntimeError('every bureau refused: ' + refused[0])
     return rows, (f'{len(found)} military/launch in {NAVWARN_MAX_AGE_DAYS}d across '
-                  f'{len(MSA_BUREAUS) - len(refused)} bureaus, {len(rows)} read'
+                  f'{len(MSA_BUREAUS) - len(refused)} bureaus, {len(rows)} read ({len(rows) - len(new)} from cache)'
                   + (f"; refused: {', '.join(refused)[:120]}" if refused else ''))
 
 
@@ -2469,15 +2524,14 @@ TR_UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/53
 
 def _tr_microsoft(texts):
     """Edge's built-in translator: a free token, then up to 50 posts per request."""
-    r = requests.get('https://edge.microsoft.com/translate/auth', timeout=15, headers=TR_UA)
+    r = polite('GET', 'https://edge.microsoft.com/translate/auth', TR_UA, timeout=15)
     tok = r.text.strip()
     if r.status_code != 200 or len(tok) < 100:
         raise RuntimeError(f'token {r.status_code}')
     out = []
     for k in range(0, len(texts), 50):
-        r = requests.post('https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en',
-                          timeout=30, json=[{'Text': t} for t in texts[k:k + 50]],
-                          headers=dict(TR_UA, Authorization='Bearer ' + tok))
+        r = polite('POST', 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=en',
+                   dict(TR_UA, Authorization='Bearer ' + tok), timeout=30, json=[{'Text': t} for t in texts[k:k + 50]])
         if r.status_code != 200:
             raise RuntimeError(f'translate {r.status_code}')
         for x in r.json():
@@ -2491,8 +2545,8 @@ def _tr_google_batch(texts):
     out = []
     for k in range(0, len(texts), 20):
         part = texts[k:k + 20]
-        r = requests.post('https://clients5.google.com/translate_a/t', timeout=30, headers=TR_UA,
-                          params={'client': 'dict-chrome-ex', 'sl': 'auto', 'tl': 'en'}, data={'q': part})
+        r = polite('POST', 'https://clients5.google.com/translate_a/t', TR_UA, timeout=30,
+                   params={'client': 'dict-chrome-ex', 'sl': 'auto', 'tl': 'en'}, data={'q': part})
         if r.status_code != 200:
             raise RuntimeError(f'{r.status_code}')
         d = r.json()
@@ -2510,8 +2564,8 @@ def _tr_google(texts, budget):
     for t in texts:
         if time.time() > budget:
             break
-        r = requests.get('https://translate.googleapis.com/translate_a/single', timeout=15, headers=TR_UA,
-                         params={'client': 'gtx', 'sl': 'auto', 'tl': 'en', 'dt': 't', 'q': t})
+        r = polite('GET', 'https://translate.googleapis.com/translate_a/single', TR_UA, timeout=15,
+                   params={'client': 'gtx', 'sl': 'auto', 'tl': 'en', 'dt': 't', 'q': t})
         if r.status_code != 200:
             if not out:
                 raise RuntimeError(f'{r.status_code}')

@@ -13,3 +13,4 @@ assets/three.module.js
 assets/earth_*.jpg
 assets/earth_*.png
 .intel/
+.cache/

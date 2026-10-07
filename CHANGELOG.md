@@ -4,6 +4,23 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.19.1 — 2026-10-07
+
+### Courtesy to the sources
+- **Asking by name.** Every warning site and translator is now asked as
+  `TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)`
+  first. Only a site that refuses that (401/403/406/451, or a dropped
+  connection) is asked again as a browser. That is decided once per site per
+  run, and the run's log names the sites that insisted on a browser.
+- **China's articles are read once.** A warning article does not change, so
+  each is fetched and translated once and kept in GitHub's Actions cache
+  between runs. Only the eleven bureaus' index pages are read each run, which
+  cuts up to 30 article requests and a translation batch from every refresh.
+  The log shows "N from cache".
+- **Off the busy minutes.** Most scheduled jobs land on :00 and :30, so the
+  feed refresh moves to :11 and :41, the brief to 11:04 and 23:04 UTC (the
+  page's countdown follows), and the old daily job to 00:03.
+
 ## 1.19.0 — 2026-10-07
 
 ### Tuner: transcribe + translate, on the device

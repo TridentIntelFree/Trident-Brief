@@ -3,9 +3,10 @@ name: Generate Intelligence Brief
 on:
   workflow_dispatch:
   schedule:
-    # Twice daily: 11:00 UTC (~06:00 EST) and 23:00 UTC (~18:00 EST).
+    # Twice daily: 11:04 UTC (~06:04 EST) and 23:04 UTC (~18:04 EST), a few
+    # minutes off the hour, when most scheduled jobs pile in.
     # Each run reports the delta since the previous brief.
-    - cron: '0 11,23 * * *'
+    - cron: '4 11,23 * * *'
 
 # Serialised against the feed-refresh job so two runs never deploy at once.
 concurrency:
@@ -35,6 +36,13 @@ jobs:
         
     - run: pip install requests websockets
         
+    # China MSA articles already read, so each is fetched and translated once
+    - uses: actions/cache@v4
+      with:
+        path: .cache
+        key: feeds-cache-${{ github.run_id }}
+        restore-keys: feeds-cache-
+
     - name: Generate brief
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
