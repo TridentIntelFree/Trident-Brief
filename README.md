@@ -123,6 +123,32 @@ There are two modes: the full brief, or key judgements (the bottom line,
 assessments, forecast check and indicators). The player highlights the line
 being read and has section skip, speed and voice controls.
 
+## Indicators
+
+`fetch_indicators()` reads six more open sources on every collection. They are
+free, need no key and make no model call.
+- **Air-raid alerts:**
+  - Ukraine: Vadimkin/ukrainian-air-raid-sirens-dataset, volunteer data
+    updated daily.
+  - Israel: dleshem/israel-alerts-data, a commit per Home Front Command alert.
+
+  Both files are tens of megabytes, so only their last ~300 KB is fetched, by
+  HTTP range.
+- **War losses:** Ukraine's MoD claims (PetroIvaniuk/2022-Ukraine-Russia-War-Dataset),
+  with a spike test against the 30-day norm, beside Oryx's photo-verified
+  counts for both sides (leedrake5/Russia-Ukraine).
+- **Internet outages:** IODA's 48-hour summary by country and region (Georgia
+  Tech).
+- **Sanctions lists:** OpenSanctions' target count per list, with 7- and
+  30-day changes. The page's own copy (`assets/sanctions.json`) keeps the
+  history.
+
+They feed:
+- the brief's prompt and the Crystal Ball, which baselines alarm and loss
+  counts;
+- the AIR RAIDS globe layer and the Indicators section;
+- `intel.py indicators`.
+
 ## Signals
 
 **Live tuner.** You listen live through a public KiwiSDR receiver, inside the

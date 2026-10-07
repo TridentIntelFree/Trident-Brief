@@ -21,6 +21,7 @@ Then drill in as the question needs:
 | `osint [theatre]` | situationmonitor events (48h), DeepStateMap front line, Telegram lean |
 | `telegram [N]` | Telegram war-channel posts, machine-translated (marked `[tr]`) |
 | `gdelt`, `wire [N]`, `quakes`, `launches`, `disasters`, `gps` | the other feeds |
+| `indicators` | air-raid alarms (Ukraine, Israel), claimed vs verified war losses, internet outages (IODA), sanctions lists |
 | `radio` | what radio monitors reported on X (daily), and the retired relay's archive |
 | `spectro FILE [t0 t1]` | spectrogram PNG of a radio clip, to look at with Read |
 | `crystal`, `desk`, `area` | Crystal Ball forecasts, Analyst Desk, Tazewell area brief |
@@ -50,6 +51,13 @@ blocked from these sandboxes, so use `intel.py`, not the page.
 - **situationmonitor** events are software-extracted. "Unconfirmed" means one
   source. Casualty numbers are sometimes wrong.
 - **GDELT** is machine-coded news volume: where to look, never evidence.
+- **Indicators.**
+  - Ukraine's air-raid data is volunteer-compiled and updated about once a
+    day, so its "24 h" is the 24 hours to its newest record.
+  - Ukraine MoD loss figures are one side's claims. Oryx counts are
+    photo-verified and lag by days.
+  - An IODA outage is a lead (a strike, a power cut, a shutdown), not a cause.
+  - Sanctions changes are counted from the app's own earlier readings.
 - **Radio:** a detector's "voice" is a lead, not a finding. Check the clip
   with `spectro` before saying anything was heard. The UVB-76 Buzzer is a
   harmonic comb about every 3.4 s; speech shows shifting pitch contours and

@@ -15,7 +15,8 @@ reads all of it through git, falling back to raw.githubusercontent.com.
     python3 intel.py osint [theatre]   situationmonitor events; front line; Telegram lean
     python3 intel.py telegram [N]      the latest Telegram war-channel posts, in English
     python3 intel.py gdelt | wire [N] | quakes | launches | disasters | gps
-    python3 intel.py radio             UVB-76 / HFGCS timeline and voice events
+    python3 intel.py indicators        air-raid alarms (Ukraine, Israel), claimed vs verified losses, internet outages, sanctions
+    python3 intel.py radio             radio monitor reports from X, and the retired relay's archive
     python3 intel.py spectro FILE [t0 t1]   spectrogram PNG of a radio clip (needs numpy, matplotlib, imageio-ffmpeg)
     python3 intel.py crystal | desk | area
     python3 intel.py search TERM [--days N]   every text source at once
@@ -154,6 +155,7 @@ def v_overview():
     print(clip(_bluf(brief.get('content', '')), 900))
     v_warnings(limit=10)
     _osint_summary(f)
+    _indicator_summary(f)
     head('GDELT HOTSPOTS (3+ outlets)')
     for g in (f.get('gdelt') or [])[:8]:
         print(f"  {g.get('events', 0):>4} ev {g.get('outlets', 0):>3} outlets  {clip(g.get('place'), 50):50} {', '.join(g.get('what') or [])[:60]}")
@@ -226,6 +228,50 @@ def _osint_summary(f, theatre=None):
         cas = f" [{e.get('k') or 0}k/{e.get('inj') or 0}w]" if e.get('k') or e.get('inj') else ''
         print(f"  {str(e.get('at', ''))[5:16]:11} {e.get('th', ''):8} {e.get('ty', ''):13} {e.get('st', ''):11} "
               f"{clip(e.get('sm'), 120)}{cas}")
+
+
+def _indicator_summary(f, full=False):
+    ind = f.get('indicators') or {}
+    if not ind:
+        return
+    bad = [k for k, v in (ind.get('notes') or {}).items() if str(v).startswith('ERR')]
+    head('INDICATORS' + (f" (unavailable this run: {', '.join(bad)})" if bad else ''))
+    ua = ind.get('ua_alerts')
+    if ua:
+        print(f"  Ukraine air-raid alarms/day, 14 complete days to {ua['newest'][:10]}: " + ' '.join(str(n) for _, n in ua['daily']))
+        print(f"    peak oblasts at once (48h): {ua['peak48']['oblasts']} at {ua['peak48']['at']}; alarm hours (24h): " +
+              ', '.join(f"{g['name'].replace(' oblast', '')} {g['hours24']}" for g in ua['regions'][:8 if full else 5]))
+    il = ind.get('il_alerts')
+    if il:
+        print(f"  Israel alerts/day, 14 days: {' '.join(str(n) for _, n in il['daily'])}; 7d {il['d7'] or 'none'}; newest {il['newest']}")
+        if full:
+            for a in il.get('last') or []:
+                print(f"    {a['at']} {a['kind']:24} {a['where']}")
+    lo = ind.get('losses')
+    if lo:
+        sp = {k: v for k, v in (lo.get('spikes') or {}).items() if full or abs(v['z']) >= 2}
+        print(f"  UA MoD claimed Russian losses, day {lo['day']} ({lo['date']}): personnel {lo['personnel']:,}; " +
+              (', '.join(f"{k} {v['today']} (mean {v['mean30']}, z {v['z']})" for k, v in sp.items()) or 'no unusual day'))
+    ox = ind.get('oryx')
+    if ox:
+        for side in ('russia', 'ukraine'):
+            v = ox.get(side) or {}
+            print(f"  Oryx verified, {side}: {v.get('total'):,} (+{v.get('change_7d')} 7d, +{v.get('change_30d')} 30d)" +
+                  (f"; 7d: {', '.join(f'{t} +{n}' for t, n in v.get('top_7d') or [])}" if full else ''))
+    og = ind.get('outages')
+    if og:
+        for kind in ('country', 'region'):
+            rows = [x for x in og.get(kind) or [] if full or x['watch']]
+            print(f"  IODA outages by {kind} (48h){'' if full else ', watched theatres'}: " +
+                  (', '.join(f"{x['name']} ({x['events']} ev, score {x['score']:,})" for x in rows[:10]) or 'none'))
+    sa = ind.get('sanctions')
+    if sa:
+        print('  sanctions lists: ' + ', '.join(f"{x['title'][:28]} {x['targets']:,}" + (f" ({x['d7']:+d} 7d)" if x.get('d7') else '') +
+                                            f" upd {x['changed'][5:]}" for x in sa['lists'][:10 if full else 5]))
+
+
+def v_indicators():
+    _indicator_summary(feeds()[0], full=True)
 
 
 def v_osint(theatre=None):
@@ -418,15 +464,19 @@ def v_history(days='30'):
     if not names:
         print('no daily digests yet: they start with the first refresh after intel.py publish was added')
         return
-    print(f"{'date':10} {'warn':>4} {'sm':>4} {'tg':>4} {'tg ru/ua':>9} {'front km2':>10} {'d7':>5} {'gps':>4} {'wire':>4} {'gdelt':>5}  top theatres")
+    print(f"{'date':10} {'warn':>4} {'sm':>4} {'tg':>4} {'tg ru/ua':>9} {'front km2':>10} {'d7':>5} {'gps':>4} {'wire':>4} "
+          f"{'gdelt':>5} {'UAraid':>6} {'ILal':>4} {'oryxRU':>7} {'oryxUA':>7}  top theatres")
     for n in names:
         d = jread('intel-data', 'daily/' + n) or {}
         c, o = d.get('counts') or {}, d.get('osint') or {}
         lean, fr = o.get('tg_lean') or {}, o.get('front') or {}
+        ii = d.get('indicators') or {}
         th = ', '.join(f'{k} {v}' for k, v in sorted((o.get('sm_by_theatre') or {}).items(), key=lambda x: -x[1])[:3])
         print(f"{n[:10]:10} {c.get('navwarn', 0):>4} {c.get('sm', 0):>4} {c.get('tg', 0):>4} "
               f"{str(lean.get('pro-russian', 0)) + '/' + str(lean.get('pro-ukrainian', 0)):>9} {fr.get('km2', ''):>10} "
-              f"{fr.get('change_7d', ''):>5} {c.get('gps', 0):>4} {c.get('wire', 0):>4} {c.get('gdelt', 0):>5}  {th}")
+              f"{fr.get('change_7d', ''):>5} {c.get('gps', 0):>4} {c.get('wire', 0):>4} {c.get('gdelt', 0):>5} "
+              f"{str((ii.get('ua_alarms_day') or [0, ''])[1]):>6} {str((ii.get('il_day') or [0, ''])[1]):>4} "
+              f"{str((ii.get('oryx') or {}).get('russia') or ''):>7} {str((ii.get('oryx') or {}).get('ukraine') or ''):>7}  {th}")
 
 
 def v_json(spec):
@@ -471,7 +521,19 @@ def digest(f, at):
         'quakes': [{k: q.get(k) for k in ('mag', 'place', 'time', 'lat', 'lon')} for q in f.get('quakes') or [] if (q.get('mag') or 0) >= 4.5],
         'launches': f.get('launches') or [],
         'disasters': [d for d in f.get('disasters') or [] if d.get('level') in ('Orange', 'Red')],
+        'indicators': _ind_digest(f.get('indicators') or {}),
     }
+
+
+def _ind_digest(ind):
+    ua, il, lo, ox = (ind.get(k) or {} for k in ('ua_alerts', 'il_alerts', 'losses', 'oryx'))
+    return {'ua_alarms_day': (ua.get('daily') or [[None, None]])[-1], 'ua_peak48': (ua.get('peak48') or {}).get('oblasts'),
+            'ua_hours24': {g['name']: g['hours24'] for g in ua.get('regions') or [] if g.get('hours24')},
+            'il_day': (il.get('daily') or [[None, None]])[-1], 'il_7d': il.get('d7'),
+            'personnel': lo.get('personnel'), 'loss_spikes': lo.get('spikes'),
+            'oryx': {k: (ox.get(k) or {}).get('total') for k in ('russia', 'ukraine')},
+            'outages': [x['name'] for x in (ind.get('outages') or {}).get('country') or [] if x.get('watch')],
+            'sanctions': {x['id']: x['targets'] for x in (ind.get('sanctions') or {}).get('lists') or []}}
 
 
 def publish(out, prev=None):
@@ -524,7 +586,7 @@ def main(argv):
         return v_search(' '.join(a for a in args if not a.startswith('--') and a != str(days)), days)
     views = {'sync': sync, 'overview': v_overview, 'brief': v_brief, 'warnings': v_warnings, 'osint': v_osint,
              'telegram': v_telegram, 'gdelt': v_gdelt, 'wire': v_wire, 'quakes': v_quakes, 'launches': v_launches,
-             'disasters': v_disasters, 'gps': v_gps, 'radio': v_radio, 'spectro': v_spectro, 'crystal': v_crystal,
+             'disasters': v_disasters, 'gps': v_gps, 'radio': v_radio, 'spectro': v_spectro, 'indicators': v_indicators, 'crystal': v_crystal,
              'desk': v_desk, 'area': v_area, 'history': v_history, 'json': v_json}
     if cmd not in views:
         sys.exit(__doc__)

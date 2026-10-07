@@ -4,6 +4,38 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.17.0 — 2026-10-07
+
+### Indicators: alarms, losses, outages, sanctions
+Six more open sources, all free and keyless, are read on every collection.
+- **Air-raid alerts, Ukraine** ([Vadimkin](https://github.com/Vadimkin/ukrainian-air-raid-sirens-dataset)).
+  It shows alarms per day, the most oblasts under alarm at once, and hours
+  under alarm per oblast. The data is volunteer-compiled and updated about
+  once a day; windows are measured to its newest record, so lag does not look
+  like calm.
+- **Air-raid alerts, Israel** ([dleshem](https://github.com/dleshem/israel-alerts-data)).
+  Home Front Command alerts are counted by type (rockets, drones,
+  infiltration), with all-clears and pre-warnings kept apart. Times are
+  converted from Israel local time.
+- **War losses.** Ukraine's MoD daily claims of Russian losses
+  ([PetroIvaniuk](https://github.com/PetroIvaniuk/2022-Ukraine-Russia-War-Dataset))
+  are flagged when a day is two standard deviations off its 30-day norm. They
+  are shown beside Oryx's photo-verified counts for both sides
+  ([leedrake5](https://github.com/leedrake5/Russia-Ukraine)), with 7- and
+  30-day changes.
+- **Internet outages:** IODA (Georgia Tech), by country and region over 48
+  hours, with the watched theatres picked out.
+- **Sanctions lists:** OpenSanctions' target counts for ten major lists,
+  with changes measured from this app's own readings.
+- **Light on the source servers.** The two alert archives are 31 MB and
+  66 MB, so only their last ~300 KB is fetched, by HTTP range.
+- **Where it shows up:**
+  - a new AIR RAIDS globe layer (Ukrainian oblasts sized by hours under alarm)
+  - a new Indicators section with five cards
+  - the brief's prompt
+  - the Crystal Ball's snapshot and its rising-against-baseline checks
+  - `intel.py indicators`, the overview, and the daily digests' trend table
+
 ## 1.16.0 — 2026-10-07
 
 ### A live tuner, in place of the recorder
