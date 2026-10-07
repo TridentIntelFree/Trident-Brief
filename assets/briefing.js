@@ -189,7 +189,8 @@ function build(mode){
     }
     var bluf = el.classList.contains('bluf') || /^BLUF\b/i.test(raw);
     var assess = /^(Assessment|Judg(e)?ment|Outlook)\s*:/i.test(raw);
-    if(mode === 'quick' && !(bluf || assess || zone === 'iw' || zone === 'fc')) return;
+    var key = !!el.closest('.bm-key');                // a page section can mark its own key judgements
+    if(mode === 'quick' && !(bluf || assess || key || zone === 'iw' || zone === 'fc')) return;
     var text = elText(el);
     if(bluf) text = text.replace(/^\s*BLUF\s*:?\s*/i, 'Bottom line up front. ');
     else if(assess) text = text.replace(/^\s*Assessment\s*:\s*/i, 'Assessment: ');

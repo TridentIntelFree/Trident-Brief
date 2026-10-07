@@ -27,12 +27,22 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install requests
+      - run: pip install requests astronomy-engine
 
       - name: Make the forecast
         env:
           GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         run: python3 crystal_ball.py
+
+      # The astrology reading for the same page: the computed sky, national
+      # charts, the almanac, the lore against the intel and the weekly fair
+      # test, then a second, separate Grok call (about a cent) so astrology can
+      # never touch the forecasts. A failure here never holds the forecast back.
+      - name: Read the heavens
+        continue-on-error: true
+        env:
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        run: python3 astro_lore.py
 
       - name: Commit the forecast
         run: |

@@ -4,6 +4,57 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.23.0 — 2026-10-08
+
+### The heavens, professional grade, and read against the intel
+- **Mundane astrology** (`astro_lore.py`, each morning after the Crystal Ball):
+  - **The sky:** planets in their dignity, detriment, exaltation or fall;
+    stations; out-of-bounds planets; the lunar node; and a void-of-course
+    Moon, computed with Astronomy Engine.
+  - **National charts:** the watch theatres, as mundane astrologers commonly
+    cast them: US (Sibly), Russia, Ukraine, Israel, Iran, China, Taiwan and
+    North Korea. Each shows the transits within 2° now, with its Ascendant
+    and Midheaven where the hour is known. Untimed charts leave out the Moon,
+    which moves 13° a day.
+  - **The last new moon:** set for each capital, with whole-sign houses.
+  - **A five-week almanac:** lunations, eclipses, stations and sign changes.
+- **The lore against the intel:**
+  - **How:** each configuration's traditional mundane meaning (Mars for war,
+    Saturn for sanctions and blockades, Neptune for the sea and deception…)
+    and every current intel item (forecasts, brief lines, wire headlines) go
+    through the same fly-brain hash the Mushroom Body uses. The closest
+    overlaps are shown with how far above chance they sit, filtered to
+    news about that country where a national chart is involved.
+  - **Example:** today Venus square Mars ("alliances strained by force;
+    money for weapons") matched the EU's new Russia sanctions list.
+- **The fair test:**
+  - **What:** astrology's claims are tested against years of real records:
+    - Mars afflicted brings war: Ukraine's air-raid alarms (1,656 days),
+      Israel's rocket alerts (3,870 days), Russia's claimed losses.
+    - Mars retrograde stalls offensives.
+    - Full moons bring trouble.
+    - Eclipses and lunations bring earthquakes: USGS magnitude 6+ since 2000,
+      run on GitHub's runner.
+  - **How:** each day is compared with its own month, to remove trends. The
+    control is the same sky pattern slid along the calendar 999 times. The
+    p-values are shown raw and corrected for testing several claims.
+  - **Result:** so far, every claim is no better than chance. The page says so.
+  - **Upkeep:** rerun weekly; the daily counts are cached, and only new
+    records are fetched.
+- **The reading:** written each morning by Grok from these computed facts only.
+  - **How:** in the voice of a professional mundane astrologer, covering
+    the overview, each nation, where the lore meets the intel, what to watch
+    on almanac dates, and the test's verdict, stated plainly.
+  - **Cost:** a second, separate call (no searching, about a cent a day), so
+    astrology cannot leak into the forecasts. Still labelled as astrology,
+    for fun.
+
+### Fixed
+- **READ IT TO ME read nothing from the Crystal Ball in Key judgements mode.**
+  The redesigned page marked no key judgements. It now reads the Vision, every
+  forecast with its odds and words, the Doomsday Clock and the nuclear omen
+  (16 parts; 56 in full mode). Glyphs are no longer read aloud.
+
 ## 1.22.0 — 2026-10-07
 
 ### The Crystal Ball, reimagined

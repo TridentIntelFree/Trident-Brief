@@ -124,6 +124,28 @@ touching it opens that forecast. There is also a brass Doomsday Clock.
 All of it is drawn on the device, with no model call and no cost per run, and
 it sleeps while it is off screen.
 
+**The professional reading** (`astro_lore.py`, after the Crystal Ball each
+morning, written to `data/crystal/astro.json`) is mundane astrology, the
+branch that reads nations and world events:
+- **The sky:** dignities, stations, out-of-bounds planets, the lunar node and
+  a void-of-course Moon.
+- **National charts:** for the watch theatres, with what is crossing them now.
+  Charts whose hour is uncertain leave out the Moon and the angles.
+- **The last new moon:** set for each capital, with whole-sign houses.
+- **A five-week almanac.**
+- **The lore against the intel:** each configuration's traditional meaning and
+  the day's intel are fingerprinted by the same fly-brain hash as the Mushroom
+  Body, and the closest overlaps are shown.
+- **The fair test:** astrology's own claims (an afflicted Mars brings war, full
+  moons bring trouble, eclipses bring earthquakes) are checked weekly against
+  years of records. Those are Ukraine's alarms, Israel's rocket alerts, Russia's
+  claimed losses and USGS quakes. Each day is compared with its own month, the
+  control is the same sky slid along the calendar, and the result is corrected
+  for multiple claims. Its verdicts are printed whatever they are.
+- **The reading:** a second, separate Grok call (about a cent, no searching)
+  writes it from these computed facts only, so astrology never reaches the
+  forecasts.
+
 ## Brief me
 
 `assets/briefing.js` reads the brief aloud as a spoken briefing, using the

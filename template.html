@@ -768,7 +768,9 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
   margin:30px 0 12px!important;display:flex;align-items:center;gap:12px}
 .or-h::before,.or-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(233,199,123,.6),transparent)}
 .or-fun{font-family:'Cormorant Garamond',serif;font-style:italic;text-transform:none;letter-spacing:0;color:#c9a7f0;font-weight:500}
-.or-hz{font-family:Cinzel,serif;font-size:.66em;letter-spacing:.22em;text-transform:uppercase;color:#bfa8d9;margin:12px 0 6px}
+.or-hz{font-family:Cinzel,serif!important;font-weight:500;font-size:.66em!important;letter-spacing:.22em;text-transform:uppercase;color:#bfa8d9!important;margin:12px 0 6px!important}
+.or-secs{margin:0}.or-panel p{margin:0}
+.or-omen{display:inline-block}
 #cbBand .content ul.or-list{list-style:none;padding:0;margin:0}
 .or-li{display:flex;align-items:baseline;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;transition:background .25s;border:1px solid transparent}
 .or-li:hover{background:rgba(140,70,255,.1)}
@@ -782,7 +784,7 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .or-panel{border:1px solid rgba(233,199,123,.3);border-radius:12px;padding:12px 14px;background:rgba(15,5,25,.6)}
 .or-clock{display:flex;gap:14px;align-items:center}
 .or-clock-svg{flex:none;width:104px;height:104px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.6)) drop-shadow(0 0 10px rgba(233,199,123,.2))}
-.or-secs{font-family:Cinzel,serif;font-size:1.15em;color:#ffb4a0;line-height:1.25}
+.or-secs{font-family:Cinzel,serif;font-size:1.05em;color:#ffb4a0;line-height:1.3}
 .or-omen{font-family:Cinzel,serif;font-size:1.35em;letter-spacing:.2em;margin:4px 0}
 .or-omen.rising{color:#ff8f7a;text-shadow:0 0 14px rgba(255,90,60,.5)}.or-omen.easing{color:#9ff0c0}.or-omen.steady{color:var(--gold)}
 .or-small{font-size:.92em;color:#cdbfe0;line-height:1.45}
@@ -810,7 +812,21 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .or-in{color:#9d8bb5;font-size:.85em}
 .or-rx-t{font-family:Cinzel,serif;font-size:.62em;letter-spacing:.14em;color:#ff9a88;border:1px solid rgba(255,140,120,.5);border-radius:4px;padding:0 4px;text-transform:uppercase}
 .or-read{color:#efe4ff;line-height:1.55;margin:10px 0}
-.or-read:first-of-type::first-letter{font-family:Cinzel,serif;font-size:2.3em;float:left;line-height:.9;margin:4px 6px 0 0;color:var(--gold)}
+.or-read.first::first-letter{font-family:Cinzel,serif;font-size:2.3em;float:left;line-height:.9;margin:4px 6px 0 0;color:var(--gold)}
+.or-pro-title{font-family:Cinzel,serif;text-align:center;font-size:1.15em;letter-spacing:.08em;color:#fff3c9;margin:16px 0 6px;text-shadow:0 0 16px rgba(233,199,123,.35)}
+.or-sub{font-family:Cinzel,serif!important;font-weight:500;font-size:.78em!important;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)!important;margin:22px 0 8px!important;text-align:center}
+.or-nations{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.or-nat{border:1px solid rgba(233,199,123,.22);border-radius:10px;padding:9px 11px;background:rgba(10,3,18,.45)}
+.or-nat p{margin:3px 0}.or-nat-h b{font-family:Cinzel,serif;color:#fff3c9;letter-spacing:.06em}
+.or-tr{display:inline-block;border:1px solid rgba(127,208,255,.4);color:#bfe6ff;border-radius:5px;padding:0 5px;margin:2px 2px 0 0;font-size:.95em}
+.or-tr.hard{border-color:rgba(255,120,110,.5);color:#ffc2b8}
+.or-dg{font-family:Cinzel,serif;font-size:.6em;letter-spacing:.12em;color:#e9c77b;border:1px solid rgba(233,199,123,.45);border-radius:4px;padding:0 4px;text-transform:uppercase}
+#cbBand .content ul.or-lvi,#cbBand .content ul.or-alm{list-style:none;padding:0;margin:0}
+.or-lvi li{border-left:2px solid rgba(233,199,123,.5);padding:4px 10px;margin:8px 0;color:#efe4ff}
+.or-alm li{display:block;padding:5px 0;border-bottom:1px solid rgba(233,199,123,.12);color:#efe4ff}
+.or-alm-d{display:inline-block;min-width:6.5em;font-family:Cinzel,serif;font-size:.78em;color:#bfa8d9}
+.or-alm li.k-eclipse b{color:#ffcf6b;text-shadow:0 0 10px rgba(255,200,100,.4)}.or-alm li.k-station b{color:#ffb3a6}
+.or-test td:last-child{font-style:italic}
 h1 .tri{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .ad-who{margin-top:14px;font-size:.84em;color:var(--ink-dim)}
 .ad-who summary{cursor:pointer;font-family:var(--mono);font-size:.85em;letter-spacing:.06em;color:var(--cyan)}
@@ -4062,22 +4078,84 @@ function orFonts(){
   l.href = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap';
   document.head.appendChild(l);
 }
+async function orAstro(){
+  var t = Date.now(), urls = ['data/crystal/astro.json?t=' + t,
+    'https://raw.githubusercontent.com/' + GH_REPO + '/main/data/crystal/astro.json?t=' + t];
+  var got = await Promise.all(urls.map(function(u){
+    return fetch(u, {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+  }));
+  return got.filter(function(x){ return x && x.sky; }).sort(function(x, y){ return x.at < y.at ? 1 : -1; })[0] || null;
+}
+function orPro(a){
+  /* the daily professional reading (astro_lore.py): national charts, the almanac,
+     the lore against the intel, and the fair test of whether any of it predicts anything */
+  var R = a.reading || {}, h = '';
+  var day = function(s){ return new Date(s).toLocaleDateString([], {weekday:'short', day:'numeric', month:'short'}); };
+  if(R.title) h += '<p class="or-pro-title">' + esc(R.title) + '</p>';
+  (R.overview || []).forEach(function(t, i){ h += '<p class="or-read' + (i ? '' : ' first') + '">' + esc(t) + '</p>'; });
+  var nat = (a.nations || []).filter(function(n){ return n.hits && n.hits.length; });
+  var rn = {}; (R.nations || []).forEach(function(n){ rn[n.nation] = n.reading; });
+  if(nat.length){
+    h += '<h4 class="or-sub">The nations’ charts</h4><div class="or-nations">' + nat.map(function(n){
+      return '<div class="or-nat"><p class="or-nat-h"><b>' + esc(n.nation) + '</b> <span class="or-fine">' + esc(n.chart) + (n.timed ? '' : ' · time uncertain') + '</span></p>' +
+        (rn[n.nation] ? '<p class="or-small">' + esc(rn[n.nation]) + '</p>' : '') +
+        '<p class="or-fine bm-skip">' + n.hits.slice(0, 4).map(function(x){
+          return '<span class="or-tr' + (x.hard ? ' hard' : '') + '">' + esc(x.transit) + ' ' + esc(x.type) + ' ' + esc(x.natal) + ' ' + x.orb.toFixed(1) + '°</span>'; }).join(' ') + '</p></div>';
+    }).join('') + '</div>';
+  }
+  var lvi = (a.lore_vs_intel || []).filter(function(c){ return c.matches && c.matches.length && c.matches[0].z >= 1.5; }).slice(0, 6);
+  if(R.lore_and_intel || lvi.length){
+    h += '<h4 class="or-sub">Where the lore meets the intel</h4>';
+    if(R.lore_and_intel) h += '<p class="or-read">' + esc(R.lore_and_intel) + '</p>';
+    if(lvi.length) h += '<ul class="or-lvi">' + lvi.map(function(c){
+      var m = c.matches[0];
+      return '<li><b>' + esc(c.label) + '</b> <span class="or-fine">(' + esc(c.lore) + ')</span><br>' +
+             '<span class="or-small">“' + esc(m.text) + '”</span> <span class="or-fine">' + esc(m.src) + ' · fly overlap ' + m.z.toFixed(1) + ' σ above chance</span></li>';
+    }).join('') + '</ul><p class="or-fine">Matched by the Mushroom Body: the fly-brain hash the page uses for novelty, applied to the lore’s words and today’s reporting alike. Overlap means shared themes, nothing more.</p>';
+  }
+  var watch = {}; (R.watch || []).forEach(function(w){ watch[String(w.date).slice(0, 10)] = w.note; });
+  if((a.almanac || []).length){
+    h += '<h4 class="or-sub">The almanac, next five weeks</h4><ul class="or-alm">' + a.almanac.map(function(e){
+      var d = String(e.at).slice(0, 10);
+      return '<li class="k-' + esc(e.kind) + '"><span class="or-alm-d">' + esc(day(e.at)) + '</span> <b>' + esc(e.what) + '</b>' +
+             (watch[d] ? '<br><span class="or-small">' + esc(watch[d]) + '</span>' : '') + '</li>';
+    }).join('') + '</ul>';
+  }
+  var test = (a.test || {}).results || [];
+  if(test.length){
+    h += '<h4 class="or-sub">The fair test</h4>' + (R.the_test ? '<p class="or-read">' + esc(R.the_test) + '</p>' : '') +
+      '<table class="or-table or-test"><tr><th>the claim</th><th>tested on</th><th>result</th></tr>' + test.map(function(r){
+        return '<tr><td>' + esc(r.claim) + '</td><td>' + esc(r.metric) + ', ' + r.days.toLocaleString() + ' days from ' + esc(r.from.slice(0, 4)) + '</td><td class="' +
+               (/no better|opposite/.test(r.verdict) ? 'or-no' : 'or-ok') + '">' + esc(r.verdict) + '</td></tr>'; }).join('') + '</table>' +
+      '<p class="or-fine">Each day is compared with its own month, so a war’s slow rise is not credited to the stars; the control is the same sky pattern slid along the calendar ' +
+      '(999 times); and the odds are corrected for testing several claims at once. Rerun weekly on the full records. Tested ' + esc(day(a.test.at)) + '.</p>';
+  }
+  return h;
+}
 async function orHeavens(){
   var el = document.getElementById('orHeavens');
   try{
     var A = await orLoadAstronomy(), mod = OR.mod || await import('./assets/oracle.js');
     OR.mod = mod;
     var sky = mod.heavens(A, new Date()); OR.sky = sky;
+    var pro = await orAstro();
     var paras = mod.reading(sky, CB.ball);
     el.innerHTML = '<div class="or-sky">' + mod.wheel(sky) + '<div class="or-sky-side">' +
       '<div class="or-moonline">' + mod.moonFace(sky) + '<div><b>' + esc(sky.moon.name) + '</b><br>' + Math.round(sky.moon.lit*100) + '% lit</div></div>' +
       '<ul class="or-planets">' + sky.bodies.map(function(b){
-        return '<li><span class="or-gl">' + b.glyph + '︎</span> ' + esc(b.name) + ' <span class="or-in">in</span> ' + b.sg + '︎ ' + esc(b.sign) +
-               ' <span class="or-in">' + Math.floor(b.deg) + '°</span>' + (b.retro ? ' <span class="or-rx-t">retrograde</span>' : '') + '</li>';
-      }).join('') + '</ul></div></div>' +
-      paras.map(function(t){ return '<p class="or-read">' + esc(t) + '</p>'; }).join('') +
+        var d = pro && pro.sky ? (pro.sky.bodies || []).filter(function(x){ return x.name === b.name; })[0] : null;
+        return '<li><span class="or-gl bm-skip">' + b.glyph + '︎</span> ' + esc(b.name) + ' <span class="or-in">in</span> <span class="bm-skip">' + b.sg + '︎</span> ' + esc(b.sign) +
+               ' <span class="or-in">' + Math.floor(b.deg) + '°</span>' + (b.retro ? ' <span class="or-rx-t">retrograde</span>' : '') +
+               (d && d.dignity ? ' <span class="or-dg">' + esc(d.dignity) + '</span>' : '') + (d && d.oob ? ' <span class="or-dg">out of bounds</span>' : '') + '</li>';
+      }).join('') + '</ul>' +
+      (pro && pro.sky && pro.sky.void_moon && pro.sky.void_moon.void ? '<p class="or-fine">The Moon is void of course until ' + esc(new Date(pro.sky.void_moon.until).toLocaleString([], {weekday:'short', hour:'numeric'})) + '.</p>' : '') +
+      '</div></div>' +
+      (pro && pro.reading && (pro.reading.overview || []).length ? orPro(pro)
+        : paras.map(function(t, i){ return '<p class="or-read' + (i ? '' : ' first') + '">' + esc(t) + '</p>'; }).join('') + (pro ? orPro(pro) : '')) +
       '<p class="or-fine">The sky is real: positions for ' + esc(new Date().toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'})) +
-      ', computed in your browser by <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a>. What it means is astrology, read for fun; it forecasts nothing.</p>';
+      ', computed by <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a>' +
+      (pro && pro.reading ? '; the reading is written each morning by Grok from those computed facts' : '') +
+      '. What it means is astrology, read for fun. It forecasts nothing, and the fair test above shows how that claim holds up.</p>';
   }catch(e){ el.innerHTML = '<p class="or-fine">The heavens could not be read in this browser.</p>'; }
 }
 async function cbShow(){
@@ -4102,23 +4180,23 @@ async function cbShow(){
   OR.items = (b.forecasts || []).slice().sort(function(x, y){ return (order[x.horizon] - order[y.horizon]) || (y.probability - x.probability); });
   var h = '', c = b.clock || {}, n = b.nuclear || {}, tr = /^(rising|easing|steady)$/.test(n.trend) ? n.trend : 'steady';
   h += '<div class="or-stage" id="orStage"><div class="or-hint">touch an orb to read its vision · drag to turn the glass</div></div>';
-  if(b.bluf) h += '<p class="or-vision"><span class="or-k" data-say=": ">THE VISION</span><br>' + esc(b.bluf) + '</p>';
-  h += '<div class="or-card" id="orCard"></div>';
+  if(b.bluf) h += '<p class="or-vision bm-key"><span class="or-k" data-say=": ">THE VISION</span><br>' + esc(b.bluf) + '</p>';
+  h += '<div class="or-card bm-skip" id="orCard"></div>';      // the touch view; the list below is what is read aloud
   h += '<h3 class="or-h">All that the glass shows</h3>';
   [['24h', 'Within a day'], ['72h', 'Within three days'], ['7d', 'Within the week']].forEach(function(g){
     var rows = OR.items.map(function(f, i){ return [f, i]; }).filter(function(x){ return x[0].horizon === g[0]; });
     if(!rows.length) return;
-    h += '<div class="or-hz">' + g[1] + '</div><ul class="or-list">' + rows.map(function(x){
+    h += '<h4 class="or-hz">' + g[1] + '</h4><ul class="or-list bm-key">' + rows.map(function(x){
       var f = x[0], p = +f.probability || 0;
       return '<li class="or-li" data-i="' + x[1] + '"><span class="or-dot" style="--c:' + (p >= 65 ? '#ffcf6b' : p >= 40 ? '#ff7ad9' : '#7fd0ff') + '"></span>' +
-             '<span class="or-li-p">' + p + '%</span><span class="or-li-t">' + (f.region ? '<em>' + esc(f.region) + '</em> ' : '') + esc(f.event) + '</span></li>';
+             '<span class="or-li-p" data-say="' + esc(', ' + (f.term || '') + '. ') + '">' + p + '%</span><span class="or-li-t">' + (f.region ? '<em data-say=": ">' + esc(f.region) + '</em> ' : '') + esc(f.event) + '</span></li>';
     }).join('') + '</ul>';
   });
   h += '<div class="or-twin"><div class="or-panel or-clock">' + orClock(c.seconds || 85) +
-       '<div><div class="or-secs">' + esc(String(c.seconds || 85)) + ' seconds to midnight</div>' +
-       '<div class="or-fine">The Doomsday Clock of the <a href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener">Bulletin of the Atomic Scientists</a>' +
-       (c.set ? ', set ' + esc(c.set) : '') + '.</div></div></div>' +
-       '<div class="or-panel"><div class="or-k">THE NUCLEAR OMEN</div><div class="or-omen ' + tr + '">' + tr.toUpperCase() + '</div><div class="or-small">' + esc(n.why || '') + '</div></div></div>';
+       '<div><p class="or-secs bm-key">The Doomsday Clock stands at ' + esc(String(c.seconds || 85)) + ' seconds to midnight.</p>' +
+       '<p class="or-fine">Set by the <a href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener">Bulletin of the Atomic Scientists</a>' +
+       (c.set ? ' on ' + esc(c.set) : '') + '.</p></div></div>' +
+       '<div class="or-panel"><p class="or-small bm-key"><span class="or-k" data-say=": ">THE NUCLEAR OMEN</span><br><span class="or-omen ' + tr + '" data-say=". ">' + tr.toUpperCase() + '</span><br>' + esc(n.why || '') + '</p></div></div>';
   if((b.pre_headline || []).length){
     h += '<h3 class="or-h">Whispers before the headlines</h3><ul class="or-whispers">' + b.pre_headline.map(function(x){
       return '<li><b>' + esc(x.signal) + '</b>' + (x.why ? ' — ' + esc(x.why) : '') + (x.source ? ' <span class="or-fine">(' + esc(x.source) + ')</span>' : '') + '</li>';
