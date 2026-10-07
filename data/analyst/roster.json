@@ -43,12 +43,26 @@
    "url": "https://x.com/GlobalOSINTHQ/status/2107240175713554855",
    "why": "Global OSINT account providing real-time geopolitical analysis and situation reports on UK B-1B bomber evacuations due to Iranian threats, with sourced details."
   },
+  "HibaNasr": {
+   "days": [
+    "2026-10-07"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: credited on Syria-Saudi meeting"
+  },
   "SeanParnellASW": {
    "days": [
     "2026-10-06"
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Hasan execution"
+  },
+  "SecArmy": {
+   "days": [
+    "2026-10-07"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on Hasan execution order"
   },
   "SitDeck": {
    "days": [
@@ -110,67 +124,67 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "AuroraIntel": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "CalibreObscura": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "CovertShores": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "ELINTNews": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "Faytuks": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "IntelCrab": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "JominiW": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "KofmanMichael": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "Osinttechnical": {
-   "checked": "2026-10-06",
-   "posted": "2026-10-06"
+   "checked": "2026-10-07",
+   "posted": "2026-10-07"
   },
   "RALee85": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "Tendar": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "detresfa_": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "noelreports": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   },
   "sentdefender": {
-   "checked": "2026-10-06",
-   "posted": "2026-10-06"
+   "checked": "2026-10-07",
+   "posted": "2026-10-07"
   },
   "wartranslated": {
-   "checked": "2026-10-06"
+   "checked": "2026-10-07"
   }
  },
- "updated": "2026-10-06T18:22:46Z"
+ "updated": "2026-10-07T18:57:28Z"
 }
