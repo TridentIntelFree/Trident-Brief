@@ -1,0 +1,92 @@
+{
+ "at": "2026-10-07T23:58:08Z",
+ "results": [
+  {
+   "claim": "Mars afflicted brings war",
+   "metric": "Ukraine air-raid alarms a day",
+   "condition": "mars_afflicted",
+   "days": 1656,
+   "days_on": 495,
+   "from": "2022-03-12",
+   "to": "2026-09-22",
+   "ratio": 0.99,
+   "p": 0.582,
+   "direction_as_claimed": false,
+   "p_adjusted": 1.0,
+   "verdict": "no better than chance (-1%, p = 0.58, 1.00 corrected)"
+  },
+  {
+   "claim": "Mars afflicted brings war",
+   "metric": "Israel rocket and missile alerts a day",
+   "condition": "mars_afflicted",
+   "days": 3870,
+   "days_on": 1213,
+   "from": "2014-08-08",
+   "to": "2026-09-14",
+   "ratio": 1.025,
+   "p": 0.818,
+   "direction_as_claimed": true,
+   "p_adjusted": 1.0,
+   "verdict": "no better than chance (+2%, p = 0.82, 1.00 corrected)"
+  },
+  {
+   "claim": "Mars afflicted brings war",
+   "metric": "Russian personnel losses a day (Ukraine MoD's claim)",
+   "condition": "mars_afflicted",
+   "days": 1654,
+   "days_on": 495,
+   "from": "2022-03-13",
+   "to": "2026-09-21",
+   "ratio": 0.995,
+   "p": 0.723,
+   "direction_as_claimed": false,
+   "p_adjusted": 1.0,
+   "verdict": "no better than chance (-1%, p = 0.72, 1.00 corrected)"
+  },
+  {
+   "claim": "Mars retrograde stalls offensives",
+   "metric": "Russian personnel losses a day (Ukraine MoD's claim)",
+   "condition": "mars_retro",
+   "days": 1654,
+   "days_on": 154,
+   "from": "2022-03-13",
+   "to": "2026-09-21",
+   "ratio": 1.009,
+   "p": 0.29,
+   "direction_as_claimed": false,
+   "p_adjusted": 1.0,
+   "verdict": "no better than chance (+1%, p = 0.29, 1.00 corrected)"
+  },
+  {
+   "claim": "The full moon brings trouble",
+   "metric": "Ukraine air-raid alarms a day",
+   "condition": "full_moon",
+   "days": 1656,
+   "days_on": 106,
+   "from": "2022-03-12",
+   "to": "2026-09-22",
+   "ratio": 1.065,
+   "p": 0.094,
+   "direction_as_claimed": true,
+   "p_adjusted": 0.564,
+   "verdict": "no better than chance (+6%, p = 0.09, 0.56 corrected)"
+  },
+  {
+   "claim": "The full moon brings trouble",
+   "metric": "Israel rocket and missile alerts a day",
+   "condition": "full_moon",
+   "days": 3870,
+   "days_on": 254,
+   "from": "2014-08-08",
+   "to": "2026-09-14",
+   "ratio": 1.35,
+   "p": 0.245,
+   "direction_as_claimed": true,
+   "p_adjusted": 1.0,
+   "verdict": "no better than chance (+35%, p = 0.24, 1.00 corrected)"
+  }
+ ],
+ "notes": [
+  "quakes: HTTPSConnectionPool(host='earthquake.usgs.gov', port=443): Max retries exceeded  (kept 0 cached days)"
+ ]
+}

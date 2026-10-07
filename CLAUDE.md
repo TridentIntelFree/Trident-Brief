@@ -74,7 +74,11 @@ blocked from these sandboxes, so use `intel.py`, not the page.
 - `template.html` / `assets/`: the page. `signals.js` is the radio analyzer,
   `briefing.js` reads the brief aloud.
 - `crystal_ball.py`, `analyst_desk.py`, `area_brief.py`: hidden desks, one
-  Grok call a day each.
+  Grok call a day each. `astro_lore.py` runs after the Crystal Ball: the
+  computed sky, national charts, almanac, lore against the intel (fly-brain
+  overlaps), a weekly fair test of astrology's claims against years of
+  records, and a second small Grok call for the reading
+  (`data/crystal/astro.json`).
 - `radio_monitor.py`: the retired KiwiSDR relay (run by hand only).
 - `tuner_receivers.py`: weekly check of which KiwiSDRs the page's live tuner
   can reach over HTTPS, written to `data/tuner/receivers.json`.
