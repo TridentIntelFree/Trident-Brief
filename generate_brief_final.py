@@ -2625,6 +2625,310 @@ def osint_for_page(o):
                               'front': o.get('front'), 'notes': o.get('notes'), 'fetched_at': o.get('fetched_at')}.items() if v}
 
 
+# ---------------------------------------------------------------- indicators
+# Four more open sources, all free and keyless, read on every collection:
+#   - air-raid alerts: Ukraine (Vadimkin/ukrainian-air-raid-sirens-dataset,
+#     volunteer-compiled, current to the day) and Israel's Home Front Command
+#     (dleshem/israel-alerts-data, a commit per alert). Both files are tens of
+#     megabytes of history, so only their tails are fetched, by HTTP range;
+#   - war losses: Ukraine's Ministry of Defence daily tally of Russian losses
+#     (PetroIvaniuk/2022-Ukraine-Russia-War-Dataset), beside Oryx's
+#     photo-verified counts for both sides (leedrake5/Russia-Ukraine);
+#   - internet outages by country and region: IODA, Georgia Tech;
+#   - sanctions lists: OpenSanctions' per-list target counts, compared with
+#     the counts kept from earlier runs.
+IND_UA_ALERTS = 'https://raw.githubusercontent.com/Vadimkin/ukrainian-air-raid-sirens-dataset/main/datasets/volunteer_data_en.csv'
+IND_IL_ALERTS = 'https://raw.githubusercontent.com/dleshem/israel-alerts-data/main/israel-alerts.csv'
+IND_UA_LOSSES = 'https://raw.githubusercontent.com/PetroIvaniuk/2022-Ukraine-Russia-War-Dataset/main/data/russia_losses_{}.json'
+IND_ORYX = 'https://raw.githubusercontent.com/leedrake5/Russia-Ukraine/main/data/byType/{}.csv'
+IND_IODA = 'https://api.ioda.inetintel.cc.gatech.edu/v2/outages/summary?from={}&until={}&entityType={}'
+IND_SANCTIONS = 'https://data.opensanctions.org/datasets/latest/{}/index.json'
+SANCTION_LISTS = ['us_ofac_sdn', 'eu_fsf', 'gb_fcdo_sanctions', 'un_sc_sanctions', 'ua_nsdc_sanctions',
+                  'ch_seco_sanctions', 'jp_mof_sanctions', 'au_dfat_sanctions', 'ca_dfatd_sema_sanctions', 'ru_mfa_sanctions']
+# oblast centres for the globe (approximate)
+UA_OBLAST = {
+    'Cherkaska oblast': (49.2, 31.6), 'Chernihivska oblast': (51.3, 31.9), 'Chernivetska oblast': (48.3, 25.9),
+    'Dnipropetrovska oblast': (48.4, 35.0), 'Donetska oblast': (48.0, 37.8), 'Ivano-Frankivska oblast': (48.7, 24.5),
+    'Kharkivska oblast': (49.6, 36.5), 'Khersonska oblast': (46.7, 33.4), 'Khmelnytska oblast': (49.4, 27.0),
+    'Kirovohradska oblast': (48.5, 32.3), 'Kyiv City': (50.45, 30.52), 'Kyivska oblast': (50.3, 30.1),
+    'Luhanska oblast': (48.7, 39.0), 'Lvivska oblast': (49.8, 24.0), 'Mykolaivska oblast': (47.3, 32.0),
+    'Odeska oblast': (46.6, 30.2), 'Poltavska oblast': (49.6, 34.5), 'Rivnenska oblast': (51.0, 26.3),
+    'Sumska oblast': (50.9, 34.8), 'Ternopilska oblast': (49.5, 25.6), 'Vinnytska oblast': (49.2, 28.5),
+    'Volynska oblast': (51.2, 25.0), 'Zakarpatska oblast': (48.4, 23.2), 'Zaporizka oblast': (47.5, 35.5),
+    'Zhytomyrska oblast': (50.6, 28.7), 'Avtonomna Respublika Krym': (45.3, 34.4), 'Sevastopol': (44.6, 33.5)}
+try:
+    from zoneinfo import ZoneInfo
+    ISRAEL = ZoneInfo('Asia/Jerusalem')
+except Exception:                                       # no tz database: Israel is UTC+2 or +3
+    ISRAEL = timezone(timedelta(hours=3))
+IL_KIND = {'1': 'rockets and missiles', '2': 'hostile aircraft (drone)', '10': 'infiltration',
+           '14': 'pre-warning', '3': 'earthquake', '4': 'radiological', '5': 'tsunami', '7': 'hazardous materials'}
+WATCH_CC = {'UA', 'RU', 'BY', 'IR', 'IL', 'PS', 'LB', 'SY', 'IQ', 'YE', 'SA', 'SD', 'ET', 'ER', 'SO', 'LY', 'ML',
+            'BF', 'NE', 'CD', 'MM', 'AF', 'PK', 'IN', 'KP', 'CN', 'TW', 'VE', 'CU', 'HT', 'GE', 'AM', 'AZ'}
+
+
+def _tail(url, nbytes):
+    """The last nbytes of a long, time-ordered CSV, cut to whole lines."""
+    # identity: a byte range of a gzip-encoded body cannot be decoded
+    r = requests.get(url, timeout=60, headers={'Range': f'bytes=-{nbytes}', 'Accept-Encoding': 'identity',
+                                               'User-Agent': 'TridentBrief/1.0'})
+    if r.status_code not in (200, 206):
+        raise RuntimeError(f'HTTP {r.status_code}')
+    text = r.content.decode('utf-8', 'ignore')
+    return text.split('\n', 1)[1] if r.status_code == 206 else text
+
+
+def _ind_ua_alerts(now):
+    import csv, io
+    rows = []
+    for r in csv.reader(io.StringIO(_tail(IND_UA_ALERTS, 320_000))):
+        if len(r) != 4 or r[0] not in UA_OBLAST:
+            continue
+        a, b = _osint_time(r[1]), _osint_time(r[2]) if r[2] else None
+        if a:
+            rows.append((r[0], a, b))
+    if not rows:
+        raise RuntimeError('no rows')
+    newest = max(a for _, a, _ in rows)
+    # the dataset is updated about once a day: windows are measured back from
+    # its newest record, not from now, or a quiet-looking gap is only lag
+    now = newest
+    day = now - timedelta(hours=24)
+    regions = {}
+    for name, a, b in rows:
+        end = b or now
+        g = regions.setdefault(name, {'name': name, 'lat': UA_OBLAST[name][0], 'lon': UA_OBLAST[name][1],
+                                      'n24': 0, 'hours24': 0.0, 'n7': 0, 'active': False, 'last': None})
+        if end > day:
+            g['n24'] += a > day
+            g['hours24'] += (min(end, now) - max(a, day)).total_seconds() / 3600
+        g['n7'] += a > now - timedelta(days=7)
+        g['active'] = g['active'] or (b is None and a > now - timedelta(hours=12))
+        g['last'] = max(g['last'] or a, a)
+    # alarms in each of the last 14 days, and how many oblasts were under alarm at once at the worst moment
+    daily = {}
+    for _, a, _ in rows:
+        k = a.strftime('%Y-%m-%d')
+        daily[k] = daily.get(k, 0) + 1
+    days = [(now - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(14, 0, -1)]     # complete days only
+    recent = [(a, b or now) for _, a, b in rows if (b or now) > now - timedelta(hours=48)]
+    edges = sorted([(a, 1) for a, _ in recent] + [(b, -1) for _, b in recent])
+    peak, cur, peak_at = 0, 0, None
+    for t, d in edges:
+        cur += d
+        if cur > peak:
+            peak, peak_at = cur, t
+    out = sorted(regions.values(), key=lambda g: -g['hours24'])
+    for g in out:
+        g['hours24'] = round(g['hours24'], 1)
+        g['last'] = g['last'].strftime('%Y-%m-%dT%H:%MZ')
+    return {'newest': newest.strftime('%Y-%m-%dT%H:%MZ'), 'regions': out,
+            'daily': [[d, daily.get(d, 0)] for d in days],
+            'peak48': {'oblasts': peak, 'at': peak_at.strftime('%Y-%m-%dT%H:%MZ') if peak_at else None},
+            'active': sum(g['active'] for g in out), 'note': 'updated about once a day; 24h = the 24h to the newest record'}
+
+
+def _ind_il_alerts(now):
+    import csv, io
+    rows = []
+    for r in csv.reader(io.StringIO(_tail(IND_IL_ALERTS, 300_000))):
+        if len(r) != 8 or r[4] == '13':                 # 13: the all-clear, not an alert
+            continue
+        try:                                            # Israel local time, without a zone
+            t = datetime.fromisoformat(r[3]).replace(tzinfo=ISRAEL).astimezone(timezone.utc)
+        except ValueError:
+            continue
+        rows.append((t, r[4], r[0]))
+    if not rows:
+        raise RuntimeError('no rows')
+    newest = max(t for t, _, _ in rows)
+    def tally(since):
+        c = {}
+        for t, k, _ in rows:
+            if t > since:
+                c[IL_KIND.get(k, 'category ' + k)] = c.get(IL_KIND.get(k, 'category ' + k), 0) + 1
+        return c
+    daily = {}
+    for t, k, _ in rows:
+        if k != '14':
+            daily[t.strftime('%Y-%m-%d')] = daily.get(t.strftime('%Y-%m-%d'), 0) + 1
+    days = [(now - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(13, -1, -1)]
+    return {'newest': newest.strftime('%Y-%m-%dT%H:%MZ'), 'h24': tally(now - timedelta(hours=24)),
+            'd7': tally(now - timedelta(days=7)), 'daily': [[d, daily.get(d, 0)] for d in days],
+            'last': [{'at': t.strftime('%Y-%m-%dT%H:%MZ'), 'kind': IL_KIND.get(k, k), 'where': w[:80]}
+                     for t, k, w in sorted(rows, reverse=True)[:8]]}
+
+
+def _spike(series, key):
+    """Today's daily change against the previous 30 days: (change, mean, z)."""
+    vals = [s.get(key) for s in series[-32:]]
+    if any(not isinstance(v, (int, float)) for v in vals) or len(vals) < 10:
+        return None
+    d = [b - a for a, b in zip(vals, vals[1:])]
+    base, last = d[:-1], d[-1]
+    mean = sum(base) / len(base)
+    sd = (sum((x - mean) ** 2 for x in base) / len(base)) ** 0.5 or 1
+    return {'today': last, 'mean30': round(mean, 1), 'z': round((last - mean) / sd, 1)}
+
+
+def _ind_losses(now):
+    pers = requests.get(IND_UA_LOSSES.format('personnel'), timeout=30).json()
+    eq = requests.get(IND_UA_LOSSES.format('equipment'), timeout=30).json()
+    out = {'date': eq[-1].get('date'), 'day': eq[-1].get('day'), 'personnel': pers[-1].get('personnel'),
+           'spikes': {}}
+    p = _spike(pers, 'personnel')
+    if p:
+        out['spikes']['personnel'] = p
+    for k in ('tank', 'APC', 'field artillery', 'MRL', 'anti-aircraft warfare', 'aircraft', 'helicopter',
+              'drone', 'cruise missiles', 'naval ship'):
+        s = _spike(eq, k)
+        if s:
+            out['spikes'][k] = s
+    return out
+
+
+def _ind_oryx(now):
+    import csv, io
+    def load(day):
+        for back in range(0, 4):
+            d = (day - timedelta(days=back)).strftime('%Y-%m-%d')
+            r = requests.get(IND_ORYX.format(d), timeout=30)
+            if r.status_code == 200:
+                rows = list(csv.DictReader(io.StringIO(r.text)))
+                return d, {(x['country'], x['equipment_type']): int(x['type_total'] or 0) for x in rows}
+        return None, None
+    d0, cur = load(now)
+    if not cur:
+        raise RuntimeError('no recent Oryx file')
+    _, w = load(now - timedelta(days=7))
+    _, m = load(now - timedelta(days=30))
+    out = {'date': d0}
+    for side in ('Russia', 'Ukraine'):
+        tot = cur.get((side, 'All Types'), 0)
+        rows = [(t, n - (w or {}).get((c, t), n)) for (c, t), n in cur.items()
+                if c == side and t != 'All Types' and not t.startswith('Losses of')]
+        out[side.lower()] = {'total': tot, 'change_7d': tot - (w or {}).get((side, 'All Types'), tot),
+                             'change_30d': tot - (m or {}).get((side, 'All Types'), tot),
+                             'top_7d': [[t, d] for t, d in sorted(rows, key=lambda x: -x[1])[:5] if d > 0]}
+    return out
+
+
+def _ind_outages(now):
+    t0, t1 = int((now - timedelta(hours=48)).timestamp()), int(now.timestamp())
+    out = {}
+    for kind in ('country', 'region'):
+        d = requests.get(IND_IODA.format(t0, t1, kind), timeout=40, headers={'User-Agent': 'TridentBrief/1.0'}).json()
+        rows = []
+        for x in d.get('data') or []:
+            e = x.get('entity') or {}
+            cc = (e.get('attrs') or {}).get('country_code') or (e.get('code') if kind == 'country' else '')
+            rows.append({'name': e.get('name'), 'code': e.get('code'), 'cc': cc,
+                         'score': round((x.get('scores') or {}).get('overall') or 0), 'events': x.get('event_cnt'),
+                         'sources': sorted(k.split('.')[0] for k in (x.get('scores') or {}) if k != 'overall'),
+                         'watch': cc in WATCH_CC})
+        rows.sort(key=lambda r: -r['score'])
+        out[kind] = rows[:15]
+    return out
+
+
+def _ind_sanctions(now):
+    prev = {}
+    try:
+        r = requests.get(_pages_asset('sanctions.json'), timeout=10, headers={'Cache-Control': 'no-cache'})
+        if r.status_code == 200:
+            prev = r.json().get('history') or {}
+    except Exception:
+        pass
+    day = now.strftime('%Y-%m-%d')
+    lists = []
+    for name in SANCTION_LISTS:
+        try:
+            d = requests.get(IND_SANCTIONS.format(name), timeout=20).json()
+        except Exception:
+            continue
+        n = d.get('target_count')
+        h = {k: v for k, v in (prev.get(name) or {}).items() if k >= (now - timedelta(days=40)).strftime('%Y-%m-%d')}
+        if isinstance(n, int):
+            h[day] = n
+        prev[name] = h
+        past = lambda days: next((h[k] for k in sorted(h, reverse=True)
+                                  if k <= (now - timedelta(days=days)).strftime('%Y-%m-%d')), None)
+        w, m = past(7), past(30)
+        lists.append({'id': name, 'title': (d.get('title') or name)[:70], 'targets': n,
+                      'changed': str(d.get('last_change') or '')[:10],
+                      'd7': n - w if isinstance(n, int) and w is not None else None,
+                      'd30': n - m if isinstance(n, int) and m is not None else None})
+    try:
+        with open('assets/sanctions.json', 'w', encoding='utf-8') as f:
+            json.dump({'at': now.strftime('%Y-%m-%dT%H:%M:%SZ'), 'history': prev}, f)
+    except Exception:
+        pass
+    if not lists:
+        raise RuntimeError('no list answered')
+    lists.sort(key=lambda x: x['changed'], reverse=True)
+    return {'lists': lists, 'note': 'changes count from this app\'s first reading on ' +
+            min((min(v) for v in prev.values() if v), default=day)}
+
+
+def fetch_indicators():
+    """Each source on its own: one failing leaves the rest."""
+    now = datetime.now(timezone.utc)
+    out, notes = {}, {}
+    for key, fn in (('ua_alerts', _ind_ua_alerts), ('il_alerts', _ind_il_alerts), ('losses', _ind_losses),
+                    ('oryx', _ind_oryx), ('outages', _ind_outages), ('sanctions', _ind_sanctions)):
+        try:
+            out[key] = fn(now)
+            v = out[key]
+            notes[key] = ('newest ' + v['newest'] if 'newest' in v else 'as of ' + str(v.get('date'))
+                          if 'date' in v else f"{len(v.get('country', v.get('lists', [])))} rows")
+        except Exception as e:
+            notes[key] = 'ERR ' + str(e)[:80]
+    out['notes'] = notes
+    out['fetched_at'] = now.strftime('%Y-%m-%dT%H:%M:%SZ')
+    print('  indicators: ' + '; '.join(f'{k} {v}' for k, v in notes.items()))
+    return out
+
+
+def indicator_lines(ind):
+    """The indicators for the prompts, compact."""
+    if not ind:
+        return []
+    out = ['INDICATORS - free open data, read by the pipeline this run:']
+    ua = ind.get('ua_alerts')
+    if ua:
+        top = ', '.join(f"{g['name'].replace(' oblast', '')} {g['hours24']}h" for g in ua['regions'][:6] if g['hours24'])
+        out.append(f"- Ukraine air-raid alerts (volunteer dataset, updated daily, newest {ua['newest']}): alerts per day, last 14 complete days: "
+                   f"{' '.join(str(n) for _, n in ua['daily'])}; most oblasts under alarm at once in 48h: "
+                   f"{ua['peak48']['oblasts']} at {ua['peak48']['at']}; alarm hours in 24h: {top or 'none'}")
+    il = ind.get('il_alerts')
+    if il:
+        out.append(f"- Israel Home Front Command alerts (newest {il['newest']}): 24h {il['h24'] or 'none'}; "
+                   f"7d {il['d7'] or 'none'}; per day, last 14 days: {' '.join(str(n) for _, n in il['daily'])}")
+    lo = ind.get('losses')
+    if lo:
+        sp = [f"{k} {v['today']} (30-day mean {v['mean30']}, z {v['z']})" for k, v in lo['spikes'].items() if abs(v['z']) >= 2]
+        out.append(f"- Ukraine MoD claimed Russian losses, day {lo['day']} ({lo['date']}): personnel total {lo['personnel']}; "
+                   f"unusual daily figures: {', '.join(sp) or 'none'}. These are one side's claims.")
+    ox = ind.get('oryx')
+    if ox:
+        r, u = ox.get('russia') or {}, ox.get('ukraine') or {}
+        out.append(f"- Oryx photo-verified equipment losses (as of {ox['date']}): Russia {r.get('total')} "
+                   f"(+{r.get('change_7d')} in 7d, +{r.get('change_30d')} in 30d), Ukraine {u.get('total')} "
+                   f"(+{u.get('change_7d')} in 7d, +{u.get('change_30d')} in 30d). Verified counts lag events by days.")
+    og = ind.get('outages')
+    if og:
+        w = [f"{x['name']} ({x['events']} events)" for x in og.get('country', []) if x['watch']][:8]
+        rg = [f"{x['name']}" for x in og.get('region', []) if x['watch']][:8]
+        out.append(f"- Internet outages, IODA, 48h: countries in watched theatres: {', '.join(w) or 'none'}; "
+                   f"regions: {', '.join(rg) or 'none'}. An outage is a lead (strike, power cut or shutdown), not a cause.")
+    sa = ind.get('sanctions')
+    if sa:
+        ch = [f"{x['title']} {x['d7']:+d}" for x in sa['lists'] if x.get('d7')]
+        out.append(f"- Sanctions lists (OpenSanctions): changed in the last 7 days: {', '.join(ch) or 'none measured yet'}; "
+                   f"latest list updates: {', '.join(x['title'] + ' ' + x['changed'] for x in sa['lists'][:4])}")
+    return out + ['']
+
+
 def fetch_primary_leads(hours, wire_hours=None):
     leads, errors = {}, {}
     nw, err = fetch_navwarnings()
@@ -2653,6 +2957,10 @@ def fetch_primary_leads(hours, wire_hours=None):
         leads['osint'] = fetch_osint_partners()
     except Exception as e:
         errors['osint'] = str(e)[:160]
+    try:
+        leads['indicators'] = fetch_indicators()
+    except Exception as e:
+        errors['indicators'] = str(e)[:160]
     leads['errors'] = errors
     return leads
 
@@ -2735,6 +3043,7 @@ def leads_block(leads, hours):
                 'headline.' + (f' Feeds that failed this run: {", ".join(down)}.' if down else ''),
                 '']
     out += osint_lines(leads.get('osint'))
+    out += indicator_lines(leads.get('indicators'))
     if not (nw or gd):
         return '\n'.join(out) + '\n'
     out += ['',
@@ -3250,6 +3559,8 @@ def fetch_server_feeds(leads=None):
             feeds[k] = leads[k]
     if leads.get('osint'):
         feeds['osint'] = osint_for_page(leads['osint'])
+    if leads.get('indicators'):
+        feeds['indicators'] = leads['indicators']
     if leads.get('wire'):
         feeds['wire'] = wire_for_page(leads['wire'])
     errors.update(leads.get('errors') or {})

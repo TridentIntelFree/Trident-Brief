@@ -656,6 +656,16 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .os-it a{color:var(--cyan)}
 .os-orig{margin-top:4px;font-size:.92em;color:var(--ink-faint)}
 .os-orig summary{cursor:pointer;font-family:var(--mono);font-size:.78em;letter-spacing:.04em}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.ind-c{border:1px solid var(--line2);border-radius:9px;padding:9px 11px;background:rgba(15,23,48,.55);font-size:.84em;color:var(--ink-dim);line-height:1.45}
+.ind-c h4{margin:0 0 5px;font-family:var(--mono);font-size:.78em;letter-spacing:.08em;color:#fff;font-weight:600}
+.ind-c .big{font-family:var(--mono);font-size:1.35em;color:#fff}
+.ind-c .up{color:#f97316}.ind-c .dn{color:#22c55e}
+.ind-spark{display:flex;align-items:flex-end;gap:2px;height:34px;margin:5px 0 3px}
+.ind-spark i{flex:1;background:#facc15;opacity:.75;min-height:1px;border-radius:1px}
+.ind-row{display:flex;justify-content:space-between;gap:8px;border-top:1px solid rgba(148,163,184,.12);padding:2px 0}
+.ind-row span:last-child{font-family:var(--mono);color:#fff;white-space:nowrap}
+.ind-c .sig-small{margin-top:4px}
 .os-note{color:var(--ink-faint);font-size:.78em;line-height:1.55;margin:10px 0 0}
 .os-note a{color:var(--ink-dim)}
 .tz-band{border-top:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.035)}
@@ -809,6 +819,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
             <button class="lyr on" data-layer="osint" title="Structured conflict events from situationmonitor (Bluesky, Telegram, news), last 48 hours"><i style="background:#fb7185"></i>EVENTS <b id="nOsint">0</b></button>
             <button class="lyr on" data-layer="tg" title="Telegram war-channel posts from tracker-data, last 24 hours, coloured by the channels' lean"><i style="background:#ef4444"></i>TELEGRAM <b id="nTg">0</b></button>
             <button class="lyr on" data-layer="front" title="Russian-held territory, DeepStateMap via tracker-data"><i style="background:#ff7a00"></i>FRONT LINE</button>
+            <button class="lyr on" data-layer="raid" title="Ukrainian air-raid alarms by oblast: hours under alarm in the 24 hours to the dataset's newest record (updated about once a day)"><i style="background:#facc15"></i>AIR RAIDS <b id="nRaid">0</b></button>
           </span>
           <span class="lyr-group"><b>orbital</b>
             <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
@@ -1074,6 +1085,23 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       <a href="https://github.com/gutmanis/tracker-data" target="_blank" rel="noopener">tracker-data</a>, and the front line from DeepStateMap.
       Every item is a claim from the named source; many Telegram channels are Russian state or pro-Russian media. Most posts are in Russian &mdash;
       your browser can translate the page.</p>
+  </div>
+
+  <!-- ============ INDICATORS ============ -->
+  <div class="section-band" id="indBand" style="display:none">
+    <div class="band-head">
+      <h2>&#128200; Indicators &mdash; alarms, losses, outages, sanctions</h2>
+      <div class="sub" id="indSub"></div>
+    </div>
+    <div class="ind-grid" id="indGrid"></div>
+    <p class="os-note">From open datasets, read on every refresh: Ukraine&rsquo;s air-raid alerts
+      (<a href="https://github.com/Vadimkin/ukrainian-air-raid-sirens-dataset" target="_blank" rel="noopener">Vadimkin</a>, updated about once a day),
+      Israel&rsquo;s Home Front Command alerts (<a href="https://github.com/dleshem/israel-alerts-data" target="_blank" rel="noopener">dleshem</a>),
+      Ukraine&rsquo;s Ministry of Defence claims of Russian losses (<a href="https://github.com/PetroIvaniuk/2022-Ukraine-Russia-War-Dataset" target="_blank" rel="noopener">PetroIvaniuk</a>)
+      beside Oryx&rsquo;s photo-verified counts for both sides (<a href="https://github.com/leedrake5/Russia-Ukraine" target="_blank" rel="noopener">leedrake5</a>),
+      internet outages from <a href="https://ioda.inetintel.cc.gatech.edu/" target="_blank" rel="noopener">IODA</a> (Georgia Tech), and
+      sanctions lists from <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a>. Claimed losses are one side&rsquo;s
+      figures; verified counts lag events by days; an outage is a lead, not a cause.</p>
   </div>
 
   <!-- ============ RECURRENCE ============ -->
@@ -1658,6 +1686,7 @@ function contactWhen(c){
     if(isFinite(t)) return {date:new Date(t - 12*3600e3).toISOString().slice(0,10), basis:'brief'};
   }
   if(c.k === 'quake' && d.time) return {date:new Date(d.time).toISOString().slice(0,10), basis:'source'};
+  if(c.k === 'raid' && d.last) return {date:d.last.slice(0,10), basis:'source'};
   if(c.k === 'navwarn' && d.issued){
     var m = /^(\d{2})\d{4}Z\s+([A-Z]{3})\s+(\d{4})/.exec(String(d.issued).toUpperCase());
     var mo = m ? 'JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC'.indexOf(m[2]) / 3 : -1;
@@ -1724,7 +1753,7 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 var G = {
   rot:[20,-15], R:0, baseR:0, zoom:1, cx:0, cy:0, spin:true, sel:null, drag:null,
   layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true,
-          conflict:true, navwarn:true, jam:true, osint:true, tg:true, front:true},
+          conflict:true, navwarn:true, jam:true, osint:true, tg:true, front:true, raid:true},
   air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[]
 };
 
@@ -1743,11 +1772,16 @@ var KIND = {
   navwarn: {color:'#a3e635', label:'NAV WARNING'},
   jam:     {color:'#f43f5e', label:'GPS INTERFERENCE'},
   osint:   {color:'#fb7185', label:'OSINT EVENT'},
-  tg:      {color:'#ef4444', label:'TELEGRAM CLAIMS'}
+  tg:      {color:'#ef4444', label:'TELEGRAM CLAIMS'},
+  raid:    {color:'#facc15', label:'AIR-RAID ALARMS'}
 };
 /* Partner OSINT: other open-source projects' collections, baked in by the
    pipeline (generate_brief_final.fetch_osint_partners). Claims, not findings. */
 var OSI = (typeof FEEDS !== 'undefined' && FEEDS && FEEDS.osint) || {};
+/* Indicators: air-raid alarms, war losses, internet outages and sanctions
+   lists from open datasets (generate_brief_final.fetch_indicators). */
+var IND = (typeof FEEDS !== 'undefined' && FEEDS && FEEDS.indicators) || {};
+var RAID = ((IND.ua_alerts || {}).regions || []).filter(function(g){ return g.hours24 > 0 || g.active; });
 var OSI_TYPE = {missile_drone:'#f97316', airstrike:'#ef4444', ground:'#f43f5e', naval:'#38bdf8', hybrid:'#a78bfa',
                 incursion:'#facc15', deployment:'#94a3b8', arms_transfer:'#64748b', production:'#64748b', diplomacy:'#22c55e'};
 var LEAN_COLOR = {'pro-russian':'#ef4444', 'pro-ukrainian':'#3b82f6', 'neutral':'#e2e8f0', unknown:'#94a3b8'};
@@ -2081,6 +2115,9 @@ function contacts(){
     if(e.lat==null) return;
     out.push({k:'osint', lat:e.lat, lon:e.lon, r:2.4 + Math.min(3, (e.sev||1)*0.7), d:e, id:'o'+i, color:osiColor(e)});
   });
+  if(G.layers.raid) RAID.forEach(function(g,i){
+    out.push({k:'raid', lat:g.lat, lon:g.lon, r:2.6 + Math.min(6, g.hours24/2), d:g, id:'r'+i, color:KIND.raid.color});
+  });
   if(G.layers.tg) (OSI.tgcells||[]).forEach(function(c,i){
     out.push({k:'tg', lat:c.lat, lon:c.lon, r:2.6 + Math.min(5, Math.sqrt(c.n)/2), d:c, id:'t'+i, color:LEAN_COLOR[cellLean(c)]});
   });
@@ -2348,6 +2385,17 @@ function renderDetail(c){
     note = 'From another open-source project that turns public posts and news into events with software. ' +
            '"Unconfirmed" means one source; read the reporting before relying on it.';
     link = d.u || '';
+  } else if(c.k==='raid'){
+    var ua = IND.ua_alerts || {};
+    title = 'Air-raid alarms &mdash; ' + esc(d.name);
+    place = 'Ukrainian air-raid sirens \u00b7 volunteer dataset';
+    rows.push(['UNDER ALARM', d.hours24 + ' h in the 24 h to ' + esc(String(ua.newest || '').replace('T', ' '))]);
+    rows.push(['ALARMS', d.n24 + ' in 24 h \u00b7 ' + d.n7 + ' in 7 days']);
+    if(d.last) rows.push(['LAST ALARM', esc(d.last.replace('T', ' '))]);
+    if(d.active) rows.push(['OPEN', 'still sounding at the last update']);
+    note = 'From Vadimkin\u2019s open dataset of Ukraine\u2019s official air-raid alerts, compiled by volunteers and updated about once a day: ' +
+           'it shows the rhythm of attacks, not what is happening this minute. Marker sits at the oblast\u2019s centre.';
+    link = 'https://github.com/Vadimkin/ukrainian-air-raid-sirens-dataset';
   } else if(c.k==='tg'){
     var lean = cellLean(d);
     title = 'Telegram claims &mdash; ' + esc(d.r || 'this area');
@@ -2448,6 +2496,7 @@ function boxLabel(c){
   if(c.k === 'conflict')return d.place || 'conflict hotspot';
   if(c.k === 'osint')   return (d.pl || 'event') + '  ' + String(d.ty || '').replace(/_/g, ' ');
   if(c.k === 'tg')      return 'Telegram claims  ' + (d.r || '');
+  if(c.k === 'raid')    return 'Air raids  ' + (d.name || '').replace(' oblast', '');
   if(c.k === 'jam')     return 'GPS interference ' + d.lat0 + (d.lat0>=0?'N ':'S ') + d.lon0 + (d.lon0>=0?'E':'W');
   if(c.k === 'launch')return d.name || 'launch';
   if(c.k === 'iss')   return 'International Space Station';
@@ -2465,6 +2514,7 @@ function boxDetail(c){
   if(c.k === 'conflict') return (d.outlets || 0) + ' outlets';
   if(c.k === 'osint')    return (d.st || '') + ' \u00b7 ' + (d.n || 1) + ' rep.';
   if(c.k === 'tg')       return d.n + ' posts';
+  if(c.k === 'raid')     return d.hours24 + ' h alarm';
   if(c.k === 'navwarn')  return d.age_days != null ? d.age_days + 'd ago' : '';
   if(c.k === 'jam')      return Math.round(d.pct*100) + '% of ' + d.n;
   return '';
@@ -2473,7 +2523,7 @@ function boxDetail(c){
 /* Ships and aircraft are what this was asked for, so they lead; the rest
    follow rather than being hidden, because a box over a coast catching a
    priority event as well as the shipping is worth knowing about. */
-var BOX_ORDER = ['events','osint','naval','air','navwarn','jam','tg','conflict','hazard','quake','launch','iss','rf','sats','rocket','debris'];
+var BOX_ORDER = ['events','osint','naval','air','navwarn','jam','tg','raid','conflict','hazard','quake','launch','iss','rf','sats','rocket','debris'];
 
 function boxReport(hits, kmAcross){
   var out = document.getElementById('boxOut');
@@ -3142,6 +3192,7 @@ function paintBaked(){
   document.getElementById('nConflict').textContent = plottable(FEEDS.gdelt);
   document.getElementById('nOsint').textContent = plottable(OSI.sm);
   document.getElementById('nTg').textContent = (OSI.tg || []).length;
+  document.getElementById('nRaid').textContent = RAID.length;
   document.getElementById('nNavwarn').textContent = plottable(FEEDS.navwarn);
   document.getElementById('nJam').textContent = JAM.length;
 }
@@ -3444,6 +3495,7 @@ window.TB = {
   navRings: function(){ return navRings(); },
   frontRings: function(){ return frontRings(); },
   get OSI(){ return OSI; }, osiColor: function(e){ return osiColor(e); },
+  get RAID(){ return RAID; },
   cellLean: function(c){ return cellLean(c); }, get LEAN_COLOR(){ return LEAN_COLOR; },
   get JAM(){ return JAM; },
   jamColor: function(p){ return jamColor(p); },
@@ -3984,6 +4036,73 @@ async function cbShow(){
   }
   paint();
   foldable('osBand', false);
+})();
+
+
+/* ------------------------------------------------------- INDICATORS */
+(function(){
+  var band = document.getElementById('indBand');
+  if(!band || !IND || !IND.fetched_at) return;
+  function n(x){ return x == null ? '—' : Number(x).toLocaleString(); }
+  function sign(x){ return x == null ? '—' : (x > 0 ? '+' : '') + Number(x).toLocaleString(); }
+  function spark(rows){
+    var mx = Math.max.apply(null, rows.map(function(r){ return r[1]; }).concat([1]));
+    return '<div class="ind-spark">' + rows.map(function(r){
+      return '<i style="height:' + Math.max(2, r[1]/mx*100).toFixed(0) + '%" title="' + esc(r[0]) + ': ' + r[1] + '"></i>'; }).join('') + '</div>';
+  }
+  function row(a, b){ return '<div class="ind-row"><span>' + a + '</span><span>' + b + '</span></div>'; }
+  var cards = [], ua = IND.ua_alerts, il = IND.il_alerts, lo = IND.losses, ox = IND.oryx, og = IND.outages, sa = IND.sanctions;
+  if(ua){
+    var last = ua.daily[ua.daily.length - 1] || ['', 0];
+    cards.push('<div class="ind-c"><h4>UKRAINE &mdash; AIR-RAID ALARMS</h4><span class="big">' + n(last[1]) + '</span> alarms on ' + esc(last[0]) +
+      spark(ua.daily) + '<div class="sig-small">alarms per day, last 14 complete days · most oblasts at once in 48 h: ' + ua.peak48.oblasts + '</div>' +
+      ua.regions.slice(0, 5).map(function(g){ return row(esc(g.name.replace(' oblast', '')), g.hours24 + ' h'); }).join('') +
+      '<div class="sig-small">hours under alarm, 24 h to ' + esc(ua.newest.replace('T', ' ')) + ' (dataset updated daily)</div></div>');
+  }
+  if(il){
+    var c24 = Object.keys(il.h24 || {}).reduce(function(a, k){ return a + il.h24[k]; }, 0);
+    cards.push('<div class="ind-c"><h4>ISRAEL &mdash; HOME FRONT ALERTS</h4><span class="big">' + n(c24) + '</span> in 24 h' + spark(il.daily) +
+      '<div class="sig-small">alerts per day, last 14 days (pre-warnings excluded)</div>' +
+      Object.keys(il.d7 || {}).map(function(k){ return row(esc(k), il.d7[k] + ' in 7 d'); }).join('') +
+      '<div class="sig-small">last alert ' + esc(String(il.newest).replace('T', ' ')) + '</div></div>');
+  }
+  if(lo || ox){
+    var h = '<div class="ind-c"><h4>WAR LOSSES &mdash; CLAIMED vs VERIFIED</h4>';
+    if(lo){
+      h += row('Russian personnel (UA MoD claim)', n(lo.personnel));
+      Object.keys(lo.spikes || {}).filter(function(k){ return Math.abs(lo.spikes[k].z) >= 2; }).forEach(function(k){
+        var v = lo.spikes[k]; h += row('<span class="up">unusual: ' + esc(k) + '</span>', v.today + ' vs ' + v.mean30 + '/day');
+      });
+      h += '<div class="sig-small">day ' + esc(lo.day) + ' (' + esc(lo.date) + '); flagged when a day is 2 standard deviations off its 30-day norm</div>';
+    }
+    if(ox){
+      ['russia', 'ukraine'].forEach(function(k){
+        var v = ox[k] || {};
+        h += row('Oryx verified, ' + k.charAt(0).toUpperCase() + k.slice(1), n(v.total) + ' · ' + sign(v.change_7d) + ' 7d');
+      });
+      h += '<div class="sig-small">photo-verified equipment losses as of ' + esc(ox.date) + '</div>';
+    }
+    cards.push(h + '</div>');
+  }
+  if(og){
+    var w = (og.country || []).filter(function(x){ return x.watch; }).slice(0, 6), r = (og.region || []).filter(function(x){ return x.watch; }).slice(0, 4);
+    cards.push('<div class="ind-c"><h4>INTERNET OUTAGES &mdash; 48 H</h4>' +
+      (w.length || r.length ? w.concat(r).map(function(x){ return row(esc(x.name), x.events + ' event' + (x.events === 1 ? '' : 's')); }).join('')
+                            : '<div class="sig-small">none in the watched theatres</div>') +
+      '<div class="sig-small">from IODA; also elsewhere: ' + esc((og.country || []).filter(function(x){ return !x.watch; }).slice(0, 4).map(function(x){ return x.name; }).join(', ') || 'none') + '</div></div>');
+  }
+  if(sa){
+    cards.push('<div class="ind-c"><h4>SANCTIONS LISTS</h4>' + sa.lists.slice(0, 7).map(function(x){
+      return row(esc(x.title.replace(/ Sanctions?( List)?/i, '')), n(x.targets) + (x.d7 ? ' <span class="up">' + sign(x.d7) + '</span>' : '') + ' · ' + esc(x.changed.slice(5)));
+    }).join('') + '<div class="sig-small">targets on each list, change in 7 days, last update · ' + esc(sa.note) + '</div></div>');
+  }
+  if(!cards.length) return;
+  document.getElementById('indGrid').innerHTML = cards.join('');
+  var bad = Object.keys(IND.notes || {}).filter(function(k){ return /^ERR/.test(IND.notes[k]); });
+  document.getElementById('indSub').textContent = 'read ' + String(IND.fetched_at).replace('T', ' ').slice(0, 16) + 'Z' +
+    (bad.length ? ' · unavailable this time: ' + bad.join(', ') : '');
+  band.style.display = '';
+  if(typeof foldable === 'function') foldable('indBand', false);
 })();
 
 /* The way in on a new device: tap the version number five times quickly. */
@@ -7226,6 +7345,8 @@ async function boot(){
     if(L.tg) for(const c of (T.OSI.tgcells||[])) if(i<CAP)
       push(i++, c.lat, c.lon, 0.006, T.LEAN_COLOR[T.cellLean(c)], 5 + Math.min(8, Math.sqrt(c.n)), {k:'tg', d:c, lat:c.lat, lon:c.lon}, TL.dot, 0.9);
     if(frontLines) frontLines.visible = !!L.front;
+    if(L.raid) for(const g of (T.RAID||[])) if(i<CAP)
+      push(i++, g.lat, g.lon, 0.006, K.raid.color, 5 + Math.min(8, g.hours24), {k:'raid', d:g, lat:g.lat, lon:g.lon}, TL.dot, 0.9);
     if(L.jam) for(const j of (T.JAM||[])) if(i<CAP)
       push(i++, j.lat, j.lon, 0.006, T.jamColor(j.pct), 3.2, {k:'jam', d:j, lat:j.lat, lon:j.lon}, TL.dot, 1);
     if(jamMesh) jamMesh.visible = !!L.jam;

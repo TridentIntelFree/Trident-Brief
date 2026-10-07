@@ -32,7 +32,7 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
-from generate_brief_final import closing_items, osint_lines
+from generate_brief_final import closing_items, osint_lines, indicator_lines
 
 DIR = 'data/crystal'
 OUT = os.path.join(DIR, 'ball.json')
@@ -160,6 +160,19 @@ def snapshot(feeds):
     if o.get('front'):
         counts['front_km2'] = o['front'].get('km2')
     s['osint'] = osint_lines(o, sm_max=20, tg_max=12)
+    ind = feeds.get('indicators') or {}
+    s['indicators'] = indicator_lines(ind)[1:-1]
+    ua = ind.get('ua_alerts') or {}
+    if ua.get('daily'):
+        counts['ua_air_raid_alarms_day'] = ua['daily'][-1][1]
+        counts['ua_oblasts_peak_48h'] = (ua.get('peak48') or {}).get('oblasts')
+    il = ind.get('il_alerts') or {}
+    if il.get('daily'):
+        counts['il_alerts_day'] = il['daily'][-1][1]
+    ox = ind.get('oryx') or {}
+    if ox.get('russia'):
+        counts['oryx_russia_7d'] = ox['russia'].get('change_7d')
+        counts['oryx_ukraine_7d'] = (ox.get('ukraine') or {}).get('change_7d')
     counts['aircraft'] = feeds.get('aircount')
     counts['vessels'] = len(feeds.get('vessels') or [])
     return s, counts
@@ -188,6 +201,11 @@ def movers(log, today):
     for t, n in (cur.get('osint_events_by_theater') or {}).items():
         check(f'structured conflict events: {t}', n, [(p.get('osint_events_by_theater') or {}).get(t, 0) for p in past], 6)
     check('Telegram war-channel posts', cur.get('telegram_posts'), [p.get('telegram_posts') for p in past], 50)
+    check('Ukraine air-raid alarms a day', cur.get('ua_air_raid_alarms_day'), [p.get('ua_air_raid_alarms_day') for p in past], 60)
+    check('Ukrainian oblasts under alarm at once', cur.get('ua_oblasts_peak_48h'), [p.get('ua_oblasts_peak_48h') for p in past], 8)
+    check('Israel Home Front alerts a day', cur.get('il_alerts_day'), [p.get('il_alerts_day') for p in past], 5)
+    check('Oryx verified Russian losses, 7 days', cur.get('oryx_russia_7d'), [p.get('oryx_russia_7d') for p in past], 40)
+    check('Oryx verified Ukrainian losses, 7 days', cur.get('oryx_ukraine_7d'), [p.get('oryx_ukraine_7d') for p in past], 40)
     for d, n in (cur.get('wire_by_desk') or {}).items():
         check(f'headlines, {d} desk', n, [(p.get('wire_by_desk') or {}).get(d, 0) for p in past], 6)
     out.sort(key=lambda m: -m['x'])
@@ -277,6 +295,9 @@ UVB-76 / HFGCS monitor reports (strategic radio; timing only, content is coded):
 
 == PARTNER OSINT (other open-source projects; claims, with their lean) ==
 {chr(10).join(snap.get('osint') or ['- not available this run'])}
+
+== INDICATORS (air-raid alarms, losses, internet outages, sanctions lists) ==
+{chr(10).join(snap.get('indicators') or ['- not available this run'])}
 
 == RISING AGAINST BASELINE ==
 {rising}
