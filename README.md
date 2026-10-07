@@ -297,3 +297,11 @@ passphrase and the brief is committed encrypted to `data/local-brief/`, where
 only the panel can open it. Whether xAI accepts calls made
 straight from a browser is checked on every feed refresh and recorded in
 `assets/feed-status.json` under `xai_browser`.
+
+## Analysis from a Claude Code session
+
+`python3 intel.py sync && python3 intel.py` prints an overview of everything
+the app has gathered. It reads the `main`, `intel-data` (published by each
+half-hourly refresh) and `radio-data` branches. `python3 intel.py help` lists
+the views, and `CLAUDE.md` explains how sessions should use them.
+
