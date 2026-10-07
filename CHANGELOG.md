@@ -4,6 +4,15 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.18.1 — 2026-10-07
+
+### Fixed
+- **OPEN RECORDING → PLAY did nothing** from 1.16.0 on. The tuner's audio
+  routine had the same name as the recording player's, so the recording
+  player called the tuner's instead and returned without playing. The tuner's
+  routine is renamed. A recording plays again, and the tuner is unaffected
+  (both checked in a browser).
+
 ## 1.18.0 — 2026-10-07
 
 ### Tuner: waterfall, seek, bands, filters

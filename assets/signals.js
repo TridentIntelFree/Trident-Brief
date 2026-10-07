@@ -828,7 +828,7 @@ function connect(rx){
     T.rssi.push(rssi); if(T.rssi.length > 600) T.rssi.shift();
     if(flags & 0x10) f = adpcm(data, T.dec);
     else { f = new Float32Array(data.length >> 1); for(var i = 0; i < f.length; i++){ var v = (data[2*i] << 8) | data[2*i+1]; f[i] = (v > 32767 ? v - 65536 : v)/32768; } }
-    play(f);
+    tunerPlay(f);
     var now = Date.now();
     if(now - T.lastKa > 1000){ T.lastKa = now; try{ ws.send('SET keepalive'); }catch(_){} tunerNow(); }
   };
@@ -843,7 +843,7 @@ function refused(rx, why){
 /* a short jitter buffer: each frame is scheduled after the last, a quarter
    second behind real time; if the network falls behind, it re-buffers, and
    if frames pile up, the extra is dropped rather than letting the delay grow */
-function play(f){
+function tunerPlay(f){
   var ctx = S.ctx; if(!ctx || !T.inp) return;
   var b = ctx.createBuffer(1, f.length, T.sr);
   if(b.copyToChannel) b.copyToChannel(f, 0); else b.getChannelData(0).set(f);
