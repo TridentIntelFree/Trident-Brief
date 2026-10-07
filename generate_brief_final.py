@@ -243,6 +243,35 @@ def generate_with_grok(prompt, since=None):
     except Exception as e:
         return None, str(e)
 
+def generate_with_groq(prompt):
+    api_key = os.environ.get('GROQ_API_KEY')
+    if not api_key:
+        return None, "No Groq API key"
+    
+    try:
+        response = requests.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'llama-3.3-70b-versatile',
+                'messages': [{'role': 'user', 'content': prompt}],
+                'temperature': 0.6,
+                'max_tokens': 4000
+            },
+            timeout=60
+        )
+        
+        if response.status_code == 200:
+            return response.json()['choices'][0]['message']['content'], None
+        return None, "Groq error"
+    except Exception as e:
+        return None, str(e)
+
+
+
 # ---------------------------------------------------------------- prompt ----
 
 def load_watchlist():
@@ -1124,16 +1153,104 @@ def _ship_kind(code):
     return ''
 
 
+def _aisstream_global(api_key, seconds=25, cap=8000):
+    """Global AIS via AISStream.io.
+
+    AIS is VHF radio with roughly 40-60nm line of sight, so open-ocean coverage
+    only exists via satellite AIS, which is commercial. AISStream aggregates
+    both and gives it away on a free tier, but it needs an account key and
+    speaks websocket rather than REST. We connect, subscribe to the whole
+    globe, listen for a fixed window, and take a snapshot of whatever reported.
+    """
+    try:
+        import asyncio
+        import websockets
+    except ImportError:
+        return None, 'websockets package not installed'
+
+    async def collect():
+        seen = {}
+        sub = {'APIKey': api_key,
+               'BoundingBoxes': [[[-90, -180], [90, 180]]],
+               'FilterMessageTypes': ['PositionReport', 'ShipStaticData']}
+        async with websockets.connect('wss://stream.aisstream.io/v0/stream',
+                                      ping_interval=None, max_size=None) as ws:
+            await ws.send(json.dumps(sub))
+            deadline = time.time() + seconds
+            while time.time() < deadline and len(seen) < cap:
+                left = deadline - time.time()
+                if left <= 0:
+                    break
+                try:
+                    raw = await asyncio.wait_for(ws.recv(), timeout=left)
+                except asyncio.TimeoutError:
+                    break
+                try:
+                    msg = json.loads(raw)
+                except Exception:
+                    continue
+                if msg.get('error'):
+                    raise RuntimeError(str(msg['error'])[:120])
+                meta = msg.get('MetaData') or {}
+                mmsi = meta.get('MMSI') or meta.get('MMSI_String')
+                if mmsi is None:
+                    continue
+                mmsi = int(mmsi)
+                rec = seen.setdefault(mmsi, {'mmsi': mmsi})
+                lat, lon = meta.get('latitude'), meta.get('longitude')
+                if lat is not None and lon is not None:
+                    rec['lat'], rec['lon'] = round(lat, 4), round(lon, 4)
+                name = (meta.get('ShipName') or '').strip()
+                if name:
+                    rec['name'] = name[:28]
+                body = (msg.get('Message') or {})
+                pr = body.get('PositionReport') or {}
+                if pr.get('Sog') is not None:
+                    try: rec['sog'] = round(float(pr['Sog']), 1)
+                    except (TypeError, ValueError): pass
+                if pr.get('TrueHeading') is not None and pr['TrueHeading'] < 360:
+                    rec['hdg'] = pr['TrueHeading']
+                sd = body.get('ShipStaticData') or {}
+                if sd.get('Type') is not None:
+                    kind = _ship_kind(sd['Type'])
+                    if kind:
+                        rec['kind'] = kind
+                        if kind in ('MILITARY OPS', 'LAW ENFORCEMENT', 'Search and rescue'):
+                            rec['_mil'] = True
+        return [v for v in seen.values() if 'lat' in v]
+
+    try:
+        out = asyncio.run(collect())
+    except Exception as e:
+        return None, str(e)[:160]
+    if not out:
+        return None, 'connected but no positions in window'
+    return out, None
+
+
 def fetch_vessels():
     """Live AIS vessel positions.
 
     Free keyless AIS is scarce: the global providers (MarineTraffic,
-    VesselFinder, AISStream) all want an account or a key, and this app keeps
-    to one secret. Digitraffic publishes Finnish
+    VesselFinder, AISStream) all want an account. Digitraffic publishes Finnish
     and Baltic AIS as open data with no key, which is real live shipping but
     regionally bounded -- the tile says so rather than implying global coverage.
     """
     out, source = [], []
+
+    # Global coverage, if a key is configured. Never required: without it the
+    # regional feed below still runs.
+    ais_key = os.environ.get('AISSTREAM_API_KEY', '').strip()
+    if ais_key:
+        g, err = _aisstream_global(ais_key)
+        if g:
+            out.extend(g)
+            source.append(f'global {len(g)}')
+            print(f"  vessels: {len(g)} global (AISStream)")
+        else:
+            print(f"    AISStream unavailable: {err}")
+    else:
+        print('    AISSTREAM_API_KEY not set - regional AIS only')
 
     hdr_note = 'Digitraffic-User'
     try:
@@ -1141,9 +1258,15 @@ def fetch_vessels():
                          headers={'Accept': 'application/json',
                                   hdr_note: 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'})
         if r.status_code != 200:
+            if out:
+                print(f"    Digitraffic HTTP {r.status_code}; keeping global only")
+                return _finish_vessels(out, source), None
             return None, f'HTTP {r.status_code}: {r.text[:100]}'
         loc = r.json()
     except Exception as e:
+        if out:
+            print(f"    Digitraffic unavailable ({str(e)[:60]}); keeping global only")
+            return _finish_vessels(out, source), None
         return None, str(e)[:160]
 
     # Names and ship types live on a separate endpoint; positions still stand
@@ -1165,6 +1288,8 @@ def fetch_vessels():
 
     feats = loc.get('features') if isinstance(loc, dict) else None
     if not feats:
+        if out:
+            return _finish_vessels(out, source), None
         return None, 'no features in AIS response'
 
     regional = []
@@ -3443,6 +3568,29 @@ def build_trail_data():
           f"{'complete' if data.get('complete') else 'incomplete: ' + json.dumps(data.get('sections'))}")
 
 
+def probe_xai_browser():
+    """Would xAI accept the local brief's request from the live page?
+
+    The local brief calls api.x.ai straight from the visitor's browser. That
+    only works if xAI answers the browser's CORS preflight for this site's
+    origin. This asks the same question the browser does (it costs nothing:
+    a preflight is never billed) and records the answer in feed-status."""
+    repo = os.environ.get('GITHUB_REPOSITORY', 'TridentIntelFree/Trident-Brief')
+    origin = f"https://{repo.split('/')[0].lower()}.github.io"
+    try:
+        r = requests.options('https://api.x.ai/v1/responses', timeout=15, headers={
+            'Origin': origin, 'Access-Control-Request-Method': 'POST',
+            'Access-Control-Request-Headers': 'authorization,content-type'})
+        allow = r.headers.get('Access-Control-Allow-Origin')
+        ok = r.status_code < 400 and allow in ('*', origin)
+        print(f"  xai browser access: preflight {r.status_code}, allow-origin {allow!r} -> "
+              f"{'local brief can run in the browser' if ok else 'browsers will be refused'}")
+        return {'ok': ok, 'status': r.status_code, 'allow_origin': allow,
+                'allow_headers': r.headers.get('Access-Control-Allow-Headers')}
+    except Exception as e:
+        return {'ok': None, 'error': str(e)[:120]}
+
+
 def fetch_server_feeds(leads=None):
     """Fetch the rate-limited / CORS-awkward feeds here instead of in the browser.
 
@@ -3540,6 +3688,7 @@ def fetch_server_feeds(leads=None):
         feeds['satcounts'] = sats
 
     feeds['appalachia'] = appalachia_status()
+    feeds['xai_browser'] = probe_xai_browser()
 
     dis, err = fetch_disasters()
     if dis is None:
@@ -3572,6 +3721,7 @@ def write_feed_status(feeds):
     counts['wire_detail'] = feeds.get('wire_detail')
     counts['aircraft'] = feeds.get('aircount')
     counts['appalachia'] = feeds.get('appalachia')
+    counts['xai_browser'] = feeds.get('xai_browser')
     gj = feeds.get('gpsjam') or {}
     counts['gpsjam'] = {k: gj.get(k) for k in ('runs', 'checked', 'cells_seen')} | \
         {'flagged': len(gj.get('cells') or [])} if gj else None
@@ -4173,17 +4323,23 @@ def main():
         provider = "Grok 4.1 Fast Reasoning - Multi-INT Fusion (X Search + Web Search)"
         badge = "GROK-4.1-MULTI-INT-FUSION"
     else:
-        # Rather than deploying nothing, re-render the last good brief and flag
-        # it as cached on the page.
         print(f"Grok failed: {error}")
-        content = load_cached_brief()
+        print("Falling back to Groq...")
+        content, error = generate_with_groq(prompt)
         if content:
-            print("Re-rendering the cached brief.")
-            provider = "CACHED - last successful collection"
-            badge = "CACHE-STALE"
-            stale = True
+            provider = "Groq Llama 3.3 (Backup)"
+            badge = "GROQ-BACKUP"
         else:
-            raise Exception(f"Grok failed and no cache available: {error}")
+            # Both providers down. Rather than deploying nothing, re-render the
+            # last good brief and flag it as cached on the page.
+            content = load_cached_brief()
+            if content:
+                print(f"All providers failed ({error}); re-rendering cached brief.")
+                provider = "CACHED - last successful collection"
+                badge = "CACHE-STALE"
+                stale = True
+            else:
+                raise Exception(f"All providers failed and no cache available: {error}")
 
     if stale:
         events, feeds = load_cache().get('events', []), load_cache().get('feeds', {})

@@ -4,6 +4,24 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.21.1 — 2026-10-07
+
+### Restored: the features that use keys the owner already has
+1.21.0 misread "no more keys" as "nothing but GROK_API_KEY", and removed
+working features. Everything is back as it was in 1.20.0:
+- **AISStream worldwide ships** (`AISSTREAM_API_KEY`). It was set and
+  working: the last brief before the removal had 3,308 ships, 2,185 of them
+  outside the Baltic, which only AISStream supplies. The run after it had 916.
+- **Groq** as the fallback model (`GROQ_API_KEY`).
+- **The Local Intelligence Brief** on the page, with your xAI key typed in
+  and kept in your browser. Its xAI check showed the page's calls were
+  accepted. The browser check is back on the feed refresh.
+- **The owner panel** (version ×5), `local-brief.yml` and `local_brief.py`
+  (GitHub token + `LOCAL_BRIEF_PASSPHRASE`).
+- Not restored: the Gemini `daily-brief.yml`. It had failed on every run and
+  had not run since May 2026. Say if you want it back.
+- The folding from 1.21.0 stays. The Local Intelligence Brief folds too.
+
 ## 1.21.0 — 2026-10-07
 
 ### Every section folds
@@ -35,7 +53,8 @@ Everything that needed another key is gone:
 - **The feed refresh's check** of whether xAI accepts calls from a browser,
   which only the removed form needed.
 - **Old saved keys:** any keys older versions saved in a browser are wiped on
-  the next visit.
+  the next visit. (Undone in 1.21.1, which restores all of the above except
+  the Gemini job.)
 
 ## 1.20.0 — 2026-10-07
 

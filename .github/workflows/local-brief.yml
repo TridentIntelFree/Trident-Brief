@@ -1,0 +1,70 @@
+name: Local Brief
+
+# The owner's local brief, run here so the xAI key stays in GitHub Secrets.
+# Started by the site's hidden owner panel (or by hand from the Actions tab,
+# though the panel is what makes the encrypted inputs). The repository is
+# public, so the ZIP arrives encrypted and the result is committed encrypted;
+# see local_brief.py. Only people with write access to the repository can
+# start this workflow.
+run-name: Local brief ${{ inputs.req_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      req_id:
+        description: 'Request id (sent by the site panel)'
+        required: true
+        type: string
+      zip_enc:
+        description: 'ZIP code, encrypted with the passphrase (sent by the site panel)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: local-brief
+  cancel-in-progress: false
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install requests cryptography
+
+      - name: Generate local brief
+        env:
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+          LOCAL_BRIEF_PASSPHRASE: ${{ secrets.LOCAL_BRIEF_PASSPHRASE }}
+          # Passed as environment variables, never pasted into the script, so
+          # an input cannot inject shell commands.
+          REQ_ID: ${{ inputs.req_id }}
+          ZIP_ENC: ${{ inputs.zip_enc }}
+        run: python3 local_brief.py
+
+      - name: Commit the locked result
+        run: |
+          git config user.name "Trident Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/local-brief
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "Local brief (locked)"
+          for i in 1 2 3 4; do
+            git push origin HEAD:main && break
+            echo "Push failed (attempt $i); refreshing and retrying"
+            git pull --rebase origin main || true
+            sleep $((i * 4))
+          done
