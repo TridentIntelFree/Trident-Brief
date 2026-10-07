@@ -90,6 +90,7 @@ The owner's standing rules:
   - "Appalachian Intel" ×3: Tazewell brief
   - title ×3: Analyst Desk
   - left trident ×3: Crystal Ball
+  - version ×5: owner panel
 - **No Reddit,** as a source or a search.
 - **Listen like a person.** Other people's receivers are used live, by a
   human pressing a button, one at a time, never recorded round the clock.
