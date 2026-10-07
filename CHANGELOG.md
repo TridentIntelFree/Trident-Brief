@@ -4,6 +4,38 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.16.0 — 2026-10-07
+
+### A live tuner, in place of the recorder
+- **Signals is now a live shortwave tuner.** It plays a public KiwiSDR
+  receiver inside the page and feeds the analyzer, so the detectors hear what
+  you hear.
+  - Presets: UVB-76, The Pip, Squeaky Wheel, HFGCS 8992 / 11175 / 4724,
+    Shannon VOLMET, WWV.
+  - Free tuning in USB/LSB/AM/CW with ±0.1 and ±1 kHz steps.
+  - A scan that steps through the presets and reports each one's signal and
+    what the detectors made of it. It can stop on voice.
+  - A signal meter, plus RECORD CLIP for what you hear.
+- **Receivers are picked for you.** The nearest to the transmitter is tried
+  first; a full or refusing one is skipped, or you choose one.
+- **Courtesy.** It is one listener on one receiver, named "Trident Brief
+  listener", and lets go after an hour untouched.
+- **Which receivers it can use.** An HTTPS page may only use receivers that
+  serve HTTPS. A weekly check (`tuner_receivers.py`) found 16 of the ~860
+  public KiwiSDRs on 7 Oct 2026, mostly in Europe, one in Connecticut, two in
+  South America. Hattingen, Germany, was hearing UVB-76's buzzer when tested.
+- **Reported by radio monitors.** Once a day the Analyst Desk run also
+  collects first-hand logs of these stations posted on X, each linked to its
+  post, and the section lists them. Cost: one more call with at most two
+  searches, about 1–3 cents a day.
+- **The round-the-clock recorder is retired.** Its schedule is off; it can
+  still be run by hand. What it caught is kept in an archive at the foot of
+  the section.
+- Tested against the protocol with real Kiwi audio frames: the handshake,
+  ADPCM decoding, playback buffering (no drops at real-time pace), a full
+  receiver being skipped, and the Buzzer locked at 17.7 a minute through
+  the tuner.
+
 ## 1.15.2 — 2026-10-07
 
 ### No more Reddit

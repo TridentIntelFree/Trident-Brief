@@ -125,37 +125,46 @@ being read and has section skip, speed and voice controls.
 
 ## Signals
 
-**Real recordings.** `radio_monitor.py`, run by
-`.github/workflows/radio-watch.yml` at :01 and :31 past each hour, records
-UVB-76 (4625 kHz AM) and HFGCS (8992 and 11175 kHz USB).
-- **Recording:** public KiwiSDR receivers (from kiwisdr.com/public) are used
-  in a relay of 2-minute slices, each from a different receiver, and only
-  receivers with at least two free places. Recordings use kiwirecorder from
-  jks-prv/kiwiclient. `RADIO_MINUTES` (default 24) sets how long each run
-  watches.
-- **Analysis:** each slice is checked for pulse rate and voice.
-- **Output:** the latest slice per channel and the voice events (as MP3),
-  plus a 48-hour timeline, go to the `radio-data` branch. That branch is
-  force-replaced on every run; the page reads it from raw.githubusercontent.com.
+**Live tuner.** You listen live through a public KiwiSDR receiver, inside the
+page (`assets/signals.js`):
+- **Controls:** presets (UVB-76, The Pip, Squeaky Wheel, HFGCS 8992 / 11175 /
+  4724, Shannon VOLMET, WWV), free tuning in USB/LSB/AM/CW, and a scan that
+  steps through the presets and reports each one's signal level and what the
+  detectors heard.
+- **Receiver choice:** the receiver nearest the transmitter is chosen
+  automatically, and one that is full or refuses is skipped.
+- **Protocol:** the page speaks the Kiwi's own WebSocket audio protocol and
+  decodes its IMA ADPCM audio, the same handshake as jks-prv/kiwiclient.
+- **Courtesy:** one connection at a time, identified as "Trident Brief
+  listener". The receiver's own limits apply, and the page lets go after an
+  hour without a touch.
+- **Which receivers:** an HTTPS page may only open secure connections. Of the
+  roughly 860 public KiwiSDRs, the ones that serve HTTPS are found weekly by
+  `tuner_receivers.py` (`.github/workflows/tuner-receivers.yml`) and written to
+  `data/tuner/receivers.json`. The first check, on 7 Oct 2026, found 16, mostly
+  in Europe. The approach follows Priyom's pavlova dispatcher.
 
-**The section itself:**
+**Reported by radio monitors.** Once a day, alongside the Analyst Desk, one X
+search (at most two) collects first-hand logs of these stations from the people
+who monitor them round the clock. Every report must link the post it came
+from. They are shown in the section and kept in `data/analyst/desk.json`
+(`radio`).
 
-The UVB-76 and HFGCS section (`assets/signals.js`). Its station cards link to
-public web receivers already tuned: the University of Twente WebSDR, plus the
-KiwiSDR directories for a receiver nearer you. The analyzer is a spectrogram
-that runs entirely in the browser (Web Audio). It takes another tab's audio
-(desktop Chrome or Edge), the microphone, or a recording, and nothing is
-uploaded. Two detectors run on their own fixed 2048-point spectrum:
+**The analyzer** is a spectrogram that runs entirely in the browser (Web
+Audio). It takes the tuner, another tab's audio (desktop Chrome or Edge), the
+microphone, or a recording, and nothing is uploaded. Two detectors run on their
+own fixed 2048-point spectrum:
 - *pulse train*: periodicity of the energy in eight sub-bands over 12 s, which
   gives the Buzzer's rate;
-- *voice?*: the median frame-to-frame change of the speech-band level.
+- *voice?*: the median frame-to-frame change of the speech-band level, never
+  counted on frames that carry the Buzzer's own harmonic comb.
 
-In live mode the audio stream clocks both the detectors and the waterfall, so
-they keep running in a background tab. The monitor reports are the wire's
-`signals` desk. The generator files r/uvb76, r/numbersstations and r/HFGCS
-there, as well as r/shortwave posts that match the stations, plus
-numbers-stations.com, and keeps a week of them. The model is told the same
-reports are timing evidence only.
+In live mode the audio clocks both the detectors and the waterfall, so they
+keep running in a background tab.
+
+**Retired:** `radio_monitor.py` recorded these channels round the clock through
+a relay of public receivers until 7 Oct 2026. It now runs only by hand. Its
+recordings stay on the `radio-data` branch and in the section's archive.
 
 ## Appalachistan
 

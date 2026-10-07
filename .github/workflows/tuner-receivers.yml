@@ -1,0 +1,49 @@
+name: Tuner Receivers
+
+# Once a week: which public KiwiSDRs the page's live tuner can reach over
+# HTTPS. One /status request per listed receiver, and a four-second audio
+# check for the ones that answer; see tuner_receivers.py. No secrets.
+on:
+  schedule:
+    - cron: '23 4 * * 1'       # Mondays, 04:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tuner-receivers
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install requests websockets numpy
+
+      - name: Check the receivers
+        run: python3 tuner_receivers.py
+
+      - name: Commit the list
+        run: |
+          git config user.name "Trident Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/tuner
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "Tuner receivers"
+          for i in 1 2 3 4; do
+            git push origin HEAD:main && break
+            echo "Push failed (attempt $i); refreshing and retrying"
+            git pull --rebase origin main || true
+            sleep $((i * 4))
+          done

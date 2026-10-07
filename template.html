@@ -393,6 +393,27 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .sig-set select{background:#0a1226;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:4px 6px;font-family:var(--mono);font-size:1em}
 .sig-set input[type=range]{width:110px}
 .sig-live{margin-bottom:14px}
+.tu{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;margin:4px 0 14px;background:rgba(15,23,48,.55)}
+.tu-presets{display:flex;flex-wrap:wrap;gap:5px}
+.tu-p span{font-family:var(--mono);opacity:.7;font-size:.85em;margin-left:3px}
+.tu-p.on{border-color:var(--cyan);color:#fff;background:rgba(34,211,238,.14)}
+.tu-note{min-height:1.2em;margin:6px 0 2px}
+.tu-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:8px;font-size:.85em;color:var(--ink-dim)}
+.tu-row input[type=number]{width:7.5em;font-family:var(--mono);font-size:1.05em;background:#0b1328;color:#fff;border:1px solid var(--line2);border-radius:6px;padding:4px 6px}
+.tu-row select{background:#0b1328;color:#fff;border:1px solid var(--line2);border-radius:6px;padding:3px 5px;max-width:15em}
+.tu-steps{display:inline-flex;gap:3px}
+.tu-now{margin-top:9px;font-size:.86em;color:var(--ink-dim);line-height:1.45}
+.tu-now b{color:#fff;font-family:var(--mono)}
+.tu-meter{position:relative;height:14px;border-radius:7px;background:#0b1328;border:1px solid var(--line2);margin-top:5px;overflow:hidden;max-width:420px}
+.tu-meter i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#0e7490,#22d3ee,#facc15)}
+.tu-meter span{position:relative;font-family:var(--mono);font-size:.72em;color:#fff;padding-left:7px;line-height:14px}
+.tu-scan{display:grid;gap:3px;margin-top:8px}
+.tu-sr{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:.8em;color:var(--ink-dim);border-left:3px solid var(--line2);padding:2px 8px}
+.tu-sr.top{border-left-color:var(--cyan)}
+.tu-sr b{color:#fff;min-width:8.5em}
+.tu-sr .sig-st{margin:0}
+.sig-arch{margin-top:14px}
+.sig-arch summary{cursor:pointer}
 .sig-small{font-size:.78em;color:var(--ink-faint)}
 .sig-ev .linkish{background:none;border:0;color:var(--cyan);text-decoration:underline;cursor:pointer;font:inherit;padding:0 3px}
 .sig-tl{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:rgba(10,17,36,.9);margin-bottom:10px}
@@ -961,10 +982,31 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
   <!-- ============ SIGNALS ============ -->
   <div class="section-band" id="sigBand">
     <div class="band-head">
-      <h2>&#128225; Signals &mdash; UVB-76 &amp; HFGCS</h2>
-      <div class="sub">real shortwave, recorded round the clock through a relay of public receivers &middot; analyse any slice &middot; 48-hour activity</div>
+      <h2>&#128225; Signals &mdash; live shortwave</h2>
+      <div class="sub">listen live through public receivers &middot; presets, free tuning and scan &middot; the analyzer hears what you hear</div>
     </div>
-    <div class="sig-live" id="sigLive"><div class="sig-empty">Loading the latest recordings&hellip;</div></div>
+    <div class="tu" id="sigTuner">
+      <div class="tu-presets" id="tuPresets"></div>
+      <div class="tu-note sig-small" id="tuNote"></div>
+      <div class="tu-row">
+        <label>kHz <input id="tuKhz" type="number" inputmode="decimal" step="0.01" min="10" max="30000" value="4625"></label>
+        <select id="tuMode" aria-label="mode"><option value="usb">USB</option><option value="lsb">LSB</option><option value="am">AM</option><option value="cw">CW</option></select>
+        <span class="tu-steps"><button class="ev-f" data-s="-1" type="button">&minus;1</button><button class="ev-f" data-s="-0.1" type="button">&minus;.1</button><button class="ev-f" data-s="0.1" type="button">+.1</button><button class="ev-f" data-s="1" type="button">+1</button></span>
+        <button class="ap-btn" id="tuGo" type="button">&#9654; LISTEN</button>
+        <button class="ap-btn warn" id="tuStop" type="button">&#9632;</button>
+      </div>
+      <div class="tu-row">
+        <label>receiver <select id="tuRx"><option value="auto">best for the channel</option></select></label>
+        <label>volume <input type="range" id="tuVol" min="0" max="1.5" step="0.05" value="0.9"></label>
+        <button class="ap-btn" id="tuScan" type="button">&#10227; SCAN PRESETS</button>
+        <label>dwell <select id="tuDwell"><option value="6">6 s</option><option value="10" selected>10 s</option><option value="20">20 s</option></select></label>
+        <label class="sig-chk"><input type="checkbox" id="tuStopVoice" checked> stop on voice</label>
+      </div>
+      <div class="tu-now" id="tuNow">loading the receiver list&hellip;</div>
+      <div class="tu-scan" id="tuScanOut"></div>
+    </div>
+    <h4 class="sig-h">REPORTED BY RADIO MONITORS <span class="sig-small" id="sigReportsAt"></span></h4>
+    <div class="sig-events" id="sigReports"><div class="sig-empty">Loading&hellip;</div></div>
 
     <div class="sig-src">
       <button class="ap-btn" id="sigTab" type="button">&#128421; SHARE TAB AUDIO</button>
@@ -1005,12 +1047,15 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <div class="sig-events" id="sigEvents"></div>
       </div>
     </div>
-    <p class="sig-note">How the recordings work: a phone cannot receive shortwave, so the site borrows public
-      KiwiSDR receivers. For most of every half
-      hour each channel is recorded in 2-minute slices, moving to a different receiver for each slice and only using receivers
-      with spare places, so no one&rsquo;s radio is tied up. Each slice is checked for the Buzzer&rsquo;s pulse rate and for voice;
-      slices with voice are kept as events. The detectors are rules of thumb &mdash; confirm by ear. Listening is legal; the messages
-      are coded and nothing here decodes them.</p>
+    <details class="sig-arch"><summary class="sig-h">ARCHIVE &mdash; THE OLD RECORDER</summary>
+      <div class="sig-live" id="sigLive"><div class="sig-empty">Loading&hellip;</div></div>
+    </details>
+    <p class="sig-note">How the tuner works: a phone cannot receive shortwave, so you listen through a public KiwiSDR receiver
+      that its owner shares online. The page connects to one receiver at a time, as one listener, and says who it is. It only
+      uses receivers that accept secure connections (the ones this HTTPS page is allowed to reach), checked weekly, and lets go
+      after an hour untouched. &ldquo;Reported by radio monitors&rdquo; is what people who listen round the clock posted on X,
+      collected once a day. The detectors are rules of thumb &mdash; confirm by ear. Listening is legal; the messages are coded
+      and nothing here decodes them.</p>
 
   </div>
 

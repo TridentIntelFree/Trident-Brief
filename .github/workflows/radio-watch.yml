@@ -4,9 +4,9 @@ name: Radio Watch
 # A relay across public KiwiSDR receivers, one 2-minute slice per receiver,
 # for RADIO_MINUTES of each half hour. Results go to the radio-data branch,
 # replaced on every run so audio never builds up in the repository history.
+# Retired on 7 October 2026: the page's live tuner replaced round-the-clock
+# recording through other people's receivers. Kept runnable by hand only.
 on:
-  schedule:
-    - cron: '1,31 * * * *'
   workflow_dispatch:
     inputs:
       minutes:
