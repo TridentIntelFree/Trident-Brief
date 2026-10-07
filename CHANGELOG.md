@@ -4,6 +4,16 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.15.2 — 2026-10-07
+
+### No more Reddit
+- The two Reddit feeds (defence subreddits and the signal-monitoring
+  subreddits) are gone, along with their retry and rate-limit workarounds.
+- The model is told not to search or cite Reddit, and a Reddit citation is
+  logged as a warning.
+- Reddit posts carried over in the week-long monitor list are dropped. The
+  numbers-stations feed stays.
+
 ## 1.15.1 — 2026-10-07
 
 - Japan's warnings give positions in degrees, minutes and seconds
