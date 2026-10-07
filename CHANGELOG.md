@@ -4,6 +4,40 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.22.0 — 2026-10-07
+
+### The Crystal Ball, reimagined
+It deliberately no longer matches the rest of the site.
+- **The ball:** a 3D glass crystal ball on a bronze stand, slowly turning.
+  - **Inside:** violet smoke is ray-marched through the glass.
+  - **The glass:** reflects a candle-lit room and has a pale rim.
+  - **Around it:** dust drifts in the candlelight.
+  - **One orb per forecast:** gold when likely, rose for an even chance, ice
+    blue when unlikely. The likelier the forecast, the bigger and brighter
+    its orb.
+  - **Touch an orb:** it rises to the glass and its forecast opens below.
+  - **Drag:** turns the ball and stirs the smoke.
+- **The rest:** velvet backdrop and gold Cinzel and Cormorant lettering.
+  - **The page:** "The Vision" (the outlook) and a gilded card for the chosen
+    forecast, with a glowing probability ring.
+  - **The Doomsday Clock:** an antique brass face.
+  - **New section names:** the nuclear omen, whispers before the headlines,
+    omens rising, the oracle's ledger, visions still unfolding.
+- **The heavens tonight, for fun:** a real astrology reading.
+  - **The sky is real:** the positions of the Sun, Moon and planets are worked
+    out for this moment, in your browser, by Astronomy Engine (MIT, bundled,
+    116 KB, loaded only when the ball opens).
+  - **What you see:** a zodiac chart with aspect lines, the moon's actual
+    phase drawn, and which planets are retrograde.
+  - **The reading:** written from traditional meanings, and labelled plainly
+    as astrology that forecasts nothing.
+  - **Checked:** the positions match the library's separate Python version
+    to 0.01°.
+- **Phones and old browsers:** without WebGL the ball falls back to a glowing
+  CSS orb, and everything else works. The scene stops drawing while it is
+  off screen, to save battery.
+- **Cost:** nothing per run. No model call, and no new key.
+
 ## 1.21.2 — 2026-10-07
 
 ### Fixed: the hidden desks seemed not to open
