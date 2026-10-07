@@ -4,6 +4,23 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.21.2 — 2026-10-07
+
+### Fixed: the hidden desks seemed not to open
+- **The scroll stopped short.** On a phone, the long smooth scroll down to a
+  desk was cut short when anything above it changed height, and with
+  sections collapsing and opening that happens often. It left you at the
+  radio instead of the Crystal Ball. Now the page jumps to the desk and
+  re-checks for two seconds, correcting if the page moved. It stops the
+  moment you touch or scroll yourself.
+- **A desk could reopen folded.** A desk folded last time opened folded, as a
+  bare heading far down the page. A gesture now always opens it unfolded.
+- **Double-tap zoom on the title.** The title (Analyst Desk ×3) now ignores
+  it, like the other gesture targets, so quick taps are not swallowed.
+- Tested with every section collapsed and a layout jolt during the scroll:
+  all three desks land exactly at the top of the screen, on phone and
+  desktop sizes, and the owner panel opens.
+
 ## 1.21.1 — 2026-10-07
 
 ### Restored: the features that use keys the owner already has

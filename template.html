@@ -724,7 +724,7 @@ h1 .tri{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .ad-who summary{cursor:pointer;font-family:var(--mono);font-size:.85em;letter-spacing:.06em;color:var(--cyan)}
 .ad-who a{color:var(--ink)}
 .ad-who .ad-new{color:#34d399;font-family:var(--mono);font-size:.85em}
-h1 .ttl{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+h1 .ttl{-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .brand{-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 .key-opts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin-top:9px;font-size:.8em;color:var(--ink-dim)}
@@ -3800,8 +3800,7 @@ async function tzFetch(){
 var TZ = {brief:null};
 async function tzShow(){
   var band = document.getElementById('tzBand');
-  band.hidden = false;
-  band.scrollIntoView({behavior:'smooth', block:'start'});
+  band.hidden = false; openBand(band);
   if(TZ.brief) return;
   tzMsg('Opening&hellip;');
   var j = await tzFetch();
@@ -3850,8 +3849,7 @@ var AD = {desk:null};
 function adMsg(html, bad){ document.getElementById('adMsg').innerHTML = html ? '<p class="' + (bad ? 'error-msg' : 'success-msg') + '">' + html + '</p>' : ''; }
 async function adShow(){
   var band = document.getElementById('adBand');
-  band.hidden = false;
-  band.scrollIntoView({behavior:'smooth', block:'start'});
+  band.hidden = false; openBand(band);
   if(AD.desk) return;
   adMsg('Opening&hellip;');
   var t = Date.now(), urls = ['data/analyst/desk.json?t=' + t,
@@ -3929,8 +3927,7 @@ function cbClock(sec){
 function cbBarColor(p){ return p >= 80 ? '#ef4444' : p >= 55 ? '#f59e0b' : p >= 45 ? '#eab308' : p >= 20 ? '#60a5fa' : '#64748b'; }
 async function cbShow(){
   var band = document.getElementById('cbBand');
-  band.hidden = false;
-  band.scrollIntoView({behavior:'smooth', block:'start'});
+  band.hidden = false; openBand(band);
   if(CB.ball) return;
   cbMsg('Opening&hellip;');
   var t = Date.now(), urls = ['data/crystal/ball.json?t=' + t,
@@ -6926,6 +6923,25 @@ function agoShort(ms){
     list.appendChild(b);
   });
 })();
+
+/* A hidden desk opened by its gesture always opens unfolded: a fold left
+   from last time would otherwise look as if the gesture did nothing. */
+function openBand(band){
+  var b = band.querySelector('.fold-btn');
+  if(b && band.classList.contains('folded')) b.click();
+  /* Jump there, then check again for two seconds: a long smooth scroll on a
+     phone stops short when anything above it changes height (images, the
+     globe, a section opening), and that left people at the radio. A touch or
+     a wheel means the person has taken over, so it stops. */
+  var tries = 0, took = false, mine = function(){ took = true; };
+  addEventListener('touchstart', mine, {once:true, passive:true});
+  addEventListener('wheel', mine, {once:true, passive:true});
+  (function go(){
+    if(took || band.hidden) return;
+    if(Math.abs(band.getBoundingClientRect().top) > 8) band.scrollIntoView({block:'start'});
+    if(++tries < 7) setTimeout(go, tries < 3 ? 120 : 400);
+  })();
+}
 
 /* Fold a band down to its heading line. The long, rarely-needed sections sit
    closed so the page stays short; the choice is remembered per section. */
