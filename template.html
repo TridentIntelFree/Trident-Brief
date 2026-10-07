@@ -403,6 +403,16 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .tu-row select{background:#0b1328;color:#fff;border:1px solid var(--line2);border-radius:6px;padding:3px 5px;max-width:15em}
 .tu-steps{display:inline-flex;gap:3px}
 .tu-bands select{max-width:13em}
+.tu-tx-note{margin-top:4px}
+.tu-tx{display:grid;gap:5px;margin-top:6px}
+.tu-tx-item{font-size:.82em;color:var(--ink-dim);border-left:3px solid var(--cyan);padding:3px 9px;line-height:1.45}
+.tu-tx-item b{color:#fff;font-family:var(--mono)}
+.tu-tx-orig{color:#e2e8f0;margin-top:2px}
+.tu-tx-en{color:#fff;margin-top:2px}
+.tu-tx-en span{font-family:var(--mono);font-size:.78em;color:var(--cyan);border:1px solid var(--cyan);border-radius:4px;padding:0 3px;margin-right:3px}
+.tu-tx-orig.dim,.tu-tx-en.dim{opacity:.5}
+.tu-tx-doubt{color:#facc15;margin-top:2px}
+.tu-tx-err{color:#f87171;margin-top:2px}
 .tu-wf{display:block;width:100%;height:206px;margin-top:8px;border:1px solid var(--line2);border-radius:8px;background:#070d1f;touch-action:none;cursor:crosshair;outline:none}
 .tu-wf:focus-visible{border-color:var(--cyan)}
 .tu-bwv{font-family:var(--mono);color:#fff;display:inline-block;min-width:4.6em}
@@ -1032,6 +1042,14 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       </div>
       <div class="tu-now" id="tuNow">loading the receiver list&hellip;</div>
       <div class="tu-scan" id="tuScanOut"></div>
+      <div class="tu-row tu-tx-row">
+        <button class="ap-btn" id="tuTx" type="button">&#128483; TRANSCRIBE + TRANSLATE</button>
+        <label>last <select id="tuTxLen"><option value="10">10 s</option><option value="20" selected>20 s</option><option value="30">30 s</option><option value="60">60 s</option></select></label>
+        <label>model <select id="tuTxModel"><option value="tiny">quick (&asymp;40 MB)</option><option value="base">better (&asymp;80 MB)</option><option value="small">best, desktop (&asymp;250 MB)</option></select></label>
+        <label>language <select id="tuTxLang"><option value="auto">detect</option><option value="russian">Russian</option><option value="ukrainian">Ukrainian</option><option value="english">English</option><option value="chinese">Chinese</option><option value="korean">Korean</option><option value="arabic">Arabic</option><option value="persian">Persian</option><option value="hebrew">Hebrew</option><option value="spanish">Spanish</option><option value="french">French</option><option value="german">German</option></select></label>
+      </div>
+      <div class="sig-small tu-tx-note">Whisper runs on this device. Its first use downloads the model from Hugging Face once, and the audio never leaves your device. On weak shortwave it guesses, and over static it can invent words, so a transcript is a lead, not a finding.</div>
+      <div class="tu-tx" id="tuTxOut"></div>
     </div>
     <h4 class="sig-h">REPORTED BY RADIO MONITORS <span class="sig-small" id="sigReportsAt"></span></h4>
     <div class="sig-events" id="sigReports"><div class="sig-empty">Loading&hellip;</div></div>
@@ -6913,6 +6931,11 @@ function foldable(id, foldedByDefault){
 foldable('flyBand', true);
 foldable('archiveBand', true);
 foldable('sigBand', false);
+foldable('eventBand', false);
+foldable('wireBand', false);
+foldable('osBand', false);
+foldable('indBand', false);
+foldable('recurBand', false);
 
 /* Appalachistan runs from its own file so the service worker can keep it on
    the phone. It loads Leaflet only when the section comes into view. */

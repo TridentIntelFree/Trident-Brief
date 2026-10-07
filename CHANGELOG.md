@@ -4,6 +4,38 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.19.0 — 2026-10-07
+
+### Tuner: transcribe + translate, on the device
+- **TRANSCRIBE + TRANSLATE** writes out the speech in the last 10, 20, 30 or
+  60 seconds of the channel, then gives it in English. Whisper runs in the
+  listener's browser (transformers.js 4.3.1, in a worker, WebAssembly, 8-bit
+  weights). Nothing is sent anywhere, and there is no model call and no cost
+  per run.
+  - **Models:** quick (whisper-tiny, about 40 MB), better (base, about 80 MB,
+    the default) or best for desktops (small, about 250 MB). The model is
+    downloaded once from Hugging Face; the progress is shown, and the browser
+    keeps it.
+  - **Language:** detected automatically, or set to Russian, Ukrainian,
+    English, Chinese, Korean, Arabic, Persian, Hebrew, Spanish, French or
+    German.
+  - **The clip:** the last minute of what you hear is held in memory. It is
+    cleared on every retune, so a transcript is always one channel.
+  - **Probably not speech:** Whisper invents subtitle phrases over static
+    ("Thank you for watching", "Продолжение следует", "字幕"). Those, and runs
+    of repeated words, are flagged in either language, and their text is
+    dimmed.
+  - Each transcript is also logged in the analyzer's events.
+  - **Not tested with the real model:** the model host and CDN are blocked
+    from the build sandbox. The page side was tested in a browser with a
+    stand-in model: the clip capture (a real 12 s clip at 16 kHz), model
+    progress, the two passes, the flags, and the clearing on retune.
+
+### Lists fold
+- The Event Board, Wire, OSINT Feed, Indicators and Recurring Locations now
+  fold to their heading, like Signals. Tap the heading or ▾ hide. Each
+  remembers its state in the browser.
+
 ## 1.18.1 — 2026-10-07
 
 ### Fixed

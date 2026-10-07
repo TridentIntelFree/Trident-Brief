@@ -805,7 +805,7 @@ function connect(rx){
         var k = pair.split('=')[0], v = pair.slice(k.length + 1);
         if(k === 'audio_rate') ws.send('SET AR OK in=' + v + ' out=44100');
         else if(k === 'sample_rate'){
-          T.sr = parseFloat(v) || 12000;
+          T.sr = parseFloat(v) || 12000; ringReset();
           ['SET squelch=0 max=0', 'SET genattn=0', 'SET gen=0 mix=-1', tuneMsg(),
            'SET agc=1 hang=0 thresh=-100 slope=6 decay=1000 manGain=50', 'SET compression=1',
            'SET ident_user=Trident%20Brief%20listener', 'SET keepalive'].concat(dspMsgs()).forEach(function(m){ ws.send(m); });
@@ -845,6 +845,7 @@ function refused(rx, why){
    if frames pile up, the extra is dropped rather than letting the delay grow */
 function tunerPlay(f){
   var ctx = S.ctx; if(!ctx || !T.inp) return;
+  ringPush(f);
   var b = ctx.createBuffer(1, f.length, T.sr);
   if(b.copyToChannel) b.copyToChannel(f, 0); else b.getChannelData(0).set(f);
   var now = ctx.currentTime;
@@ -871,7 +872,7 @@ function retune(khz, mode, presetId){
       T.tried = []; connect(best); return;
     }
   }
-  T.ws.send(tuneMsg()); T.rssi = []; T.next = 0;
+  T.ws.send(tuneMsg()); T.rssi = []; T.next = 0; TX.fill = 0;       // a transcript clip is one channel
   logEvent(Date.now(), 'mark', 'tuned ' + T.khz + ' kHz ' + T.mode.toUpperCase());
   tunerNow();
   if(WF.start != null && (T.khz < WF.start + WF.span*0.04 || T.khz > WF.start + WF.span*0.96)) wfView(T.khz);   // keep the tuning in view
@@ -1132,6 +1133,129 @@ function bandPick(kind, idx){
   wfView((b[1] + b[2])/2, z);
   status(esc(b[0]) + ': ' + b[1] + '–' + b[2] + ' kHz. Tap a trace on the waterfall to tune it, or SEEK.');
 }
+/* --------------------------------------------- transcribe + translate */
+/* Speech in the tuner's audio, written out and put into English by Whisper
+   running on this device (transformers.js in a worker). The model is
+   downloaded once from Hugging Face and kept by the browser; the audio never
+   leaves the device. The last minute of what you hear is held in memory, and
+   the clip is cleared whenever you retune, so it is one channel's audio. */
+var TX_LIB = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.1/dist/transformers.min.js';
+var TX_MODELS = {tiny:['onnx-community/whisper-tiny', '≈40 MB'], base:['onnx-community/whisper-base', '≈80 MB'],
+                 small:['onnx-community/whisper-small', '≈250 MB']};
+var TX = {ring:null, pos:0, fill:0, worker:null, busy:false, id:0, items:[]};
+function ringReset(){ TX.ring = new Float32Array(Math.round(T.sr*60)); TX.pos = 0; TX.fill = 0; }
+function ringPush(f){
+  if(!TX.ring) ringReset();
+  var r = TX.ring, n = r.length;
+  for(var i = 0; i < f.length; i++){ r[TX.pos] = f[i]; TX.pos = (TX.pos + 1) % n; }
+  TX.fill = Math.min(n, TX.fill + f.length);
+}
+function ringLast(sec){
+  var r = TX.ring; if(!r) return null;
+  var n = Math.min(TX.fill, Math.round(sec*T.sr)), out = new Float32Array(n), st = (TX.pos - n + r.length) % r.length;
+  for(var i = 0; i < n; i++) out[i] = r[(st + i) % r.length];
+  return out;
+}
+function to16k(x, sr){                          // Whisper hears 16 kHz
+  var q = sr/16000, n = Math.floor(x.length/q), y = new Float32Array(n);
+  for(var i = 0; i < n; i++){ var t = i*q, j = Math.floor(t), a = t - j; y[i] = x[j]*(1 - a) + x[Math.min(j + 1, x.length - 1)]*a; }
+  return y;
+}
+/* phrases Whisper is known to invent over static and silence, from the
+   subtitles it was trained on */
+var TX_GHOSTS = /thank(s| you) for watching|subscribe|subtitles? by|amara\.org|продолжение следует|субтитр|спасибо за (просмотр|внимание)|ご視聴|字幕|^\W*(you|music|\[music\]|\(music\))\W*$/i;
+function txDoubt(text){
+  var t = (text || '').trim();
+  if(!t) return 'no speech found';
+  if(TX_GHOSTS.test(t)) return 'probably not speech: Whisper writes phrases like this over static';
+  var w = t.toLowerCase().split(/\s+/), run = 1;
+  for(var i = 1; i < w.length; i++){ run = w[i] === w[i - 1] ? run + 1 : 1; if(run >= 5) return 'repeats itself, a sign of noise rather than speech'; }
+  return '';
+}
+function txWorker(){
+  if(TX.worker) return TX.worker;
+  var src = "import { pipeline, env } from '" + TX_LIB + "';\n" +
+    "env.allowLocalModels = false;\n" +
+    "let asr = null, which = null;\n" +
+    "self.onmessage = async (e) => {\n" +
+    "  const { id, model, audio, language } = e.data;\n" +
+    "  try {\n" +
+    "    if (!asr || which !== model) {\n" +
+    "      const seen = {};\n" +
+    "      asr = await pipeline('automatic-speech-recognition', model, { device: 'wasm', dtype: 'q8', progress_callback: (p) => {\n" +
+    "        if (p.status === 'progress' && p.total) { seen[p.file] = [p.loaded, p.total];\n" +
+    "          let a = 0, b = 0; for (const k in seen) { a += seen[k][0]; b += seen[k][1]; }\n" +
+    "          self.postMessage({ id, loading: a / b, mb: b / 1048576 }); } } });\n" +
+    "      which = model;\n" +
+    "    }\n" +
+    "    self.postMessage({ id, working: 'transcribe' });\n" +
+    "    const opt = { chunk_length_s: 30, stride_length_s: 5, language: language || null };\n" +
+    "    const orig = await asr(audio, Object.assign({ task: 'transcribe' }, opt));\n" +
+    "    let en = null;\n" +
+    "    if (language !== 'english' && orig.text.trim()) { self.postMessage({ id, working: 'translate', orig: orig.text });\n" +
+    "      en = (await asr(audio, Object.assign({ task: 'translate' }, opt))).text; }\n" +
+    "    self.postMessage({ id, done: true, orig: orig.text, en });\n" +
+    "  } catch (err) { asr = null; which = null; self.postMessage({ id, error: String((err && err.message) || err) }); }\n" +
+    "};\n";
+  try{ TX.worker = new Worker(URL.createObjectURL(new Blob([src], {type:'text/javascript'})), {type:'module'}); }
+  catch(e){ return null; }
+  TX.worker.onmessage = function(e){ txUpdate(e.data); };
+  TX.worker.onerror = function(e){ txUpdate({id:TX.id, error:(e && e.message) || 'the speech model could not start in this browser'}); };
+  return TX.worker;
+}
+function transcribe(){
+  touch();
+  if(TX.busy){ return; }
+  if(!T.live){ status('Transcribe works on what the tuner is playing: press LISTEN first.', true); return; }
+  var sec = +$('tuTxLen').value || 20, clip = ringLast(sec);
+  if(!clip || clip.length < T.sr*2){ status('Listen for a few seconds on this channel first; the clip starts when you tune.', true); return; }
+  var w = txWorker(); if(!w){ status('This browser cannot run the speech model (no module workers).', true); return; }
+  var m = TX_MODELS[$('tuTxModel').value] || TX_MODELS.base, lang = $('tuTxLang').value;
+  var it = {id:++TX.id, t:Date.now(), khz:T.khz, mode:T.mode, rx:T.rx ? (T.rx.loc || T.rx.host) : '', sec:Math.round(clip.length/T.sr),
+            model:$('tuTxModel').value, lang:lang, state:'starting the speech model…'};
+  TX.items.unshift(it); if(TX.items.length > 30) TX.items.length = 30;
+  TX.busy = true; $('tuTx').disabled = true;
+  paintTx();
+  var audio = to16k(clip, T.sr);
+  w.postMessage({id:it.id, model:m[0], audio:audio, language:lang === 'auto' ? null : lang}, [audio.buffer]);
+}
+function txUpdate(d){
+  var it = TX.items.filter(function(x){ return x.id === d.id; })[0]; if(!it) return;
+  if(d.loading != null) it.state = 'downloading the model, once: ' + Math.round(d.loading*100) + '% of ' + Math.round(d.mb) + ' MB';
+  if(d.working) it.state = d.working === 'transcribe' ? 'listening through the clip…' : 'putting it into English…';
+  if(d.orig != null) it.orig = d.orig.trim();
+  if(d.done){
+    it.state = ''; it.en = d.en ? d.en.trim() : null; it.doubt = txDoubt(it.orig) || (it.en ? txDoubt(it.en) : '');
+    if(it.en && it.orig && it.en.toLowerCase() === it.orig.toLowerCase()) it.en = null;
+    logEvent(it.t, 'mark', 'transcript ' + it.khz + ' kHz: ' + (it.doubt ? '(' + it.doubt + ')' : (it.en || it.orig).slice(0, 80)));
+  }
+  if(d.error){ it.state = ''; it.err = d.error; }
+  if(d.done || d.error){ TX.busy = false; $('tuTx').disabled = false; }
+  paintTx();
+}
+function paintTx(){
+  var el = $('tuTxOut'); if(!el) return;
+  el.innerHTML = TX.items.map(function(it){
+    var head = '<b>' + esc(utc(it.t)) + '</b> ' + esc(String(it.khz)) + ' kHz ' + esc(it.mode.toUpperCase()) + ' &middot; ' + it.sec + ' s &middot; ' +
+               esc(it.rx) + ' &middot; whisper-' + esc(it.model) + (it.lang !== 'auto' ? ' &middot; ' + esc(it.lang) : '');
+    var body = it.err ? '<div class="tu-tx-err">The speech model failed: ' + esc(it.err) + '</div>' :
+      it.state ? '<div class="sig-small">' + esc(it.state) + '</div>' +
+                 (it.orig ? '<div class="tu-tx-orig">' + esc(it.orig) + '</div>' : '') :
+      (it.doubt ? '<div class="tu-tx-doubt">' + esc(it.doubt) + '</div>' : '') +
+      (it.orig ? '<div class="tu-tx-orig' + (it.doubt ? ' dim' : '') + '">' + esc(it.orig) + '</div>' : '') +
+      (it.en ? '<div class="tu-tx-en' + (it.doubt ? ' dim' : '') + '"><span>EN</span> ' + esc(it.en) + '</div>' : '');
+    return '<div class="tu-tx-item">' + head + body + '</div>';
+  }).join('');
+}
+function wireTranscribe(){
+  if(!$('tuTx')) return;
+  $('tuTx').onclick = transcribe;
+  $('tuTxModel').value = get('txModel', 'base');
+  $('tuTxModel').onchange = function(){ set('txModel', this.value); };
+  $('tuTxLang').value = get('txLang', 'auto');
+  $('tuTxLang').onchange = function(){ set('txLang', this.value); };
+}
+
 function wireWaterfall(){
   var cv = $('tuWf'); if(!cv) return;
   ['broadcast', 'ham', 'utility'].forEach(function(kind){
@@ -1201,6 +1325,7 @@ function wireTuner(){
   $('tuRx').onchange = function(){ touch(); if(T.ws){ T.tried = []; connect(pick()); } };
   $('tuScan').onclick = scanToggle;
   wireWaterfall();
+  wireTranscribe();
   retune(4625, 'usb', 'uvb76');
   var base = (typeof window.DATA_BASE === 'string' ? window.DATA_BASE : '');
   fetch(base + 'data/tuner/receivers.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
