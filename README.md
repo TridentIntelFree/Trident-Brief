@@ -167,6 +167,18 @@ page (`assets/signals.js`):
 - **Receiver DSP:** the filter width is adjustable, with a default for each
   mode (2.4 kHz SSB, 8 kHz AM, 0.5 kHz CW). The Kiwi's noise blanker and
   spectral noise reduction run on the receiver.
+- **Transcribe + translate:** one press writes out the speech in the last
+  10–60 s of the channel and puts it into English. It uses Whisper running
+  on the listener's own device (transformers.js in a worker), and the audio
+  never leaves the device.
+  - **Models:** quick (tiny, about 40 MB), better (base, about 80 MB), or best
+    for desktops (small, about 250 MB). The model is downloaded once from
+    Hugging Face and kept by the browser.
+  - **Language:** detected automatically, or set by hand.
+  - **Reliability:** weak shortwave makes Whisper guess, and over static it
+    invents subtitle phrases ("Thank you for watching", "Продолжение
+    следует"). Those, and runs of repeated words, are flagged as probably not
+    speech. A transcript is a lead, not a finding.
 - **Receiver choice:** the receiver nearest the transmitter is chosen
   automatically, and one that is full or refuses is skipped.
 - **Protocol:** the page speaks the Kiwi's own WebSocket audio protocol and
