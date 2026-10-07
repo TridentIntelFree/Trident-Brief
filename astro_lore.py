@@ -667,7 +667,10 @@ def main():
     lun = lunation_houses(now)
     lvi = lore_vs_intel(sky, nat, intel_items())
     prev_test = json.load(open(TEST, encoding='utf-8')) if os.path.exists(TEST) else {}
-    if '--test' in sys.argv or not prev_test or prev_test.get('at', '') < (now - timedelta(days=6)).strftime('%Y-%m-%d'):
+    cached = json.load(open(SERIES, encoding='utf-8')) if os.path.exists(SERIES) else {}
+    missing = [k for k in ('ua_alarms', 'il_rockets', 'ru_losses', 'quakes') if not cached.get(k)]   # a source never loaded yet
+    if ('--test' in sys.argv or not prev_test or missing or
+            prev_test.get('at', '') < (now - timedelta(days=6)).strftime('%Y-%m-%d')):
         series, notes = load_series(now)
         test = {'at': now.strftime('%Y-%m-%dT%H:%M:%SZ'), 'results': fair_test(series, now), 'notes': notes}
         with open(TEST, 'w', encoding='utf-8') as f:

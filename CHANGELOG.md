@@ -4,6 +4,14 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.23.1 — 2026-10-08
+
+### Fixed
+- The weekly fair test now also reruns whenever one of its record sources has
+  never loaded, so the earthquake claims run on the next morning's job rather
+  than a week later. USGS cannot be reached from the build sandbox, only from
+  GitHub's runner.
+
 ## 1.23.0 — 2026-10-08
 
 ### The heavens, professional grade, and read against the intel
