@@ -1629,6 +1629,11 @@ MSA_KIND = [('space launch/debris', re.compile('火箭|残骸|航天|发射')),
             ('live fire', re.compile('射击|实弹|打靶|炮')),
             ('military exercise', re.compile('军事|演习|演练'))]
 MSA_MAX_ARTICLES = 30
+# A plain browser request. NGA's header set (a JSON Accept and an NGA referer)
+# gets a 403 from China's firewall.
+PAGE_HEADERS = {'User-Agent': NAVWARN_BROWSER['User-Agent'],
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8'}
 _MONTHS = 'JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC'.split()
 
 
@@ -1672,7 +1677,7 @@ def _nga_rows(now):
 def _ukho_rows(now):
     """UK Hydrographic Office: NAVAREA I and UK coastal warnings in force, full text on one page."""
     import html as H
-    r = requests.get(UKHO_RNW, timeout=40, headers=NAVWARN_BROWSER)
+    r = requests.get(UKHO_RNW, timeout=40, headers=PAGE_HEADERS)
     if r.status_code != 200:
         raise RuntimeError(f'HTTP {r.status_code}')
     t = r.text
@@ -1705,7 +1710,7 @@ def _jcg_rows(now):
     members = []
     for y in years:
         r = requests.post(JCG_LIST, timeout=30, data=f'YEAR={y}&TYPE=NAVAREA11&LANG=EG',
-                          headers=dict(NAVWARN_BROWSER, **{'Content-Type': 'application/x-www-form-urlencoded'}))
+                          headers=dict(PAGE_HEADERS, **{'Content-Type': 'application/x-www-form-urlencoded'}))
         if r.status_code != 200:
             raise RuntimeError(f'list HTTP {r.status_code}')
         for m in re.finditer(r'<Member>(.*?)</Member>', r.text, re.S):
@@ -1717,7 +1722,7 @@ def _jcg_rows(now):
     rows = []
     for f in want[:40]:
         try:
-            r = requests.get(JCG_TEXT.format(f['tana']), timeout=20, headers=NAVWARN_BROWSER)
+            r = requests.get(JCG_TEXT.format(f['tana']), timeout=20, headers=PAGE_HEADERS)
             r.encoding = 'utf-8'
         except Exception:
             continue
@@ -1749,11 +1754,14 @@ def _msa_norm(text):
 def _msa_rows(now):
     """China Maritime Safety Administration: the coastal bureaus' military warnings,
     machine-translated to English (free; the Chinese text is kept for positions)."""
-    found = []
+    found, refused = [], []
     for name, cid in MSA_BUREAUS.items():
         try:
-            r = requests.get(f'https://www.msa.gov.cn/{cid}/index.jhtml', timeout=30, headers=NAVWARN_BROWSER)
-        except Exception:
+            r = requests.get(f'https://www.msa.gov.cn/{cid}/index.jhtml', timeout=30, headers=PAGE_HEADERS)
+            if r.status_code != 200:
+                raise RuntimeError(r.status_code)
+        except Exception as e:
+            refused.append(f'{name} {str(e)[:20]}')
             continue
         t = r.content.decode('utf-8', 'ignore')
         for href, label in re.findall(r'href="(/html/cnmsa/hxaq/article/[^"]+\.html)"[^>]*>(.*?)</a>', t, re.S):
@@ -1775,7 +1783,7 @@ def _msa_rows(now):
     rows = []
     for f in found[:MSA_MAX_ARTICLES]:
         try:
-            r = requests.get(f['u'], timeout=20, headers=NAVWARN_BROWSER)
+            r = requests.get(f['u'], timeout=20, headers=PAGE_HEADERS)
         except Exception:
             continue
         t = re.sub(r'<script.*?</script>|<style.*?</style>', ' ', r.content.decode('utf-8', 'ignore'), flags=re.S)
@@ -1790,13 +1798,19 @@ def _msa_rows(now):
                      'src': 'China Maritime Safety Administration', 'u': f['u']})
     if rows:
         try:
-            done = _tr_google_batch([w['text'][:500] for w in rows])
+            # 航警 is "navigational warning"; translated alone it comes out as "Aviation Police"
+            done = _tr_google_batch([re.sub(r'[\u4e00-\u9fff]?航警\s*(\d+/\d+)', r'NAVWARN \1', w['text'][:500])
+                                     .replace('航警', 'navigational warning') for w in rows])
             for w, (en, _) in zip(rows, done):
                 if en and not CYRILLIC.search(en) and not re.search('[\u4e00-\u9fff]{4}', en):
                     w['o'], w['text'] = w['text'], en
         except Exception as e:
             print(f"  navwarn: China MSA translation failed ({str(e)[:60]}), Chinese text kept")
-    return rows, f'{len(found)} military/launch in {NAVWARN_MAX_AGE_DAYS}d across {len(MSA_BUREAUS)} bureaus, {len(rows)} read'
+    if len(refused) == len(MSA_BUREAUS):
+        raise RuntimeError('every bureau refused: ' + refused[0])
+    return rows, (f'{len(found)} military/launch in {NAVWARN_MAX_AGE_DAYS}d across '
+                  f'{len(MSA_BUREAUS) - len(refused)} bureaus, {len(rows)} read'
+                  + (f"; refused: {', '.join(refused)[:120]}" if refused else ''))
 
 
 def fetch_navwarnings():

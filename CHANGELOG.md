@@ -4,6 +4,34 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.14.1 — 2026-10-07
+
+### Radio: the Buzzer is no longer mistaken for voice
+- The relay is now hearing UVB-76's real Buzzer on 4625 kHz: a buzz every
+  3.4 s (17.6 a minute), 25-30 dB above the noise, from receivers in northern
+  Sweden and southwest England.
+- Its on/off and fading passed every voice test, so on 6 October twelve
+  clips of pure buzz were filed as "voice". Every one was checked on a
+  spectrogram, and all were the buzzer.
+- The detectors (relay and page) now learn the buzz's harmonic fingerprint
+  from the clip itself, and a frame carrying it never counts as voice. A
+  real message replaces the buzz, so it still registers: tested with speech
+  spliced into a buzz recording.
+- The live analyzer also retracts a short "voice?" logged before it had
+  recognised the buzz.
+- The 6 October UVB-76 entries are relabelled "buzz" on the next relay run.
+  The HFGCS voice heard that day (11175 kHz at 16:55Z, 8992 kHz at 21:34Z)
+  was real and is kept.
+
+### Maritime warnings
+- China's coastal bureaus refused NGA's header set (HTTP 403), so the first
+  live run read "0 military warnings". The UK, Japan and China are now asked
+  as a plain browser, and a refusal is reported instead of passing as zero.
+  The first run after the fix found 11: Bohai Sea exercises, Zhoushan, the
+  Beibu Gulf, and two Hainan rocket-launch closures.
+- 航警 ("navigational warning") no longer comes out of the translator as
+  "Aviation Police".
+
 ## 1.14.0 — 2026-10-07
 
 ### Maritime warnings: new sources, since NGA's feed is dead

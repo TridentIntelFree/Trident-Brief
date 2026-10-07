@@ -41,6 +41,10 @@ KIWICLIENT = os.environ.get('KIWICLIENT', 'kiwiclient')
 SECONDS = int(os.environ.get('RADIO_SLICE') or 120)        # one slice per receiver, then hand off
 MINUTES = float(os.environ.get('RADIO_MINUTES') or 24)     # how long the relay runs each time
 CALIBRATED = '2026-10-06T03:05:00Z'                          # earlier slices used the uncalibrated detector
+# Before this the Buzzer's own on/off passed as voice: every UVB-76 "voice" clip
+# up to here was checked by eye on a spectrogram and was the buzz. They are
+# relabelled, not deleted; HFGCS voice before it was real and is kept.
+BUZZ_FIXED = '2026-10-07T01:00:00Z'
 EVENTS_KEPT = 12                                            # voice clips kept per channel
 KEEP_HOURS = 48
 UA = 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'
@@ -239,7 +243,7 @@ def analyse(x, sr):
     bands = [(f >= a) & (f < b) for a, b in zip(edges[:-1], edges[1:])]
     speech = (f >= 300) & (f <= 3000)
     peaky = (f >= 250) & (f <= 2600)
-    B, S, L, FL = [], [], [], []
+    B, S, L, FL, Q = [], [], [], [], []
     for i in range(rows):
         X = np.abs(np.fft.rfft(x[i * hop:i * hop + N] * win)) ** 2 / (N * N) + 1e-20
         B.append([10 * np.log10(X[m].mean()) for m in bands])
@@ -247,7 +251,8 @@ def analyse(x, sr):
         L.append(10 * np.log10(X[(f >= 60) & (f <= 3400)].mean()))
         P = X[peaky]
         FL.append(float(np.exp(np.log(P).mean()) / P.mean()))    # spectral flatness: noise ~0.55, speech well below
-    B, S, L, FL = np.array(B), np.array(S), np.array(L), np.array(FL)
+        Q.append(10 * np.log10(P[:len(P) // 48 * 48].reshape(48, -1).mean(1)))   # coarse spectrum: the buzz's fingerprint
+    B, S, L, FL, Q = np.array(B), np.array(S), np.array(L), np.array(FL), np.array(Q)
     hz = sr / hop
     # pulses: autocorrelation per sub-band, periods 0.4-5 s
     best = (0.0, None, None)
@@ -266,6 +271,20 @@ def analyse(x, sr):
     # a real pulse train switches on and off: its band must swing by 6 dB or more
     depth = float(np.percentile(B[:, best[2]], 90) - np.percentile(B[:, best[2]], 10)) if pulses else 0.0
     rate = 60 / pulses if pulses else None
+    buzzer = bool(pulses) and depth >= 8 and 12 <= rate <= 50          # the Buzzer: about 20-35 a minute
+    # While the Buzzer runs, its on/off and fading pass every voice test below: on
+    # 6 Oct 2026 twelve clips of pure buzz were filed as voice. A voice message
+    # replaces the buzz, so with the Buzzer present a frame only counts toward
+    # voice when it does not carry the buzz's harmonic comb, learnt from this
+    # clip's own buzz-on frames.
+    comb = np.zeros(rows, bool)
+    if buzzer:
+        band = B[:, best[2]]
+        on = band > np.percentile(band, 10) + 0.6 * depth
+        Qc = Q - Q.mean(1, keepdims=True)
+        tmpl = Qc[on].mean(0)
+        tmpl /= np.linalg.norm(tmpl) + 1e-9
+        comb = (Qc @ tmpl) / (np.linalg.norm(Qc, axis=1) + 1e-9) > 0.5
     # voice: 3 s windows whose speech-band level keeps changing AND whose spectrum is peaky
     # (harmonics, formants) rather than flat -- static crashes change too, but they are flat
     w = int(3 * hz)
@@ -274,7 +293,7 @@ def analyse(x, sr):
     for i in range(0, rows - w + 1, max(1, w // 3)):
         seg = S[i:i + w]
         if (np.median(np.abs(np.diff(seg))) > 1.2 and seg.mean() - floor > 1.5
-                and np.percentile(FL[i:i + w], 25) < 0.42):
+                and np.percentile(FL[i:i + w], 25) < 0.42 and comb[i:i + w].mean() < 0.1):
             voice_rows[i:i + w] = True
     segs, start = [], None
     for i, on in enumerate(list(voice_rows) + [False]):
@@ -285,8 +304,6 @@ def analyse(x, sr):
                 segs.append([round(start / hz, 1), round(i / hz, 1)])
             start = None
     spread = float(np.percentile(L, 90) - np.percentile(L, 10))
-    # "signal": something tonal or structured in the noise; a big level swing alone is just static
-    buzzer = bool(pulses) and depth >= 8 and 12 <= rate <= 50          # the Buzzer: about 20-35 a minute
     # three states only: a steady hum or a fade is not the station, so anything else is noise
     state = 'voice' if segs else 'buzz' if buzzer else 'quiet'
     return {'seconds': round(len(x) / sr, 1), 'sr': sr, 'state': state,
@@ -383,6 +400,16 @@ def main():
         prev = json.load(open(path, encoding='utf-8'))
     except Exception:
         prev = {}
+    def buzz_era(e):
+        return e.get('channel') == 'uvb76' and e.get('at', '') < BUZZ_FIXED
+    for c in (prev.get('clips') or []) + (prev.get('timeline') or []):
+        if buzz_era(c) and c.get('state') == 'voice':
+            c['state'], c['voice'], c['voice_s'] = 'buzz', [], 0
+    for e in [e for e in prev.get('events') or [] if buzz_era(e)]:
+        prev['events'].remove(e)
+        p = os.path.join(OUT, e['file'].split('radio/', 1)[1])
+        if os.path.exists(p):
+            os.remove(p)
     state = {'clips': {c['channel']: c for c in prev.get('clips') or [] if c.get('at', '') >= CALIBRATED},
              'events': [e for e in prev.get('events') or [] if e.get('at', '') >= CALIBRATED]}
     for e in prev.get('events') or []:
