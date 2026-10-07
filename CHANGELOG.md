@@ -4,6 +4,16 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.13.3 — 2026-10-07
+
+### Maritime warnings: asking NGA as a browser
+- NGA's warning feed has answered every run with the same 386 warnings, the
+  newest from May 2024, so the maritime layer has been reporting "feed
+  appears frozen". NGA's own app and World Monitor use this same address
+  successfully, and World Monitor asks as a browser.
+- Each refresh now also asks as a browser, with a cache-buster, and keeps
+  whichever answer is newest. The log records the CDN's cache headers.
+
 ## 1.13.2 — 2026-10-06
 
 ### Translation fix

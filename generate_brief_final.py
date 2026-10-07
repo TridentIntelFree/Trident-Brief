@@ -1476,7 +1476,16 @@ NAVWARN_BASE = 'https://msi.nga.mil/api/publications/broadcast-warn?output=json'
 # happened -- a filter this API reads differently, a default sort, a stale
 # mirror -- it cannot be settled from here, so each run asks several ways,
 # logs what each returned, and keeps the freshest answer.
+# Still frozen at May 2024 in October 2026, identically for all three. NGA's
+# own app (ngageoint/marlin) and World Monitor read this same endpoint, the
+# latter as a browser -- and a CDN can hand a stale cached copy to a client it
+# does not recognise. So each query is also asked as a browser, with a
+# cache-buster, and the CDN's cache headers are logged.
 NAVWARN_VARIANTS = ['&status=A', '&status=active', '']
+NAVWARN_BROWSER = {'Accept': 'application/json, text/plain, */*', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache',
+                   'Referer': 'https://msi.nga.mil/NavWarnings',
+                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                                 'Chrome/140.0.0.0 Safari/537.36'}
 NAVWARN_MAX_AGE_DAYS = 45       # older than this is a standing notice, not a lead
 NAVWARN_FROZEN_DAYS = 21        # newest warning older than this: the feed is not live
 NAVWARN_PAGE = 'https://msi.nga.mil/NavWarnings'
@@ -1609,20 +1618,33 @@ def fetch_navwarnings():
     """
     now = datetime.now(timezone.utc)
     best, report = None, []
-    for v in NAVWARN_VARIANTS:
+    tries = [(v or '(none)', NAVWARN_BASE + v, None) for v in NAVWARN_VARIANTS]
+    tries += [((v or '(none)') + ' as browser', f"{NAVWARN_BASE}{v}&_={int(now.timestamp())}", NAVWARN_BROWSER)
+              for v in NAVWARN_VARIANTS]
+    for v, url, hdr in tries:
         try:
-            d = _get(NAVWARN_BASE + v, timeout=30)
+            if hdr:
+                r = requests.get(url, timeout=30, headers=hdr)
+                cache = ', '.join(f"{k}={r.headers[k]}" for k in ('Last-Modified', 'Age', 'X-Cache', 'Cache-Control')
+                                  if r.headers.get(k))
+                if cache and v.startswith('&status=A '):
+                    print(f"  navwarn cache headers: {cache[:200]}")
+                if r.status_code != 200:
+                    raise RuntimeError(f'HTTP {r.status_code}')
+                d = r.json()
+            else:
+                d = _get(url, timeout=30)
         except Exception as e:
-            report.append(f"{v or '(none)'}: {str(e)[:60]}")
+            report.append(f"{v}: {str(e)[:60]}")
             continue
         rows = _navwarn_rows(d)
         if rows is None:
             shape = list(d.keys())[:10] if isinstance(d, dict) else type(d).__name__
-            report.append(f"{v or '(none)'}: unexpected shape {shape}")
+            report.append(f"{v}: unexpected shape {shape}")
             continue
         times = [t for t in (_nga_time((r or {}).get('issueDate')) for r in rows if isinstance(r, dict)) if t]
         newest = max(times) if times else None
-        report.append(f"{v or '(none)'}: {len(rows)} rows, newest "
+        report.append(f"{v}: {len(rows)} rows, newest "
                       f"{newest.strftime('%Y-%m-%d') if newest else 'undated'}")
         if newest and (best is None or newest > best[1] or (newest == best[1] and len(rows) > len(best[0]))):
             best = (rows, newest, v)
