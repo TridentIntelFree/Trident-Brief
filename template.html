@@ -719,6 +719,98 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .cb-table{width:100%;font-size:.84em;border-collapse:collapse;margin:6px 0 12px}
 .cb-table td,.cb-table th{border-bottom:1px solid var(--line2);padding:4px 6px;text-align:left}
 .cb-ok{color:#86efac}.cb-no{color:#fca5a5}
+
+/* ---------- the Crystal Ball: its own world, on purpose ---------- */
+#cbBand.oracle{--gold:#e9c77b;--gold2:#b8863b;--cream:#f3e6c4;--ink2:#cdbfe0;
+  background:radial-gradient(120% 70% at 50% 18%,#2b0c45 0%,#170626 38%,#0a0312 70%,#050108 100%);
+  border-top:1px solid rgba(233,199,123,.35);border-bottom:1px solid rgba(233,199,123,.35);color:var(--ink2);position:relative;overflow:hidden}
+#cbBand.oracle::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:repeating-radial-gradient(circle at 30% 20%,rgba(255,255,255,.012) 0 1px,transparent 1px 3px),
+             radial-gradient(60% 40% at 12% 90%,rgba(255,150,60,.08),transparent 70%)}
+#cbBand.oracle > *{position:relative}
+#cbBand.oracle .band-head{flex-direction:column;align-items:center;text-align:center;gap:4px}
+#cbBand.oracle .band-head h2{font-family:Cinzel,'Times New Roman',serif;font-weight:700;font-size:clamp(1.25em,4.6vw,1.9em);letter-spacing:.18em;text-transform:uppercase;
+  background:linear-gradient(180deg,#fff3c9 0%,#e9c77b 45%,#9c6b26 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 14px rgba(233,199,123,.35))}
+#cbBand.oracle .band-head .sub{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:.95em;color:#bfa8d9;letter-spacing:.02em}
+#cbBand.oracle .fold-btn,#cbBand.oracle .key-opts button{border-color:rgba(233,199,123,.5);color:var(--gold);background:rgba(20,6,32,.7);font-family:Cinzel,serif}
+#cbBand.oracle .key-opts{justify-content:center}
+#cbBand.oracle .content{color:var(--ink2);font-family:'Cormorant Garamond',Georgia,serif;font-size:1.08em}
+.or-stage{position:relative;height:clamp(340px,64vh,560px);margin:4px -12px 6px;
+  background:radial-gradient(42% 46% at 50% 44%,rgba(140,70,255,.22),transparent 70%),radial-gradient(30% 10% at 50% 86%,rgba(255,160,70,.18),transparent 80%)}
+.or-stage canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.or-hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-family:Cinzel,serif;font-size:.62em;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(233,199,123,.6);pointer-events:none;animation:orFade 6s ease-in 4s forwards}
+@keyframes orFade{to{opacity:0}}
+.or-stage.flat::after{content:"";position:absolute;left:50%;top:46%;width:min(62vw,300px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.55),transparent 18%),radial-gradient(circle at 50% 55%,#b06cff 0%,#5a1f9e 35%,#1c0733 75%);
+  box-shadow:0 0 60px rgba(160,90,255,.45),inset 0 0 40px rgba(0,0,0,.6);animation:orPulse 5s ease-in-out infinite}
+@keyframes orPulse{50%{box-shadow:0 0 90px rgba(200,120,255,.6),inset 0 0 40px rgba(0,0,0,.6)}}
+.or-vision{text-align:center;font-style:italic;font-size:1.22em;line-height:1.5;color:var(--cream);max-width:40em;margin:6px auto 18px;
+  text-shadow:0 0 18px rgba(233,199,123,.18)}
+.or-k{font-family:Cinzel,serif;font-style:normal;font-size:.62em;letter-spacing:.24em;color:var(--gold);text-transform:uppercase}
+.or-card{max-width:44em;margin:0 auto 22px;padding:16px 18px;border-radius:14px;position:relative;
+  background:linear-gradient(160deg,rgba(60,22,90,.65),rgba(18,6,30,.85));border:1px solid rgba(233,199,123,.45);
+  box-shadow:0 0 0 4px rgba(233,199,123,.06),0 18px 50px rgba(0,0,0,.5),inset 0 0 30px rgba(140,70,255,.12)}
+.or-card::before,.or-card::after{content:"\2726";position:absolute;color:var(--gold);font-size:.8em;top:6px}
+.or-card::before{left:9px}.or-card::after{right:9px}
+.or-card-top{display:flex;gap:14px;align-items:center}
+.or-card p{margin:10px 0 0;font-size:.95em;line-height:1.45;color:#d9cbe9}
+.or-reg{font-family:Cinzel,serif;font-size:.68em;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.or-ev{font-size:1.25em;line-height:1.3;color:#fff6dc;margin-top:3px}
+.or-term{font-style:italic;color:#c9a7f0;margin-top:2px}
+.or-ring{flex:none;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--c) calc(var(--p)*1%),rgba(255,255,255,.08) 0);box-shadow:0 0 22px color-mix(in srgb,var(--c) 45%,transparent)}
+.or-ring b{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 35%,#2a0f45,#0d0418);
+  font-family:Cinzel,serif;font-size:1.25em;color:#fff3c9}
+.or-ring small{font-size:.55em;margin-left:1px}
+.or-h{font-family:Cinzel,serif!important;font-weight:700;color:var(--gold)!important;text-align:center;letter-spacing:.16em;text-transform:uppercase;font-size:.95em!important;
+  margin:30px 0 12px!important;display:flex;align-items:center;gap:12px}
+.or-h::before,.or-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(233,199,123,.6),transparent)}
+.or-fun{font-family:'Cormorant Garamond',serif;font-style:italic;text-transform:none;letter-spacing:0;color:#c9a7f0;font-weight:500}
+.or-hz{font-family:Cinzel,serif;font-size:.66em;letter-spacing:.22em;text-transform:uppercase;color:#bfa8d9;margin:12px 0 6px}
+#cbBand .content ul.or-list{list-style:none;padding:0;margin:0}
+.or-li{display:flex;align-items:baseline;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;transition:background .25s;border:1px solid transparent}
+.or-li:hover{background:rgba(140,70,255,.1)}
+.or-li.on{background:rgba(233,199,123,.08);border-color:rgba(233,199,123,.35)}
+.or-dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c),0 0 3px #fff;transform:translateY(-1px)}
+.or-li-p{flex:none;font-family:Cinzel,serif;color:#fff3c9;min-width:2.6em}
+.or-li-t{color:#e6dbf2;line-height:1.35}
+.or-li-t em{font-family:Cinzel,serif;font-style:normal;font-size:.72em;letter-spacing:.14em;color:var(--gold);margin-right:4px;text-transform:uppercase}
+.or-twin{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-top:26px}
+@media (max-width:640px){.or-twin{grid-template-columns:1fr}}
+.or-panel{border:1px solid rgba(233,199,123,.3);border-radius:12px;padding:12px 14px;background:rgba(15,5,25,.6)}
+.or-clock{display:flex;gap:14px;align-items:center}
+.or-clock-svg{flex:none;width:104px;height:104px;filter:drop-shadow(0 6px 16px rgba(0,0,0,.6)) drop-shadow(0 0 10px rgba(233,199,123,.2))}
+.or-secs{font-family:Cinzel,serif;font-size:1.15em;color:#ffb4a0;line-height:1.25}
+.or-omen{font-family:Cinzel,serif;font-size:1.35em;letter-spacing:.2em;margin:4px 0}
+.or-omen.rising{color:#ff8f7a;text-shadow:0 0 14px rgba(255,90,60,.5)}.or-omen.easing{color:#9ff0c0}.or-omen.steady{color:var(--gold)}
+.or-small{font-size:.92em;color:#cdbfe0;line-height:1.45}
+.or-fine{font-size:.82em;color:#9d8bb5;line-height:1.4}
+.or-fine a,.or-small a{color:var(--gold)}
+#cbBand .content ul.or-whispers{padding-left:1.1em;margin:0}
+.or-whispers li{margin:6px 0;line-height:1.4;color:#e0d4ee}.or-whispers li::marker{content:"\2727  ";color:var(--gold)}
+.or-whispers b{color:#fff3dc;font-weight:500}
+.or-ok{color:#9ff0c0}.or-no{color:#ff8f7a}
+.or-table{width:100%;border-collapse:collapse;font-size:.92em;margin:6px 0}
+.or-table th{font-family:Cinzel,serif;font-weight:500;font-size:.7em;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;text-align:left}
+.or-table td,.or-table th{border-bottom:1px solid rgba(233,199,123,.18);padding:6px}
+.or-heavens{border:1px solid rgba(233,199,123,.3);border-radius:14px;padding:14px;background:radial-gradient(80% 60% at 30% 20%,rgba(80,30,130,.35),rgba(10,3,18,.6))}
+.or-sky{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:center;margin-bottom:6px}
+@media (max-width:640px){.or-sky{grid-template-columns:1fr}}
+.or-wheel{width:100%;max-width:340px;display:block;margin:0 auto;filter:drop-shadow(0 0 18px rgba(140,70,255,.3))}
+.or-sg{fill:#e9c77b;font-size:15px;font-family:'Segoe UI Symbol','Noto Sans Symbols','Apple Symbols',serif}
+.or-pl{fill:#fff3c4;font-size:17px;font-family:'Segoe UI Symbol','Noto Sans Symbols','Apple Symbols',serif}
+.or-pl.rx{fill:#ffb3a6}.or-rx{fill:#ff8a7a;font-size:8px;font-family:Cinzel,serif}
+.or-moonline{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:Cinzel,serif;font-size:.8em;letter-spacing:.08em;color:var(--cream)}
+.or-moon{width:58px;height:58px;filter:drop-shadow(0 0 10px rgba(255,240,200,.25))}
+#cbBand .content ul.or-planets{list-style:none;padding:0;margin:0;columns:1}
+.or-planets li{padding:2px 0;color:#e6dbf2;font-size:.95em}
+.or-gl{display:inline-block;width:1.3em;color:var(--gold);text-align:center}
+.or-in{color:#9d8bb5;font-size:.85em}
+.or-rx-t{font-family:Cinzel,serif;font-size:.62em;letter-spacing:.14em;color:#ff9a88;border:1px solid rgba(255,140,120,.5);border-radius:4px;padding:0 4px;text-transform:uppercase}
+.or-read{color:#efe4ff;line-height:1.55;margin:10px 0}
+.or-read:first-of-type::first-letter{font-family:Cinzel,serif;font-size:2.3em;float:left;line-height:.9;margin:4px 6px 0 0;color:var(--gold)}
 h1 .tri{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .ad-who{margin-top:14px;font-size:.84em;color:var(--ink-dim)}
 .ad-who summary{cursor:pointer;font-family:var(--mono);font-size:.85em;letter-spacing:.06em;color:var(--cyan)}
@@ -1234,9 +1326,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
   </div>
 
   <!-- Owner's Crystal Ball (crystal_ball.py). Not shown until the hidden gesture. -->
-  <div class="section-band tz-band cb-band" id="cbBand" hidden>
+  <div class="section-band tz-band cb-band oracle" id="cbBand" hidden>
     <div class="band-head">
-      <h2>&#128302; Crystal Ball &mdash; Projected Forecast</h2>
+      <h2>&#10022; The Crystal Ball &#10022;</h2>
       <div class="sub" id="cbSub"></div>
     </div>
     <div class="key-opts" id="cbTools" style="display:none">
@@ -3910,88 +4002,165 @@ async function adShow(){
    ===================================================================== */
 var CB = {ball:null};
 function cbMsg(html, bad){ document.getElementById('cbMsg').innerHTML = html ? '<p class="' + (bad ? 'error-msg' : 'success-msg') + '">' + html + '</p>' : ''; }
-function cbClock(sec){
-  /* the Bulletin's quarter dial, nine to twelve, minute hand short of midnight */
-  var cx = 86, cy = 86, r = 76, a = Math.max(0, Math.min(90, sec/3600*360))*Math.PI/180, ticks = '';
-  for(var m = 45; m <= 60; m++){
-    var t = (60 - m)*6*Math.PI/180, r1 = m % 5 ? r - 6 : r - 13;
-    ticks += '<line x1="' + (cx - r1*Math.sin(t)).toFixed(1) + '" y1="' + (cy - r1*Math.cos(t)).toFixed(1) +
-             '" x2="' + (cx - r*Math.sin(t)).toFixed(1) + '" y2="' + (cy - r*Math.cos(t)).toFixed(1) +
-             '" stroke="' + (m % 15 ? '#64748b' : '#e2e8f0') + '" stroke-width="' + (m % 5 ? 1 : 2.4) + '"/>';
+/* The Crystal Ball has its own look on purpose: velvet, candlelight, gold,
+   and a 3D glass ball (assets/oracle.js) with one glowing orb per forecast.
+   The facts are the same as anywhere else on the page; only the dress
+   differs. "The heavens" is a real sky read as astrology, for fun. */
+function orClock(sec){
+  /* a brass clock face, its hands the Bulletin's seconds short of midnight */
+  var c = 60, r = 52, mAng = -sec/60*6, hAng = -sec/3600*30, nums = '', ticks = '';
+  var RN = ['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'];
+  for(var i = 0; i < 60; i++){
+    var a = i*6*Math.PI/180, r1 = i % 5 ? r - 3 : r - 7;
+    ticks += '<line x1="' + (c + r1*Math.sin(a)).toFixed(1) + '" y1="' + (c - r1*Math.cos(a)).toFixed(1) + '" x2="' + (c + r*Math.sin(a)).toFixed(1) +
+             '" y2="' + (c - r*Math.cos(a)).toFixed(1) + '" stroke="#3b2a12" stroke-width="' + (i % 5 ? .6 : 1.4) + '"/>';
   }
-  return '<svg viewBox="0 0 92 92" aria-hidden="true"><path d="M' + cx + ' ' + cy + ' L' + (cx - r) + ' ' + cy + ' A' + r + ' ' + r +
-    ' 0 0 1 ' + cx + ' ' + (cy - r) + ' Z" fill="rgba(239,68,68,.06)" stroke="rgba(148,163,184,.35)"/>' + ticks +
-    '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx - (r - 8)*Math.sin(a)).toFixed(1) + '" y2="' + (cy - (r - 8)*Math.cos(a)).toFixed(1) +
-    '" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/><circle cx="' + cx + '" cy="' + cy + '" r="4" fill="#ef4444"/></svg>';
+  for(var j = 0; j < 12; j++){
+    var b = j*30*Math.PI/180, rr = r - 15;
+    nums += '<text x="' + (c + rr*Math.sin(b)).toFixed(1) + '" y="' + (c - rr*Math.cos(b)).toFixed(1) + '" text-anchor="middle" dominant-baseline="central"' +
+            ' font-family="Cinzel,serif" font-size="' + (j ? 7.5 : 9.5) + '" fill="' + (j ? '#3b2a12' : '#7a1010') + '">' + RN[j] + '</text>';
+  }
+  var hand = function(ang, len, w, col){ var a = ang*Math.PI/180;
+    return '<line x1="' + c + '" y1="' + c + '" x2="' + (c + len*Math.sin(a)).toFixed(1) + '" y2="' + (c - len*Math.cos(a)).toFixed(1) +
+           '" stroke="' + col + '" stroke-width="' + w + '" stroke-linecap="round"/>'; };
+  return '<svg viewBox="0 0 120 120" class="or-clock-svg" aria-hidden="true"><defs>' +
+    '<radialGradient id="orBz" cx="35%" cy="30%"><stop offset="0" stop-color="#fbe3a4"/><stop offset=".55" stop-color="#b8863b"/><stop offset="1" stop-color="#4a3014"/></radialGradient>' +
+    '<radialGradient id="orFc" cx="45%" cy="40%"><stop offset="0" stop-color="#fbf3dc"/><stop offset="1" stop-color="#d9c493"/></radialGradient></defs>' +
+    '<circle cx="60" cy="60" r="59" fill="url(#orBz)"/><circle cx="60" cy="60" r="54" fill="url(#orFc)" stroke="#5c3d14" stroke-width="1.2"/>' +
+    '<path d="M60 60 L60 8 A52 52 0 0 0 ' + (60 + 52*Math.sin(mAng*Math.PI/180)).toFixed(1) + ' ' + (60 - 52*Math.cos(mAng*Math.PI/180)).toFixed(1) + ' Z" fill="rgba(160,20,20,.28)"/>' +
+    ticks + nums + hand(hAng, 30, 3.2, '#2b1d0b') + hand(mAng, 44, 2.2, '#2b1d0b') +
+    '<circle cx="60" cy="60" r="3.4" fill="#b8863b" stroke="#2b1d0b"/></svg>';
 }
-function cbBarColor(p){ return p >= 80 ? '#ef4444' : p >= 55 ? '#f59e0b' : p >= 45 ? '#eab308' : p >= 20 ? '#60a5fa' : '#64748b'; }
+function orRing(p){
+  var col = p >= 65 ? '#ffcf6b' : p >= 40 ? '#ff7ad9' : '#7fd0ff';
+  return '<span class="or-ring" style="--p:' + p + ';--c:' + col + '"><b>' + p + '<small>%</small></b></span>';
+}
+var OR = {mod:null, scene:null, items:[], sky:null};
+function orCard(i){
+  var f = OR.items[i]; if(!f) return;
+  var p = +f.probability || 0;
+  document.getElementById('orCard').innerHTML =
+    '<div class="or-card-top">' + orRing(p) + '<div><div class="or-reg">' + esc(f.region || 'the world') + ' · ' +
+      esc({'24h':'within a day','72h':'within three days','7d':'within the week'}[f.horizon] || f.horizon || '') + '</div>' +
+      '<div class="or-ev">' + esc(f.event) + '</div><div class="or-term">' + esc(f.term || '') + '</div></div></div>' +
+    ((f.basis || []).length ? '<p><span class="or-k">THE SIGNS</span> ' + esc(f.basis.join('; ')) + '</p>' : '') +
+    (f.watch_for ? '<p><span class="or-k">WATCH FOR</span> ' + esc(f.watch_for) + '</p>' : '') +
+    (f.wrong_if ? '<p><span class="or-k">WRONG IF</span> ' + esc(f.wrong_if) + '</p>' : '');
+  Array.prototype.forEach.call(document.querySelectorAll('#cbBody .or-li'), function(li){ li.classList.toggle('on', +li.dataset.i === i); });
+}
+function orLoadAstronomy(){
+  if(window.Astronomy) return Promise.resolve(window.Astronomy);
+  return new Promise(function(ok, no){
+    var s = document.createElement('script'); s.src = 'assets/astronomy.min.js';
+    s.onload = function(){ window.Astronomy ? ok(window.Astronomy) : no(new Error('astronomy did not load')); };
+    s.onerror = no; document.head.appendChild(s);
+  });
+}
+function orFonts(){
+  if(document.getElementById('orFonts')) return;
+  var l = document.createElement('link'); l.id = 'orFonts'; l.rel = 'stylesheet';
+  l.href = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap';
+  document.head.appendChild(l);
+}
+async function orHeavens(){
+  var el = document.getElementById('orHeavens');
+  try{
+    var A = await orLoadAstronomy(), mod = OR.mod || await import('./assets/oracle.js');
+    OR.mod = mod;
+    var sky = mod.heavens(A, new Date()); OR.sky = sky;
+    var paras = mod.reading(sky, CB.ball);
+    el.innerHTML = '<div class="or-sky">' + mod.wheel(sky) + '<div class="or-sky-side">' +
+      '<div class="or-moonline">' + mod.moonFace(sky) + '<div><b>' + esc(sky.moon.name) + '</b><br>' + Math.round(sky.moon.lit*100) + '% lit</div></div>' +
+      '<ul class="or-planets">' + sky.bodies.map(function(b){
+        return '<li><span class="or-gl">' + b.glyph + '︎</span> ' + esc(b.name) + ' <span class="or-in">in</span> ' + b.sg + '︎ ' + esc(b.sign) +
+               ' <span class="or-in">' + Math.floor(b.deg) + '°</span>' + (b.retro ? ' <span class="or-rx-t">retrograde</span>' : '') + '</li>';
+      }).join('') + '</ul></div></div>' +
+      paras.map(function(t){ return '<p class="or-read">' + esc(t) + '</p>'; }).join('') +
+      '<p class="or-fine">The sky is real: positions for ' + esc(new Date().toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'})) +
+      ', computed in your browser by <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a>. What it means is astrology, read for fun; it forecasts nothing.</p>';
+  }catch(e){ el.innerHTML = '<p class="or-fine">The heavens could not be read in this browser.</p>'; }
+}
 async function cbShow(){
   var band = document.getElementById('cbBand');
   band.hidden = false; openBand(band);
   if(CB.ball) return;
-  cbMsg('Opening&hellip;');
+  orFonts();
+  cbMsg('The mists are gathering&hellip;');
   var t = Date.now(), urls = ['data/crystal/ball.json?t=' + t,
     'https://raw.githubusercontent.com/' + GH_REPO + '/main/data/crystal/ball.json?t=' + t];
   var got = await Promise.all(urls.map(function(u){
     return fetch(u, {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
   }));
   var b = got.filter(function(x){ return x && x.forecasts; }).sort(function(x, y){ return x.at < y.at ? 1 : -1; })[0];
-  if(!b){ cbMsg('No forecast yet. One is made every day at about 8:45 a.m. Eastern.', true); return; }
+  if(!b){ cbMsg('The ball is clouded: no forecast yet. One is made every day at about 8:45 a.m. Eastern.', true); return; }
   CB.ball = b;
   var at = new Date(b.at);
-  document.getElementById('cbSub').textContent = 'made ' +
+  document.getElementById('cbSub').textContent = 'seen ' +
     at.toLocaleString([], {weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit', timeZone:'America/New_York'}) +
-    ' Eastern from everything gathered · no searching' + (b.cost_usd != null ? ' · $' + b.cost_usd.toFixed(3) : '');
+    ' Eastern, from everything gathered' + (b.cost_usd != null ? ' · $' + b.cost_usd.toFixed(3) : '');
+  var order = {'24h':0, '72h':1, '7d':2};
+  OR.items = (b.forecasts || []).slice().sort(function(x, y){ return (order[x.horizon] - order[y.horizon]) || (y.probability - x.probability); });
   var h = '', c = b.clock || {}, n = b.nuclear || {}, tr = /^(rising|easing|steady)$/.test(n.trend) ? n.trend : 'steady';
-  h += '<div class="cb-top"><div class="cb-card cb-clock">' + cbClock(c.seconds || 85) +
-       '<div><p class="cb-secs" style="margin:0">' + esc(String(c.seconds || 85)) + ' seconds<br>to midnight</p>' +
-       '<p class="cb-small" style="margin:4px 0 0">Doomsday Clock, <a href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener">Bulletin of the Atomic Scientists</a>' +
-       (c.set ? ', set ' + esc(c.set) : '') + '</p></div></div>' +
-       '<div class="cb-card"><p style="margin:0"><span class="cb-trend ' + tr + '" data-say=". ">NUCLEAR RISK THIS WEEK: ' + tr.toUpperCase() + '</span><br>' +
-       esc(n.why || '') + '</p></div></div>';
-  if(b.bluf) h += '<p class="bluf"><strong>OUTLOOK:</strong> ' + esc(b.bluf) + '</p>';
-  [['24h', 'Next 24 hours'], ['72h', 'Next 72 hours'], ['7d', 'Next 7 days']].forEach(function(g){
-    var fs = (b.forecasts || []).filter(function(f){ return f.horizon === g[0]; })
-                                .sort(function(x, y){ return y.probability - x.probability; });
-    if(!fs.length) return;
-    h += '<h3>' + g[1] + '</h3><ul class="cb-list">' + fs.map(function(f){
-      var p = +f.probability || 0;
-      return '<li class="cb-f"><div>' + (f.region ? '<span class="cb-reg" data-say=": ">' + esc(f.region) + '</span>' : '') +
-        '<span class="cb-ev">' + esc(f.event) + '</span></div>' +
-        '<div class="cb-bar"><i><b style="width:' + p + '%;background:' + cbBarColor(p) + '"></b></i>' + p + '% · ' + esc(f.term || '') + '</div>' +
-        ((f.basis || []).length ? '<div class="cb-kv"><span>SIGNALS</span> ' + esc(f.basis.join('; ')) + '</div>' : '') +
-        (f.watch_for ? '<div class="cb-kv"><span>WATCH FOR</span> ' + esc(f.watch_for) + '</div>' : '') +
-        (f.wrong_if ? '<div class="cb-kv"><span>WRONG IF</span> ' + esc(f.wrong_if) + '</div>' : '') + '</li>';
+  h += '<div class="or-stage" id="orStage"><div class="or-hint">touch an orb to read its vision · drag to turn the glass</div></div>';
+  if(b.bluf) h += '<p class="or-vision"><span class="or-k" data-say=": ">THE VISION</span><br>' + esc(b.bluf) + '</p>';
+  h += '<div class="or-card" id="orCard"></div>';
+  h += '<h3 class="or-h">All that the glass shows</h3>';
+  [['24h', 'Within a day'], ['72h', 'Within three days'], ['7d', 'Within the week']].forEach(function(g){
+    var rows = OR.items.map(function(f, i){ return [f, i]; }).filter(function(x){ return x[0].horizon === g[0]; });
+    if(!rows.length) return;
+    h += '<div class="or-hz">' + g[1] + '</div><ul class="or-list">' + rows.map(function(x){
+      var f = x[0], p = +f.probability || 0;
+      return '<li class="or-li" data-i="' + x[1] + '"><span class="or-dot" style="--c:' + (p >= 65 ? '#ffcf6b' : p >= 40 ? '#ff7ad9' : '#7fd0ff') + '"></span>' +
+             '<span class="or-li-p">' + p + '%</span><span class="or-li-t">' + (f.region ? '<em>' + esc(f.region) + '</em> ' : '') + esc(f.event) + '</span></li>';
     }).join('') + '</ul>';
   });
+  h += '<div class="or-twin"><div class="or-panel or-clock">' + orClock(c.seconds || 85) +
+       '<div><div class="or-secs">' + esc(String(c.seconds || 85)) + ' seconds to midnight</div>' +
+       '<div class="or-fine">The Doomsday Clock of the <a href="https://thebulletin.org/doomsday-clock/" target="_blank" rel="noopener">Bulletin of the Atomic Scientists</a>' +
+       (c.set ? ', set ' + esc(c.set) : '') + '.</div></div></div>' +
+       '<div class="or-panel"><div class="or-k">THE NUCLEAR OMEN</div><div class="or-omen ' + tr + '">' + tr.toUpperCase() + '</div><div class="or-small">' + esc(n.why || '') + '</div></div></div>';
   if((b.pre_headline || []).length){
-    h += '<h3>Pre-headline signals</h3><ul>' + b.pre_headline.map(function(x){
-      return '<li><strong>' + esc(x.signal) + '</strong>' + (x.why ? ' — ' + esc(x.why) : '') +
-             (x.source ? ' <span class="cb-small">(' + esc(x.source) + ')</span>' : '') + '</li>';
+    h += '<h3 class="or-h">Whispers before the headlines</h3><ul class="or-whispers">' + b.pre_headline.map(function(x){
+      return '<li><b>' + esc(x.signal) + '</b>' + (x.why ? ' — ' + esc(x.why) : '') + (x.source ? ' <span class="or-fine">(' + esc(x.source) + ')</span>' : '') + '</li>';
     }).join('') + '</ul>';
   }
   var ri = b.rising || {};
-  h += '<h3>Rising against baseline</h3>';
-  if((ri.baseline_days || 0) < (ri.needed || 5)) h += '<p class="cb-small">Baseline building: ' + (ri.baseline_days || 0) + ' of ' + (ri.needed || 5) +
-    ' days logged. From then on, anything running well above its own average shows here.</p>';
-  else if(!(ri.rising || []).length) h += '<p class="cb-small">Nothing running unusually high.</p>';
-  else h += '<ul>' + ri.rising.map(function(m){ return '<li>' + esc(m.what) + ': ' + esc(String(m.now)) + ' vs usual ' + esc(String(m.usual)) + ' (' + esc(String(m.x)) + '×)</li>'; }).join('') + '</ul>';
+  h += '<h3 class="or-h">Omens rising</h3>';
+  if((ri.baseline_days || 0) < (ri.needed || 5)) h += '<p class="or-small">The glass is still learning what is normal: ' + (ri.baseline_days || 0) + ' of ' + (ri.needed || 5) +
+    ' days observed. After that, anything running well above its own average appears here.</p>';
+  else if(!(ri.rising || []).length) h += '<p class="or-small">Nothing running unusually high.</p>';
+  else h += '<ul class="or-whispers">' + ri.rising.map(function(m){ return '<li>' + esc(m.what) + ': ' + esc(String(m.now)) + ' against a usual ' + esc(String(m.usual)) + ' (' + esc(String(m.x)) + '×)</li>'; }).join('') + '</ul>';
+  h += '<h3 class="or-h">The heavens tonight <span class="or-fun">for fun</span></h3><div id="orHeavens" class="or-heavens"><p class="or-small">Reading the sky&hellip;</p></div>';
   var sc = b.score || {}, rec = (b.record || {}).by_term || {};
-  h += '<h3>Scoreboard</h3>';
-  h += sc.resolved ? '<p>' + sc.resolved + ' of its forecasts resolved · Brier score ' + sc.brier + ' (0 is perfect, 0.25 is a coin toss) · ' +
-       sc.right_side + ' on the right side of 50%.</p><ul>' + (sc.recent || []).map(function(r){
+  h += '<h3 class="or-h">The oracle’s ledger</h3>';
+  h += sc.resolved ? '<p class="or-small">' + sc.resolved + ' of its visions have come due · Brier score ' + sc.brier + ' (0 is perfect, 0.25 a coin toss) · ' +
+       sc.right_side + ' on the right side of 50%.</p><ul class="or-whispers">' + (sc.recent || []).map(function(r){
          var ok = (r.p >= 50) === (r.outcome === 'happened');
-         return '<li><span class="' + (ok ? 'cb-ok' : 'cb-no') + '">' + (ok ? '✓' : '✗') + '</span> ' + esc(r.event) + ' — said ' + r.p + '%, ' + (r.outcome === 'happened' ? 'it happened' : 'it did not') + '</li>';
+         return '<li><span class="' + (ok ? 'or-ok' : 'or-no') + '">' + (ok ? '✓' : '✗') + '</span> ' + esc(r.event) + ' — said ' + r.p + '%, ' + (r.outcome === 'happened' ? 'it happened' : 'it did not') + '</li>';
        }).join('') + '</ul>'
-     : '<p class="cb-small">Its first forecasts resolve in a day; the score builds from there.</p>';
+     : '<p class="or-small">Its first visions come due within a day; the ledger fills from there.</p>';
   var terms = Object.keys(rec);
-  if(terms.length) h += '<p class="cb-small">How the brief’s own warnings have held up (' + ((b.record || {}).pairs || 0) + ' scored):</p><table class="cb-table"><tr><th>said</th><th>called</th><th>came true</th></tr>' +
+  if(terms.length) h += '<p class="or-small">How the brief’s own words have held up (' + ((b.record || {}).pairs || 0) + ' scored):</p><table class="or-table"><tr><th>it said</th><th>times</th><th>came true</th></tr>' +
     terms.map(function(k){ var r = rec[k]; return '<tr><td>' + esc(k) + '</td><td>' + r.called + '</td><td>' + (r.rate == null ? '–' : Math.round(r.rate*100) + '%') + '</td></tr>'; }).join('') + '</table>';
-  if((b.open || []).length) h += '<h3>Still open from earlier days</h3><ul>' + b.open.map(function(o){
+  if((b.open || []).length) h += '<h3 class="or-h">Visions still unfolding</h3><ul class="or-whispers">' + b.open.map(function(o){
     return '<li>' + esc(o.event) + ' — ' + o.probability + '% by ' + esc(String(o.deadline).slice(0, 10)) + '</li>'; }).join('') + '</ul>';
   document.getElementById('cbBody').innerHTML = h;
   document.getElementById('cbTools').style.display = '';
   cbMsg('');
+  var best = 0; OR.items.forEach(function(f, i){ if((+f.probability || 0) > (+OR.items[best].probability || 0)) best = i; });
+  orCard(best);
+  Array.prototype.forEach.call(document.querySelectorAll('#cbBody .or-li'), function(li){
+    li.onclick = function(){ var i = +li.dataset.i; orCard(i); if(OR.scene) OR.scene.select(i);
+      document.getElementById('orStage').scrollIntoView({behavior:'smooth', block:'start'}); };
+  });
+  orHeavens();
+  try{
+    OR.mod = OR.mod || await import('./assets/oracle.js');
+    OR.scene = OR.mod.mount(document.getElementById('orStage'), OR.items.map(function(f){ return {p:+f.probability || 0}; }),
+                            function(i){ orCard(i); });
+    if(OR.scene) OR.scene.select(best);
+    else document.getElementById('orStage').classList.add('flat');
+  }catch(e){ document.getElementById('orStage').classList.add('flat'); }
 }
 (function(){
   var tri = document.querySelector('h1 .tri'), taps = [];

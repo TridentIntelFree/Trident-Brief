@@ -107,6 +107,23 @@ What it writes:
 
 The page shows it only through a hidden gesture; it is hidden, not locked.
 
+**Its look is its own, on purpose.** Velvet, candlelight and gold lettering
+replace the site's style. A 3D glass ball on a bronze stand (`assets/oracle.js`,
+on the three.js the globe already loads) holds turning smoke and one glowing
+orb per forecast; an orb's size and brightness follow its probability, and
+touching it opens that forecast. There is also a brass Doomsday Clock.
+"The heavens tonight" is a real sky read as astrology, for fun:
+- **The sky:** positions for that moment, computed in the browser by
+  [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT, bundled
+  as `assets/astronomy.min.js`).
+- **What it shows:** a zodiac chart, the moon's phase, retrogrades and
+  aspects.
+- **The reading:** written from traditional meanings and labelled as forecasting
+  nothing.
+
+All of it is drawn on the device, with no model call and no cost per run, and
+it sleeps while it is off screen.
+
 ## Brief me
 
 `assets/briefing.js` reads the brief aloud as a spoken briefing, using the
