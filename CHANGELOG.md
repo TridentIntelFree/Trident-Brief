@@ -4,6 +4,28 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.14.0 — 2026-10-07
+
+### Maritime warnings: new sources, since NGA's feed is dead
+- **NGA's public warning feed has been frozen since May 2024.** Every format
+  (JSON, text, CSV), every filter and asking as a browser all return the same
+  386 warnings, and asking for 2026 returns none. The page's "navwarn: feed
+  appears frozen" was accurate: no fix on our side can revive it.
+- **Warnings now come from the coordinators that publish their own:**
+  - **UK Hydrographic Office:** NAVAREA I (northeast Atlantic, North Sea,
+    Baltic approaches) and UK coastal warnings, full text from one page.
+    Covers, for example, the Hebrides live-firing range.
+  - **Japan Coast Guard:** NAVAREA XI (Japan, Korea, the Chinese coast,
+    western Pacific), including rocket launches, space debris and gunnery.
+    Only warnings whose title or category could matter are read in full.
+  - **China Maritime Safety Administration:** the 11 coastal bureaus'
+    navigational warnings, kept only when the title names military exercises,
+    live fire, missiles or rocket debris. Text is machine-translated for free,
+    positions are read from the Chinese original, and the panel shows both.
+- NGA is still asked each run and counts again as soon as it is live.
+- Each warning links to its own source. The brief cites that link, and the
+  globe's warning panel names the authority.
+
 ## 1.13.3 — 2026-10-07
 
 ### Maritime warnings: asking NGA as a browser

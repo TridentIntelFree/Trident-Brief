@@ -1606,56 +1606,227 @@ def _navwarn_rows(d):
     return None
 
 
-def fetch_navwarnings():
-    """Active NGA broadcast warnings, filtered to recent military, launch and hazard ones.
+UKHO_RNW = 'https://msi.admiralty.co.uk/RadioNavigationalWarnings'
+JCG_LIST = 'https://www1.kaiho.mlit.go.jp/TUHO/keiho/cgi/warnings.cgi'
+JCG_TEXT = 'https://www1.kaiho.mlit.go.jp/TUHO/keiho/cgi/disp_warnings.cgi?TYPE=NAVAREA11&TANA={}&LANG=EG'
+JCG_PAGE = 'https://www1.kaiho.mlit.go.jp/TUHO/keiho/navarea11_en.html'
+# Japan's list titles are cut short, so a warning's full text is only fetched
+# when its title or category says it could matter
+JCG_WANT = re.compile(r'ROCKET|MISSILE|SPACE|DEBRIS|GUNNERY|FIRING|EXERCISE|HAZARDOUS|MILITARY|NAVAL|'
+                      r'ORDNANCE|\bMINES?\b|SUBMARINE|LAUNCH|WEAPON|TARGET', re.I)
+# China's coastal bureaus each publish their own warnings (航行警告). The
+# river and inland bureaus are left out.
+MSA_BUREAUS = {'Shanghai': '94df14ce1110415da44e67593e76619f', 'Tianjin': 'bdba5fad6e5d48679f970fcf8efb8636',
+               'Liaoning': 'c8896863b1014c438705536a03eb46ff', 'Hebei': '93b73989d22045f9bc3270a6eba35180',
+               'Shandong': '36ea3354c8f84953aba082d6d989c750', 'Zhejiang': '8e10ea74eb9e4c9690f8f891968add80',
+               'Fujian': '7b08405760384570a0fb44e9204c4b1d', 'Guangdong': '1e478d409e854918bf12478b8a19f4a8',
+               'Guangxi': '86de2fffff2c47f98359fd1f20d6508f', 'Hainan': 'd3340711057b494b8fa09eedc4c5ead9',
+               'Shenzhen': '325fdc0892b44313a63ee5c165be98ec'}
+# Each title starts with the activity: 军事演习 military exercise, 实弹射击 live
+# fire, 火箭残骸 rocket debris. Towing, surveys and construction are skipped.
+MSA_KIND = [('space launch/debris', re.compile('火箭|残骸|航天|发射')),
+            ('missile/rocket', re.compile('导弹')),
+            ('live fire', re.compile('射击|实弹|打靶|炮')),
+            ('military exercise', re.compile('军事|演习|演练'))]
+MSA_MAX_ARTICLES = 30
+_MONTHS = 'JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC'.split()
 
-    These are official notices to mariners: a closure area for a missile
-    firing, a rocket stage drop zone, a live-fire exercise box. They are often
-    published before anyone writes about the event, and they are primary
-    documents rather than somebody's account of one -- but only while they are
-    current. A two-year-old standing notice is not a lead, and a feed whose
-    newest entry is weeks old is not live, whatever it calls itself.
-    """
-    now = datetime.now(timezone.utc)
-    best, report = None, []
-    tries = [(v or '(none)', NAVWARN_BASE + v, None) for v in NAVWARN_VARIANTS]
-    tries += [((v or '(none)') + ' as browser', f"{NAVWARN_BASE}{v}&_={int(now.timestamp())}", NAVWARN_BROWSER)
-              for v in NAVWARN_VARIANTS]
-    for v, url, hdr in tries:
+
+def _nga_stamp(t):
+    """A datetime in NGA's notation, which the rest of the pipeline and the page read."""
+    return t.strftime('%d%H%MZ ') + _MONTHS[t.month - 1] + t.strftime(' %Y')
+
+
+def _nga_rows(now):
+    """NGA (NAVAREA IV and XII, HYDROLANT, HYDROPAC). Its public API has returned
+    the same 386 warnings since May 2024, so it only counts when it is live again."""
+    best = None
+    for url, hdr in ((NAVWARN_BASE + '&status=A', None),
+                     (f"{NAVWARN_BASE}&status=active&_={int(now.timestamp())}", NAVWARN_BROWSER)):
         try:
             if hdr:
                 r = requests.get(url, timeout=30, headers=hdr)
-                cache = ', '.join(f"{k}={r.headers[k]}" for k in ('Last-Modified', 'Age', 'X-Cache', 'Cache-Control')
-                                  if r.headers.get(k))
-                if cache and v.startswith('&status=A '):
-                    print(f"  navwarn cache headers: {cache[:200]}")
                 if r.status_code != 200:
                     raise RuntimeError(f'HTTP {r.status_code}')
                 d = r.json()
             else:
                 d = _get(url, timeout=30)
-        except Exception as e:
-            report.append(f"{v}: {str(e)[:60]}")
+        except Exception:
             continue
         rows = _navwarn_rows(d)
-        if rows is None:
-            shape = list(d.keys())[:10] if isinstance(d, dict) else type(d).__name__
-            report.append(f"{v}: unexpected shape {shape}")
-            continue
-        times = [t for t in (_nga_time((r or {}).get('issueDate')) for r in rows if isinstance(r, dict)) if t]
-        newest = max(times) if times else None
-        report.append(f"{v}: {len(rows)} rows, newest "
-                      f"{newest.strftime('%Y-%m-%d') if newest else 'undated'}")
-        if newest and (best is None or newest > best[1] or (newest == best[1] and len(rows) > len(best[0]))):
-            best = (rows, newest, v)
-    print('  navwarn variants: ' + ' | '.join(report))
+        times = [t for t in (_nga_time((w or {}).get('issueDate')) for w in rows or [] if isinstance(w, dict)) if t]
+        if times and (best is None or max(times) > best[1]):
+            best = (rows, max(times))
     if best is None:
-        return None, 'no variant returned dated warnings: ' + '; '.join(report)[:200]
-    rows, newest, variant = best
-    age = (now - newest).days
-    if age > NAVWARN_FROZEN_DAYS:
-        return None, (f'feed appears frozen: newest of {len(rows)} warnings was issued '
-                      f'{newest.strftime("%Y-%m-%d")}, {age} days ago')
+        return [], 'no answer'
+    rows, newest = best
+    if (now - newest).days > NAVWARN_FROZEN_DAYS:
+        return [], f'frozen, newest of {len(rows)} issued {newest.strftime("%Y-%m-%d")}'
+    for w in rows:
+        if isinstance(w, dict):
+            w.setdefault('src', 'NGA')
+            w.setdefault('u', NAVWARN_PAGE)
+    return rows, f'{len(rows)} warnings, newest {newest.strftime("%Y-%m-%d")}'
+
+
+def _ukho_rows(now):
+    """UK Hydrographic Office: NAVAREA I and UK coastal warnings in force, full text on one page."""
+    import html as H
+    r = requests.get(UKHO_RNW, timeout=40, headers=NAVWARN_BROWSER)
+    if r.status_code != 200:
+        raise RuntimeError(f'HTTP {r.status_code}')
+    t = r.text
+    rows = []
+    for k in re.findall(r'id="Reference_(\d+)"', t):
+        def cell(name):
+            m = re.search(rf'id="{name}_{k}"[^>]*>(.*?)</', t, re.S)
+            return H.unescape(re.sub(r'<[^>]+>', ' ', m.group(1))).strip() if m else ''
+        ref, dtg = ' '.join(cell('Reference').split()), cell('DateTimeGroupRnwFormat')
+        text = cell('Details_Description') or cell('Description')
+        m = re.match(r'(\d{2})(\d{2})(\d{2})\s*UTC\s+([A-Za-z]{3})\s+(\d{2})', dtg)
+        if not (ref and text and m):
+            continue
+        try:
+            when = datetime(2000 + int(m.group(5)), _MONTHS.index(m.group(4).upper()) + 1, int(m.group(1)),
+                            int(m.group(2)), int(m.group(3)), tzinfo=timezone.utc)
+        except ValueError:
+            continue
+        rows.append({'id': ref, 'text': text, 'issueDate': _nga_stamp(when), 'authority': 'UKHO',
+                     'src': 'UK Hydrographic Office', 'u': UKHO_RNW})
+    if not rows:
+        raise RuntimeError('page changed: no warnings parsed')
+    newest = max(_nga_time(w['issueDate']) for w in rows)
+    return rows, f'{len(rows)} in force, newest {newest.strftime("%Y-%m-%d")}'
+
+
+def _jcg_rows(now):
+    """Japan Coast Guard: NAVAREA XI (Korea, China, Japan, the western Pacific)."""
+    years = [now.year] + ([now.year - 1] if now.timetuple().tm_yday <= NAVWARN_MAX_AGE_DAYS else [])
+    members = []
+    for y in years:
+        r = requests.post(JCG_LIST, timeout=30, data=f'YEAR={y}&TYPE=NAVAREA11&LANG=EG',
+                          headers=dict(NAVWARN_BROWSER, **{'Content-Type': 'application/x-www-form-urlencoded'}))
+        if r.status_code != 200:
+            raise RuntimeError(f'list HTTP {r.status_code}')
+        for m in re.finditer(r'<Member>(.*?)</Member>', r.text, re.S):
+            f = {k: (re.search(rf'<{k}>(.*?)</{k}>', m.group(1), re.S) or [None, ''])[1].strip()
+                 for k in ('categoly', 'number', 'tana', 'title')}
+            if f['tana']:
+                members.append(f)
+    want = [f for f in members if f['categoly'] == 'Exercises' or JCG_WANT.search(f['title'])]
+    rows = []
+    for f in want[:40]:
+        try:
+            r = requests.get(JCG_TEXT.format(f['tana']), timeout=20, headers=NAVWARN_BROWSER)
+            r.encoding = 'utf-8'
+        except Exception:
+            continue
+        m = re.search(r'Date:\s*(\d{4})/(\d{2})/(\d{2})\s+(\d{2})', r.text)
+        body = r.text.split('</STRONG>', 1)[-1]
+        text = ' '.join(re.sub(r'<[^>]+>', ' ', body.replace('<br>', ' ')).split())
+        if not (m and text):
+            continue
+        when = datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4)), tzinfo=timezone.utc)
+        rows.append({'id': f"NAVAREA XI {int(f['number'])}/{f['tana'][:2]}", 'text': text,
+                     'issueDate': _nga_stamp(when), 'authority': 'Japan Coast Guard',
+                     'src': 'Japan Coast Guard', 'u': JCG_PAGE})
+    return rows, f'{len(members)} in force, {len(want)} worth reading, {len(rows)} read'
+
+
+def _msa_norm(text):
+    """China's positions come as 25-24.33N/119-56.13E or 25°24′20″N 119°56′08″E;
+    rewrite them the way NGA writes them so one parser reads every source."""
+    def dms(m):
+        d, mi, se, h = int(m.group(1)), int(m.group(2) or 0), float(m.group(3) or 0), m.group(4)
+        return f'{d}-{mi + se / 60:.2f}{h}'
+    text = re.sub(r"(\d{1,3})\s*[°º度]\s*(?:(\d{1,2}(?:\.\d+)?)\s*[′'分])?\s*(?:(\d{1,2}(?:\.\d+)?)\s*[″\"秒])?\s*([NSEW北南东西])",
+                  lambda m: dms(m) if '.' not in (m.group(2) or '') else f'{m.group(1)}-{m.group(2)}{m.group(4)}', text)
+    text = text.translate(str.maketrans({'北': 'N', '南': 'S', '东': 'E', '西': 'W', '、': ' ', '，': ' ', '/': ' ',
+                                         '／': ' ', '：': ' ', '\u3000': ' '}))
+    return re.sub(r'([NS])(?=\d)', r'\1 ', text)
+
+
+def _msa_rows(now):
+    """China Maritime Safety Administration: the coastal bureaus' military warnings,
+    machine-translated to English (free; the Chinese text is kept for positions)."""
+    found = []
+    for name, cid in MSA_BUREAUS.items():
+        try:
+            r = requests.get(f'https://www.msa.gov.cn/{cid}/index.jhtml', timeout=30, headers=NAVWARN_BROWSER)
+        except Exception:
+            continue
+        t = r.content.decode('utf-8', 'ignore')
+        for href, label in re.findall(r'href="(/html/cnmsa/hxaq/article/[^"]+\.html)"[^>]*>(.*?)</a>', t, re.S):
+            label = ' '.join(re.sub(r'<[^>]+>', ' ', label).split())
+            m = re.search(r'(\d{4}-\d{2}-\d{2})\s*$', label)
+            kind = next((k for k, rx in MSA_KIND if rx.search(label)), None)
+            if not (m and kind):
+                continue
+            day = datetime.strptime(m.group(1), '%Y-%m-%d').replace(tzinfo=timezone.utc)
+            if (now - day).days > NAVWARN_MAX_AGE_DAYS:
+                continue
+            title = label[:m.start()].strip()
+            num = re.search(r'[\u4e00-\u9fff]航警\s*\d+/\d+', title)
+            if any(f['u'].endswith(href) for f in found):
+                continue
+            found.append({'bureau': name, 'u': 'https://www.msa.gov.cn' + href, 'title': title, 'kind': kind,
+                          'day': day, 'num': num.group(0) if num else ''})
+    found.sort(key=lambda f: f['day'], reverse=True)
+    rows = []
+    for f in found[:MSA_MAX_ARTICLES]:
+        try:
+            r = requests.get(f['u'], timeout=20, headers=NAVWARN_BROWSER)
+        except Exception:
+            continue
+        t = re.sub(r'<script.*?</script>|<style.*?</style>', ' ', r.content.decode('utf-8', 'ignore'), flags=re.S)
+        t = ' '.join(re.sub(r'<[^>]+>', ' ', t).replace('&nbsp;', ' ').split())
+        body = t.split('分享到：', 1)[-1].split('收藏', 1)[0].strip() if '分享到：' in t else f['title']
+        pm = re.search(r'发布时间：\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})', t)
+        when = (datetime.strptime(f"{pm.group(1)} {pm.group(2)}{pm.group(3)}", '%Y-%m-%d %H%M').replace(tzinfo=timezone.utc)
+                - timedelta(hours=8)) if pm else f['day']          # the site prints Beijing time
+        rows.append({'id': f"China MSA {f['bureau']} {f['num'] or ''}".strip(), 'kind': f['kind'],
+                     'zh': _msa_norm(body)[:900], 'text': f['title'] + '. ' + body[:500],
+                     'issueDate': _nga_stamp(when), 'authority': f"China MSA ({f['bureau']})",
+                     'src': 'China Maritime Safety Administration', 'u': f['u']})
+    if rows:
+        try:
+            done = _tr_google_batch([w['text'][:500] for w in rows])
+            for w, (en, _) in zip(rows, done):
+                if en and not CYRILLIC.search(en) and not re.search('[\u4e00-\u9fff]{4}', en):
+                    w['o'], w['text'] = w['text'], en
+        except Exception as e:
+            print(f"  navwarn: China MSA translation failed ({str(e)[:60]}), Chinese text kept")
+    return rows, f'{len(found)} military/launch in {NAVWARN_MAX_AGE_DAYS}d across {len(MSA_BUREAUS)} bureaus, {len(rows)} read'
+
+
+def fetch_navwarnings():
+    """Official navigational warnings, filtered to recent military, launch and hazard ones.
+
+    These are notices to mariners: a closure area for a missile firing, a
+    rocket stage drop zone, a live-fire exercise box. They are often published
+    before anyone writes about the event, and they are primary documents
+    rather than somebody's account of one -- but only while they are current.
+
+    NGA's public feed has been frozen at May 2024 since at least mid-2026 (the
+    same 386 warnings however it is asked), so the warnings now come from the
+    coordinators that publish their own: the UK (NAVAREA I), Japan (NAVAREA
+    XI, which covers Korea and the Chinese coast) and China's coastal bureaus.
+    NGA is still asked each run and counts again the moment it is live.
+    """
+    now = datetime.now(timezone.utc)
+    rows, notes = [], []
+    for name, fn in (('NGA', _nga_rows), ('UKHO', _ukho_rows), ('Japan', _jcg_rows), ('China MSA', _msa_rows)):
+        try:
+            got, note = fn(now)
+        except Exception as e:
+            got, note = [], 'ERR ' + str(e)[:70]
+        rows += got
+        notes.append(f'{name}: {note}')
+    print('  navwarn sources: ' + ' | '.join(notes))
+    if not rows:
+        return None, 'no source returned current warnings: ' + '; '.join(notes)[:240]
+    newest = max((t for t in (_nga_time(w.get('issueDate')) for w in rows if isinstance(w, dict)) if t), default=now)
+    variant = ', '.join(n.split(':')[0] for n in notes if not n.split(': ', 1)[1].startswith(('ERR', 'frozen', 'no answer')))
     out, total, stale, routine = [], 0, 0, 0
     for w in rows:
         if not isinstance(w, dict):
@@ -1668,25 +1839,28 @@ def fetch_navwarnings():
         if not t or (now - t).days > NAVWARN_MAX_AGE_DAYS:
             stale += 1
             continue
-        kind = next((k for k, rx in _NAVWARN_KIND if rx.search(text)), None)
+        kind = w.get('kind') or next((k for k, rx in _NAVWARN_KIND if rx.search(text)), None)
         if not kind:
             continue
-        if _NAVWARN_ROUTINE.search(text) and not _NAVWARN_MILITARY.search(text):
+        if not w.get('kind') and _NAVWARN_ROUTINE.search(text) and not _NAVWARN_MILITARY.search(text):
             routine += 1
             continue
         area = str(w.get('navArea') or w.get('area') or '').strip()
         label = NAVAREA_LABEL.get(area.upper(), f'NAVAREA {area}' if area else 'NAVWARN')
         num, yr = w.get('msgNumber'), w.get('msgYear')
-        item = {'id': f'{label} {num}/{str(yr)[-2:]}' if num and yr else label,
-                'kind': kind,
+        item = {'id': w.get('id') or (f'{label} {num}/{str(yr)[-2:]}' if num and yr else label),
+                'kind': kind, 'src': w.get('src') or 'NGA', 'u': w.get('u') or NAVWARN_PAGE,
                 'issued': str(w.get('issueDate') or '')[:40],
                 'age_days': (now - t).days,
                 'authority': str(w.get('authority') or '')[:80],
                 'text': text[:600],
                 '_t': t.timestamp()}
-        pts = _nga_points(text)
+        if w.get('o'):
+            item['o'] = ' '.join(w['o'].split())[:400]
+        geo = w.get('zh') or text                          # China: positions read from the original
+        pts = _nga_points(geo)
         if pts:
-            shapes = _nga_shapes(text)
+            shapes = _nga_shapes(geo)
             # The marker goes on the first area, not the mean of every point: a
             # notice with two separate debris boxes put it in open sea between
             # them, on neither.
@@ -1700,7 +1874,7 @@ def fetch_navwarnings():
     out.sort(key=lambda i: (-int(i['_t'] // 86400), _KIND_RANK[i['kind']], 'lat' not in i))
     for i in out:
         i.pop('_t', None)
-    print(f"  navwarn: variant '{variant or '(none)'}', {total} warnings, newest issued "
+    print(f"  navwarn: from {variant or 'none'}, {total} warnings, newest issued "
           f"{newest.strftime('%Y-%m-%d')}; {stale} older than {NAVWARN_MAX_AGE_DAYS} days dropped, "
           f"{routine} routine commercial dropped; {len(out)} leads, "
           f"{sum(1 for i in out if i.get('shapes'))} mappable")
@@ -2511,20 +2685,21 @@ def leads_block(leads, hours):
            'in the news - which is the point of them. Work them: each one is either carried',
            'in the brief or knowingly passed over, and the difference is recorded below.', '']
     nw = leads.get('navwarn')
-    out.append('MARITIME NAVIGATIONAL WARNINGS - NGA, issued in the last 45 days, filtered to military, '
-               'launch and hazard, newest first:')
+    out.append('MARITIME NAVIGATIONAL WARNINGS - official notices from the UK (NAVAREA I), Japan (NAVAREA XI), '
+               "China's coastal bureaus (machine-translated) and NGA when its feed is live; issued in the last "
+               '45 days, filtered to military, launch and hazard, newest first:')
     if nw:
         for w in nw[:25]:
             pos = f"{abs(w['lat']):.1f}{'N' if w['lat'] >= 0 else 'S'} {abs(w['lon']):.1f}" \
                   f"{'E' if w['lon'] >= 0 else 'W'}" if 'lat' in w else 'no position'
             age = f" ({w['age_days']}d ago)" if w.get('age_days') is not None else ''
             out.append(f"- {w['id']} | {w['kind']} | issued {w['issued'] or '?'}{age} | {pos} | "
-                       f"{w['text'][:260]}")
+                       f"{w['text'][:260]} | {w.get('u') or NAVWARN_PAGE}")
         out += ['',
                 'A navigational warning is an official publication the pipeline retrieved this run,',
                 'so it IS a source for its own contents: a declared missile-firing or rocket-debris',
                 'area is a fact about what a government announced. Report one tagged',
-                f'[SIGINT - VERIFIED], cite it by its ID, and link {NAVWARN_PAGE} . It is NOT a',
+                '[SIGINT - VERIFIED], cite it by its ID, and link the URL at the end of its line. It is NOT a',
                 'source for anything beyond its text - that a test happened, who ran it or why -',
                 'which needs its own retrieved source under Rule 1. The ones that matter are the',
                 'ones whose area, timing or issuing authority lines up with something in the',

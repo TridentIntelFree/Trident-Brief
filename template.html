@@ -782,7 +782,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           </span>
           <span class="lyr-group"><b>leads</b>
             <button class="lyr on" data-layer="conflict" title="GDELT armed-conflict hotspots: machine-coded from news, a place to look, not a source"><i style="background:#f472b6"></i>CONFLICT <b id="nConflict">0</b></button>
-            <button class="lyr on" data-layer="navwarn" title="NGA navigational warnings from the last 45 days: missile firings, launch debris, live fire, ordnance"><i style="background:#a3e635"></i>NAV WARN <b id="nNavwarn">0</b></button>
+            <button class="lyr on" data-layer="navwarn" title="Official navigational warnings from the last 45 days (UK, Japan, China, NGA when live): missile firings, launch debris, live fire, ordnance"><i style="background:#a3e635"></i>NAV WARN <b id="nNavwarn">0</b></button>
           </span>
           <span class="lyr-group"><b>osint</b>
             <button class="lyr on" data-layer="osint" title="Structured conflict events from situationmonitor (Bluesky, Telegram, news), last 48 hours"><i style="background:#fb7185"></i>EVENTS <b id="nOsint">0</b></button>
@@ -2273,10 +2273,11 @@ function renderDetail(c){
     place = String(d.text || '').split('.')[0].slice(0, 80);
     rows.push(['TYPE', String(d.kind || '').toUpperCase()]);
     if(d.issued)    rows.push(['ISSUED', d.issued + (d.age_days != null ? '  (' + d.age_days + 'd ago)' : '')]);
-    if(d.authority) rows.push(['AUTHORITY', d.authority]);
+    if(d.authority) rows.push(['AUTHORITY', esc(d.authority)]);
+    if(d.o)         rows.push(['ORIGINAL', esc(d.o)]);
     if(d.shapes && d.shapes.length) rows.push(['DRAWN', d.shapes.length + ' area' + (d.shapes.length > 1 ? 's' : '') + ' on the globe']);
-    note = d.text || '';
-    link = 'https://msi.nga.mil/NavWarnings';
+    note = (d.o ? 'Machine-translated from Chinese. ' : '') + (d.text || '');
+    link = /^https?:\/\//i.test(d.u || '') ? d.u : 'https://msi.nga.mil/NavWarnings';
   } else if(c.k==='jam'){
     var gj = FEEDS.gpsjam || {};
     title = 'GPS interference &mdash; ' + (d.pct >= .10 ? 'HIGH' : 'ELEVATED');

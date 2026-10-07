@@ -14,8 +14,11 @@ result as a static page. Groq/Llama stands by as a fallback provider; if both ar
 unavailable the last good brief is re-published and flagged as cached.
 
 Before the model starts, the collector also gathers primary-source leads it has
-to work through: active NGA maritime navigational warnings (missile firings,
-rocket debris areas, live fire) and GDELT armed-conflict hotspots. Each run also
+to work through: active maritime navigational warnings (missile firings,
+rocket debris areas, live fire) from the UK Hydrographic Office (NAVAREA I),
+the Japan Coast Guard (NAVAREA XI) and China's coastal maritime bureaus
+(machine-translated), plus NGA whenever its frozen public feed comes back, and
+GDELT armed-conflict hotspots. Each run also
 scores the previous brief's indicators and warnings against what happened.
 
 It also reads about 25 outlets' own RSS feeds (world desks, theatre outlets,
