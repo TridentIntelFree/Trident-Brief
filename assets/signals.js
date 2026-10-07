@@ -805,7 +805,7 @@ function connect(rx){
         var k = pair.split('=')[0], v = pair.slice(k.length + 1);
         if(k === 'audio_rate') ws.send('SET AR OK in=' + v + ' out=44100');
         else if(k === 'sample_rate'){
-          T.sr = parseFloat(v) || 12000; ringReset();
+          T.sr = parseFloat(v) || 12000; ringReset(); if(CW.on) cwStart();
           ['SET squelch=0 max=0', 'SET genattn=0', 'SET gen=0 mix=-1', tuneMsg(),
            'SET agc=1 hang=0 thresh=-100 slope=6 decay=1000 manGain=50', 'SET compression=1',
            'SET ident_user=Trident%20Brief%20listener', 'SET keepalive'].concat(dspMsgs()).forEach(function(m){ ws.send(m); });
@@ -846,6 +846,7 @@ function refused(rx, why){
 function tunerPlay(f){
   var ctx = S.ctx; if(!ctx || !T.inp) return;
   ringPush(f);
+  if(CW.on && CW.dec) CW.dec.push(f);
   var b = ctx.createBuffer(1, f.length, T.sr);
   if(b.copyToChannel) b.copyToChannel(f, 0); else b.getChannelData(0).set(f);
   var now = ctx.currentTime;
@@ -873,6 +874,7 @@ function retune(khz, mode, presetId){
     }
   }
   T.ws.send(tuneMsg()); T.rssi = []; T.next = 0; TX.fill = 0;       // a transcript clip is one channel
+  if(CW.on) cwStart();                                          // a new channel, a new tone and speed
   logEvent(Date.now(), 'mark', 'tuned ' + T.khz + ' kHz ' + T.mode.toUpperCase());
   tunerNow();
   if(WF.start != null && (T.khz < WF.start + WF.span*0.04 || T.khz > WF.start + WF.span*0.96)) wfView(T.khz);   // keep the tuning in view
@@ -1256,6 +1258,206 @@ function wireTranscribe(){
   $('tuTxLang').onchange = function(){ set('txLang', this.value); };
 }
 
+/* ----------------------------------------------------- Morse decoder */
+/* Morse in the tuner's audio, turned into text. The strongest steady tone in
+   the audio is found, its level is followed sample by sample (mixed down and
+   low-passed), and the on/off times are read against the sender's speed,
+   which is learnt as it goes. Only the text is kept: a log per session, saved
+   in this browser and downloadable as a .txt file. Weak or fading signals,
+   two senders on one tone, and sloppy hand-keying all come out as errors. */
+var MORSE = {'.-':'A','-...':'B','-.-.':'C','-..':'D','.':'E','..-.':'F','--.':'G','....':'H','..':'I','.---':'J','-.-':'K',
+  '.-..':'L','--':'M','-.':'N','---':'O','.--.':'P','--.-':'Q','.-.':'R','...':'S','-':'T','..-':'U','...-':'V','.--':'W',
+  '-..-':'X','-.--':'Y','--..':'Z','-----':'0','.----':'1','..---':'2','...--':'3','....-':'4','.....':'5','-....':'6',
+  '--...':'7','---..':'8','----.':'9','.-.-.-':'.','--..--':',','..--..':'?','-..-.':'/','-...-':'=','.-.-.':'<AR>',
+  '...-.-':'<SK>','-.--.':'<KN>','.-...':'<AS>','-.-.--':'!','---...':':','-.-.-.':';','.----.':"'",'-....-':'-',
+  '.-..-.':'"','.--.-.':'@','........':'<HH>'};
+function cwDecoder(sr, out){
+  var D = {tone:0, acc:null, cands:[], hist:new Float32Array(Math.round(sr)), hn:0, since:0, blk:Math.round(sr*0.25),
+           ph:0, i1:0, q1:0, i2:0, q2:0, k:1 - Math.exp(-2*Math.PI*45/sr),
+           hop:Math.max(1, Math.round(sr*0.004)), hc:0,
+           lo:1, hi:0, on:false, run:0, dit:0.06, sym:'', gapDone:2, snr:0, learn:[], marks:[], fresh:true, pending:null};
+  for(var f = 300; f <= 1500; f += 10) D.cands.push(f);
+  D.acc = new Float32Array(D.cands.length);
+  function recent(n){                            // the last n samples, oldest first
+    var h = D.hist, L = h.length, o = new Float32Array(n), st = (D.hn - n + L) % L;
+    for(var i = 0; i < n; i++) o[i] = h[(st + i) % L];
+    return o;
+  }
+  function scan(){                              // where is the tone?
+    var b = recent(D.blk), n = b.length, best = 0, bi = 0;
+    for(var c = 0; c < D.cands.length; c++){
+      var w = 2*Math.PI*D.cands[c]/sr, cf = 2*Math.cos(w), s1 = 0, s2 = 0;
+      for(var i = 0; i < n; i++){ var s0 = b[i] + cf*s1 - s2; s2 = s1; s1 = s0; }
+      D.acc[c] = D.acc[c]*0.75 + (s1*s1 + s2*s2 - cf*s1*s2);
+      if(D.acc[c] > best){ best = D.acc[c]; bi = c; }
+    }
+    var srt = Array.prototype.slice.call(D.acc).sort(function(a, b){ return a - b; }), med = srt[srt.length >> 1] || 1e-12;
+    D.snr = 10*Math.log10(best/med);
+    var f = D.cands[bi], cur = D.cands.indexOf(D.tone);
+    if(D.snr > 10 && (!D.tone || (Math.abs(f - D.tone) > 25 && D.acc[bi] > 2*(D.acc[cur] || 0)))) lock(f);
+  }
+  /* a new tone: its levels come from the last second, which is then read
+     again, so the start of the message is not lost while the tone was found */
+  function lock(f){
+    D.tone = f; D.ph = 0; D.i1 = D.q1 = D.i2 = D.q2 = 0; D.hc = 0; D.on = false; D.run = 0; D.gapDone = 2; D.sym = '';
+    var x = recent(Math.min(D.since, D.hist.length)), envs = [];
+    var save = [D.ph, D.i1, D.q1, D.i2, D.q2];
+    for(var i = 0; i < x.length; i++){ var e = mix(x[i]); if(e != null) envs.push(e); }
+    D.ph = save[0]; D.i1 = save[1]; D.q1 = save[2]; D.i2 = save[3]; D.q2 = save[4]; D.hc = 0;
+    envs.sort(function(a, b){ return a - b; });
+    D.lo = envs[Math.floor(envs.length*0.2)] || 1; D.hi = envs[Math.floor(envs.length*0.97)] || 0;
+    for(var j = 0; j < x.length; j++) step(x[j]);
+  }
+  function mix(v){                               // the tone's level, every hop
+    D.ph += 2*Math.PI*D.tone/sr; if(D.ph > 6.283185307) D.ph -= 6.283185307;
+    var ii = v*Math.cos(D.ph), qq = v*Math.sin(D.ph);
+    D.i1 += (ii - D.i1)*D.k; D.q1 += (qq - D.q1)*D.k; D.i2 += (D.i1 - D.i2)*D.k; D.q2 += (D.q1 - D.q2)*D.k;
+    if(++D.hc < D.hop) return null;
+    D.hc = 0;
+    return Math.sqrt(D.i2*D.i2 + D.q2*D.q2);
+  }
+  function step(v){
+    var env = mix(v); if(env == null) return;
+    var dt = D.hop/sr;
+    // the noise level is learnt while the key is up, the signal level while it is down
+    if(D.on) D.hi += (env - D.hi)*(env > D.hi ? 0.3 : 0.03);
+    else { D.lo += (env - D.lo)*(env < D.lo ? 0.2 : 0.03); D.hi += (env - D.hi)*(env > D.hi ? 0.3 : 0.002); }
+    // key-down needs the tone well clear of the noise as well as near the signal's level
+    var mid = D.lo + (D.hi - D.lo)*(D.on ? 0.4 : 0.6), on = env > mid && env > D.lo*(D.on ? 2.5 : 3.5) && D.hi > D.lo*4;
+    if(on === D.on){
+      D.run += dt;
+      if(!on && D.learn && D.learn.length && D.run > 1.5) learnt();       // a short message: read it now
+      if(!on && D.sym && D.run > D.dit*2.5){ letter(); D.gapDone = 1; }
+      if(!on && D.gapDone === 1 && D.run > D.dit*6){ word(); D.gapDone = 2; }
+      if(!on && D.run > 2 && !D.fresh){                 // a pause: drop a lone blip, start afresh
+        if(D.pending && D.pending[1].length > 2) { flush(); out(' '); }
+        D.pending = null; D.fresh = true;
+      }
+      return;
+    }
+    if(D.on) ev(true, D.run); else if(D.gapDone === 0) ev(false, D.run);
+    D.gapDone = 0; D.on = on; D.run = dt;
+  }
+  /* a lone dot or dash with two seconds of quiet either side is a noise
+     burst far more often than a letter, so the first letter after a pause is
+     held until something follows it */
+  function letter(){
+    if(!D.sym) return;
+    var ch = MORSE[D.sym] || '*', code = D.sym; D.sym = '';
+    if(D.fresh){ D.pending = [ch, code]; D.fresh = false; return; }
+    flush(); out(ch, code);
+  }
+  function flush(){ if(D.pending){ out(D.pending[0], D.pending[1]); D.pending = null; } }
+  function word(){ if(!D.pending) out(' '); }
+  function mark(t){                              // a key-down of t seconds
+    if(t < Math.max(0.012, D.dit*0.35)) return;  // a click or a crash, not a dot
+    // the speed, from the last 16 key-downs sorted into dots and dashes, so it follows a sender who speeds up
+    D.marks.push(t); if(D.marks.length > 16) D.marks.shift();
+    if(D.marks.length >= 6){
+      var m = two(D.marks);
+      if(m[1] > m[0]*2.2) D.dit = Math.min(0.3, Math.max(0.025, (m[0] + m[1]/3)/2));
+    }
+    D.sym += t < D.dit*2 ? '.' : '-';
+    if(D.sym.length > 9) D.sym = '';             // nothing that long is Morse
+  }
+  function space(t){                             // a key-up of t seconds
+    if(t > D.dit*5){ letter(); word(); }
+    else if(t > D.dit*2) letter();
+  }
+  /* the first ten key-downs are held until the speed is known, then read */
+  function two(v){                               // two-means: the short and the long
+    var a = Math.min.apply(null, v), b = Math.max.apply(null, v);
+    for(var k = 0; k < 12; k++){
+      var sa = 0, na = 0, sb = 0, nb = 0;
+      v.forEach(function(t){ if(Math.abs(t - a) <= Math.abs(t - b)){ sa += t; na++; } else { sb += t; nb++; } });
+      a = na ? sa/na : a; b = nb ? sb/nb : b;
+    }
+    return [a, b];
+  }
+  function learnt(){
+    var L = D.learn; D.learn = null;
+    var marks = L.filter(function(e){ return e[0] && e[1] >= 0.012; }).map(function(e){ return e[1]; });
+    var gaps = L.filter(function(e){ return !e[0]; }).map(function(e){ return e[1]; });
+    if(marks.length){
+      var m = two(marks);
+      if(m[1] > m[0]*2) D.dit = (m[0] + m[1]/3)/2;
+      else if(gaps.length) D.dit = Math.min(two(gaps)[0], m[0]);
+      else D.dit = m[0];
+      D.dit = Math.min(0.3, Math.max(0.025, D.dit));
+    }
+    L.forEach(function(e){ e[0] ? mark(e[1]) : space(e[1]); });
+  }
+  function ev(isMark, t){
+    if(D.learn){
+      D.learn.push([isMark, t]);
+      if(D.learn.filter(function(e){ return e[0]; }).length >= 10) learnt();
+      return;
+    }
+    isMark ? mark(t) : space(t);
+  }
+  D.push = function(x){
+    for(var i = 0; i < x.length; i++){
+      D.hist[D.hn] = x[i]; D.hn = (D.hn + 1) % D.hist.length; D.since++;
+      if(D.since % D.blk === 0){ var had = D.tone; scan(); if(D.tone !== had) continue; }   // a lock has read this sample already
+      if(D.tone) step(x[i]);
+    }
+  };
+  D.wpm = function(){ return Math.round(1.2/D.dit); };
+  return D;
+}
+var CW = {dec:null, on:false, line:'', log:[], cur:null};
+function cwStart(){
+  CW.dec = cwDecoder(T.sr, cwOut); CW.line = ''; CW.cur = null;
+}
+function cwOut(ch){
+  var now = Date.now();
+  if(!CW.cur || CW.cur.khz !== T.khz || now - CW.cur.last > 60000 || CW.cur.text.length > 400){
+    if(ch === ' ') return;
+    CW.cur = {t:now, last:now, khz:T.khz, rx:T.rx ? (T.rx.loc || T.rx.host) : '', text:''};
+    CW.log.unshift(CW.cur); if(CW.log.length > 300) CW.log.length = 300;
+  }
+  if(ch === ' ' && / $/.test(CW.cur.text)) return;
+  CW.cur.text += ch; CW.cur.last = now;
+  CW.line = (CW.line + ch).slice(-80);
+  cwSave(); paintCw();
+}
+function cwSave(){ try{ localStorage.setItem('sig_cwlog', JSON.stringify(CW.log.slice(0, 300))); }catch(_){} }
+function cwText(){
+  return 'Morse decoded by The Trident Brief (Appalachian Intel), machine-read and unverified\n\n' +
+    CW.log.slice().reverse().map(function(e){
+      return new Date(e.t).toISOString().slice(0, 19).replace('T', ' ') + 'Z  ' + e.khz + ' kHz  ' + e.rx + '\n  ' + e.text.trim();
+    }).join('\n') + '\n';
+}
+function paintCw(){
+  var el = $('tuCwOut'); if(!el) return;
+  var d = CW.dec, st = !CW.on ? 'off' : !T.live ? 'waiting for the tuner' : !d || !d.tone ? 'listening for a tone…' :
+    'tone ' + d.tone + ' Hz · ' + d.wpm() + ' wpm · ' + Math.round(d.snr) + ' dB over the band';
+  $('tuCwState').textContent = st;
+  var ln = $('tuCwLine'), fit = Math.max(12, Math.floor((ln.clientWidth - 18)/10));   // the newest text, as much as fits
+  ln.textContent = CW.line.slice(-fit) || ' ';
+  el.innerHTML = CW.log.slice(0, 40).map(function(e){
+    return '<div class="tu-cw-item"><b>' + esc(utc(e.t)) + '</b> ' + esc(String(e.khz)) + ' kHz &middot; ' + esc(e.rx) +
+           '<div>' + esc(e.text.trim()) + '</div></div>';
+  }).join('');
+}
+function wireMorse(){
+  if(!$('tuCw')) return;
+  try{ CW.log = JSON.parse(localStorage.getItem('sig_cwlog') || '[]') || []; }catch(_){ CW.log = []; }
+  $('tuCw').onchange = function(){ CW.on = this.checked; touch(); if(CW.on) cwStart(); paintCw(); };
+  $('tuCwSave').onclick = function(){
+    var a = document.createElement('a'), d = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+    a.href = URL.createObjectURL(new Blob([cwText()], {type:'text/plain'})); a.download = 'morse-' + d + 'Z.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+  $('tuCwCopy').onclick = function(){
+    var b = this; (navigator.clipboard ? navigator.clipboard.writeText(cwText()) : Promise.reject())
+      .then(function(){ b.textContent = 'COPIED'; setTimeout(function(){ b.textContent = 'COPY'; }, 1500); }).catch(function(){});
+  };
+  $('tuCwClear').onclick = function(){ if(confirm('Clear the saved Morse log?')){ CW.log = []; CW.cur = null; CW.line = ''; cwSave(); paintCw(); } };
+  setInterval(function(){ if(CW.on) paintCw(); }, 1000);
+  paintCw();
+}
+
 function wireWaterfall(){
   var cv = $('tuWf'); if(!cv) return;
   ['broadcast', 'ham', 'utility'].forEach(function(kind){
@@ -1326,6 +1528,7 @@ function wireTuner(){
   $('tuScan').onclick = scanToggle;
   wireWaterfall();
   wireTranscribe();
+  wireMorse();
   retune(4625, 'usb', 'uvb76');
   var base = (typeof window.DATA_BASE === 'string' ? window.DATA_BASE : '');
   fetch(base + 'data/tuner/receivers.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
@@ -1398,5 +1601,5 @@ wire();
 wireTuner();
 size();
 loadRadio();
-window.SIGNALS = {state:S, tuner:T, wf:WF, fftDb:fftDb, logEvent:logEvent};
+window.SIGNALS = {state:S, tuner:T, wf:WF, cw:CW, cwDecoder:cwDecoder, fftDb:fftDb, logEvent:logEvent};
 })();

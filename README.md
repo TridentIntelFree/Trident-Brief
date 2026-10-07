@@ -179,6 +179,18 @@ page (`assets/signals.js`):
     invents subtitle phrases ("Thank you for watching", "Продолжение
     следует"). Those, and runs of repeated words, are flagged as probably not
     speech. A transcript is a lead, not a finding.
+- **Morse → text:** decodes CW in what you hear, in the browser.
+  - It finds the strongest steady tone and follows its level.
+  - It learns the sender's speed from the dots and dashes, and keeps
+    following it as the sender changes speed.
+  - It writes letters, figures, punctuation and prosigns (`<AR>`, `<SK>`,
+    `<KN>`…).
+  - Only the text is kept: a log per channel in the browser, which survives a
+    reload, with SAVE TEXT (.txt), COPY and CLEAR. No audio is stored.
+  - Tested on synthetic Morse: error-free from 12 to 35 wpm and down to
+    6 dB signal-to-noise (in 500 Hz), with uneven hand-keying. At 3 dB about
+    half the characters are wrong. Thirty seconds of noise alone gave
+    nothing.
 - **Receiver choice:** the receiver nearest the transmitter is chosen
   automatically, and one that is full or refuses is skipped.
 - **Protocol:** the page speaks the Kiwi's own WebSocket audio protocol and

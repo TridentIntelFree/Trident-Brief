@@ -413,6 +413,11 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .tu-tx-orig.dim,.tu-tx-en.dim{opacity:.5}
 .tu-tx-doubt{color:#facc15;margin-top:2px}
 .tu-tx-err{color:#f87171;margin-top:2px}
+.tu-cw-line{margin-top:6px;font-family:var(--mono);font-size:1.05em;color:#fff;background:#070d1f;border:1px solid var(--line2);
+  border-radius:6px;padding:6px 9px;min-height:1.6em;white-space:pre;overflow:hidden}
+.tu-cw-item{font-size:.82em;color:var(--ink-dim);border-left:3px solid #facc15;padding:3px 9px;line-height:1.45}
+.tu-cw-item b{color:#fff;font-family:var(--mono)}
+.tu-cw-item div{font-family:var(--mono);color:#e2e8f0;word-break:break-word}
 .tu-wf{display:block;width:100%;height:206px;margin-top:8px;border:1px solid var(--line2);border-radius:8px;background:#070d1f;touch-action:none;cursor:crosshair;outline:none}
 .tu-wf:focus-visible{border-color:var(--cyan)}
 .tu-bwv{font-family:var(--mono);color:#fff;display:inline-block;min-width:4.6em}
@@ -1050,6 +1055,16 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       </div>
       <div class="sig-small tu-tx-note">Whisper runs on this device. Its first use downloads the model from Hugging Face once, and the audio never leaves your device. On weak shortwave it guesses, and over static it can invent words, so a transcript is a lead, not a finding.</div>
       <div class="tu-tx" id="tuTxOut"></div>
+      <div class="tu-row tu-cw-row">
+        <label class="sig-chk"><input type="checkbox" id="tuCw"> <b>MORSE &rarr; TEXT</b></label>
+        <span class="sig-small" id="tuCwState">off</span>
+        <button class="ev-f" id="tuCwSave" type="button">&#11015; SAVE TEXT</button>
+        <button class="ev-f" id="tuCwCopy" type="button">COPY</button>
+        <button class="ev-f" id="tuCwClear" type="button">CLEAR</button>
+      </div>
+      <div class="tu-cw-line" id="tuCwLine"> </div>
+      <div class="sig-small tu-tx-note">Reads the strongest steady tone in what you hear and learns the sender&rsquo;s speed as it goes. Tune CW mode with a narrow width, or USB a little below the signal. Only the text is kept: a log in this browser, saved as a .txt file. Weak, fading or hand-sent signals come out with errors (&lowast; marks a pattern that is not Morse).</div>
+      <div class="tu-tx" id="tuCwOut"></div>
     </div>
     <h4 class="sig-h">REPORTED BY RADIO MONITORS <span class="sig-small" id="sigReportsAt"></span></h4>
     <div class="sig-events" id="sigReports"><div class="sig-empty">Loading&hellip;</div></div>
