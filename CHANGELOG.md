@@ -4,6 +4,39 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.21.0 — 2026-10-07
+
+### Every section folds
+- **Page sections:** all fifteen now fold to their heading. That covers God's
+  Eye, Terrain, Event Board, Wire, Signals, OSINT Feed, Indicators,
+  Recurring Locations, Your Area, Mushroom Body, Archive, Appalachistan and
+  the three hidden desks. Tap the heading or ▾ hide. Each remembers its
+  state; Mushroom Body and the Archive start folded as before.
+- **The brief's own sections fold too:** each numbered section (1. Chatter …
+  6. Frontier) and each theatre inside the sweep has a ▾ button. A nav chip
+  or a search hit inside a folded section opens it. The arrow is drawn by CSS,
+  so READ IT TO ME never says it aloud.
+
+### Only one key: GROK_API_KEY
+Everything that needed another key is gone:
+- **Local Intelligence Brief** (it asked for the visitor's own xAI key). Its
+  ZIP box stays as **Your Area**, which re-targets God's Eye on a ZIP code
+  with no key.
+- **The owner's local brief:** the version ×5 panel, `local-brief.yml` and
+  `local_brief.py`. It needed a GitHub token and the
+  `LOCAL_BRIEF_PASSPHRASE` secret, and had never produced a brief.
+- **Groq** as a fallback model (`GROQ_API_KEY`). When Grok fails, the last
+  good brief is re-published and flagged as cached, as before.
+- **AISStream** worldwide ships (`AISSTREAM_API_KEY`). The keyless regional
+  feed (Digitraffic) remains.
+- **The old Gemini workflows** (`daily-brief.yml` and a stray nested copy)
+  and `generate_brief.py`. The daily one ran a script that no longer existed,
+  so it failed every day.
+- **The feed refresh's check** of whether xAI accepts calls from a browser,
+  which only the removed form needed.
+- **Old saved keys:** any keys older versions saved in a browser are wiped on
+  the next visit.
+
 ## 1.20.0 — 2026-10-07
 
 ### Tuner: Morse → text, with a saved log

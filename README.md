@@ -10,8 +10,8 @@ brief published to GitHub Pages.
 A scheduled GitHub Action tasks Grok (with X search + web search) for a 24-hour
 collection across four requirement areas — geopolitical/military, technology and
 cybersecurity, UAP, and parapsychology/consciousness research — then renders the
-result as a static page. Groq/Llama stands by as a fallback provider; if both are
-unavailable the last good brief is re-published and flagged as cached.
+result as a static page. If Grok is unavailable, the last good brief is
+re-published and flagged as cached.
 
 Before the model starts, the collector also gathers primary-source leads it has
 to work through: active maritime navigational warnings (missile firings,
@@ -342,8 +342,8 @@ Re-render `index.html` from the cached brief, without calling any API:
 python3 generate_brief_final.py --offline
 ```
 
-A full collection run needs `GROK_API_KEY` (and optionally `GROQ_API_KEY`) in the
-environment.
+A full collection run needs `GROK_API_KEY` in the environment. It is the only
+secret the app uses.
 
 ## Notes
 
@@ -354,19 +354,10 @@ daily commit keeps the repo active so the schedule cannot expire again.
 
 `index.html` is excluded from that commit; it is a build artifact, rebuilt on
 every deploy. No API key is ever written into the page: a static host has
-nowhere to keep a secret, so anything in it is readable by every visitor. The
-Local Intelligence Brief runs on the visitor's own xAI key, typed into the page
-and kept only in their browser. The owner's local brief runs on GitHub
-instead (`.github/workflows/local-brief.yml`, `local_brief.py`), with the Grok
-key already in the repository's secrets, so the key never reaches a phone. The
-owner's panel -- opened by tapping the version number in the header five times
--- holds only a fine-grained GitHub token (Actions: read and write, Contents:
-read-only) and the passphrase also stored as the `LOCAL_BRIEF_PASSPHRASE`
-secret. Because the repository is public, the ZIP is sent encrypted with that
-passphrase and the brief is committed encrypted to `data/local-brief/`, where
-only the panel can open it. Whether xAI accepts calls made
-straight from a browser is checked on every feed refresh and recorded in
-`assets/feed-status.json` under `xai_browser`.
+nowhere to keep a secret, so anything in it is readable by every visitor. Nothing
+on the page asks for a key: everything that needed a second key (a visitor's
+own xAI key, the owner's GitHub token and passphrase, Groq, Gemini, AISStream)
+was removed in 1.21.0.
 
 ## Analysis from a Claude Code session
 
