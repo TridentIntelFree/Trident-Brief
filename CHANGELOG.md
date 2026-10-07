@@ -4,6 +4,13 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.15.1 — 2026-10-07
+
+- Japan's warnings give positions in degrees, minutes and seconds
+  (21-29-38N 128-10-05E). These are now read, so its rocket-launch drop zones
+  and the Nanpo Shoto gunnery area appear on the globe instead of "no
+  position".
+
 ## 1.15.0 — 2026-10-07
 
 ### An analysis interface for Claude sessions

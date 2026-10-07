@@ -1872,6 +1872,9 @@ def fetch_navwarnings():
         if w.get('o'):
             item['o'] = ' '.join(w['o'].split())[:400]
         geo = w.get('zh') or text                          # China: positions read from the original
+        # Japan writes degrees-minutes-seconds, 21-29-38N 128-10-05E; make it 21-29.63N 128-10.08E
+        geo = re.sub(r'\b(\d{1,3})-(\d{2})-(\d{2}(?:\.\d+)?)\s?([NSEW])\b',
+                     lambda m: f"{m.group(1)}-{int(m.group(2)) + float(m.group(3)) / 60:.2f}{m.group(4)}", geo)
         pts = _nga_points(geo)
         if pts:
             shapes = _nga_shapes(geo)
