@@ -4,6 +4,42 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.20.0 — 2026-10-07
+
+### Tuner: Morse → text, with a saved log
+- **MORSE → TEXT** decodes CW in the tuner's audio, in the browser. Nothing
+  is sent anywhere.
+  - **Finding the signal:** it finds the strongest steady tone between
+    300 and 1500 Hz. Its level is read every 4 ms, with the noise level learnt
+    between key-downs.
+  - **Speed:** the first ten key-downs are held until the sender's speed is
+    known, then decoded, so the opening letters come out right. The speed is
+    re-estimated from the last 16 key-downs, so it follows a sender who speeds
+    up.
+  - **Noise:** a lone blip with two seconds of quiet either side is dropped
+    as noise.
+  - **Output:** letters, figures, punctuation and prosigns. `*` marks a
+    pattern that is not Morse. The tone, speed and signal level are shown
+    live.
+- **The log keeps the text only, never the tone.** There is one entry per
+  channel and burst, with UTC time, frequency and receiver. It is kept in
+  this browser across reloads (the last 300). SAVE TEXT downloads it as a
+  `.txt` file headed "machine-read and unverified"; COPY and CLEAR are beside
+  it.
+- **Tested on synthetic Morse** at 12 kHz with noise:
+  - **Clean:** no errors at 12, 20, 28 and 35 wpm.
+  - **Weak or uneven:** no errors at 6 and 10 dB SNR (in 500 Hz) with 15–30%
+    timing jitter; 19 of 20 runs perfect at 22 wpm and 8 dB.
+  - **Very weak:** about half the characters wrong at 3 dB.
+  - **Noise alone:** 30 s gave no output.
+  - **Speed change:** an 18 → 30 wpm switch costs about one letter.
+  - **In the page:** a mock receiver streamed "CQ CQ DE UA3ABC K TEST 73",
+    which decoded exactly and saved.
+  - **Not tested on a real receiver:** the sandbox cannot reach one live.
+    Real fading, interference and hand-keying will cost more than the tests
+    show.
+- Cost: nothing per run.
+
 ## 1.19.1 — 2026-10-07
 
 ### Courtesy to the sources
