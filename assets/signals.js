@@ -717,7 +717,7 @@ function ranked(near){
 }
 function presetOf(id){ return PRESETS.filter(function(p){ return p.id === id; })[0]; }
 function tuneMsg(){
-  var pb = PASS[T.mode] || PASS.usb;
+  var pb = passband();
   return 'SET mod=' + T.mode + ' low_cut=' + pb[0] + ' high_cut=' + pb[1] + ' freq=' + T.khz.toFixed(3);
 }
 function tunerNow(extra){
@@ -736,7 +736,9 @@ function tunerClose(){
   if(T.scan){ clearTimeout(T.scan.timer); T.scan = null; $('tuScan').textContent = '⟳ SCAN PRESETS'; }
   var ws = T.ws; T.ws = null; T.live = false;
   if(ws){ try{ ws.close(); }catch(_){} }
+  wfClose();
   T.rx = null; T.inp = T.out = null;
+  if(typeof wfDraw === 'function') wfDraw();
   if($('tuNow')) tunerNow();
 }
 function touch(){ T.touched = Date.now(); }
@@ -773,10 +775,12 @@ function pick(){
 function connect(rx){
   if(!rx){ status('Every receiver on the list refused or is full right now. Try again in a few minutes.', true); tunerClose(); return; }
   if(T.ws){ var old = T.ws; T.ws = null; try{ old.close(); }catch(_){} }
+  wfClose();
   T.rx = rx; T.live = false; T.dec = {i:0, p:0}; T.next = 0; T.rssi = [];
   tunerNow();
   var ws, settled = false;
-  try{ ws = new WebSocket('wss://' + rx.host + '/' + Date.now() + '/SND'); }
+  T.ts = Date.now();                             // the waterfall reuses it, so the receiver pairs the two
+  try{ ws = new WebSocket('wss://' + rx.host + '/' + T.ts + '/SND'); }
   catch(e){ return refused(rx, 'could not connect'); }
   ws.binaryType = 'arraybuffer';
   T.ws = ws;
@@ -804,8 +808,9 @@ function connect(rx){
           T.sr = parseFloat(v) || 12000;
           ['SET squelch=0 max=0', 'SET genattn=0', 'SET gen=0 mix=-1', tuneMsg(),
            'SET agc=1 hang=0 thresh=-100 slope=6 decay=1000 manGain=50', 'SET compression=1',
-           'SET ident_user=Trident%20Brief%20listener', 'SET keepalive'].forEach(function(m){ ws.send(m); });
+           'SET ident_user=Trident%20Brief%20listener', 'SET keepalive'].concat(dspMsgs()).forEach(function(m){ ws.send(m); });
           settled = true; clearTimeout(timer); T.live = true;
+          wfView(T.khz); wfOpen();
           logEvent(Date.now(), 'mark', 'tuned ' + T.khz + ' kHz ' + T.mode.toUpperCase() + ' via ' + (rx.loc || rx.host));
           status('Live: ' + esc(rx.name || rx.host) + '. You are one listener on someone’s receiver; it closes itself after an hour untouched.');
           tunerNow();
@@ -829,6 +834,7 @@ function connect(rx){
   };
 }
 function refused(rx, why){
+  wfClose();
   T.tried.push(rx.host);
   status('The receiver in ' + esc(rx.loc || rx.host) + ': ' + esc(why) + '. Trying the next one…');
   if(T.ws){ var w = T.ws; T.ws = null; try{ w.close(); }catch(_){} }
@@ -849,8 +855,9 @@ function play(f){
 }
 function retune(khz, mode, presetId){
   touch();
+  if(mode && mode !== T.mode) bwFor(mode);
   T.khz = Math.max(10, Math.min(30000, +khz || T.khz)); T.mode = mode || T.mode; T.preset = presetId || null;
-  $('tuKhz').value = T.khz; $('tuMode').value = T.mode;
+  $('tuKhz').value = +T.khz.toFixed(3); $('tuMode').value = T.mode;
   BAND.querySelectorAll('.tu-p').forEach(function(b){ b.classList.toggle('on', b.dataset.p === T.preset); });
   var p = presetOf(T.preset);
   $('tuNote').textContent = p ? p.note : '';
@@ -867,6 +874,8 @@ function retune(khz, mode, presetId){
   T.ws.send(tuneMsg()); T.rssi = []; T.next = 0;
   logEvent(Date.now(), 'mark', 'tuned ' + T.khz + ' kHz ' + T.mode.toUpperCase());
   tunerNow();
+  if(WF.start != null && (T.khz < WF.start + WF.span*0.04 || T.khz > WF.start + WF.span*0.96)) wfView(T.khz);   // keep the tuning in view
+  wfDraw();
 }
 /* scan: each preset in turn on the current receiver, its signal level and
    what the detectors made of it; stops where a voice is heard if asked to */
@@ -905,6 +914,273 @@ function paintScan(sc){
       (x.rssi == null ? '—' : x.rssi.toFixed(0) + ' dBm') + '</span>' + flag + '</div>';
   }).join('');
 }
+/* ------------------------------------------ the receiver's own waterfall */
+/* The Kiwi's waterfall comes over a second connection opened with the same
+   timestamp as the audio, so the receiver pairs them as one listener (checked
+   on a live Kiwi: the user count rose by one). Rows are 1024 bins of dB,
+   IMA ADPCM with a fresh decoder per row and 10 values of padding in front;
+   a bin's frequency follows from the row's start bin and zoom. Medium speed
+   (about 8 rows a second) keeps it light on the receiver. */
+var WF = {ws:null, ok:false, zoom:8, zoomMax:14, bwKhz:30000, cf:4625, start:null, span:null, rows:[], lastKa:0,
+          off:null, og:null, lo:-110, hi:-50, seeking:null, note:''};
+var BANDS = {
+  broadcast:[['120 m',2300,2495],['90 m',3200,3400],['75 m',3900,4000],['60 m',4750,5060],['49 m',5900,6200],['41 m',7200,7450],
+             ['31 m',9400,9900],['25 m',11600,12100],['22 m',13570,13870],['19 m',15100,15830],['16 m',17480,17900],['13 m',21450,21850]],
+  ham:[['160 m',1800,2000,'lsb'],['80 m',3500,3800,'lsb'],['60 m',5330,5410,'usb'],['40 m',7000,7200,'lsb'],['30 m',10100,10150,'cw'],
+       ['20 m',14000,14350,'usb'],['17 m',18068,18168,'usb'],['15 m',21000,21450,'usb'],['12 m',24890,24990,'usb'],['10 m',28000,29700,'usb']],
+  utility:[['Aviation 3 MHz',2850,3155],['Aviation 5 MHz',5450,5730],['Aviation 6.6 MHz',6525,6765],['Aviation 9 MHz',8815,9040],
+           ['Aviation 11 MHz (HFGCS)',11175,11400],['Aviation 13 MHz',13200,13360],['Maritime 4 MHz',4063,4438],['Maritime 6 MHz',6200,6525],
+           ['Maritime 8 MHz',8195,8815],['Military 4.6 MHz (UVB-76)',4500,4750],['Time signals 10 MHz',9990,10010,'am']]
+};
+function wfSpan(z){ return WF.bwKhz/Math.pow(2, z); }
+function wfMsg(){ return 'SET zoom=' + WF.zoom + ' cf=' + WF.cf.toFixed(3); }
+function wfView(cf, zoom){
+  if(zoom != null) WF.zoom = Math.max(0, Math.min(WF.zoomMax, zoom));
+  var half = wfSpan(WF.zoom)/2;
+  WF.cf = Math.max(half, Math.min(WF.bwKhz - half, cf));
+  WF.rows = [];
+  if(WF.og){ WF.og.fillStyle = '#070d1f'; WF.og.fillRect(0, 0, 1024, WF_H); }     // old rows were on another scale
+  if(WF.ws && WF.ok) WF.ws.send(wfMsg());
+}
+function wfClose(){
+  var ws = WF.ws; WF.ws = null; WF.ok = false; WF.rows = []; WF.seeking = null;
+  if(ws){ try{ ws.close(); }catch(_){} }
+}
+function wfOpen(){
+  wfClose();
+  if(!T.rx || !$('tuWf')) return;
+  var ws;
+  try{ ws = new WebSocket('wss://' + T.rx.host + '/' + T.ts + '/W/F'); }catch(e){ WF.note = 'waterfall unavailable'; return; }
+  ws.binaryType = 'arraybuffer';
+  WF.ws = ws; WF.note = 'waterfall connecting…';
+  var setup = function(){
+    if(WF.ws !== ws || WF.ok) return;
+    WF.ok = true; WF.note = '';
+    ['SERVER DE CLIENT openwebrx.js W/F', 'SET send_dB=1', wfMsg(), 'SET maxdb=0 mindb=-100', 'SET wf_speed=3', 'SET wf_comp=1',
+     'SET keepalive'].forEach(function(m){ ws.send(m); });
+  };
+  ws.onopen = function(){ ws.send('SET auth t=kiwi p='); setTimeout(setup, 2500); };
+  ws.onclose = function(){ if(WF.ws === ws){ WF.ws = null; WF.ok = false; WF.note = 'this receiver is not sharing its waterfall right now'; wfDraw(); } };
+  ws.onmessage = function(e){
+    if(WF.ws !== ws) return;
+    var u8 = new Uint8Array(typeof e.data === 'string' ? new TextEncoder().encode(e.data) : e.data);
+    var tag = String.fromCharCode(u8[0], u8[1], u8[2]);
+    if(tag === 'MSG'){
+      new TextDecoder('latin1').decode(u8.subarray(4)).split(' ').forEach(function(pair){
+        var k = pair.split('=')[0], v = pair.slice(k.length + 1);
+        if(k === 'bandwidth') WF.bwKhz = (+v || 30e6)/1000;
+        else if(k === 'zoom_max') WF.zoomMax = +v || 14;
+        else if(k === 'wf_setup') setup();
+        else if(k === 'too_busy' || k === 'down' || (k === 'badp' && v !== '0')){ WF.note = 'this receiver is not sharing its waterfall right now'; wfClose(); }
+      });
+      return;
+    }
+    if(tag !== 'W/F') return;
+    var dv = new DataView(u8.buffer, u8.byteOffset), xb = dv.getUint32(4, true), zf = dv.getUint32(8, true);
+    var zoom = zf & 0xffff, flags = zf >>> 16, data = u8.subarray(16), vals;
+    if(flags & 1){
+      var st = {i:0, p:0}, out = new Float32Array(data.length*2), k = 0;
+      for(var i = 0; i < data.length; i++){ out[k++] = nib8(data[i] & 15, st); out[k++] = nib8(data[i] >> 4, st); }
+      vals = out.subarray(10, 10 + 1024);
+    } else {
+      vals = new Float32Array(1024); for(var j = 0; j < 1024 && j < data.length; j++) vals[j] = data[j];
+    }
+    var row = new Float32Array(vals.length);
+    for(var m = 0; m < vals.length; m++) row[m] = vals[m] - 255;
+    var start = xb*WF.bwKhz/(1024*Math.pow(2, WF.zoomMax)), span = wfSpan(zoom);
+    if(zoom !== WF.zoom || Math.abs(start + span/2 - WF.cf) > span*0.02) return;       // a row from before a re-zoom
+    WF.start = start; WF.span = span;
+    WF.rows.push(row); if(WF.rows.length > 40) WF.rows.shift();
+    wfRow(row);
+    var now = Date.now();
+    if(now - WF.lastKa > 1000){ WF.lastKa = now; try{ ws.send('SET keepalive'); }catch(_){} }
+    if(WF.seeking && WF.rows.length >= 6) seekStep();
+  };
+}
+function nib8(code, st){                         // the same ADPCM, clamped to one byte
+  var step = STEP[st.i], d = step >> 3;
+  if(code & 1) d += step >> 2;
+  if(code & 2) d += step >> 1;
+  if(code & 4) d += step;
+  if(code & 8) d = -d;
+  st.p = Math.max(0, Math.min(255, st.p + d));
+  st.i = Math.min(88, Math.max(0, st.i + ADJ[code]));
+  return st.p;
+}
+/* drawing: rows land in an offscreen 1024-wide image that scrolls down; the
+   visible canvas scales it and adds the spectrum, the axis, the passband */
+var WF_H = 180;
+function wfRow(row){
+  if(!WF.off){ WF.off = document.createElement('canvas'); WF.off.width = 1024; WF.off.height = WF_H; WF.og = WF.off.getContext('2d'); }
+  var s = Array.prototype.slice.call(row, 4, 1020).sort(function(a, b){ return a - b; });
+  var floor = s[Math.floor(s.length*0.2)], top = s[Math.floor(s.length*0.998)];
+  WF.lo += (floor - 4 - WF.lo)*0.15; WF.hi += (Math.max(top + 4, WF.lo + 30) - WF.hi)*0.15;   // auto levels, smoothed
+  WF.og.drawImage(WF.off, 0, 0, 1024, WF_H - 1, 0, 1, 1024, WF_H - 1);
+  var img = WF.og.createImageData(1024, 1), lut = LUT || (buildLut('thermal'), LUT), rng = WF.hi - WF.lo;
+  for(var i = 0; i < 1024; i++){
+    var v = Math.max(0, Math.min(255, Math.round((row[i] - WF.lo)/rng*255)));
+    img.data[i*4] = lut[v*3]; img.data[i*4+1] = lut[v*3+1]; img.data[i*4+2] = lut[v*3+2]; img.data[i*4+3] = 255;
+  }
+  WF.og.putImageData(img, 0, 0);
+  wfDraw();
+}
+function wfAvg(n){
+  var rows = WF.rows.slice(-(n || 12)); if(!rows.length) return null;
+  var a = new Float32Array(1024);
+  rows.forEach(function(r){ for(var i = 0; i < 1024; i++) a[i] += r[i]/rows.length; });
+  return a;
+}
+function wfDraw(){
+  var cv = $('tuWf'); if(!cv) return;
+  var dpr = window.devicePixelRatio || 1, w = cv.clientWidth || 300, SP = 46, AX = 16, h = SP + WF_H*0.8 + AX;
+  if(cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); cv.style.height = h + 'px'; }
+  var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = '#070d1f'; g.fillRect(0, 0, w, h);
+  if(WF.off && WF.start != null) g.drawImage(WF.off, 0, 0, 1024, WF_H, 0, SP, w, WF_H*0.8);
+  var avg = wfAvg(4);
+  if(avg && WF.start != null){
+    g.strokeStyle = '#22d3ee'; g.lineWidth = 1; g.beginPath();
+    for(var i = 0; i < 1024; i += 2){
+      var x = i/1024*w, y = SP - 2 - Math.max(0, Math.min(1, (avg[i] - WF.lo)/(WF.hi - WF.lo)))*(SP - 6);
+      i ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+  }
+  if(WF.start != null){
+    var fx = function(f){ return (f - WF.start)/WF.span*w; };
+    // passband
+    var pb = passband(), a = fx(T.khz + pb[0]/1000), b = fx(T.khz + pb[1]/1000);
+    g.fillStyle = 'rgba(250,204,21,.16)'; g.fillRect(Math.min(a, b), 0, Math.max(2, Math.abs(b - a)), h - AX);
+    g.strokeStyle = '#facc15'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(fx(T.khz), 0); g.lineTo(fx(T.khz), h - AX); g.stroke();
+    // axis
+    var stepK = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000].filter(function(s){ return WF.span/s <= w/70; })[0] || 5000;
+    g.fillStyle = '#94a3b8'; g.font = '10px ui-monospace,monospace'; g.textAlign = 'center';
+    for(var f = Math.ceil(WF.start/stepK)*stepK; f < WF.start + WF.span; f += stepK){
+      var x2 = fx(f); g.fillRect(x2, h - AX, 1, 4); g.fillText(f >= 10000 ? (f/1000).toFixed(stepK < 1000 ? 2 : 0) + 'M' : String(f), x2, h - 3);
+    }
+  }
+  if(WF.note || WF.start == null){
+    g.fillStyle = '#94a3b8'; g.font = '12px system-ui,sans-serif'; g.textAlign = 'center';
+    g.fillText(WF.note || (T.live ? 'waterfall loading…' : 'press LISTEN for the receiver’s waterfall'), w/2, SP + 40);
+  }
+}
+/* seek: the next signal standing clear of the noise in the chosen direction;
+   past the edge of the view, the view moves on and the search continues */
+function seekSig(dir){
+  touch();
+  if(!WF.ok){ status('Seek reads the receiver’s waterfall; press LISTEN and wait a moment.', true); return; }
+  WF.seeking = {dir:dir, hops:0};
+  seekStep();
+}
+function seekStep(){
+  var sk = WF.seeking; if(!sk) return;
+  var avg = wfAvg(10); if(!avg || WF.start == null) return;
+  var s = Array.prototype.slice.call(avg, 8, 1016).sort(function(a, b){ return a - b; }), floor = s[s.length >> 1], thr = floor + 9;
+  var bin = WF.span/1024, gap = Math.max(1, 4*bin), peaks = [];
+  for(var i = 8; i < 1016; i++){
+    if(avg[i] < thr) continue;
+    var j = i, best = i;
+    while(j < 1016 && avg[j] >= thr){ if(avg[j] > avg[best]) best = j; j++; }
+    peaks.push(WF.start + (best + 0.5)*bin); i = j;
+  }
+  var c = peaks.filter(function(f){ return sk.dir > 0 ? f > T.khz + gap : f < T.khz - gap; })
+               .sort(function(a, b){ return sk.dir > 0 ? a - b : b - a; })[0];
+  if(c != null){
+    WF.seeking = null;
+    retune(Math.round(c*10)/10, null, null);                    // to the bin, not the tap step
+    status('Seek: signal at ' + T.khz.toFixed(1) + ' kHz, ' + Math.round(Math.max.apply(null, [].slice.call(avg)) - floor) + ' dB over the noise at its strongest point in view.');
+    return;
+  }
+  if(++sk.hops > 8 || (sk.dir > 0 ? WF.start + WF.span >= WF.bwKhz : WF.start <= 0)){
+    WF.seeking = null; status('Seek found nothing standing out in that direction.'); return;
+  }
+  wfView(WF.cf + sk.dir*WF.span*0.8);                  // move the view on, keep looking as rows arrive
+}
+function bwFor(mode){                           // a sensible width for each mode
+  var bw = $('tuBw'); if(!bw) return;
+  bw.value = mode === 'am' ? '8' : mode === 'cw' ? '0.5' : '2.4';
+  $('tuBwV').textContent = (+bw.value).toFixed(1) + ' kHz';
+}
+function passband(){
+  var bw = +$('tuBw').value*1000 || 2400;
+  if(T.mode === 'usb') return [300, 300 + bw];
+  if(T.mode === 'lsb') return [-(300 + bw), -300];
+  if(T.mode === 'cw') return [Math.max(50, 550 - bw/2), 550 + bw/2];
+  return [-bw/2, bw/2];
+}
+var NR_MSGS = {
+  nb:  ['SET nb algo=1', 'SET nb type=0 param=0 pval=100', 'SET nb type=0 param=1 pval=50', 'SET nb type=0 en=1'],
+  nboff: ['SET nb algo=0', 'SET nb type=0 en=0'],
+  nr:  ['SET nr algo=3', 'SET nr type=0 param=0 pval=1', 'SET nr type=0 param=1 pval=0.95', 'SET nr type=0 param=2 pval=1000',
+        'SET nr type=0 param=3 pval=0', 'SET nr type=0 en=1'],
+  nroff: ['SET nr algo=0', 'SET nr type=0 en=0']
+};
+function dspMsgs(){
+  var v = $('tuNr').value;
+  return (v === 'nb' || v === 'both' ? NR_MSGS.nb : NR_MSGS.nboff).concat(v === 'nr' || v === 'both' ? NR_MSGS.nr : NR_MSGS.nroff);
+}
+function applyDsp(){
+  touch();
+  if(T.ws && T.live){ T.ws.send(tuneMsg()); dspMsgs().forEach(function(m){ T.ws.send(m); }); }
+  wfDraw();
+}
+function bandPick(kind, idx){
+  var b = BANDS[kind][idx]; if(!b) return;
+  var span = b[2] - b[1], z = Math.max(0, Math.min(WF.zoomMax, Math.floor(Math.log(WF.bwKhz/(span*1.15))/Math.LN2)));
+  var mode = b[3] || (kind === 'broadcast' ? 'am' : 'usb');
+  retune(Math.round((b[1] + b[2])/2), mode, null);
+  wfView((b[1] + b[2])/2, z);
+  status(esc(b[0]) + ': ' + b[1] + '–' + b[2] + ' kHz. Tap a trace on the waterfall to tune it, or SEEK.');
+}
+function wireWaterfall(){
+  var cv = $('tuWf'); if(!cv) return;
+  ['broadcast', 'ham', 'utility'].forEach(function(kind){
+    var sel = $('tuBand_' + kind);
+    sel.innerHTML = '<option value="">' + {broadcast:'Broadcast bands', ham:'Ham bands', utility:'Aviation & utility'}[kind] + '</option>' +
+      BANDS[kind].map(function(b, i){ return '<option value="' + i + '">' + esc(b[0]) + '</option>'; }).join('');
+    sel.onchange = function(){ if(this.value !== ''){ bandPick(kind, +this.value); this.value = ''; if(!T.ws) listen(); } };
+  });
+  var down = null;
+  cv.addEventListener('pointerdown', function(e){ down = {x:e.clientX, cf:WF.cf, moved:false}; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', function(e){
+    if(!down || WF.start == null) return;
+    var dx = e.clientX - down.x;
+    if(Math.abs(dx) > 6){ down.moved = true; cv.style.transform = 'translateX(' + dx + 'px)'; }
+  });
+  cv.addEventListener('pointerup', function(e){
+    if(!down) return;
+    var r = cv.getBoundingClientRect(), d = down; down = null; cv.style.transform = '';
+    if(WF.start == null) return;
+    if(d.moved){ touch(); wfView(d.cf - (e.clientX - d.x)/r.width*WF.span); return; }
+    var f = WF.start + (e.clientX - r.left)/r.width*WF.span, step = +$('tuStep').value || 0.1;
+    retune(Math.round(f/step)*step, null, null);
+  });
+  cv.addEventListener('wheel', function(e){
+    e.preventDefault();
+    if(e.ctrlKey || e.metaKey){ wfView(T.khz, WF.zoom + (e.deltaY < 0 ? 1 : -1)); return; }
+    var step = +$('tuStep').value || 0.1;
+    retune(Math.round((T.khz + (e.deltaY < 0 ? step : -step))/step)*step, null, null);
+  }, {passive:false});
+  $('tuZin').onclick = function(){ touch(); wfView(T.khz, WF.zoom + 1); };
+  $('tuZout').onclick = function(){ touch(); wfView(T.khz, WF.zoom - 1); };
+  $('tuSeekDn').onclick = function(){ seekSig(-1); };
+  $('tuSeekUp').onclick = function(){ seekSig(1); };
+  $('tuStep').value = String(get('step', 1));
+  $('tuStep').onchange = function(){ set('step', +this.value); };
+  $('tuBw').oninput = function(){ $('tuBwV').textContent = (+this.value).toFixed(1) + ' kHz'; };
+  $('tuBw').onchange = applyDsp;
+  $('tuNr').onchange = applyDsp;
+  cv.addEventListener('keydown', function(e){
+    if(e.target.id !== 'tuWf') return;
+    var step = +$('tuStep').value || 0.1;
+    if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+      e.preventDefault(); retune(Math.round((T.khz + (e.key === 'ArrowRight' ? step : -step))/step)*step, null, null);
+    }
+  });
+  window.addEventListener('resize', wfDraw);
+  wfDraw();
+}
+
 function wireTuner(){
   if(!$('sigTuner')) return;
   $('tuPresets').innerHTML = PRESETS.map(function(p){
@@ -924,6 +1200,7 @@ function wireTuner(){
   $('tuVol').value = get('vol', 0.9);
   $('tuRx').onchange = function(){ touch(); if(T.ws){ T.tried = []; connect(pick()); } };
   $('tuScan').onclick = scanToggle;
+  wireWaterfall();
   retune(4625, 'usb', 'uvb76');
   var base = (typeof window.DATA_BASE === 'string' ? window.DATA_BASE : '');
   fetch(base + 'data/tuner/receivers.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
@@ -996,5 +1273,5 @@ wire();
 wireTuner();
 size();
 loadRadio();
-window.SIGNALS = {state:S, tuner:T, fftDb:fftDb, logEvent:logEvent};
+window.SIGNALS = {state:S, tuner:T, wf:WF, fftDb:fftDb, logEvent:logEvent};
 })();

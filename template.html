@@ -402,6 +402,10 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .tu-row input[type=number]{width:7.5em;font-family:var(--mono);font-size:1.05em;background:#0b1328;color:#fff;border:1px solid var(--line2);border-radius:6px;padding:4px 6px}
 .tu-row select{background:#0b1328;color:#fff;border:1px solid var(--line2);border-radius:6px;padding:3px 5px;max-width:15em}
 .tu-steps{display:inline-flex;gap:3px}
+.tu-bands select{max-width:13em}
+.tu-wf{display:block;width:100%;height:206px;margin-top:8px;border:1px solid var(--line2);border-radius:8px;background:#070d1f;touch-action:none;cursor:crosshair;outline:none}
+.tu-wf:focus-visible{border-color:var(--cyan)}
+.tu-bwv{font-family:var(--mono);color:#fff;display:inline-block;min-width:4.6em}
 .tu-now{margin-top:9px;font-size:.86em;color:var(--ink-dim);line-height:1.45}
 .tu-now b{color:#fff;font-family:var(--mono)}
 .tu-meter{position:relative;height:14px;border-radius:7px;background:#0b1328;border:1px solid var(--line2);margin-top:5px;overflow:hidden;max-width:420px}
@@ -1005,6 +1009,19 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <span class="tu-steps"><button class="ev-f" data-s="-1" type="button">&minus;1</button><button class="ev-f" data-s="-0.1" type="button">&minus;.1</button><button class="ev-f" data-s="0.1" type="button">+.1</button><button class="ev-f" data-s="1" type="button">+1</button></span>
         <button class="ap-btn" id="tuGo" type="button">&#9654; LISTEN</button>
         <button class="ap-btn warn" id="tuStop" type="button">&#9632;</button>
+      </div>
+      <div class="tu-row tu-bands">
+        <select id="tuBand_broadcast" aria-label="broadcast bands"></select>
+        <select id="tuBand_ham" aria-label="ham bands"></select>
+        <select id="tuBand_utility" aria-label="aviation and utility bands"></select>
+      </div>
+      <canvas class="tu-wf" id="tuWf" tabindex="0" aria-label="waterfall: tap to tune, drag to move, wheel to tune, ctrl+wheel to zoom"></canvas>
+      <div class="tu-row">
+        <span class="tu-steps"><button class="ev-f" id="tuSeekDn" type="button" title="seek down">&#9664; SEEK</button><button class="ev-f" id="tuSeekUp" type="button" title="seek up">SEEK &#9654;</button></span>
+        <span class="tu-steps"><button class="ev-f" id="tuZout" type="button" title="zoom out">&minus;</button><button class="ev-f" id="tuZin" type="button" title="zoom in">+</button></span>
+        <label>step <select id="tuStep"><option value="0.01">10 Hz</option><option value="0.1">100 Hz</option><option value="0.5">500 Hz</option><option value="1">1 kHz</option><option value="5">5 kHz</option><option value="10">10 kHz</option></select></label>
+        <label>width <input type="range" id="tuBw" min="0.3" max="10" step="0.1" value="2.4"> <span id="tuBwV" class="tu-bwv">2.4 kHz</span></label>
+        <label>noise <select id="tuNr"><option value="off">off</option><option value="nb">blanker</option><option value="nr">reduction</option><option value="both">both</option></select></label>
       </div>
       <div class="tu-row">
         <label>receiver <select id="tuRx"><option value="auto">best for the channel</option></select></label>

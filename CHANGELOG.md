@@ -4,6 +4,29 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.18.0 — 2026-10-07
+
+### Tuner: waterfall, seek, bands, filters
+- **Waterfall.** The receiver's live waterfall and spectrum are shown under
+  the dial, with the passband and tuning line drawn on it. The levels adjust
+  themselves to the band's noise.
+  - Tap a trace to tune it, or drag to move along the band.
+  - The wheel or the arrow keys tune by the chosen step, from 10 Hz to
+    10 kHz; ctrl+wheel or −/+ zooms.
+  - The waterfall uses the same receiver session as the audio, so it takes
+    no extra slot.
+- **Seek ◀ ▶** finds the next signal standing 9 dB clear of the noise in
+  either direction. When the view holds none, the view moves along the band
+  and the search continues (up to eight views).
+- **Band menus:** 12 broadcast bands, 10 ham bands, and aviation, maritime,
+  military and time-signal allocations. Each opens zoomed to fit, in the
+  band's usual mode.
+- **Filter width** is a slider with a default for each mode (2.4 kHz SSB,
+  8 kHz AM, 0.5 kHz CW).
+- **Noise blanker and noise reduction** run on the receiver (the Kiwi's own
+  DSP), alone or together.
+- Cost: nothing per run; it all happens in the visitor's browser.
+
 ## 1.17.0 — 2026-10-07
 
 ### Indicators: alarms, losses, outages, sanctions

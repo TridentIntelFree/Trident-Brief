@@ -157,12 +157,23 @@ page (`assets/signals.js`):
   4724, Shannon VOLMET, WWV), free tuning in USB/LSB/AM/CW, and a scan that
   steps through the presets and reports each one's signal level and what the
   detectors heard.
+- **Waterfall and seeking:** the receiver's own waterfall scrolls under the
+  dial. You can tap a trace to tune it, drag to move along the band, use the
+  wheel or arrow keys to tune by the chosen step (10 Hz to 10 kHz), and
+  ctrl+wheel or −/+ to zoom. SEEK ◀ ▶ jumps to the next signal standing 9 dB
+  clear of the noise, moving the view along the band until it finds one.
+  Band menus cover the broadcast bands, the ham bands and aviation, maritime
+  and utility allocations.
+- **Receiver DSP:** the filter width is adjustable, with a default for each
+  mode (2.4 kHz SSB, 8 kHz AM, 0.5 kHz CW). The Kiwi's noise blanker and
+  spectral noise reduction run on the receiver.
 - **Receiver choice:** the receiver nearest the transmitter is chosen
   automatically, and one that is full or refuses is skipped.
 - **Protocol:** the page speaks the Kiwi's own WebSocket audio protocol and
   decodes its IMA ADPCM audio, the same handshake as jks-prv/kiwiclient.
-- **Courtesy:** one connection at a time, identified as "Trident Brief
-  listener". The receiver's own limits apply, and the page lets go after an
+- **Courtesy:** one listener at a time, identified as "Trident Brief
+  listener". The waterfall shares the audio connection's session, so the
+  receiver counts the two as one user. The receiver's own limits apply, and the page lets go after an
   hour without a touch.
 - **Which receivers:** an HTTPS page may only open secure connections. Of the
   roughly 860 public KiwiSDRs, the ones that serve HTTPS are found weekly by
