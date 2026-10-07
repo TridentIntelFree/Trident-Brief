@@ -381,7 +381,7 @@ var DET_N = 2048, SUB = [];
 for(var q = 0; q <= 8; q++) SUB.push(60*Math.pow(3400/60, q/8));
 function detReset(hz){
   S.detHz = hz; S.detK = 0; S.env = []; S.pulse = null; S.cand = null; S.candN = 0; S.missN = 0;
-  S.voiceOn = null; S.voiceLast = 0; S.voiceEnd = -Infinity; S.voiceNow = false; S.sFloor = null;
+  S.voiceOn = null; S.voiceLast = 0; S.voiceEnd = -Infinity; S.voiceNow = false; S.sFloor = null; S.comb = null;
 }
 function periodicity(rows){
   var hz = S.detHz, n = rows.length, minLag = Math.ceil(0.4*hz), maxLag = Math.min(Math.floor(5*hz), Math.floor(n/2.5)), best = null;
@@ -401,7 +401,7 @@ function periodicity(rows){
       if(!best || ac[L] > best.score){
         /* a real pulse train switches on and off: its band must swing 6 dB or more */
         var vals = rows.map(function(r){ return r.b[b]; });
-        best = {score:ac[L], interval:(L + off)/hz, depth:pct(vals, 0.9) - pct(vals, 0.1)};
+        best = {score:ac[L], interval:(L + off)/hz, depth:pct(vals, 0.9) - pct(vals, 0.1), band:b};
       }
       break;
     }
@@ -419,7 +419,14 @@ function detect(db, sr, now){
     var pw = Math.pow(10, db[q]/10) + 1e-20; lg += Math.log(pw); ar += pw; nb++;
   }
   var fl = nb ? Math.exp(lg/nb)/(ar/nb) : 1;
-  env.push({t:now, b:b, s:sv, f:fl});
+  /* coarse spectrum, 24 bins over 250-2600 Hz: the Buzzer's harmonic comb is its fingerprint */
+  var qv = [], q0 = Math.ceil(250/hz), q1 = Math.min(db.length - 1, Math.floor(2600/hz)), pb = Math.max(1, Math.floor((q1 - q0 + 1)/24));
+  for(var j = 0; j < 24; j++){
+    var acc = 0, cnt = 0;
+    for(q = q0 + j*pb; q < q0 + (j + 1)*pb && q <= q1; q++){ acc += Math.pow(10, db[q]/10); cnt++; }
+    qv.push(10*Math.log10(acc/Math.max(1, cnt) + 1e-20));
+  }
+  env.push({t:now, b:b, s:sv, f:fl, q:qv});
   while(env.length && env[0].t < now - 30000) env.shift();
   S.detK++;
   if(S.detK % 20 === 1) S.sFloor = pct(env.map(function(r){ return r.s; }), 0.1);
@@ -429,7 +436,10 @@ function detect(db, sr, now){
   for(var i = env.length - 1; i >= 0 && env[i].t > now - 3000; i--){ w.push(env[i].s); flats.push(env[i].f); }
   for(i = 1; i < w.length; i++) steps.push(Math.abs(w[i] - w[i-1]));
   var lvl = w.reduce(function(a, c){ return a + c; }, 0)/w.length - S.sFloor;
-  var voice = pct(steps, 0.5) > 1.2 && lvl > 1.5 && pct(flats, 0.25) < 0.42;
+  /* while the Buzzer runs, its own on/off passes the tests above: a frame carrying
+     the buzz's comb never counts as voice (a message replaces the buzz) */
+  var voice = pct(steps, 0.5) > 1.2 && lvl > 1.5 && pct(flats, 0.25) < 0.42 &&
+              combFrac(env.filter(function(r){ return r.t > now - 3000; }), now) < 0.1;
   if(voice){
     if(!S.voiceOn) S.voiceOn = now - 1500;         // the 3 s window centres on its start
     S.voiceLast = now;
@@ -438,10 +448,22 @@ function detect(db, sr, now){
   /* pulses, re-evaluated twice a second */
   if(S.detK % Math.round(S.detHz/2)) return;
   var cand = null;
-  if(!S.voiceOn){
-    var from = Math.max(now - 12000, S.voiceEnd), rows = env.filter(function(r){ return r.t > from; });
-    if(rows.length >= S.detHz*6){ var p = periodicity(rows); if(p && p.score >= 0.5 && p.depth >= 8) cand = p; }
+  var from = S.voiceOn ? now - 12000 : Math.max(now - 12000, S.voiceEnd), rows = env.filter(function(r){ return r.t > from; });
+  if(rows.length >= S.detHz*6){ var p = periodicity(rows); if(p && p.score >= 0.5 && p.depth >= 8) cand = p; }
+  if(cand){
+    learnComb(rows, cand, now);
+    /* a "voice" the buzz runs straight through, matching its comb, was the buzz */
+    if(S.voiceOn && combFrac(env.filter(function(r){ return r.t >= S.voiceOn; }), now) >= 0.1){
+      S.voiceOn = null; S.voiceNow = false;
+    }
+    /* and so was a short "voice" logged before the buzz was recognised */
+    var gone = S.events.filter(function(e){
+      return e.kind === 'voice' && e.end && now - e.t < 25000 &&
+             combFrac(env.filter(function(r){ return r.t >= e.t && r.t <= e.end; }), now) >= 0.1;
+    });
+    if(gone.length){ S.events = S.events.filter(function(e){ return gone.indexOf(e) < 0; }); paintEvents(); }
   }
+  if(S.voiceOn) cand = null;
   if(cand && S.cand && Math.abs(cand.interval - S.cand.interval) < 0.1*cand.interval) S.candN++;
   else S.candN = cand ? 1 : 0;
   S.cand = cand;
@@ -457,9 +479,32 @@ function detect(db, sr, now){
     S.pulse = per;
   }
 }
+function learnComb(rows, p, now){
+  var vals = rows.map(function(r){ return r.b[p.band]; }), cut = pct(vals, 0.1) + 0.6*p.depth, t = null, n = 0;
+  rows.forEach(function(r){
+    if(r.b[p.band] <= cut || !r.q) return;
+    var m = r.q.reduce(function(a, c){ return a + c; }, 0)/r.q.length;
+    if(!t) t = r.q.map(function(){ return 0; });
+    r.q.forEach(function(c, i){ t[i] += c - m; }); n++;
+  });
+  if(n < 3) return;
+  var nm = Math.sqrt(t.reduce(function(a, c){ return a + c*c; }, 0)) || 1;
+  S.comb = {tmpl:t.map(function(c){ return c/nm; }), t:now};
+}
+function combFrac(rows, now){
+  if(!S.comb || now - S.comb.t > 60000 || !rows.length) return 0;
+  var hit = 0;
+  rows.forEach(function(r){
+    if(!r.q) return;
+    var m = r.q.reduce(function(a, c){ return a + c; }, 0)/r.q.length, dot = 0, nn = 0;
+    r.q.forEach(function(c, i){ dot += (c - m)*S.comb.tmpl[i]; nn += (c - m)*(c - m); });
+    if(dot/(Math.sqrt(nn) || 1) > 0.5) hit++;
+  });
+  return hit/rows.length;
+}
 function closeVoice(){
   var d = (S.voiceLast - S.voiceOn)/1000;
-  if(d >= 1.5) logEvent(S.voiceOn, 'voice', 'voice? · about ' + Math.round(d) + ' s in the speech band');
+  if(d >= 1.5){ logEvent(S.voiceOn, 'voice', 'voice? · about ' + Math.round(d) + ' s in the speech band'); S.events[0].end = S.voiceLast; }
   S.voiceOn = null; S.voiceEnd = S.voiceLast;
 }
 function logEvent(t, kind, text, at){
