@@ -4,6 +4,28 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.15.0 — 2026-10-07
+
+### An analysis interface for Claude sessions
+- **`intel.py`** reads everything the app gathers from the repository's
+  branches. It works where the live site is unreachable (Claude Code sessions
+  cannot open github.io or x.com).
+- Views:
+  - an overview with each source's freshness
+  - the brief and its archive
+  - maritime warnings
+  - OSINT, Telegram, front line
+  - GDELT, wire, quakes, launches, disasters, GPS jamming
+  - the radio timeline, plus radio clip spectrograms
+  - the Crystal Ball, Analyst Desk and Tazewell brief
+  - search across every text source, including past briefs
+  - a day-by-day trend table, and raw JSON
+- **The half-hourly refresh now publishes an `intel-data` branch.** It holds
+  the full latest feeds, hourly digests for 72 hours and daily digests for
+  60 days, so trends build up from today. No model calls, no cost.
+- **`CLAUDE.md`** tells every new session how to use it, how to weigh each
+  source, and the owner's standing rules.
+
 ## 1.14.1 — 2026-10-07
 
 ### Radio: the Buzzer is no longer mistaken for voice
