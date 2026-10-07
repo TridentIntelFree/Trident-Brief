@@ -1,0 +1,149 @@
+{
+ "checked": "2026-10-07T01:55:00Z",
+ "receivers": [
+  {
+   "host": "iz6byy.k1fm.us",
+   "name": "0-30 MHZ-KiwiSDR, IZ6BYY - 🇮🇹 Magnetic Loop Antenna in Central Italy 📶",
+   "loc": "Martinsicuro, Italy",
+   "lat": 42.88,
+   "lon": 13.89,
+   "antenna": "LZ1AQ Magnetic Loop",
+   "slots": 8
+  },
+  {
+   "host": "kiwi-dg0jbd.stbach.de",
+   "name": "DG0JBD Marienberg Germany",
+   "loc": "Marienberg, Germany",
+   "lat": 50.67,
+   "lon": 13.26,
+   "antenna": "Magnetische Loop",
+   "slots": 8
+  },
+  {
+   "host": "kiwi.770net.de:8073",
+   "name": "0-30 MHz SDR Clubstation DL0HC | Hattingen NRW, Germany",
+   "loc": "Hattingen NRW, Germany",
+   "lat": 51.38,
+   "lon": 7.22,
+   "antenna": "PA0RDT MiniWhip (Sorry, high QRM on Low Bands!)",
+   "slots": 8
+  },
+  {
+   "host": "kiwi.dg3sdk.de",
+   "name": "DG3SDK | 0-30 MHz SDR | Esslingen, Germany",
+   "loc": "Esslingen, Germany",
+   "lat": 48.75,
+   "lon": 9.32,
+   "antenna": "long wire",
+   "slots": 8
+  },
+  {
+   "host": "kiwi.maidgina.cafe",
+   "name": "0-30 MHz SDR | New Haven County, Connecticut, USA",
+   "loc": "New Haven County, Connecticut, USA",
+   "lat": 41.49,
+   "lon": -73.07,
+   "antenna": "Cross Country Wireless HF Active Loop v4",
+   "slots": 2
+  },
+  {
+   "host": "kiwi.pt2fhc.org",
+   "name": "0-30 MHz SDR, PT2FHC, Brasilia, DF, Brazil",
+   "loc": "Brasilia, DF, Brazil",
+   "lat": -15.71,
+   "lon": -47.82,
+   "antenna": "Yaesu YA-30 (T2FD)",
+   "slots": 60
+  },
+  {
+   "host": "kiwi.x26.de",
+   "name": "Kiwi 2 DB0SLF (www.x26.de) | Saalfeld/Saale",
+   "loc": "Saalfeld/Saale",
+   "lat": 50.65,
+   "lon": 11.31,
+   "antenna": "LMK Vertikal from HM Funkbau",
+   "slots": 4
+  },
+  {
+   "host": "kiwisdr.hb9hzw.ch",
+   "name": "HB9HZW (0-30 MHz KiwiSDR-2) Valais - Switzerland",
+   "loc": "Ayent, Switzerland",
+   "lat": 46.27,
+   "lon": 7.4,
+   "antenna": "Fritzel FD-4 dipôle 80, 40, 20, 12, 10m",
+   "slots": 8
+  },
+  {
+   "host": "kiwisdr.rigiremote.ch",
+   "name": "0-30 MHz SDR, HB9RYZ-1, JN47GA - Rigi Scheidegg",
+   "loc": "JN47GA - Rigi Scheidegg",
+   "lat": 47.02,
+   "lon": 8.59,
+   "antenna": "Wellbrook Loop",
+   "slots": 50
+  },
+  {
+   "host": "kwsdr.db0nas.de",
+   "name": "0-30 MHz SDR | Niendorf a.d.St.",
+   "loc": "Niendorf a.d.St.",
+   "lat": 53.59,
+   "lon": 10.6,
+   "antenna": "Mini-Whip",
+   "slots": 8
+  },
+  {
+   "host": "radio.satelliteboy.com",
+   "name": "0-30 MHz SDR, M7GMG | Manchester, UK",
+   "loc": "Manchester, UK",
+   "lat": 53.43,
+   "lon": -2.18,
+   "antenna": "Wellbrook Loop",
+   "slots": 2
+  },
+  {
+   "host": "sdr.shortwave.am",
+   "name": "0-30 MHz SDR | Southport, UK",
+   "loc": "Southport, UK",
+   "lat": 53.65,
+   "lon": -2.99,
+   "antenna": "Wellbrook ALA1530 HF Loop Antenna",
+   "slots": 7
+  },
+  {
+   "host": "sdr.sixvpn.net",
+   "name": "0-30 MHz SDR, Balingen, Germany",
+   "loc": "Balingen, Germany",
+   "lat": 48.26,
+   "lon": 8.83,
+   "antenna": "Indoor Active Loops",
+   "slots": 8
+  },
+  {
+   "host": "sdrccp.bloap.cl",
+   "name": "KiwiSDR Curacautín, Chile",
+   "loc": "Curacautín, Araucanía, Chile",
+   "lat": -38.43,
+   "lon": -71.88,
+   "antenna": "YAESU YA-30",
+   "slots": 3
+  },
+  {
+   "host": "swl-lippi-2.stbach.de",
+   "name": "Lippis-KiWi-SDR-2 | FREITAL, GERMANY",
+   "loc": "FREITAL, GERMANY",
+   "lat": 51.28,
+   "lon": 14.93,
+   "antenna": "LZ1AQ West/East",
+   "slots": 8
+  },
+  {
+   "host": "websdr.sm7iun.se",
+   "name": "SM7IUN 0-30 MHz SDR | Bjärred, Sweden",
+   "loc": "Bjärred, Sweden",
+   "lat": 55.72,
+   "lon": 13.01,
+   "antenna": "FD4 OCF dipole 10m over ground. Poor below 2MHz.",
+   "slots": 8
+  }
+ ]
+}

@@ -21,7 +21,7 @@ Then drill in as the question needs:
 | `osint [theatre]` | situationmonitor events (48h), DeepStateMap front line, Telegram lean |
 | `telegram [N]` | Telegram war-channel posts, machine-translated (marked `[tr]`) |
 | `gdelt`, `wire [N]`, `quakes`, `launches`, `disasters`, `gps` | the other feeds |
-| `radio` | UVB-76 / HFGCS relay: 48h timeline and voice events |
+| `radio` | what radio monitors reported on X (daily), and the retired relay's archive |
 | `spectro FILE [t0 t1]` | spectrogram PNG of a radio clip, to look at with Read |
 | `crystal`, `desk`, `area` | Crystal Ball forecasts, Analyst Desk, Tazewell area brief |
 | `search TERM [--days N]` | every text source at once, including past briefs |
@@ -30,7 +30,9 @@ Then drill in as the question needs:
 
 Where it comes from: the half-hourly feed refresh force-pushes the
 `intel-data` branch (latest feeds, hourly digests for 72h, daily digests for
-60 days). The radio relay force-pushes `radio-data`. The briefs, archive and
+60 days). The radio relay that force-pushed `radio-data` was retired on 7 Oct 2026
+(its archive stays there); the page now has a live tuner instead, which
+listens only when a person presses a button. The briefs, archive and
 hidden desks are committed to `main`. The live site and x.com are usually
 blocked from these sandboxes, so use `intel.py`, not the page.
 
@@ -65,7 +67,9 @@ blocked from these sandboxes, so use `intel.py`, not the page.
   `briefing.js` reads the brief aloud.
 - `crystal_ball.py`, `analyst_desk.py`, `area_brief.py`: hidden desks, one
   Grok call a day each.
-- `radio_monitor.py`: the KiwiSDR relay.
+- `radio_monitor.py`: the retired KiwiSDR relay (run by hand only).
+- `tuner_receivers.py`: weekly check of which KiwiSDRs the page's live tuner
+  can reach over HTTPS, written to `data/tuner/receivers.json`.
 - `VERSION` and `CHANGELOG.md` are bumped with every change (PATCH for fixes,
   MINOR for features).
 
@@ -79,6 +83,9 @@ The owner's standing rules:
   - title ×3: Analyst Desk
   - left trident ×3: Crystal Ball
   - version ×5: owner panel
+- **No Reddit,** as a source or a search.
+- **Listen like a person.** Other people's receivers are used live, by a
+  human pressing a button, one at a time, never recorded round the clock.
 - **Mind the cost.** Prefer free sources and caching to model calls, and say
   what a change costs per run.
 - **Be honest about results.** Noise is noise, a frozen feed is frozen, and

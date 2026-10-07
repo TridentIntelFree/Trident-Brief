@@ -1,14 +1,14 @@
 /* =====================================================================
-   SIGNALS -- UVB-76 and HFGCS: real recordings, a 48-hour timeline, and an
+   SIGNALS -- a live shortwave tuner, what radio monitors report, and an
    in-browser spectrum analyzer
 
-   The recordings come from radio_monitor.py: a relay of public shortwave
-   receivers, two minutes each, published to the radio-data branch. Any slice
-   can be played or loaded into the analyzer here. The analyzer itself also
-   takes the sound of another tab (desktop Chrome / Edge), the microphone, or a
-   file, and nothing is uploaded. The detectors are heuristics and say so: the
+   The tuner plays a public KiwiSDR receiver live in the page (presets,
+   free tuning and a scan) and feeds the analyzer, which also takes the
+   sound of another tab (desktop Chrome / Edge), the microphone, or a file;
+   nothing is uploaded. The detectors are heuristics and say so: the
    Buzzer's pulse rate is measured from the envelope's periodicity, and a
-   "voice?" mark is sustained, changing energy in the speech band.
+   "voice?" mark is sustained, changing energy in the speech band that does
+   not carry the Buzzer's own harmonic comb.
    ===================== */
 (function(){
 'use strict';
@@ -21,24 +21,12 @@ function utc(ms){ return new Date(ms).toISOString().slice(11, 19) + 'Z'; }
 function fmtHz(f){ return f >= 1000 ? (f/1000).toFixed(f >= 10000 ? 1 : 2) + ' kHz' : Math.round(f) + ' Hz'; }
 
 /* ------------------------------------------------- real recordings */
-/* radio_monitor.py records each channel through a relay of public receivers
-   and publishes the slices, the voice events and a 48-hour timeline to the
-   repository's radio-data branch, which is read from here. */
+/* The retired relay's recordings stay on the repository's radio-data branch. */
 var RADIO = 'https://raw.githubusercontent.com/' +
   ((typeof GH_REPO !== 'undefined' && GH_REPO) || 'TridentIntelFree/Trident-Brief') + '/radio-data/';
-var CHAN = [
-  {id:'uvb76', name:'UVB-76', f:'4625 kHz AM', about:'Russian military “Buzzer”: a buzz 20–35 times a minute around the clock, broken now and then by a voice reading a callsign, codeword and numbers.'},
-  {id:'hfgcs8992', name:'HFGCS 8992', f:'8992 kHz USB', about:'US Air Force global network: Emergency Action Messages and Skyking broadcasts, coded; their number and timing are what matter.'},
-  {id:'hfgcs11175', name:'HFGCS 11175', f:'11175 kHz USB', about:'The same network’s other main frequency, heard best by day.'}
-];
 function ago(iso){
   var m = Math.max(0, Math.round((Date.now() - Date.parse(iso))/60000));
   return m < 60 ? m + ' min ago' : m < 2880 ? Math.round(m/60) + ' h ago' : Math.round(m/1440) + ' days ago';
-}
-function stateText(c){
-  if(c.state === 'voice') return 'VOICE · ' + Math.round((c.voice || []).reduce(function(a, v){ return a + v[1] - v[0]; }, 0) || c.voice_s || 0) + ' s';
-  if(c.state === 'buzz') return 'BUZZING' + (c.pulse_per_min ? ' · ' + c.pulse_per_min + '/min' : '');
-  return {signal:'SIGNAL', quiet:'NOISE ONLY', short:'TOO SHORT', none:'NO RECORDING'}[c.state] || String(c.state || '').toUpperCase();
 }
 async function clipBlob(rel){
   var r = await fetch(RADIO + rel, {cache:'no-store'});
@@ -67,66 +55,42 @@ async function analyseClip(rel, label){
     cv.scrollIntoView({behavior:'smooth', block:'center'});
   }catch(e){ status('That recording could not be fetched (' + esc(e.message) + ').', true); }
 }
+/* The relay that recorded these round the clock was retired on 7 October
+   2026 in favour of live listening; what it caught stays playable here. */
 function paintRadio(d){
-  var box = $('sigLive');
-  if(!d){
-    box.innerHTML = '<div class="sig-empty">No recordings yet. The receiver relay runs every half hour; the first slices appear after its first run.</div>';
-    return;
-  }
-  var now = Date.now(), SLOT = 30*60000, h = '<div class="sig-tl"><h4 class="sig-h">LAST 48 HOURS</h4>';
-  var rank = {voice:3, buzz:2, quiet:1};
-  var covered = 0;
-  CHAN.forEach(function(ch){
-    var cells = [];
-    for(var i = 0; i < 96; i++) cells.push(null);
-    (d.timeline || []).forEach(function(t){
-      if(t.channel !== ch.id) return;
-      var k = 95 - Math.floor((now - Date.parse(t.at))/SLOT);
-      if(k < 0 || k > 95) return;
-      var c = cells[k] || (cells[k] = {state:'quiet', n:0, voice:0, pulse:null});
-      c.n++; c.voice += t.voice_s || 0; if(t.pulse_per_min) c.pulse = t.pulse_per_min;
-      if((rank[t.state] || 0) > (rank[c.state] || 0)) c.state = t.state;
-    });
-    covered += cells.filter(Boolean).length;
-    h += '<div class="sig-tl-row"><b>' + esc(ch.name) + '</b><div class="sig-tl-cells">' + cells.map(function(c, i){
-      var at = new Date(now - (95 - i)*SLOT);
-      var tip = at.toISOString().slice(5, 16).replace('T', ' ') + 'Z – ' + (c ? c.state + (c.pulse ? ' ' + c.pulse + '/min' : '') +
-                (c.voice ? ', ' + Math.round(c.voice) + ' s voice' : '') + ' (' + c.n + ' slice' + (c.n > 1 ? 's' : '') + ')' : 'not recorded');
-      return '<i class="' + (c ? c.state : '') + '" title="' + esc(tip) + '"></i>';
-    }).join('') + '</div></div>';
-  });
-  h += '<div class="sig-tl-axis"><span>48 h ago</span><span>24 h</span><span>now</span></div>' +
-       '<div class="sig-tl-key"><span style="--c:#facc15">voice</span><span style="--c:#0e7490">buzzing</span>' +
-       '<span style="--c:#1e293b">noise only</span><span style="--c:rgba(148,163,184,.08)">not recorded</span>' +
-       '<span>covered ' + Math.round(covered/(96*CHAN.length)*100) + '% of the last 48 h</span></div></div>';
-  var clips = {};
-  (d.clips || []).forEach(function(c){ clips[c.channel] = c; });
-  h += '<div class="sig-chs">' + CHAN.map(function(ch){
-    var c = clips[ch.id];
-    return '<div class="sig-ch"><div class="sig-ch-h"><b>' + esc(ch.name) + '</b><span class="sig-f">' + esc(ch.f) + '</span></div>' +
-      (c ? '<span class="sig-st ' + esc(c.state) + '">' + esc(stateText(c)) + '</span>' +
-           '<div class="sig-small">latest slice ' + esc(ago(c.at)) + ' · ' + esc(Math.round(c.seconds || 0)) + ' s' +
-           (c.rx && c.rx.loc ? ' · receiver in ' + esc(c.rx.loc) : '') + '</div>' +
-           (c.file ? '<div style="margin-top:7px"><button class="ap-btn sig-play" data-f="' + esc(c.file) + '" type="button">&#9654; PLAY</button>' +
-                     '<button class="ap-btn sig-an" data-f="' + esc(c.file) + '" data-n="' + esc(ch.name) + '" type="button">&#128202; ANALYZE</button></div>' : '')
-         : '<span class="sig-st none">NO RECORDING YET</span>') +
-      '<p class="sig-small" style="margin:8px 0 0">' + esc(ch.about) + '</p></div>';
-  }).join('') + '</div>';
-  var ev = d.events || [];
-  h += '<h4 class="sig-h">VOICE EVENTS</h4>' + (ev.length ? '<div class="sig-events">' + ev.slice(0, 20).map(function(e){
-    var secs = Math.round((e.voice || []).reduce(function(a, v){ return a + v[1] - v[0]; }, 0));
-    return '<div class="sig-ev voice"><b>' + esc(e.at.slice(5, 16).replace('T', ' ')) + 'Z</b> ' + esc(e.name) + ' · ' + secs +
-      ' s of voice · via ' + esc(e.rx || '?') + ' <button class="linkish sig-play" data-f="' + esc(e.file) + '" type="button">&#9654; PLAY</button> ' +
-      '<button class="linkish sig-an" data-f="' + esc(e.file) + '" data-n="' + esc(e.name + ' ' + e.at.slice(0, 16)) + '" type="button">analyze</button></div>';
-  }).join('') + '</div>' : '<div class="sig-empty">No voice heard in the recorded slices yet. The Buzzer usually just buzzes; messages are rare.</div>');
-  box.innerHTML = h;
+  var box = $('sigLive'), ev = (d && d.events) || [];
+  box.innerHTML = '<div class="sig-small" style="margin-bottom:6px">Recorded by the old receiver relay (retired 7 Oct 2026). ' +
+    'Each was checked against its spectrogram; UVB-76 buzz once mislabelled as voice has been relabelled.</div>' +
+    (ev.length ? '<div class="sig-events">' + ev.slice(0, 20).map(function(e){
+      var secs = Math.round((e.voice || []).reduce(function(a, v){ return a + v[1] - v[0]; }, 0));
+      return '<div class="sig-ev voice"><b>' + esc(e.at.slice(5, 16).replace('T', ' ')) + 'Z</b> ' + esc(e.name) + ' · ' + secs +
+        ' s of voice · via ' + esc(e.rx || '?') + ' <button class="linkish sig-play" data-f="' + esc(e.file) + '" type="button">&#9654; PLAY</button> ' +
+        '<button class="linkish sig-an" data-f="' + esc(e.file) + '" data-n="' + esc(e.name + ' ' + e.at.slice(0, 16)) + '" type="button">analyze</button></div>';
+    }).join('') + '</div>' : '<div class="sig-empty">Nothing archived.</div>');
   box.querySelectorAll('.sig-play').forEach(function(b){ b.onclick = function(){ playClip(b.dataset.f, b); }; });
   box.querySelectorAll('.sig-an').forEach(function(b){ b.onclick = function(){ analyseClip(b.dataset.f, b.dataset.n); }; });
+}
+/* What the people who monitor these stations round the clock have reported
+   on X in the last 48 hours, gathered once a day with the Analyst Desk. */
+function paintReports(d){
+  var box = $('sigReports'); if(!box) return;
+  var r = (d && d.radio) || [];
+  box.innerHTML = r.length ? r.map(function(x){
+    return '<div class="sig-ev"><b>' + esc(String(x.at || '').slice(5, 16).replace('T', ' ')) + (x.at ? 'Z' : '') + '</b> ' +
+      esc(x.station || '') + (x.khz ? ' · ' + esc(x.khz) + ' kHz' : '') + ' — ' + esc(x.what || '') +
+      (x.by ? ' <span class="sig-small">(@' + esc(String(x.by).replace(/^@/, '')) + ')</span>' : '') +
+      (/^https:\/\/(x|twitter)\.com\//.test(x.url || '') ? ' <a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">post</a>' : '') + '</div>';
+  }).join('') : '<div class="sig-empty">' + (d && d.radio ? 'No activity reported by monitors in the last 48 hours.' :
+                                              'Monitor reports appear after the next daily collection.') + '</div>';
+  var at = $('sigReportsAt'); if(at && d && d.at) at.textContent = 'collected ' + ago(d.at);
 }
 function loadRadio(){
   fetch(RADIO + 'radio/radio.json?t=' + Date.now(), {cache:'no-store'})
     .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
     .then(paintRadio);
+  fetch('data/analyst/desk.json', {cache:'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+    .then(paintReports);
 }
 
 /* ------------------------------------------------------ colour maps */
@@ -200,22 +164,30 @@ async function startLive(kind){
                           : 'The microphone was refused. Allow it for this site in the browser settings.', true);
     return;
   }
-  S.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  var ctx = new (window.AudioContext || window.webkitAudioContext)();
+  attach(kind, ctx, ctx.createMediaStreamSource(stream), stream,
+         kind === 'tab' ? 'Listening to the shared tab' : 'Listening to the microphone',
+         kind === 'tab' && $('sigMonitor').checked);                       // hear the tab here too
+  stream.getAudioTracks()[0].addEventListener('ended', function(){ stopAll(); status('The shared audio ended.'); });
+}
+/* Any live source -- a shared tab, the microphone, the tuner -- runs through
+   the same analyser and detectors from here. */
+function attach(kind, ctx, src, stream, label, hear){
+  S.ctx = ctx;
   S.stream = stream;
-  S.src = S.ctx.createMediaStreamSource(stream);
+  S.src = src;
   S.analyser = S.ctx.createAnalyser();
   S.analyser.fftSize = S.fft; S.analyser.smoothingTimeConstant = 0;
   S.analyser.minDecibels = -140; S.analyser.maxDecibels = 0;
   S.src.connect(S.analyser);
-  if(kind === 'tab' && $('sigMonitor').checked) S.analyser.connect(S.ctx.destination);   // hear it here too
-  stream.getAudioTracks()[0].addEventListener('ended', function(){ stopAll(); status('The shared audio ended.'); });
+  if(hear) S.analyser.connect(S.ctx.destination);
   S.mode = kind; S.running = true; S.paused = false;
   S.events = S.events.filter(function(ev){ return ev.at == null; }); paintEvents();   // drop a recording's marks
   S.rowTimes = []; S.sp = []; S.peak = null; detReset(S.ctx.sampleRate/DET_N);
   $('sigLiveBar').style.display = ''; $('sigFileBar').style.display = 'none';
   $('sigRec').disabled = !window.MediaRecorder;
-  status((kind === 'tab' ? 'Listening to the shared tab' : 'Listening to the microphone') + ' · sample rate ' +
-         (S.ctx.sampleRate/1000).toFixed(1) + ' kHz · resolution ' + (S.ctx.sampleRate/S.fft).toFixed(1) + ' Hz');
+  status(label + ' · sample rate ' + (S.ctx.sampleRate/1000).toFixed(1) + ' kHz · resolution ' +
+         (S.ctx.sampleRate/S.fft).toFixed(1) + ' Hz');
   size();
   /* The audio itself is the clock: each block of 2048 samples runs the
      detectors and, when due, adds a waterfall row. Browsers slow timers in a
@@ -240,6 +212,7 @@ async function startLive(kind){
 }
 function stopAll(){
   S.job = null;
+  tunerClose();
   if(S.proc){ S.proc.onaudioprocess = null; S.proc = null; }
   if(S.raf){ cancelAnimationFrame(S.raf); S.raf = null; }
   if(S.rec && S.rec.state !== 'inactive') S.rec.stop();
@@ -676,6 +649,293 @@ cv.addEventListener('click', function(e){
 });
 
 /* --------------------------------------------------------- controls */
+/* ------------------------------------------------------- live tuner */
+/* You listen live through a public KiwiSDR, one receiver at a time, the way
+   their owners intend: the page opens the receiver's own audio stream, plays
+   it here and runs the analyser on it. A browser lets this HTTPS page reach
+   only receivers that serve HTTPS, so the list is the ones that do: checked
+   weekly by tuner_receivers.py into data/tuner/receivers.json. Each
+   connection says who it is ("Trident Brief listener"), takes one slot,
+   honours the receiver's own limits, and closes itself after an hour unless
+   you are still there. */
+var PRESETS = [
+  {id:'uvb76', name:'UVB-76', khz:4625, mode:'usb', near:[55.8, 37.6],
+   note:'Russian military “Buzzer”: a buzz about every 3.4 s, now and then a voice reading a callsign and codewords.'},
+  {id:'pip', name:'The Pip', khz:5448, mode:'usb', near:[55.8, 37.6], note:'Russian military beacon: short pips. Its night frequency is 3756 kHz.'},
+  {id:'wheel', name:'Squeaky Wheel', khz:5473, mode:'usb', near:[55.8, 37.6], note:'Russian military beacon. Its night frequency is 3828 kHz.'},
+  {id:'hf8992', name:'HFGCS 8992', khz:8992, mode:'usb', near:[38.9, -77.0],
+   note:'US Air Force global HF network: Emergency Action Messages and Skyking broadcasts. Best at night.'},
+  {id:'hf11175', name:'HFGCS 11175', khz:11175, mode:'usb', near:[38.9, -77.0], note:'The same network’s main daytime frequency.'},
+  {id:'hf4724', name:'HFGCS 4724', khz:4724, mode:'usb', near:[38.9, -77.0], note:'The same network’s night frequency.'},
+  {id:'volmet', name:'Shannon VOLMET', khz:5505, mode:'usb', near:[52.7, -8.9],
+   note:'North Atlantic aviation weather read round the clock: a quick check that a receiver is hearing well.'},
+  {id:'wwv', name:'WWV 10 MHz', khz:10000, mode:'am', near:[40.7, -105.0], note:'US time signal: a tick every second, a voice every minute. Another reception check.'}
+];
+var PASS = {usb:[300, 2700], lsb:[-2700, -300], am:[-4900, 4900], cw:[300, 800]};
+var STEP = [7,8,9,10,11,12,13,14,16,17,19,21,23,25,28,31,34,37,41,45,50,55,60,66,73,80,88,97,107,118,130,143,
+  157,173,190,209,230,253,279,307,337,371,408,449,494,544,598,658,724,796,876,963,1060,1166,1282,1411,1552,
+  1707,1878,2066,2272,2499,2749,3024,3327,3660,4026,4428,4871,5358,5894,6484,7132,7845,8630,9493,10442,
+  11487,12635,13899,15289,16818,18500,20350,22385,24623,27086,29794,32767];
+var ADJ = [-1,-1,-1,-1,2,4,6,8,-1,-1,-1,-1,2,4,6,8];
+var IDLE_MIN = 60;
+var T = {list:[], ws:null, rx:null, live:false, khz:4625, mode:'usb', preset:'uvb76', sr:12000, dec:{i:0, p:0},
+         next:0, rebuf:0, dropped:0, inp:null, out:null, lastKa:0, rssi:[], tried:[], scan:null, touched:0, idle:null, kaTimer:null};
+
+/* Kiwi audio is IMA ADPCM: four bits a sample, low nibble first, the
+   decoder's state carried from one frame to the next. */
+function adpcm(data, st){
+  var out = new Float32Array(data.length*2), k = 0;
+  for(var i = 0; i < data.length; i++){
+    out[k++] = nib(data[i] & 15, st)/32768;
+    out[k++] = nib(data[i] >> 4, st)/32768;
+  }
+  return out;
+}
+function nib(code, st){
+  var step = STEP[st.i];
+  st.i = Math.min(88, Math.max(0, st.i + ADJ[code]));
+  var d = step >> 3;
+  if(code & 1) d += step >> 2;
+  if(code & 2) d += step >> 1;
+  if(code & 4) d += step;
+  if(code & 8) d = -d;
+  st.p = Math.max(-32768, Math.min(32767, st.p + d));
+  return st.p;
+}
+function km(a, b){
+  var r = Math.PI/180, x = Math.sin((b[0]-a[0])*r/2), y = Math.sin((b[1]-a[1])*r/2);
+  return 12742*Math.asin(Math.sqrt(x*x + Math.cos(a[0]*r)*Math.cos(b[0]*r)*y*y));
+}
+/* receivers in order of preference: nearest the transmitter first, the ones
+   that have just refused us last */
+function ranked(near){
+  return T.list.slice().sort(function(a, b){
+    var fa = T.tried.indexOf(a.host) > -1, fb = T.tried.indexOf(b.host) > -1;
+    if(fa !== fb) return fa ? 1 : -1;
+    return (a.lat == null ? 1e9 : km(near, [a.lat, a.lon])) - (b.lat == null ? 1e9 : km(near, [b.lat, b.lon]));
+  });
+}
+function presetOf(id){ return PRESETS.filter(function(p){ return p.id === id; })[0]; }
+function tuneMsg(){
+  var pb = PASS[T.mode] || PASS.usb;
+  return 'SET mod=' + T.mode + ' low_cut=' + pb[0] + ' high_cut=' + pb[1] + ' freq=' + T.khz.toFixed(3);
+}
+function tunerNow(extra){
+  var el = $('tuNow');
+  if(!T.rx){ el.innerHTML = extra || 'not connected'; return; }
+  var r = T.rssi.length ? T.rssi[T.rssi.length - 1] : null, pct = r == null ? 0 : Math.max(0, Math.min(100, (r + 130)/0.8));
+  el.innerHTML = '<b>' + (T.khz % 1 ? T.khz.toFixed(2) : T.khz) + ' kHz ' + esc(T.mode.toUpperCase()) + '</b> · ' +
+    (T.live ? 'live from ' : 'connecting to ') + esc(T.rx.loc || T.rx.host) +
+    (T.rx.antenna ? ' <span class="sig-small">(' + esc(T.rx.antenna) + ')</span>' : '') +
+    '<div class="tu-meter"><i style="width:' + pct.toFixed(0) + '%"></i><span>' + (r == null ? 'signal —' : 'signal ' + r.toFixed(0) + ' dBm') + '</span></div>' +
+    (extra ? '<div class="sig-small">' + extra + '</div>' : '');
+}
+function tunerClose(){
+  if(T.kaTimer){ clearInterval(T.kaTimer); T.kaTimer = null; }
+  if(T.idle){ clearInterval(T.idle); T.idle = null; }
+  if(T.scan){ clearTimeout(T.scan.timer); T.scan = null; $('tuScan').textContent = '⟳ SCAN PRESETS'; }
+  var ws = T.ws; T.ws = null; T.live = false;
+  if(ws){ try{ ws.close(); }catch(_){} }
+  T.rx = null; T.inp = T.out = null;
+  if($('tuNow')) tunerNow();
+}
+function touch(){ T.touched = Date.now(); }
+/* start listening: a fresh audio chain and a connection to the best receiver */
+function listen(){
+  touch();
+  if(!T.list.length){ status('The receiver list has not loaded yet.', true); return; }
+  stopAll();                                     // closes any other source and any previous connection
+  T.tried = [];
+  var ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if(ctx.resume) ctx.resume();
+  T.inp = ctx.createGain();
+  T.out = ctx.createGain(); T.out.gain.value = +$('tuVol').value;
+  T.inp.connect(T.out); T.out.connect(ctx.destination);
+  var dest = ctx.createMediaStreamDestination ? ctx.createMediaStreamDestination() : null;
+  if(dest) T.inp.connect(dest);                  // lets RECORD CLIP save what you hear
+  attach('tuner', ctx, T.inp, dest ? dest.stream : null, 'Live tuner', false);
+  T.idle = setInterval(function(){
+    var m = (Date.now() - T.touched)/60000;
+    if(m >= IDLE_MIN){ stopAll(); status('Stopped after an hour without a touch, to free the receiver for others. Press LISTEN to carry on.'); }
+    else if(m >= IDLE_MIN - 5) tunerNow('Still listening? Touch any tuner control in the next ' + Math.ceil(IDLE_MIN - m) + ' min to keep the receiver.');
+  }, 30000);
+  connect(pick());
+}
+function pick(){
+  var sel = $('tuRx').value, p = presetOf(T.preset);
+  if(sel !== 'auto'){
+    var r = T.list.filter(function(x){ return x.host === sel; })[0];
+    if(r && T.tried.indexOf(r.host) < 0) return r;
+  }
+  var near = p && p.khz === T.khz ? p.near : [50, 10];
+  return ranked(near).filter(function(x){ return T.tried.indexOf(x.host) < 0; })[0] || null;
+}
+function connect(rx){
+  if(!rx){ status('Every receiver on the list refused or is full right now. Try again in a few minutes.', true); tunerClose(); return; }
+  if(T.ws){ var old = T.ws; T.ws = null; try{ old.close(); }catch(_){} }
+  T.rx = rx; T.live = false; T.dec = {i:0, p:0}; T.next = 0; T.rssi = [];
+  tunerNow();
+  var ws, settled = false;
+  try{ ws = new WebSocket('wss://' + rx.host + '/' + Date.now() + '/SND'); }
+  catch(e){ return refused(rx, 'could not connect'); }
+  ws.binaryType = 'arraybuffer';
+  T.ws = ws;
+  var timer = setTimeout(function(){ if(!settled && T.ws === ws) refused(rx, 'no answer'); }, 10000);
+  ws.onopen = function(){ ws.send('SET auth t=kiwi p='); };
+  ws.onerror = function(){ if(!settled && T.ws === ws){ clearTimeout(timer); refused(rx, 'connection failed'); } };
+  ws.onclose = function(){
+    clearTimeout(timer);
+    if(T.ws !== ws) return;
+    if(!settled) return refused(rx, 'closed');
+    T.ws = null; T.live = false;
+    status('The receiver in ' + esc(rx.loc || rx.host) + ' closed the connection (most often its owner’s time limit). Press LISTEN to reconnect.', true);
+    tunerNow();
+  };
+  ws.onmessage = function(e){
+    if(T.ws !== ws) return;
+    var u8 = new Uint8Array(typeof e.data === 'string' ? new TextEncoder().encode(e.data) : e.data);
+    var tag = String.fromCharCode(u8[0], u8[1], u8[2]);
+    if(tag === 'MSG'){
+      var bad = null;
+      new TextDecoder('latin1').decode(u8.subarray(4)).split(' ').forEach(function(pair){
+        var k = pair.split('=')[0], v = pair.slice(k.length + 1);
+        if(k === 'audio_rate') ws.send('SET AR OK in=' + v + ' out=44100');
+        else if(k === 'sample_rate'){
+          T.sr = parseFloat(v) || 12000;
+          ['SET squelch=0 max=0', 'SET genattn=0', 'SET gen=0 mix=-1', tuneMsg(),
+           'SET agc=1 hang=0 thresh=-100 slope=6 decay=1000 manGain=50', 'SET compression=1',
+           'SET ident_user=Trident%20Brief%20listener', 'SET keepalive'].forEach(function(m){ ws.send(m); });
+          settled = true; clearTimeout(timer); T.live = true;
+          logEvent(Date.now(), 'mark', 'tuned ' + T.khz + ' kHz ' + T.mode.toUpperCase() + ' via ' + (rx.loc || rx.host));
+          status('Live: ' + esc(rx.name || rx.host) + '. You are one listener on someone’s receiver; it closes itself after an hour untouched.');
+          tunerNow();
+        }
+        else if(k === 'too_busy') bad = 'all ' + v + ' listener slots are taken';
+        else if(k === 'down') bad = 'it is down for now';
+        else if(k === 'redirect') bad = 'it redirected elsewhere';
+        else if(k === 'badp' && v !== '0') bad = 'it refused (code ' + v + ')';
+      });
+      if(bad){ settled = false; refused(rx, bad); }
+      return;
+    }
+    if(tag !== 'SND' || !S.ctx) return;
+    var flags = u8[3], rssi = 0.1*((u8[8] << 8) | u8[9]) - 127, data = u8.subarray(10), f;
+    T.rssi.push(rssi); if(T.rssi.length > 600) T.rssi.shift();
+    if(flags & 0x10) f = adpcm(data, T.dec);
+    else { f = new Float32Array(data.length >> 1); for(var i = 0; i < f.length; i++){ var v = (data[2*i] << 8) | data[2*i+1]; f[i] = (v > 32767 ? v - 65536 : v)/32768; } }
+    play(f);
+    var now = Date.now();
+    if(now - T.lastKa > 1000){ T.lastKa = now; try{ ws.send('SET keepalive'); }catch(_){} tunerNow(); }
+  };
+}
+function refused(rx, why){
+  T.tried.push(rx.host);
+  status('The receiver in ' + esc(rx.loc || rx.host) + ': ' + esc(why) + '. Trying the next one…');
+  if(T.ws){ var w = T.ws; T.ws = null; try{ w.close(); }catch(_){} }
+  connect(pick());
+}
+/* a short jitter buffer: each frame is scheduled after the last, a quarter
+   second behind real time; if the network falls behind, it re-buffers, and
+   if frames pile up, the extra is dropped rather than letting the delay grow */
+function play(f){
+  var ctx = S.ctx; if(!ctx || !T.inp) return;
+  var b = ctx.createBuffer(1, f.length, T.sr);
+  if(b.copyToChannel) b.copyToChannel(f, 0); else b.getChannelData(0).set(f);
+  var now = ctx.currentTime;
+  if(T.next < now + 0.03){ T.next = now + 0.25; T.rebuf++; }
+  if(T.next > now + 1.5){ T.dropped++; return; }
+  var s = ctx.createBufferSource(); s.buffer = b; s.connect(T.inp); s.start(T.next);
+  T.next += b.duration;
+}
+function retune(khz, mode, presetId){
+  touch();
+  T.khz = Math.max(10, Math.min(30000, +khz || T.khz)); T.mode = mode || T.mode; T.preset = presetId || null;
+  $('tuKhz').value = T.khz; $('tuMode').value = T.mode;
+  BAND.querySelectorAll('.tu-p').forEach(function(b){ b.classList.toggle('on', b.dataset.p === T.preset); });
+  var p = presetOf(T.preset);
+  $('tuNote').textContent = p ? p.note : '';
+  if(!T.ws || !T.live){ return; }
+  /* a preset's best receiver may be another one: on "best for the channel",
+     move when the current one is far from the transmitter */
+  if(p && $('tuRx').value === 'auto' && !T.scan){
+    var best = ranked(p.near)[0];
+    if(best && best.host !== T.rx.host && T.rx.lat != null && best.lat != null &&
+       km(p.near, [T.rx.lat, T.rx.lon]) > km(p.near, [best.lat, best.lon]) + 1500){
+      T.tried = []; connect(best); return;
+    }
+  }
+  T.ws.send(tuneMsg()); T.rssi = []; T.next = 0;
+  logEvent(Date.now(), 'mark', 'tuned ' + T.khz + ' kHz ' + T.mode.toUpperCase());
+  tunerNow();
+}
+/* scan: each preset in turn on the current receiver, its signal level and
+   what the detectors made of it; stops where a voice is heard if asked to */
+function scanToggle(){
+  touch();
+  if(T.scan){ clearTimeout(T.scan.timer); T.scan = null; $('tuScan').textContent = '⟳ SCAN PRESETS'; return; }
+  if(!T.ws || !T.live){ status('Press LISTEN first; the scan uses the receiver you are on.', true); return; }
+  T.scan = {i:0, res:[], dwell:+$('tuDwell').value*1000};
+  $('tuScan').textContent = '■ STOP SCAN';
+  scanStep();
+}
+function scanStep(){
+  var sc = T.scan; if(!sc) return;
+  if(sc.i >= PRESETS.length){ T.scan = null; $('tuScan').textContent = '⟳ SCAN PRESETS'; status('Scan complete.'); return; }
+  var p = PRESETS[sc.i], ev0 = S.events.length;
+  retune(p.khz, p.mode, p.id);
+  sc.timer = setTimeout(function(){
+    if(T.scan !== sc) return;
+    var r = T.rssi.slice(Math.floor(T.rssi.length/4)).sort(function(a, b){ return a - b; });
+    var voice = S.events.slice(0, S.events.length - ev0).some(function(e){ return e.kind === 'voice'; }) || S.voiceNow;
+    sc.res.push({p:p, rssi:r.length ? r[r.length >> 1] : null, buzz:!!S.pulse, voice:voice, rate:S.pulse ? S.pulse.rate : null});
+    paintScan(sc);
+    if(voice && $('tuStopVoice').checked){
+      T.scan = null; $('tuScan').textContent = '⟳ SCAN PRESETS';
+      status('Voice-like sound on ' + esc(p.name) + ' — the scan stopped here. Confirm by ear: detectors are rules of thumb.');
+      return;
+    }
+    sc.i++; scanStep();
+  }, sc.dwell);
+}
+function paintScan(sc){
+  var top = Math.max.apply(null, sc.res.map(function(x){ return x.rssi == null ? -999 : x.rssi; }));
+  $('tuScanOut').innerHTML = sc.res.map(function(x){
+    var flag = x.voice ? '<span class="sig-st voice">VOICE?</span>' : x.buzz ? '<span class="sig-st buzz">PULSES ' + (x.rate ? x.rate.toFixed(1) + '/min' : '') + '</span>' : '';
+    return '<div class="tu-sr' + (x.rssi === top ? ' top' : '') + '"><b>' + esc(x.p.name) + '</b><span>' + x.p.khz + ' kHz</span><span>' +
+      (x.rssi == null ? '—' : x.rssi.toFixed(0) + ' dBm') + '</span>' + flag + '</div>';
+  }).join('');
+}
+function wireTuner(){
+  if(!$('sigTuner')) return;
+  $('tuPresets').innerHTML = PRESETS.map(function(p){
+    return '<button class="ev-f tu-p" data-p="' + p.id + '" type="button">' + esc(p.name) + ' <span>' + p.khz + '</span></button>';
+  }).join('');
+  BAND.querySelectorAll('.tu-p').forEach(function(b){
+    b.onclick = function(){ var p = presetOf(b.dataset.p); retune(p.khz, p.mode, p.id); if(!T.ws) listen(); };
+  });
+  BAND.querySelectorAll('.tu-steps button').forEach(function(b){
+    b.onclick = function(){ retune(Math.round((T.khz + (+b.dataset.s))*100)/100, null, null); };
+  });
+  $('tuKhz').onchange = function(){ retune(+this.value, null, null); };
+  $('tuMode').onchange = function(){ retune(T.khz, this.value, T.preset); };
+  $('tuGo').onclick = function(){ T.ws && T.live ? retune(+$('tuKhz').value, $('tuMode').value, T.preset) : listen(); };
+  $('tuStop').onclick = function(){ stopAll(); status('Stopped; the receiver is free again.'); };
+  $('tuVol').oninput = function(){ touch(); if(T.out) T.out.gain.value = +this.value; set('vol', +this.value); };
+  $('tuVol').value = get('vol', 0.9);
+  $('tuRx').onchange = function(){ touch(); if(T.ws){ T.tried = []; connect(pick()); } };
+  $('tuScan').onclick = scanToggle;
+  retune(4625, 'usb', 'uvb76');
+  var base = (typeof window.DATA_BASE === 'string' ? window.DATA_BASE : '');
+  fetch(base + 'data/tuner/receivers.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
+    .catch(function(){ return null; }).then(function(d){
+      T.list = (d && d.receivers) || [];
+      $('tuRx').innerHTML = '<option value="auto">best for the channel</option>' + T.list.map(function(r){
+        return '<option value="' + esc(r.host) + '">' + esc(r.loc || r.host) + '</option>'; }).join('');
+      tunerNow(T.list.length ? T.list.length + ' receivers reachable from this page' + (d.checked ? ' (checked ' + esc(d.checked.slice(0, 10)) + ')' : '') +
+                               '. Press LISTEN or a preset.' : 'The receiver list did not load.');
+    });
+}
+
 function wire(){
   var tabBtn = $('sigTab');
   if(!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)){
@@ -733,8 +993,8 @@ function wire(){
 function reopen(){ if(S.file && S.file.buf) analyse(S.file.buf, S.file.name); }
 
 wire();
+wireTuner();
 size();
 loadRadio();
-setInterval(loadRadio, 10*60000);       // new slices land through the half hour
-window.SIGNALS = {state:S, fftDb:fftDb, logEvent:logEvent};
+window.SIGNALS = {state:S, tuner:T, fftDb:fftDb, logEvent:logEvent};
 })();

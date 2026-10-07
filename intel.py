@@ -290,8 +290,14 @@ def _radio_summary(radio, hours=24):
 
 
 def v_radio():
+    desk = jread('main', 'data/analyst/desk.json') or {}
+    head(f"REPORTED BY RADIO MONITORS on X (collected {desk.get('at')}, {age(desk.get('at'))})")
+    for r in desk.get('radio') or []:
+        print(f"  {r.get('at', '')[:16]:16} {r.get('station', ''):14} {r.get('khz') or '':>6} {clip(r.get('what'), 110)}  @{r.get('by')} {r.get('url')}")
+    if 'radio' not in desk:
+        print('  (none collected yet)')
     radio = jread('radio-data', 'radio/radio.json') or {}
-    print(f"relay updated {radio.get('at')} ({age(radio.get('at'))})")
+    print(f"\nThe recording relay was RETIRED on 7 Oct 2026; its archive was last updated {radio.get('at')} ({age(radio.get('at'))})")
     _radio_summary(radio, 48)
     head('TIMELINE (newest last)')
     for t in sorted(radio.get('timeline') or [], key=lambda t: t['at'])[-60:]:

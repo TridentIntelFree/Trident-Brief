@@ -191,6 +191,53 @@ accounts and official government accounts.
 Return ONLY a JSON array: [{{"handle": "account", "why": "one sentence", "url": "https://x.com/<handle>/status/<id>"}}]"""
 
 
+# People who listen to these stations round the clock and post what they hear.
+# A seed for the search, not a fence: the search is open, so other monitors'
+# reports turn up too.
+RADIO_SEEDS = ['shortwave78', 'priyom_org']
+RADIO_STATIONS = ('UVB-76 "the Buzzer" (4625 kHz), The Pip (5448 / 3756 kHz), the Squeaky Wheel (5473 / 3828 kHz), '
+                  'the US Air Force HFGCS network (8992, 11175, 4724 kHz: Emergency Action Messages, Skyking), '
+                  'and military numbers stations')
+
+
+def radio_prompt(now):
+    return f"""{ECONOMY}
+
+SEARCH BUDGET: at most 2 X searches, over the last {HOURS} hours.
+
+TASK: list what shortwave monitors reported hearing on {RADIO_STATIONS} in the last {HOURS} hours. It is
+{now:%d %B %Y, %H:%M} UTC. Accounts such as {', '.join('@' + h for h in RADIO_SEEDS)} post these logs; anyone
+else's first-hand report counts too. One search for the station names and frequencies usually finds them.
+
+Only first-hand logs of a transmission (a voice message, an EAM or Skyking, the buzzer stopping or changing, a
+numbers broadcast), not news articles or speculation about what they mean. Copy message text as posted; do not
+interpret codewords. Return ONLY a JSON array, newest first, at most 15 items, [] if none:
+[{{"at": "YYYY-MM-DDTHH:MMZ (the transmission time if given, else the post time)", "station": "UVB-76",
+   "khz": 4625, "what": "voice message: callsign and codeword as posted", "by": "handle", "url": "https://x.com/handle/status/id"}}]"""
+
+
+def radio_watch(now, since):
+    """Monitor reports for the page's Signals section; never fails the desk."""
+    try:
+        text = grok('radio', radio_prompt(now), [{'type': 'x_search', 'from_date': since.strftime('%Y-%m-%d')}],
+                    max_tokens=2500, max_tool_calls=2)
+        m = re.search(r'\[.*\]', text, re.S)
+        rows = json.loads(m.group(0)) if m else []
+    except Exception as e:
+        print(f'  radio reports skipped: {str(e)[:160]}')
+        return None
+    out = []
+    for r in rows if isinstance(rows, list) else []:
+        if not isinstance(r, dict) or not x_post(r.get('url')):
+            continue                              # a report must link the post it came from
+        khz = r.get('khz')
+        out.append({'at': str(r.get('at', ''))[:17], 'station': str(r.get('station', ''))[:40],
+                    'khz': khz if isinstance(khz, (int, float)) else None, 'what': str(r.get('what', ''))[:240],
+                    'by': clean_handle(r.get('by')), 'url': r['url']})
+    print(f'  radio: {len(out)} monitor reports')
+    return out[:15]
+
+
 def load_roster():
     try:
         with open(OUT_ROSTER, encoding='utf-8') as f:
@@ -295,11 +342,14 @@ def main():
     cut = (now - timedelta(days=21)).strftime('%Y-%m-%d')
     roster['found'] = {h: v for h, v in roster['found'].items() if v['days'] and v['days'][-1] >= cut}
 
+    radio = radio_watch(now, since)
     newly = [h for h in following(roster) if h not in follow]
     out = {'v': 2, 'at': now.strftime('%Y-%m-%dT%H:%M:%SZ'), 'hours': HOURS, 'desk': desk,
            'followed': follow, 'searched': today, 'claims': meta.get('claims') if isinstance(meta.get('claims'), int) else None,
            'accounts_with_claims': len(posting), 'found_today': found, 'promoted': newly,
            'cost_usd': SPEND.total(), 'spend': SPEND.calls, 'search_budget': SEARCH_BUDGET}
+    if radio is not None:
+        out['radio'] = radio
     roster.update(starter=STARTER, following=following(roster), updated=out['at'])
     os.makedirs(os.path.dirname(OUT_DESK), exist_ok=True)
     with open(OUT_DESK, 'w', encoding='utf-8') as f:

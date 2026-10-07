@@ -1,4 +1,7 @@
-"""Radio watch: real shortwave audio of UVB-76 and HFGCS for the Signals section.
+"""RETIRED on 7 October 2026 in favour of the page's live tuner (assets/signals.js);
+the workflow now runs only by hand, and its detector is shared with the page.
+
+Radio watch: real shortwave audio of UVB-76 and HFGCS for the Signals section.
 
 A phone cannot hear shortwave -- its radios are cellular, Wi-Fi, Bluetooth and
 GPS, all far above these frequencies -- so this borrows public KiwiSDR receivers
