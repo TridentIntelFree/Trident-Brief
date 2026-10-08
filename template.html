@@ -980,9 +980,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <li><b>Terrain, imagery and site weather:</b> public AWS open-data buckets (Sentinel-2, USGS elevation, terrain tiles) and Open-Meteo, for the place you picked.</li>
           <li><b>ZIP lookup:</b> zippopotam.us.</li>
           <li><b>Local Intel with your own xAI key:</b> your ZIP and the request go to xAI under your key, and xAI's terms apply.</li>
-          <li>Other map layers you pick (OpenStreetMap, OpenTopoMap, Esri, Waymarked Trails), and links (X, Polymarket, sources), which load nothing until clicked.</li>
+          <li>Other map layers you pick (OpenStreetMap, OpenTopoMap, Esri, Waymarked Trails), and links to sources, which load nothing until clicked.</li>
         </ul>
-        <p>The Crystal Ball's fonts are served from this site, not Google Fonts.</p>
+        <p>Fonts are served from this site, not Google Fonts.</p>
 
         <h4>Saved on this device only</h4>
         <p>Folded sections, tuner and read-aloud settings, the map layer, a Morse log if you save one, map areas saved for offline use, an offline copy of the page,
@@ -4050,9 +4050,9 @@ async function tzShow(){
     taps = [];
     var band = document.getElementById('tzBand');
     if(band.hidden) tzShow();
-    else { band.hidden = true; if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
+    else { hideDesk(band); if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
   });
-  document.getElementById('tzHide').onclick = function(){ document.getElementById('tzBand').hidden = true; };
+  document.getElementById('tzHide').onclick = function(){ hideDesk(document.getElementById('tzBand')); };
   document.getElementById('tzRead').onclick = function(){
     if(!window.BRIEFME || !TZ.brief) return;
     BRIEFME.read({root:document.getElementById('tzBody'), label:'TAZEWELL AREA BRIEF', at:TZ.brief.at,
@@ -4113,9 +4113,9 @@ async function adShow(){
     taps = [];
     var band = document.getElementById('adBand');
     if(band.hidden) adShow();
-    else { band.hidden = true; if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
+    else { hideDesk(band); if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
   });
-  document.getElementById('adHide').onclick = function(){ document.getElementById('adBand').hidden = true; };
+  document.getElementById('adHide').onclick = function(){ hideDesk(document.getElementById('adBand')); };
   document.getElementById('adRead').onclick = function(){
     if(!window.BRIEFME || !AD.desk) return;
     BRIEFME.read({root:document.getElementById('adBody'), label:'ANALYST DESK', at:AD.desk.at,
@@ -4417,9 +4417,9 @@ async function cbShow(){
     taps = [];
     var band = document.getElementById('cbBand');
     if(band.hidden) cbShow();
-    else { band.hidden = true; if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
+    else { hideDesk(band); if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
   });
-  document.getElementById('cbHide').onclick = function(){ document.getElementById('cbBand').hidden = true; };
+  document.getElementById('cbHide').onclick = function(){ hideDesk(document.getElementById('cbBand')); };
   document.getElementById('cbRead').onclick = function(){
     if(!window.BRIEFME || !CB.ball) return;
     BRIEFME.read({root:document.getElementById('cbBody'), label:'CRYSTAL BALL', at:CB.ball.at,
@@ -7415,6 +7415,30 @@ function agoShort(ms){
   paint();
 })();
 
+/* Closing a hidden desk folds it too, so nothing of it shows until the
+   gesture opens it again. A read-aloud already running carries on. */
+function hideDesk(band){
+  band.hidden = true;
+  var b = band.querySelector('.fold-btn');
+  if(b && !band.classList.contains('folded')) b.click();
+}
+/* Phones keep a page in memory and show it again exactly as it was left, so
+   a desk opened earlier would sit there in the scroll. Coming back after a
+   few minutes away, or to a page restored from memory, closes the desks
+   (unless one is being read aloud). */
+(function(){
+  var away = 0;
+  function closeAll(){
+    if(window.BRIEFME && BRIEFME.state.playing) return;
+    Array.prototype.forEach.call(document.querySelectorAll('.tz-band'), function(b){ if(!b.hidden) hideDesk(b); });
+  }
+  addEventListener('pageshow', function(e){ if(e.persisted) closeAll(); });
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden) away = Date.now();
+    else if(away && Date.now() - away > 5*60000) closeAll();
+  });
+})();
+
 /* A hidden desk opened by its gesture always opens unfolded: a fold left
    from last time would otherwise look as if the gesture did nothing. */
 function openBand(band){
@@ -7441,6 +7465,9 @@ function foldable(id, foldedByDefault){
   if(!band || band.dataset.foldable) return;
   band.dataset.foldable = '1';
   var head = band.querySelector('.band-head'), key = 'trident_fold_' + id;
+  // a hidden desk keeps no trace on the device and sits folded until its gesture
+  var desk = band.classList.contains('tz-band');
+  if(desk) try{ localStorage.removeItem(key); }catch(_){}
   var btn = document.createElement('button');
   btn.className = 'fold-btn'; btn.type = 'button';
   head.classList.add('foldable'); head.appendChild(btn);
@@ -7448,13 +7475,13 @@ function foldable(id, foldedByDefault){
     band.classList.toggle('folded', f);
     btn.textContent = f ? '\u25b8 show' : '\u25be hide';
     btn.setAttribute('aria-expanded', f ? 'false' : 'true');
-    try{ localStorage.setItem(key, f ? '1' : '0'); }catch(_){}
+    if(!desk) try{ localStorage.setItem(key, f ? '1' : '0'); }catch(_){}
     // canvases inside were laid out at zero size while hidden
     if(!f) setTimeout(function(){ dispatchEvent(new Event('resize')); }, 30);
   }
   var saved = null;
   try{ saved = localStorage.getItem(key); }catch(_){}
-  set(saved == null ? !!foldedByDefault : saved === '1');
+  set(desk ? true : saved == null ? !!foldedByDefault : saved === '1');
   btn.onclick = function(){ set(!band.classList.contains('folded')); };
   head.querySelector('h2').onclick = function(){ set(!band.classList.contains('folded')); };
 }
