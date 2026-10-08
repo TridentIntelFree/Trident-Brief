@@ -396,11 +396,25 @@ def v_crystal():
     print(f"made {b.get('at')} ({age(b.get('at'))}); clock {(b.get('clock') or {}).get('seconds')} s; "
           f"nuclear {(b.get('nuclear') or {}).get('trend')}: {(b.get('nuclear') or {}).get('why')}")
     print('\n' + (b.get('bluf') or ''))
-    head('FORECASTS')
-    for f in b.get('forecasts') or []:
-        print(f"  {f.get('probability')}% ({f.get('term')}) by {str(f.get('deadline'))[:16]} [{f.get('region')}] {f.get('event')}")
-        if f.get('watch_for'):
-            print(f"      watch for: {clip(f.get('watch_for'), 200)}")
+    order = {'24h': 0, '48h': 1, '72h': 2, '7d': 3, '30d': 4, '1y': 5}
+    for w in sorted({f.get('horizon') for f in b.get('forecasts') or []}, key=lambda w: order.get(w, 9)):
+        head(f'FORECASTS, {w}')
+        for f in sorted((f for f in b['forecasts'] if f.get('horizon') == w), key=lambda f: -f.get('probability', 0)):
+            extra = (f" [engine, base {f.get('base_rate')}%]" if f.get('source') == 'engine' else '') + \
+                    (f" [fly {f['fly']['p']}% from {f['fly']['hits']}/{f['fly']['n']}]" if f.get('fly') else '') + \
+                    (f" [market {f['market']['p_market']}%]" if f.get('market') else '')
+            print(f"  {f.get('probability')}% ({f.get('term')}) by {str(f.get('deadline'))[:10]} [{f.get('region')}] {f.get('event')}{extra}")
+            if f.get('criterion') and f.get('criterion') != f.get('event'):
+                print(f"      settles by: {clip(f.get('criterion'), 200)}")
+    sb = b.get('scoreboard') or {}
+    if sb:
+        head(f"SCOREBOARD ({sb.get('resolved')} settled, {sb.get('open')} open)")
+        for w, row in (sb.get('by_window') or {}).items():
+            for who, x in row.items():
+                vs = x.get('baseline', x.get('oracle'))
+                print(f"  {w:4} {who:7} n={x['n']:<4} Brier {x['brier']}  vs {vs} ({x['vs']})")
+        for c in sb.get('calibration') or []:
+            print(f"  said {c['lo']}-{c['hi']}%: {c['hit']} of {c['n']} happened")
     head('PRE-HEADLINE SIGNALS')
     for p in b.get('pre_headline') or []:
         print(f"  {clip(p.get('signal'), 120)}  <- {p.get('source')}")

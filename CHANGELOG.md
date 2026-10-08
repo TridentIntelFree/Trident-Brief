@@ -4,6 +4,59 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.24.0 — 2026-10-08
+
+### Forecasts in four windows, built to be scored
+- **Windows:** 48 hours (every morning), a week (weekly), a month (monthly)
+  and a year (quarterly), with about 8, 8, 8 and 12 questions.
+- **Settling:** every question names how it settles (a source, a threshold, a
+  deadline), and each forecast states its base rate.
+- **Four forecasters,** each scored against its own baseline:
+  - **The engine** (`forecast_engine.py`, free, no model). It forecasts what
+    the app has measured for years: Ukraine's air-raid alarms (2022–),
+    Israel's rocket and missile alerts (2014–), Russian personnel and drone
+    losses as Ukraine's MoD claims them (2022–), and USGS magnitude 6+
+    earthquakes (2000–).
+    - **How:** the fly brain finds the past days whose state looked most like
+      today (the Mushroom Body circuit as a similarity search, Dasgupta et al.
+      2017), and what followed them is the forecast, shrunk toward the plain
+      base rate.
+    - **Fair comparison:** each analog day is asked the question against its
+      own recent pace, so a quiet month is a fair comparison.
+    - **Settling:** automatic, from the records.
+    - **Example:** today it puts Israel's chance of rocket alerts in the next
+      week at 33% against a 43% base rate.
+  - **The oracle** (Grok, still one call a day) takes the questions the
+    records cannot answer, with the engine's numbers and its own scores in
+    front of it.
+  - **The fly on warnings** matches each oracle question against the brief's
+    scored past warnings. It reports how often the most similar ones came
+    true, and only when it has four genuine precedents (sharing content
+    words, not just a hash).
+  - **The crowd:** open Polymarket questions on world affairs are put to the
+    oracle blind, and both are scored when they settle.
+- **Grading:** a separate small call with web search settles the event
+  questions, comparing reported numbers with each threshold (about $0.03, only
+  when questions are due). The brief's own forecast check is now told to
+  compare numbers with thresholds too, after it marked 16 crossings as
+  meeting "more than 20".
+- **The ledger:** a Brier score per window and forecaster against its
+  baseline, a calibration chart, and recent results with their evidence.
+- **"hello":** a small box at the top right opens the prediction-market top
+  picks. These are the questions where our blind forecast differs most from
+  the market price, with the record against the market once questions settle.
+  They are kept out of the Crystal Ball. Not betting advice.
+- **Upkeep:**
+  - the records cache is shared with the astrology fair test, refreshed
+    daily, and fetches only new rows;
+  - the newest day of a dataset that grows through the day is no longer
+    counted as complete.
+- **Deploying:** merges that change the page now go live at once, instead of
+  waiting for a scheduled run GitHub may start hours late.
+- **Cost:** about $0.02–0.03 a day for the forecast call (more questions on
+  the days the longer windows refresh), plus $0.03 for grading on days with
+  due questions.
+
 ## 1.23.2 — 2026-10-08
 
 ### Fixed: forecasts were thrown away before they could be scored

@@ -405,6 +405,8 @@ VERDICT is exactly one of:
   NOT TRIGGERED  its window has passed and it did not happen.
   OPEN           still inside its window, no sign either way yet.
   OVERTAKEN      events made the call moot; say which events.
+Where a call names a number ("more than 20", "at least 3"), compare the reported number
+with it before you choose: 16 crossings is NOT TRIGGERED for "more than 20 crossings".
 A TRIGGERED verdict with no supporting item above is a fabrication under Rule 1: if
 you did not retrieve the evidence this run, the verdict is OPEN or NOT TRIGGERED. Expect
 a mix. A check where every line carries the same verdict was probably not done, and

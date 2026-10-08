@@ -827,6 +827,18 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .or-alm-d{display:inline-block;min-width:6.5em;font-family:Cinzel,serif;font-size:.78em;color:#bfa8d9}
 .or-alm li.k-eclipse b{color:#ffcf6b;text-shadow:0 0 10px rgba(255,200,100,.4)}.or-alm li.k-station b{color:#ffb3a6}
 .or-test td:last-child{font-style:italic}
+.or-who{display:block;margin-top:3px}
+.or-who i{font-style:normal;font-family:Cinzel,serif;font-size:.62em;letter-spacing:.1em;text-transform:uppercase;border-radius:4px;padding:0 5px;margin-right:5px;border:1px solid}
+.or-who i.eng{color:#bfe6ff;border-color:rgba(127,208,255,.45)}.or-who i.orc{color:#e9c77b;border-color:rgba(233,199,123,.45)}
+.or-who i.fly{color:#c7f9c1;border-color:rgba(160,240,150,.45)}.or-who i.mkt{color:#ffc2e8;border-color:rgba(255,122,217,.45)}
+.or-who a{color:var(--gold);font-size:.85em}
+.or-pick{flex:none;font-family:Cinzel,serif;font-size:.72em;letter-spacing:.14em;border-radius:5px;padding:1px 7px;margin-top:2px}
+.or-pick.yes{color:#c7f9c1;border:1px solid rgba(160,240,150,.6);box-shadow:0 0 10px rgba(160,240,150,.25)}
+.or-pick.no{color:#ffc2b8;border:1px solid rgba(255,120,110,.6);box-shadow:0 0 10px rgba(255,120,110,.25)}
+.or-calwrap{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:12px;align-items:center;margin:10px 0}
+@media (max-width:640px){.or-calwrap{grid-template-columns:1fr}}
+.or-cal{width:100%}.or-cal-t{fill:#bfa8d9;font-size:9px;font-family:Cinzel,serif}
+.or-board td:nth-child(4){font-family:Cinzel,serif;color:#fff3c9}
 h1 .tri{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .ad-who{margin-top:14px;font-size:.84em;color:var(--ink-dim)}
 .ad-who summary{cursor:pointer;font-family:var(--mono);font-size:.85em;letter-spacing:.06em;color:var(--cyan)}
@@ -864,6 +876,19 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 .modal-bar h3{color:var(--blue);font-size:.95em;font-family:var(--mono);letter-spacing:.05em}
 .x-btn{background:none;border:1px solid var(--line);color:var(--ink-dim);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:1.05em;line-height:1;flex:none}
 .x-btn:hover{color:#fff;border-color:var(--red)}
+.hello-btn{position:fixed;top:10px;right:10px;z-index:60;background:rgba(10,16,35,.75);border:1px solid var(--line);color:var(--ink-dim);
+  font:500 .72em/1 var(--mono);letter-spacing:.06em;padding:6px 9px;border-radius:6px;cursor:pointer;opacity:.75}
+.hello-btn:hover{opacity:1;color:#fff}
+.hello-box{max-width:720px}
+.hello-body{padding:16px 20px 22px;font-size:.92em;color:var(--ink-dim);line-height:1.5}
+.hello-body h4{font-family:var(--mono);color:var(--blue);font-size:.8em;letter-spacing:.08em;text-transform:uppercase;margin:18px 0 8px}
+.hello-pick{border:1px solid var(--line2);border-radius:9px;padding:10px 12px;margin:8px 0;background:rgba(7,11,28,.6)}
+.hello-pick .q{color:#fff;font-weight:600}
+.hello-pick .row{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-family:var(--mono);font-size:.82em}
+.hello-side{font-weight:700;border-radius:5px;padding:1px 7px}
+.hello-side.yes{color:#86efac;border:1px solid #22c55e}.hello-side.no{color:#fca5a5;border:1px solid #ef4444}
+.hello-body table{width:100%;border-collapse:collapse;font-size:.85em}.hello-body td,.hello-body th{border-bottom:1px solid var(--line2);padding:5px 6px;text-align:left}
+.hello-fine{font-size:.8em;color:var(--ink-faint)}
 
 /* ---------- footer ---------- */
 .footer{background:#080d1e;border-top:1px solid var(--line);padding:22px clamp(16px,3.5vw,40px);text-align:center;color:var(--ink-faint);font-size:.8em;font-family:var(--mono);line-height:1.8}
@@ -894,6 +919,14 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 <body>
 <div class="container">
 
+  <!-- "hello": the prediction-market picks. Small and plain on purpose. -->
+  <button class="hello-btn" id="helloBtn" type="button">hello</button>
+  <div class="modal hello-modal" id="helloModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-box hello-box">
+      <div class="modal-bar"><h3>hello</h3><button class="x-btn" type="button" onclick="document.getElementById('helloModal').classList.remove('open')">&times;</button></div>
+      <div class="hello-body" id="helloBody"></div>
+    </div>
+  </div>
   <div class="header">
     <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
       <symbol id="tridentMark" viewBox="0 0 32 40">
@@ -4052,14 +4085,36 @@ function orRing(p){
   return '<span class="or-ring" style="--p:' + p + ';--c:' + col + '"><b>' + p + '<small>%</small></b></span>';
 }
 var OR = {mod:null, scene:null, items:[], sky:null};
+var OR_WIN = {'48h':'within 48 hours', '24h':'within a day', '72h':'within three days', '7d':'within the week', '30d':'within the month', '1y':'within the year'};
+var OR_ORDER = {'24h':0, '48h':1, '72h':2, '7d':3, '30d':4, '1y':5};
+/* the calibration chart: when it said x%, how often did it happen */
+function orCalib(bins){
+  var W = 300, H = 210, L = 34, B = 26, T = 10, R = 10, w = W - L - R, h = H - T - B, x = function(p){ return L + p/100*w; }, y = function(p){ return T + h - p/100*h; };
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="or-cal" role="img" aria-label="calibration chart">' +
+    '<rect x="' + L + '" y="' + T + '" width="' + w + '" height="' + h + '" fill="rgba(10,3,18,.5)" stroke="rgba(233,199,123,.3)"/>' +
+    '<line x1="' + x(0) + '" y1="' + y(0) + '" x2="' + x(100) + '" y2="' + y(100) + '" stroke="#e9c77b" stroke-dasharray="4 4" stroke-opacity=".6"/>';
+  [0, 25, 50, 75, 100].forEach(function(t){
+    s += '<text x="' + x(t) + '" y="' + (H - 8) + '" text-anchor="middle" class="or-cal-t">' + t + '%</text>' +
+         '<text x="' + (L - 5) + '" y="' + (y(t) + 3) + '" text-anchor="end" class="or-cal-t">' + t + '%</text>';
+  });
+  bins.forEach(function(b){
+    var px = (b.lo + b.hi)/2, py = b.hit/b.n*100, r = 3 + Math.min(9, Math.sqrt(b.n)*2);
+    s += '<circle cx="' + x(px) + '" cy="' + y(py) + '" r="' + r + '" fill="#ff7ad9" fill-opacity=".75" stroke="#fff3c9" stroke-width=".8"><title>said ' + b.lo + '–' + b.hi + '%: ' + b.hit + ' of ' + b.n + ' happened</title></circle>';
+  });
+  return s + '<text x="' + (L + w/2) + '" y="' + (T + 12) + '" text-anchor="middle" class="or-cal-t">on the line = honest odds</text></svg>';
+}
 function orCard(i){
   var f = OR.items[i]; if(!f) return;
   var p = +f.probability || 0;
   document.getElementById('orCard').innerHTML =
     '<div class="or-card-top">' + orRing(p) + '<div><div class="or-reg">' + esc(f.region || 'the world') + ' · ' +
-      esc({'24h':'within a day','72h':'within three days','7d':'within the week'}[f.horizon] || f.horizon || '') + '</div>' +
-      '<div class="or-ev">' + esc(f.event) + '</div><div class="or-term">' + esc(f.term || '') + '</div></div></div>' +
-    ((f.basis || []).length ? '<p><span class="or-k">THE SIGNS</span> ' + esc(f.basis.join('; ')) + '</p>' : '') +
+      esc(OR_WIN[f.horizon] || f.horizon || '') + ' · ' + (f.source === 'engine' ? 'the engine' : 'the oracle') + '</div>' +
+      '<div class="or-ev">' + esc(f.event) + '</div><div class="or-term">' + esc(f.term || '') +
+      (f.base_rate ? ' · base rate ' + f.base_rate + '%' : '') + '</div></div></div>' +
+    (f.criterion && f.criterion !== f.event ? '<p><span class="or-k">SETTLES BY</span> ' + esc(f.criterion) + '</p>' : '') +
+    ((f.basis || []).length ? '<p><span class="or-k">' + (f.source === 'engine' ? 'THE RECKONING' : 'THE SIGNS') + '</span> ' + esc(f.basis.join('; ')) + '</p>' : '') +
+    (f.fly ? '<p><span class="or-k">THE FLY</span> ' + f.fly.p + '%: ' + f.fly.hits + ' of the ' + f.fly.n + ' most similar past warnings came true, such as \u201c' + esc(f.fly.like[0] || '') + '\u201d</p>' : '') +
+
     (f.watch_for ? '<p><span class="or-k">WATCH FOR</span> ' + esc(f.watch_for) + '</p>' : '') +
     (f.wrong_if ? '<p><span class="or-k">WRONG IF</span> ' + esc(f.wrong_if) + '</p>' : '');
   Array.prototype.forEach.call(document.querySelectorAll('#cbBody .or-li'), function(li){ li.classList.toggle('on', +li.dataset.i === i); });
@@ -4176,20 +4231,21 @@ async function cbShow(){
   document.getElementById('cbSub').textContent = 'seen ' +
     at.toLocaleString([], {weekday:'short', day:'numeric', month:'short', hour:'numeric', minute:'2-digit', timeZone:'America/New_York'}) +
     ' Eastern, from everything gathered' + (b.cost_usd != null ? ' · $' + b.cost_usd.toFixed(3) : '');
-  var order = {'24h':0, '72h':1, '7d':2};
-  OR.items = (b.forecasts || []).slice().sort(function(x, y){ return (order[x.horizon] - order[y.horizon]) || (y.probability - x.probability); });
+  OR.items = (b.forecasts || []).filter(function(f){ return !f.market; }).slice().sort(function(x, y){ return ((OR_ORDER[x.horizon] || 0) - (OR_ORDER[y.horizon] || 0)) || (y.probability - x.probability); });
   var h = '', c = b.clock || {}, n = b.nuclear || {}, tr = /^(rising|easing|steady)$/.test(n.trend) ? n.trend : 'steady';
   h += '<div class="or-stage" id="orStage"><div class="or-hint">touch an orb to read its vision · drag to turn the glass</div></div>';
   if(b.bluf) h += '<p class="or-vision bm-key"><span class="or-k" data-say=": ">THE VISION</span><br>' + esc(b.bluf) + '</p>';
   h += '<div class="or-card bm-skip" id="orCard"></div>';      // the touch view; the list below is what is read aloud
   h += '<h3 class="or-h">All that the glass shows</h3>';
-  [['24h', 'Within a day'], ['72h', 'Within three days'], ['7d', 'Within the week']].forEach(function(g){
+  [['24h', 'Within a day'], ['48h', 'The next 48 hours'], ['72h', 'Within three days'], ['7d', 'This week'], ['30d', 'This month'], ['1y', 'This year']].forEach(function(g){
     var rows = OR.items.map(function(f, i){ return [f, i]; }).filter(function(x){ return x[0].horizon === g[0]; });
     if(!rows.length) return;
     h += '<h4 class="or-hz">' + g[1] + '</h4><ul class="or-list bm-key">' + rows.map(function(x){
       var f = x[0], p = +f.probability || 0;
       return '<li class="or-li" data-i="' + x[1] + '"><span class="or-dot" style="--c:' + (p >= 65 ? '#ffcf6b' : p >= 40 ? '#ff7ad9' : '#7fd0ff') + '"></span>' +
-             '<span class="or-li-p" data-say="' + esc(', ' + (f.term || '') + '. ') + '">' + p + '%</span><span class="or-li-t">' + (f.region ? '<em data-say=": ">' + esc(f.region) + '</em> ' : '') + esc(f.event) + '</span></li>';
+             '<span class="or-li-p" data-say="' + esc(', ' + (f.term || '') + '. ') + '">' + p + '%</span><span class="or-li-t">' + (f.region ? '<em data-say=": ">' + esc(f.region) + '</em> ' : '') + esc(f.event) +
+             '<span class="or-who bm-skip">' + (f.source === 'engine' ? '<i class="eng">engine · base ' + f.base_rate + '%</i>' : '<i class="orc">oracle</i>') +
+             (f.fly ? '<i class="fly">fly ' + f.fly.p + '%</i>' : '') + '</span></span></li>';
     }).join('') + '</ul>';
   });
   h += '<div class="or-twin"><div class="or-panel or-clock">' + orClock(c.seconds || 85) +
@@ -4209,14 +4265,36 @@ async function cbShow(){
   else if(!(ri.rising || []).length) h += '<p class="or-small">Nothing running unusually high.</p>';
   else h += '<ul class="or-whispers">' + ri.rising.map(function(m){ return '<li>' + esc(m.what) + ': ' + esc(String(m.now)) + ' against a usual ' + esc(String(m.usual)) + ' (' + esc(String(m.x)) + '×)</li>'; }).join('') + '</ul>';
   h += '<h3 class="or-h">The heavens tonight <span class="or-fun">for fun</span></h3><div id="orHeavens" class="or-heavens"><p class="or-small">Reading the sky&hellip;</p></div>';
-  var sc = b.score || {}, rec = (b.record || {}).by_term || {};
-  h += '<h3 class="or-h">The oracle’s ledger</h3>';
-  h += sc.resolved ? '<p class="or-small">' + sc.resolved + ' of its visions have come due · Brier score ' + sc.brier + ' (0 is perfect, 0.25 a coin toss) · ' +
+  var sc = b.score || {}, rec = (b.record || {}).by_term || {}, board = b.scoreboard || null;
+  h += '<h3 class="or-h">The oracle\u2019s ledger</h3>';
+  if(board && board.resolved){
+    var WN = {'48h':'48 hours', '7d':'a week', '30d':'a month', '1y':'a year'}, WHO = {engine:'the engine', oracle:'the oracle', fly:'the fly', market:'the crowd'};
+    var rows = '';
+    Object.keys(board.by_window || {}).forEach(function(w){
+      var r = board.by_window[w];
+      ['engine', 'oracle', 'fly', 'market'].forEach(function(k){
+        var x = r[k]; if(!x || k === 'market') return;      // the crowd is kept behind "hello"
+        var vs = x.baseline != null ? x.baseline : x.oracle, better = x.brier < vs;
+        rows += '<tr><td>' + WN[w] + '</td><td>' + WHO[k] + '</td><td>' + x.n + '</td><td>' + x.brier.toFixed(3) + '</td><td class="' + (better ? 'or-ok' : 'or-no') + '">' +
+                vs.toFixed(3) + ' <span class="or-fine">(' + esc(x.vs) + ')</span></td></tr>';
+      });
+    });
+    h += '<p class="or-small">' + board.resolved + ' forecasts settled, ' + board.open + ' still open. The Brier score is the gap between the odds and what happened: 0 is perfect, 0.25 is a coin toss, and each forecaster must beat its own baseline to be worth hearing.</p>' +
+      (rows ? '<table class="or-table or-board"><tr><th>window</th><th>who</th><th>n</th><th>Brier</th><th>to beat</th></tr>' + rows + '</table>' : '') +
+      ((board.calibration || []).length ? '<div class="or-calwrap">' + orCalib(board.calibration) + '<p class="or-fine">Each dot is a band of forecasts: across, what they said; up, how often it happened. Dots on the line mean the odds can be taken at their word. Bigger dots hold more forecasts.</p></div>' : '');
+    if((b.recent || []).length) h += '<ul class="or-whispers">' + b.recent.filter(function(r){ return r.region !== 'Market'; }).map(function(r){
+      var ok = (r.probability >= 50) === (r.outcome === 'happened');
+      return '<li><span class="' + (ok ? 'or-ok' : 'or-no') + '">' + (ok ? '✓' : '✗') + '</span> ' + esc(r.event) + ' — said ' + r.probability + '%, ' +
+             (r.outcome === 'happened' ? 'it happened' : 'it did not') + (r.evidence ? ' <span class="or-fine">(' + esc(r.evidence) + ')</span>' : '') + '</li>';
+    }).join('') + '</ul>';
+  } else {
+    h += sc.resolved ? '<p class="or-small">' + sc.resolved + ' of its visions have come due · Brier score ' + sc.brier + ' (0 is perfect, 0.25 a coin toss) · ' +
        sc.right_side + ' on the right side of 50%.</p><ul class="or-whispers">' + (sc.recent || []).map(function(r){
          var ok = (r.p >= 50) === (r.outcome === 'happened');
          return '<li><span class="' + (ok ? 'or-ok' : 'or-no') + '">' + (ok ? '✓' : '✗') + '</span> ' + esc(r.event) + ' — said ' + r.p + '%, ' + (r.outcome === 'happened' ? 'it happened' : 'it did not') + '</li>';
        }).join('') + '</ul>'
      : '<p class="or-small">Its first visions come due within a day; the ledger fills from there.</p>';
+  }
   var terms = Object.keys(rec);
   if(terms.length) h += '<p class="or-small">How the brief’s own words have held up (' + ((b.record || {}).pairs || 0) + ' scored):</p><table class="or-table"><tr><th>it said</th><th>times</th><th>came true</th></tr>' +
     terms.map(function(k){ var r = rec[k]; return '<tr><td>' + esc(k) + '</td><td>' + r.called + '</td><td>' + (r.rate == null ? '–' : Math.round(r.rate*100) + '%') + '</td></tr>'; }).join('') + '</table>';
@@ -4228,15 +4306,17 @@ async function cbShow(){
   var best = 0; OR.items.forEach(function(f, i){ if((+f.probability || 0) > (+OR.items[best].probability || 0)) best = i; });
   orCard(best);
   Array.prototype.forEach.call(document.querySelectorAll('#cbBody .or-li'), function(li){
-    li.onclick = function(){ var i = +li.dataset.i; orCard(i); if(OR.scene) OR.scene.select(i);
+    li.onclick = function(){ var i = +li.dataset.i; orCard(i); if(OR.scene) OR.scene.select(OR.orbs ? OR.orbs.indexOf(i) : i);
       document.getElementById('orStage').scrollIntoView({behavior:'smooth', block:'start'}); };
   });
   orHeavens();
   try{
     OR.mod = OR.mod || await import('./assets/oracle.js');
-    OR.scene = OR.mod.mount(document.getElementById('orStage'), OR.items.map(function(f){ return {p:+f.probability || 0}; }),
-                            function(i){ orCard(i); });
-    if(OR.scene) OR.scene.select(best);
+    OR.orbs = OR.items.map(function(f, i){ return i; }).filter(function(i){ return OR_ORDER[OR.items[i].horizon] <= 3; });
+    if(!OR.orbs.length) OR.orbs = OR.items.map(function(f, i){ return i; });
+    OR.scene = OR.mod.mount(document.getElementById('orStage'), OR.orbs.map(function(i){ return {p:+OR.items[i].probability || 0}; }),
+                            function(k){ orCard(OR.orbs[k]); });
+    if(OR.scene) OR.scene.select(Math.max(0, OR.orbs.indexOf(best)));
     else document.getElementById('orStage').classList.add('flat');
   }catch(e){ document.getElementById('orStage').classList.add('flat'); }
 }
@@ -7169,6 +7249,43 @@ function agoShort(ms){
     b.onclick = function(){ openArch(a); };
     list.appendChild(b);
   });
+})();
+
+/* "hello": the prediction-market picks, from the Crystal Ball's blind forecasts of
+   open Polymarket questions. The biggest disagreements with the market price come
+   first, with the record against the market once questions settle. */
+(function(){
+  var btn = document.getElementById('helloBtn'); if(!btn) return;
+  btn.onclick = async function(){
+    var m = document.getElementById('helloModal'), body = document.getElementById('helloBody');
+    m.classList.add('open'); body.innerHTML = '<p>Loading&hellip;</p>';
+    var t = Date.now(), urls = ['data/crystal/ball.json?t=' + t, 'https://raw.githubusercontent.com/' + GH_REPO + '/main/data/crystal/ball.json?t=' + t];
+    var got = await Promise.all(urls.map(function(u){ return fetch(u, {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); }));
+    var b = got.filter(function(x){ return x && x.forecasts; }).sort(function(x, y){ return x.at < y.at ? 1 : -1; })[0];
+    var mk = b ? (b.forecasts || []).filter(function(f){ return f.market; }) : [];
+    if(!mk.length){ body.innerHTML = '<p>No market questions yet. They are picked each morning with the forecasts.</p>'; return; }
+    mk.forEach(function(f){ f._gap = f.probability - f.market.p_market; });
+    var picks = mk.slice().sort(function(a, c){ return Math.abs(c._gap) - Math.abs(a._gap); });
+    var WIN = {'48h':'2 days', '7d':'a week', '30d':'a month', '1y':'a year'};
+    var row = null; Object.keys((b.scoreboard || {}).by_window || {}).forEach(function(w){ var x = b.scoreboard.by_window[w].market;
+      if(x){ row = row || {n:0, o:0, c:0}; row.n += x.n; row.o += x.oracle*x.n; row.c += x.brier*x.n; } });
+    var card = function(f){
+      var d = f._gap, side = d > 0 ? 'yes' : 'no';
+      return '<div class="hello-pick"><div class="q">' + esc(f.event) + '</div><div class="row">' +
+        (Math.abs(d) >= 10 ? '<span class="hello-side ' + side + '">' + side.toUpperCase() + '</span>' : '<span>agrees</span>') +
+        '<span>ours ' + f.probability + '%</span><span>market ' + f.market.p_market + '%</span><span>' + (d > 0 ? '+' : '') + d + ' pts</span>' +
+        '<span>settles in ' + (WIN[f.horizon] || f.horizon) + '</span><a href="' + esc(f.market.url) + '" target="_blank" rel="noopener">open</a></div>' +
+        ((f.basis || [])[0] ? '<div class="hello-fine" style="margin-top:4px">' + esc(f.basis[0]) + '</div>' : '') + '</div>';
+    };
+    var top = picks.filter(function(f){ return Math.abs(f._gap) >= 10; }).slice(0, 5);
+    body.innerHTML = '<h4>Top picks</h4>' + (top.length ? top.map(card).join('') : '<p>No disagreement of ten points or more today.</p>') +
+      '<p class="hello-fine">YES means our forecast is higher than the market price, NO that it is lower. Ours is made blind, without seeing the price, from everything the app gathers. ' +
+      (row ? 'Record so far on ' + row.n + ' settled questions: ours ' + (row.o/row.n).toFixed(3) + ', market ' + (row.c/row.n).toFixed(3) + ' (Brier; lower is better).'
+           : 'No question has settled yet, so there is no record against the market: these are disagreements, not proven edges.') +
+      ' Markets are hard to beat. Not financial advice.</p>' +
+      '<h4>Every market question</h4><table><tr><th>question</th><th>ours</th><th>market</th></tr>' + picks.map(function(f){
+        return '<tr><td>' + esc(f.event) + '</td><td>' + f.probability + '%</td><td>' + f.market.p_market + '%</td></tr>'; }).join('') + '</table>';
+  };
 })();
 
 /* A hidden desk opened by its gesture always opens unfolded: a fold left

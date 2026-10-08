@@ -10,6 +10,11 @@ on:
     # sources' other visitors) arrive at once.
     - cron: '11,41 * * * *'
   workflow_dispatch:
+  # A merge that changes the page goes live at once, instead of waiting for a
+  # scheduled run that GitHub may start hours late.
+  push:
+    branches: [main]
+    paths: ['template.html', 'assets/**', 'generate_brief_final.py', 'sw.js', 'VERSION']
 
 permissions:
   contents: write     # the intel-data branch, which analysis sessions read

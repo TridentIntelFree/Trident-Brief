@@ -33,6 +33,7 @@ from datetime import datetime, timedelta, timezone
 import requests
 
 from generate_brief_final import closing_items, osint_lines, indicator_lines
+import forecast_engine as fe
 
 DIR = 'data/crystal'
 OUT = os.path.join(DIR, 'ball.json')
@@ -40,7 +41,10 @@ FORECASTS = os.path.join(DIR, 'forecasts.json')
 LOG = os.path.join(DIR, 'log.json')
 DESK = 'data/analyst/desk.json'
 MODEL = 'grok-4-1-fast-reasoning'
-HORIZONS = {'24h': 1, '72h': 3, '7d': 7}
+HORIZONS = {'48h': 2, '7d': 7, '30d': 30, '1y': 365, '24h': 1, '72h': 3}    # the last two: older forecasts
+WINDOW_NAME = {'48h': 'the next 48 hours', '7d': 'the next 7 days', '30d': 'the next 30 days', '1y': 'the next 12 months'}
+QUOTA = {'48h': 8, '7d': 8, '30d': 8, '1y': 12}       # questions per window, all forecasters together
+CADENCE = {'48h': 0, '7d': 6, '30d': 28, '1y': 88}    # days before a window gets a fresh set: daily, weekly, monthly, quarterly
 GRACE_DAYS = 3             # an unresolved forecast is closed as unclear this long after its deadline
 BASELINE_DAYS = 5          # log days needed before "what's rising" is reported
 CLOCK_URL = 'https://thebulletin.org/doomsday-clock/'
@@ -86,7 +90,7 @@ def doomsday(prev):
 def track_record():
     """Each archived brief's warnings, scored by the next brief's FORECAST CHECK, by stated odds."""
     files = sorted(f for f in glob.glob('archive/*.md') if re.search(r'\d{4}-\d\d-\d\d-\d{4}\.md$', f))
-    rec = {}
+    rec, items = {}, []
     pairs = 0
     for prev, nxt in zip(files, files[1:]):
         try:
@@ -104,11 +108,13 @@ def track_record():
             row['called'] += 1
             row[{'TRIGGERED': 'triggered', 'NOT TRIGGERED': 'not'}.get(v, 'open')] += 1
             pairs += 1
+            if v in ('TRIGGERED', 'NOT TRIGGERED'):           # for the fly: past warnings and how they turned out
+                items.append({'text': i.split('->')[0].strip()[:300], 'outcome': 'happened' if v == 'TRIGGERED' else 'did_not_happen'})
     for t, row in rec.items():
         done = row['triggered'] + row['not']
         row['rate'] = round(row['triggered'] / done, 2) if done else None
     order = [w[0] for w in WEP]
-    return {'pairs': pairs, 'briefs': len(files),
+    return {'pairs': pairs, 'briefs': len(files), 'items': items,
             'by_term': dict(sorted(rec.items(), key=lambda kv: order.index(kv[0]) if kv[0] in order else 99))}
 
 
@@ -256,25 +262,40 @@ def score(forecasts):
 
 
 # --------------------------------------------------------------- prompt
-def build_prompt(now, brief, collected, snap, mov, record, sc, due, desk):
+def build_prompt(now, brief, collected, snap, mov, record, sc, desk, due_windows, engine, markets, quota):
     def lines(xs):
         return '\n'.join('- ' + str(x) for x in xs) or '- none'
     heads = '\n'.join(f'{d.upper()}: ' + ' | '.join(t for t in ts if t) for d, ts in snap.get('headlines', {}).items())
     rec = '\n'.join(f"- '{t}': called {r['called']}x, came true {r['triggered']}, did not {r['not']}, still open {r['open']}"
                     + (f" -> {int(r['rate'] * 100)}% came true" if r.get('rate') is not None else '')
                     for t, r in record['by_term'].items()) or '- no history yet'
-    own = (f"Your own forecasts so far: {sc['resolved']} resolved, Brier score {sc.get('brier')} (0 is perfect, 0.25 is a coin "
-           f"toss), {sc.get('right_side')} on the right side of 50%.") if sc.get('resolved') else 'You have no resolved forecasts yet.'
+    board = []
+    for w, row in (sc.get('by_window') or {}).items():
+        o = row.get('oracle')
+        if o:
+            board.append(f"{WINDOW_NAME[w]}: {o['n']} resolved, Brier {o['brier']} (baseline {o['baseline']})")
+    own = ('Your resolved forecasts so far: ' + '; '.join(board) + '. Lower Brier is better; beat the baseline.') if board \
+        else 'None of your forecasts has resolved yet.'
     rising = (lines(f"{m['what']}: {m['now']} vs usual {m['usual']} ({m['x']}x)" for m in mov['rising'])
               if mov['baseline_days'] >= mov['needed'] else
               f"- baseline still building ({mov['baseline_days']} of {mov['needed']} days logged); no rising list yet")
-    due_txt = '\n'.join(f"- id {f['id']}: \"{f['event']}\" (said {f['probability']}% within {f['horizon']}, "
-                        f"made {f['made'][:10]}, deadline {f['deadline'][:10]})" for f in due) or '- none due'
+    eng = '\n'.join(f"- [{WINDOW_NAME[f['horizon']]}] {f['event']}: {f['probability']}% (base rate {f['base_rate']}%)" for f in engine) or '- none'
+    mk = '\n'.join(f"- id {m['id']} [{WINDOW_NAME[m['window']]}, settles {m['end'][:10]}]: {m['question']}"
+                   + (f" Rules: {m['rules'][:300]}" if m.get('rules') else '') for m in markets) or '- none today'
+    asks = '; '.join(f"{quota[w]} for {WINDOW_NAME[w]} (horizon \"{w}\")" for w in due_windows if quota.get(w))
     return f"""CRYSTAL BALL -- projected forecast. It is {now:%A %d %B %Y, %H:%M} UTC.
 
-You are a forecaster, not a reporter. Do not retell what has happened; use it to say what happens NEXT.
-Work only from the material below (no searching). Reason efficiently: this runs on a small budget, so
-think in a straight line toward the forecasts and do not restate the inputs.
+You are a superforecaster. Your forecasts are scored by Brier score against a baseline, in four windows:
+48 hours, 7 days, 30 days and 12 months. Accuracy is the only goal. Work only from the material below
+(no searching), think in a straight line, and do not restate the inputs.
+
+How good forecasters work, and how you will work:
+- Start from a base rate: how often does this kind of thing happen in a window this long? Then adjust for
+  the specific signals. Say both.
+- Every question must settle cleanly: name the source that would report it, the exact threshold, and the
+  deadline. "Tensions rise" is not a forecast; "Taiwan MND reports 25 or more PLA aircraft on a single day
+  before 15 October" is.
+- Use the full range. Most events in 48 hours do not happen; longer windows allow more.
 
 == LATEST BRIEF (collected {collected[:16]}) ==
 {brief}
@@ -308,41 +329,61 @@ UVB-76 / HFGCS monitor reports (strategic radio; timing only, content is coded):
 == HEADLINES (wire, by desk) ==
 {heads}
 
-== YOUR TRACK RECORD ==
-The briefs' warnings, by the odds they stated, as scored afterwards:
+== THE ENGINE (statistical forecasts from years of records; already on the board, do not repeat them) ==
+{eng}
+Use these as base rates for the tempo of the war and of rocket fire when you judge related events.
+
+== TRACK RECORD ==
+The briefs' own warnings, by the odds they stated, as scored afterwards:
 {rec}
 {own}
-Use this: if a term has come true much more or less often than its band, adjust your numbers.
+If a term has come true much more or less often than its band, adjust.
 
-== RESOLVE THESE (your earlier forecasts whose window has closed) ==
-{due_txt}
-Judge each only from the material above: "happened", "did_not_happen", or "unclear" if the material
-does not settle it.
+== MARKET QUESTIONS (forecast each one; you are being compared with the crowd, so judge independently) ==
+{mk}
 
 == WRITE ==
+New forecasts today: {asks}.
 Return ONLY one JSON object:
-{{"bluf": "two or three sentences: the outlook for the next week and the single biggest risk",
-  "forecasts": [{{"horizon": "24h | 72h | 7d", "region": "short", "event": "a specific, observable event a
-     headline could confirm, with its threshold", "probability": 0-100, "basis": ["the signals that point to it"],
+{{"bluf": "two or three sentences: the outlook and the single biggest risk",
+  "forecasts": [{{"horizon": "one of the windows above", "region": "short", "event": "the event, specific and observable",
+     "criterion": "exactly how it settles: the source, the threshold, the deadline",
+     "base_rate": 0-100, "probability": 0-100, "basis": ["the signals that move you off the base rate"],
      "watch_for": "the earliest sign it is coming", "wrong_if": "what would show this forecast is wrong"}}],
+  "market_forecasts": [{{"id": "...", "probability": 0-100, "basis": "one sentence"}}],
   "pre_headline": [{{"signal": "something moving that is not in the headlines yet", "source": "where you saw it",
      "why": "what it may lead to"}}],
-  "nuclear": {{"trend": "steady | rising | easing", "why": "one or two sentences on nuclear and strategic risk
-     this week, from the material"}},
-  "resolutions": [{{"id": "...", "outcome": "happened | did_not_happen | unclear", "evidence": "short"}}]}}
-Rules: 7-10 forecasts across the three horizons; every one about the future, specific enough to be scored,
-never already true now; at least three below 50%; probabilities honest, not all 60-80; no two forecasts
-about the same event; pre_headline up to 6, only things the headlines do not already carry."""
+  "nuclear": {{"trend": "steady | rising | easing", "why": "one or two sentences on nuclear and strategic risk"}}}}
+Rules: exactly the numbers asked for in each window; about the future only, never already true; no two about the
+same event; none that duplicate the engine's questions; a spread of probabilities, including low ones; for the
+12-month window, structural questions (wars ending or starting, leaders falling, treaties, nuclear tests, borders);
+pre_headline up to 6, only things the headlines do not already carry."""
 
 
-def ask(prompt):
+def grade_prompt(now, due):
+    items = '\n'.join(f"- id {f['id']}: \"{f['event']}\" — settles by: {f.get('criterion') or 'the event as stated'} "
+                      f"(window {f['made'][:10]} to {f['deadline'][:10]})" for f in due)
+    return f"""You are grading forecasts that have come due. It is {now:%d %B %Y}. For each one, search for what
+actually happened inside its window and settle it strictly by its stated criterion.
+- If the criterion names a number, compare the reported number with it: 16 crossings is NOT 25.
+- "happened" only with a report from inside the window; "did_not_happen" when the window passed without one;
+  "unclear" only when the reporting genuinely cannot settle it.
+- Search efficiently: about one search per forecast, never more than {max(4, len(due) + 2)} in all.
+
+{items}
+
+Return ONLY JSON: {{"resolutions": [{{"id": "...", "outcome": "happened | did_not_happen | unclear",
+"evidence": "one sentence with the figure or fact", "url": "the source"}}]}}"""
+
+
+def ask(prompt, tools=None):
     key = os.environ.get('GROK_API_KEY', '')
     if not key:
         sys.exit('The GROK_API_KEY secret is not set.')
     r = requests.post('https://api.x.ai/v1/responses', timeout=300,
                       headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {key}'},
                       json={'model': MODEL, 'input': [{'role': 'user', 'content': prompt}],
-                            'temperature': 0.3, 'max_output_tokens': 8000})
+                            'temperature': 0.3, 'max_output_tokens': 12000, **({'tools': tools} if tools else {})})
     if r.status_code != 200:
         raise RuntimeError(f'xAI answered HTTP {r.status_code}: {r.text[:300]}')
     data = r.json()
@@ -361,6 +402,36 @@ def ask(prompt):
 
 
 # ----------------------------------------------------------------- main
+def due_windows(forecasts, now):
+    """Which windows get a fresh set today: 48 hours daily, a week weekly, a month monthly, a year quarterly."""
+    out = []
+    for w, every in CADENCE.items():
+        made = [f['made'] for f in forecasts if f.get('horizon') == w and f.get('source')]   # sets made since the four windows began
+        last = max(made) if made else ''
+        if not last or last < (now - timedelta(days=every, hours=-2)).strftime('%Y-%m-%dT%H:%M:%SZ') or every == 0:
+            out.append(w)
+    return out
+
+
+def settle(forecasts, series, now, stamp):
+    """Settle what can be settled for free: the engine from the records, markets from Polymarket."""
+    n = 0
+    for f in forecasts:
+        if f.get('outcome') or f['deadline'] > stamp:
+            continue
+        got = None
+        if f.get('source') == 'engine':
+            got = fe.resolve_engine(f, series, now)
+        elif f.get('market'):
+            got = fe.resolve_market(f)
+        if got:
+            f.update(outcome=got[0], resolved=stamp, evidence=got[1])
+            n += 1
+        elif f.get('source') == 'engine' and f['deadline'] < (now - timedelta(days=21)).strftime('%Y-%m-%dT%H:%M:%SZ'):
+            f.update(outcome='unclear', resolved=stamp, evidence='the record never covered the window')
+    return n
+
+
 def main():
     now = datetime.now(timezone.utc)
     stamp, today = now.strftime('%Y-%m-%dT%H:%M:%SZ'), now.strftime('%Y-%m-%d')
@@ -376,62 +447,123 @@ def main():
     mov = movers(log, today)
     record = track_record()
     forecasts = load(FORECASTS, [])
+    series, notes = fe.refresh_series(now)
+    for n in notes:
+        print('  records: ' + n)
+
+    # 1. settle: free first (records, markets), then one search call for the event questions
+    free = settle(forecasts, series, now, stamp)
     for f in forecasts:     # close the ones that have been unresolvable for too long
-        if not f.get('outcome') and f['deadline'] < (now - timedelta(days=GRACE_DAYS)).strftime('%Y-%m-%dT%H:%M:%SZ'):
+        if not f.get('outcome') and f['deadline'] < (now - timedelta(days=GRACE_DAYS + 7)).strftime('%Y-%m-%dT%H:%M:%SZ'):
             f.update(outcome='unclear', resolved=stamp, evidence='not settled within the grace period')
-    due = [f for f in forecasts if not f.get('outcome') and f['deadline'] <= stamp][:20]
-    sc = score(forecasts)
+    due = [f for f in forecasts if not f.get('outcome') and f['deadline'] <= stamp
+           and f.get('source', 'oracle') == 'oracle' and not f.get('market')][:12]
+    grade_spend = None
+    if due:
+        try:
+            g, grade_spend = ask(grade_prompt(now, due), tools=[{'type': 'web_search'}])
+            by_id = {f['id']: f for f in forecasts}
+            for r in g.get('resolutions') or []:
+                f = by_id.get(str(r.get('id')))
+                if f and not f.get('outcome') and r.get('outcome') in ('happened', 'did_not_happen', 'unclear'):
+                    if r['outcome'] == 'unclear' and f['deadline'] > (now - timedelta(days=GRACE_DAYS)).strftime('%Y-%m-%dT%H:%M:%SZ'):
+                        continue        # give it more days before calling it unclear
+                    f.update(outcome=r['outcome'], resolved=stamp, evidence=str(r.get('evidence', ''))[:200],
+                             url=str(r.get('url', ''))[:300])
+        except Exception as e:
+            print(f'  grading skipped this run: {str(e)[:120]}')
+    print(f"settled {free} free, {len(due)} sent for grading")
+
+    # 2. today's windows: the engine and the markets first, then the Oracle fills the rest
+    windows = due_windows(forecasts, now)
+    engine = [f for w in windows for f in fe.engine_forecasts(series, now, w)]
+    markets = []
+    for w in windows:
+        for m in fe.fetch_markets(now, w):
+            if not any((f.get('market') or {}).get('id') == m['id'] and not f.get('outcome') for f in forecasts):
+                markets.append(dict(m, window=w))
+    quota = {w: max(2, QUOTA[w] - sum(1 for f in engine if f['horizon'] == w) - sum(1 for m in markets if m['window'] == w))
+             for w in windows}
+    sc = fe.scoreboard(forecasts)
     clock = doomsday(prev.get('clock'))
-    print(f"track record: {record['pairs']} scored warnings from {record['briefs']} briefs; "
-          f"{len(due)} of my forecasts due; baseline {mov['baseline_days']} days")
+    print(f"windows today: {', '.join(windows)}; engine {len(engine)}, markets {len(markets)}, Oracle asked {quota}")
 
-    ans, spend = ask(build_prompt(now, brief, collected, snap, mov, record, sc, due, desk_signals()))
+    ans, spend = ask(build_prompt(now, brief, collected, snap, mov, record, sc, desk_signals(), windows, engine, markets, quota))
 
-    by_id = {f['id']: f for f in forecasts}
-    for r in ans.get('resolutions') or []:
-        f = by_id.get(str(r.get('id')))
-        if f and not f.get('outcome') and r.get('outcome') in ('happened', 'did_not_happen', 'unclear'):
-            if r['outcome'] == 'unclear' and f['deadline'] > (now - timedelta(days=GRACE_DAYS)).strftime('%Y-%m-%dT%H:%M:%SZ'):
-                continue        # give it more days before calling it unclear
-            f.update(outcome=r['outcome'], resolved=stamp, evidence=str(r.get('evidence', ''))[:200])
-    new = []
-    for n, f in enumerate(ans.get('forecasts') or [], 1):
+    # 3. the new set: the Oracle's questions (with the fly's view), the market questions, the engine's
+    run = now.strftime('%Y-%m-%dT%H%M')
+    new, n = [], 0
+    items = record.get('items', []) + [{'text': f['event'], 'outcome': f['outcome']} for f in forecasts
+                                        if f.get('source', 'oracle') == 'oracle' and f.get('outcome') in ('happened', 'did_not_happen')]
+    for f in ans.get('forecasts') or []:
         try:
             h = str(f.get('horizon', '')).strip().lower().replace(' ', '')
-            h = h if h in HORIZONS else '72h'
+            h = h if h in windows else windows[0]
             p = max(1, min(99, int(round(float(f.get('probability'))))))
-            new.append({'id': f"{now.strftime('%Y-%m-%dT%H%M')}-{n}", 'made': stamp, 'horizon': h,
+            n += 1
+            ev = str(f.get('event', ''))[:300]
+            new.append({'id': f'{run}-{n}', 'source': 'oracle', 'made': stamp, 'horizon': h,
                         'deadline': (now + timedelta(days=HORIZONS[h])).strftime('%Y-%m-%dT%H:%M:%SZ'),
-                        'region': str(f.get('region', ''))[:40], 'event': str(f.get('event', ''))[:300],
-                        'probability': p, 'term': wep_for(p),
+                        'region': str(f.get('region', ''))[:40], 'event': ev, 'criterion': str(f.get('criterion', ''))[:300],
+                        'probability': p, 'term': wep_for(p), 'base_rate': max(0, min(100, int(float(f.get('base_rate') or 0)))),
                         'basis': [str(b)[:160] for b in (f.get('basis') or [])][:4],
-                        'watch_for': str(f.get('watch_for', ''))[:200], 'wrong_if': str(f.get('wrong_if', ''))[:200]})
+                        'watch_for': str(f.get('watch_for', ''))[:200], 'wrong_if': str(f.get('wrong_if', ''))[:200],
+                        'fly': fe.fly_on_warnings(ev, items)})
         except Exception:
             continue
-    if not new:
+    mf = {str(x.get('id')): x for x in ans.get('market_forecasts') or [] if isinstance(x, dict)}
+    for m in markets:
+        x = mf.get(m['id'])
+        try:
+            p = max(1, min(99, int(round(float(x.get('probability'))))))
+        except Exception:
+            continue
+        n += 1
+        new.append({'id': f'{run}-{n}', 'source': 'oracle', 'made': stamp, 'horizon': m['window'], 'deadline': m['end'],
+                    'region': 'Market', 'event': m['question'], 'criterion': 'as Polymarket settles it', 'probability': p,
+                    'term': wep_for(p), 'basis': [str(x.get('basis', ''))[:200]],
+                    'market': {'id': m['id'], 'p_market': m['p_market'], 'url': m['url']}})
+    for f in engine:
+        n += 1
+        new.append(dict(f, id=f'{run}-{n}', made=stamp, term=wep_for(f['probability']),
+                        deadline=f['resolve']['end'] + 'T23:59:59Z'))
+    if not any(f['source'] == 'oracle' for f in new):
         sys.exit('Grok returned no usable forecasts; the previous crystal ball is left in place.')
     # every run's forecasts are kept and scored, a rerun on the same day included: discarding a set
     # before it is due would hide forecasts that might have gone wrong
     forecasts = forecasts + new
-    sc = score(forecasts)
+    sc = fe.scoreboard(forecasts)
+    latest = {}                         # the newest set in each window is what the page shows
+    for f in forecasts:
+        w = f.get('horizon')
+        if w in QUOTA and not f.get('outcome'):
+            latest.setdefault(w, {})
+            latest[w].setdefault(f['made'], []).append(f)
+    current = {w: sets[max(sets)] for w, sets in latest.items()}
     nuc = ans.get('nuclear') or {}
-    out = {'v': 1, 'at': stamp, 'brief_collected': collected, 'bluf': str(ans.get('bluf', ''))[:600],
-           'forecasts': new,
+    total = round((spend.get('cost_usd') or 0) + ((grade_spend or {}).get('cost_usd') or 0), 4)
+    out = {'v': 2, 'at': stamp, 'brief_collected': collected, 'bluf': str(ans.get('bluf', ''))[:600],
+           'forecasts': [f for w in QUOTA for f in current.get(w, [])],
+           'windows': {w: {'made': current[w][0]['made'], 'n': len(current[w])} for w in current},
            'pre_headline': [{k: str(p.get(k, ''))[:240] for k in ('signal', 'source', 'why')}
                             for p in (ans.get('pre_headline') or []) if isinstance(p, dict)][:6],
            'nuclear': {'trend': str(nuc.get('trend', 'steady'))[:10], 'why': str(nuc.get('why', ''))[:400]},
-           'clock': clock, 'score': sc, 'record': record, 'rising': mov,
+           'clock': clock, 'score': score(forecasts), 'scoreboard': sc, 'record': {k: v for k, v in record.items() if k != 'items'},
+           'rising': mov,
+           'recent': [{k: f.get(k) for k in ('event', 'probability', 'outcome', 'evidence', 'horizon', 'source', 'resolved', 'url')}
+                      for f in sorted((f for f in forecasts if f.get('outcome') in ('happened', 'did_not_happen')),
+                                      key=lambda f: f.get('resolved', ''), reverse=True)[:12]],
            'open': [{k: f[k] for k in ('event', 'probability', 'deadline', 'horizon')}
-                    for f in forecasts if not f.get('outcome') and f['made'][:10] != today][:12],
-           'spend': spend, 'cost_usd': spend.get('cost_usd')}
+                    for f in forecasts if not f.get('outcome') and f['made'] < min(x['made'] for x in new)][:12],
+           'spend': spend, 'grade_spend': grade_spend, 'cost_usd': total}
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(out, f, separators=(',', ':'))
     with open(FORECASTS, 'w', encoding='utf-8') as f:
-        json.dump(forecasts[-400:], f, indent=1)
+        json.dump(forecasts[-1500:], f, indent=1)
     with open(LOG, 'w', encoding='utf-8') as f:
         json.dump(log, f, separators=(',', ':'))
-    print(f"written: {len(new)} forecasts, {len(out['pre_headline'])} pre-headline signals, "
-          f"score {sc}, clock {clock['seconds']} s, cost ${spend.get('cost_usd')}")
+    per = ', '.join(f"{w} {sum(1 for x in new if x['horizon'] == w)}" for w in windows)
+    print(f"written: {len(new)} forecasts ({per}), {sc['resolved']} resolved on file, clock {clock['seconds']} s, cost ${total}")
 
 
 if __name__ == '__main__':
