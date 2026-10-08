@@ -4,6 +4,33 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.30.1 — 2026-10-08
+
+### Fixed: PUBLIC LAND ONLY routed across known private land
+- **It only made private land expensive (40 times the time), never
+  forbidden.** From a start surrounded by private pasture, crossing it still
+  won against a long detour. Now:
+  - private land cannot be walked at all, except within 250 m of the start
+    and destination (your own land, where you parked);
+  - public roads through it stay walkable;
+  - when no all-public way exists, it says so and suggests DRIVE, THEN WALK
+    or asking the landowner, instead of drawing a trespass route.
+- **No land data means no plan.** If the land-ownership maps do not arrive,
+  PUBLIC LAND ONLY refuses to plan rather than quietly ignoring ownership.
+- **DRIVE, THEN WALK with PUBLIC LAND ONLY parks for the walk in.** It
+  scores every possible parking spot by drive time plus the walk to the
+  destination over the ownership map, at 100 m cells, with private land
+  impassable. Before, it parked by straight-line distance, which could leave
+  you on the private side.
+
+### Added
+- **PERMIT LAND: AVOID / I HAVE THE PERMITS.** With permits, restricted
+  public land counts as public: state wildlife areas, which in Virginia need
+  a DWR Access Permit at 17+ unless you hold a hunting or fishing licence.
+- **SHOW LAND OWNERSHIP HERE** (GO TO tab) shades the area on screen: green
+  public, amber questionable, unshaded private, each with its reason. The map
+  guide now says the base map's own colours do not show ownership.
+
 ## 1.30.0 — 2026-10-08
 
 ### Added: HOW TO USE THE MAP
