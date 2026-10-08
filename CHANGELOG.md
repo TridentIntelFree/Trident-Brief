@@ -4,6 +4,14 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.28.3 — 2026-10-08
+
+### Library: the Army manual, shrunk to fit a phone
+- FM 21-76 arrived but is a scan over 30 MB. The library job now shrinks
+  scans over 12 MB with Ghostscript (images at about 150 dpi, still readable)
+  and keeps them if they come in under 40 MB. The page says when a document
+  was reduced.
+
 ## 1.28.2 — 2026-10-08
 
 ### Library: the Army survival manual from a source that answers

@@ -1842,7 +1842,8 @@ function libPaint(){
       el.className = '';
       el.innerHTML = docs.map(function(d){
         return '<div class="ap-lib-doc"><div class="t">' + esc(d.title) + '</div><div class="ap-dim">' + esc(d.publisher) + (d.year ? ', ' + d.year : '') +
-          (d.pages ? ' &middot; ' + d.pages + ' pages' : '') + ' &middot; ' + (d.bytes/1048576).toFixed(1) + ' MB</div><div>' + esc(d.about) + '</div>' +
+          (d.pages ? ' &middot; ' + d.pages + ' pages' : '') + ' &middot; ' + (d.bytes/1048576).toFixed(1) + ' MB' +
+          (d.shrunk ? ' (scanned; images reduced to about 150 dpi for phones)' : '') + '</div><div>' + esc(d.about) + '</div>' +
           '<div class="ap-row"><a class="ap-btn" style="text-decoration:none" href="' + esc(d.file) + '" target="_blank" rel="noopener">OPEN</a>' +
           (d._saved ? '<span class="ap-good">saved on this phone</span> <button class="ap-btn" data-lib-del="' + esc(d.file) + '">REMOVE</button>'
                     : '<button class="ap-btn" data-lib-save="' + esc(d.file) + '">&#11015; SAVE FOR OFFLINE</button>') + '</div>' +
