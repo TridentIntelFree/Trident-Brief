@@ -4,6 +4,25 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.32.0 — 2026-10-08
+
+### Changed: the hidden area brief covers 200 miles around Tazewell
+- **One report, Tazewell at the centre.** Each section gives Tazewell County
+  and the towns around it in full first, then the region out to about 200
+  miles, nearest first: southern West Virginia, eastern Kentucky, northeast
+  Tennessee, southwest Virginia and northwest North Carolina. In the region
+  it reports the bigger things: major and federal cases, crime and drug
+  trends, state government actions, big employers and energy, severe weather
+  and interstate closures. Every item says where (town, county, state).
+- Written every morning at 6:47 a.m. Eastern by the same job and the same
+  `GROK_API_KEY`, still one Grok call. It has more searches (12, was 8) and
+  room for a longer answer. Cost: roughly 2–5 cents more a day than the
+  county-only brief (it was about 7 cents); the run logs the real figure.
+- **"Appalachian Intel" ×3 now asks for a code (0330)** before it opens, once
+  per visit. It keeps the brief out of casual reach. It locks nothing: the
+  brief is a plain file in the public repository, and the privacy panel says
+  so.
+
 ## 1.31.0 — 2026-10-08
 
 ### Added: printing that prints what you asked for
