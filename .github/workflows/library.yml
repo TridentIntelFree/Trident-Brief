@@ -1,0 +1,47 @@
+name: Survival Library
+
+# Fetches the public-domain survival manuals listed in library_fetch.py into
+# library/, so the trail map can offer them for offline reading. Runs when the
+# list changes, by hand, and monthly to pick up new editions. No secrets.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['library_fetch.py', '.github/workflows/library.yml']
+  schedule:
+    - cron: '41 7 3 * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: survival-library
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - name: Fetch the library
+        run: python3 library_fetch.py
+      - name: Commit the library
+        run: |
+          git config user.name "Trident Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add library/
+          if git diff --cached --quiet; then
+            echo "Library unchanged"
+            exit 0
+          fi
+          git commit -m "Survival library $(date -u +'%Y-%m-%d')"
+          for i in 1 2 3; do
+            git push origin HEAD:main && break
+            git pull --rebase origin main || true
+            sleep $((i * 5))
+          done

@@ -11,7 +11,8 @@
      OpenTopoMap and Waymarked Trails do not allow bulk or offline copies. */
 const SHELL = 'tb-shell-v2';     // v2: drops copies of briefing.js cached before it went network-first
 const TILES = 'tb-tiles-v1';      // areas saved on purpose: never trimmed
-const BROWSE = 'tb-browse-v1';    // tiles kept from ordinary browsing: capped
+const BROWSE = 'tb-browse-v1';
+const LIBRARY = 'tb-library-v1';  // survival manuals saved on purpose: never trimmed    // tiles kept from ordinary browsing: capped
 const SHELL_FILES = ['./', 'assets/leaflet/leaflet.js', 'assets/leaflet/leaflet.css',
                      'assets/leaflet/images/layers.png', 'assets/leaflet/images/layers-2x.png',
                      'assets/appalachistan.js', 'assets/appalachia.json', 'assets/briefing.js',
@@ -28,7 +29,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(
-    keys.filter(k => k.startsWith('tb-') && k !== SHELL && k !== TILES && k !== BROWSE).map(k => caches.delete(k))))
+    keys.filter(k => k.startsWith('tb-') && k !== SHELL && k !== TILES && k !== BROWSE && k !== LIBRARY).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -130,6 +131,13 @@ self.addEventListener('fetch', e => {
     return;
   }
   if(url.origin !== self.location.origin) return;
+  // a saved manual opens with no signal, even as a page of its own
+  if(url.pathname.includes('/library/')){
+    e.respondWith(url.pathname.endsWith('/index.json')
+      ? fetch(req).catch(() => caches.open(LIBRARY).then(c => c.match(req, {ignoreSearch: true})).then(hit => hit || new Response('', {status: 504})))
+      : caches.open(LIBRARY).then(c => c.match(req, {ignoreSearch: true})).then(hit => hit || fetch(req)));
+    return;
+  }
   if(req.mode === 'navigate'){ e.respondWith(networkFirst(req, e)); return; }
   const p = url.pathname;
   // the read-aloud script changes with the page, so it is fetched fresh whenever there is signal
