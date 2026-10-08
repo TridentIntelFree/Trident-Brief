@@ -1823,6 +1823,56 @@ function routeGpx(){
   download('route-' + String(ROUTE.name).replace(/[^\w-]+/g, '-').slice(0, 30) + '.gpx', out.join('\n'));
 }
 
+/* ----------------------------------------------------------- library
+   Real public-domain manuals (library_fetch.py puts them in library/). The
+   list loads when the box is opened; SAVE keeps a PDF on the phone, and the
+   service worker hands it back with no signal. */
+var LIB_CACHE = 'tb-library-v1';
+function libPaint(){
+  var el = $('apLibList'); if(!el) return;
+  var get = function(u){ return fetch(u, {cache:'no-cache'}).then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); };
+  get('library/index.json').catch(function(){
+    return ('caches' in window) ? caches.open(LIB_CACHE).then(function(c){ return c.match('library/index.json'); })
+      .then(function(r){ if(!r) throw new Error('not saved'); return r.json(); }) : Promise.reject(new Error('offline'));
+  }).then(function(ix){
+    var docs = ix.docs || [];
+    return Promise.all(docs.map(function(d){
+      return ('caches' in window) ? caches.open(LIB_CACHE).then(function(c){ return c.match(d.file); }).then(function(h){ d._saved = !!h; return d; }) : d;
+    })).then(function(docs){
+      el.className = '';
+      el.innerHTML = docs.map(function(d){
+        return '<div class="ap-lib-doc"><div class="t">' + esc(d.title) + '</div><div class="ap-dim">' + esc(d.publisher) + (d.year ? ', ' + d.year : '') +
+          (d.pages ? ' &middot; ' + d.pages + ' pages' : '') + ' &middot; ' + (d.bytes/1048576).toFixed(1) + ' MB</div><div>' + esc(d.about) + '</div>' +
+          '<div class="ap-row"><a class="ap-btn" style="text-decoration:none" href="' + esc(d.file) + '" target="_blank" rel="noopener">OPEN</a>' +
+          (d._saved ? '<span class="ap-good">saved on this phone</span> <button class="ap-btn" data-lib-del="' + esc(d.file) + '">REMOVE</button>'
+                    : '<button class="ap-btn" data-lib-save="' + esc(d.file) + '">&#11015; SAVE FOR OFFLINE</button>') + '</div>' +
+          (d.note ? '<div class="ap-dim">' + esc(d.note) + '</div>' : '') + '</div>';
+      }).join('') + '<div class="ap-dim">' + esc(ix.license || '') + ' Sources: ' + docs.map(function(d){
+        return '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(d.publisher) + '</a>'; }).join(', ') + '.</div>' +
+        (docs.length ? '<div class="ap-row"><button class="ap-btn" data-lib-save="*">SAVE ALL (' + (docs.reduce(function(a, d){ return a + (d.bytes || 0); }, 0)/1048576).toFixed(1) + ' MB)</button></div>' : '');
+      el._docs = docs;
+    });
+  }).catch(function(){
+    el.className = 'ap-dim';
+    el.textContent = navigator.onLine ? 'The library is not on the site yet; it is fetched by a scheduled job. Check back soon.'
+                                      : 'No signal, and the library has not been saved on this phone yet.';
+  });
+}
+(function(){
+  var box = $('apLib'); if(!box) return;
+  box.addEventListener('toggle', function(){ if(box.open) libPaint(); });
+  $('apLibList').addEventListener('click', function(e){
+    var sv = e.target.closest('[data-lib-save]'), dl = e.target.closest('[data-lib-del]');
+    if(!('caches' in window) || (!sv && !dl)) return;
+    if(dl){ caches.open(LIB_CACHE).then(function(c){ return c.delete(dl.dataset.libDel); }).then(libPaint); return; }
+    var files = sv.dataset.libSave === '*' ? ($('apLibList')._docs || []).map(function(d){ return d.file; }) : [sv.dataset.libSave];
+    sv.disabled = true; sv.textContent = 'saving\u2026';
+    if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function(){});
+    caches.open(LIB_CACHE).then(function(c){ return c.addAll(['library/index.json'].concat(files)); })
+      .then(libPaint).catch(function(){ sv.disabled = false; sv.textContent = 'could not save (signal?)'; });
+  });
+})();
+
 /* ------------------------------------------------------------ panel */
 function kv(k, v){ return '<div class="ap-kv"><span>' + esc(k) + '</span><b>' + v + '</b></div>'; }
 function showTab(t){

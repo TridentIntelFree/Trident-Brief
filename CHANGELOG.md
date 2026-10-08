@@ -4,6 +4,26 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.28.0 — 2026-10-08
+
+### Added: a survival library of real manuals, for offline
+- Inside the survival guide: real public-domain documents, each works of the
+  US federal government:
+  - **US Army ATP 3-50.21 *Survival* (2018):** the Army's survival manual,
+    approved for public release;
+  - **NWS "Lightning: Don't Get Caught Outside";**
+  - **CDC Tick Removal (2025);**
+  - **MSHA "Stay Out of Abandoned Mines".**
+- OPEN reads one. SAVE FOR OFFLINE, or SAVE ALL, keeps the PDFs on the phone,
+  and the service worker opens them with no signal.
+- `library_fetch.py` and `.github/workflows/library.yml` fetch them onto the
+  site, because the sandboxes cannot reach those servers. They run when the
+  list changes and monthly for new editions. A file must be a PDF under 30 MB,
+  or the old copy is kept. No secrets.
+- The PRIVACY panel notes the library is served from this site.
+
+Cost per run: nothing; no model calls.
+
 ## 1.27.0 — 2026-10-08
 
 ### Added: PLAN A WALKING ROUTE (GO TO tab)
