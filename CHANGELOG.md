@@ -4,6 +4,21 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.25.1 — 2026-10-08
+
+### Fixed: the hidden desks showing in the scroll
+- **Phones bring a page back exactly as it was left**, so a desk opened by its
+  gesture earlier sat there in the scroll for anyone to see. The hidden desks
+  (Crystal Ball, Analyst Desk, Tazewell) now close themselves when a phone
+  restores the page from memory, or when you come back after five minutes away,
+  unless one is being read aloud.
+- **Closed desks are folded too**, with no fold control showing, and they no
+  longer leave a fold setting on the device. Only the gesture opens one, and it
+  opens unfolded. Read-aloud works as before, and a reading already running
+  carries on when the desk is hidden with its "hide" button.
+- **The PRIVACY panel gave secrets away:** it named the Crystal Ball and
+  Polymarket. It now says only "fonts" and "links to sources".
+
 ## 1.25.0 — 2026-10-08
 
 ### Added: privacy for visitors
