@@ -114,6 +114,11 @@ The owner's standing rules:
   anything it fetches on its own goes through `jget`, so private mode blocks it.
 - **Always honest about contacts.** Every site the page or the server jobs
   reach out to is disclosed in the PRIVACY panel, hidden features included.
+- **Walking routes walk, and never trespass.** A walking request gets a
+  walking route, never a suggestion to drive or switch modes. PUBLIC LAND ONLY
+  never crosses private land (only up to 250 m to leave where you start); if
+  the destination can't be reached legally, the route stops at the nearest
+  legal point and says so.
 - **Mind the cost.** Prefer free sources and caching to model calls, and say
   what a change costs per run.
 - **Be honest about results.** Noise is noise, a frozen feed is frozen, and
