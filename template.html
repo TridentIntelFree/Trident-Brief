@@ -980,9 +980,23 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <li><b>Terrain, imagery and site weather:</b> public AWS open-data buckets (Sentinel-2, USGS elevation, terrain tiles) and Open-Meteo, for the place you picked.</li>
           <li><b>ZIP lookup:</b> zippopotam.us.</li>
           <li><b>Local Intel with your own xAI key:</b> your ZIP and the request go to xAI under your key, and xAI's terms apply.</li>
-          <li>Other map layers you pick (OpenStreetMap, OpenTopoMap, Esri, Waymarked Trails), and links to sources, which load nothing until clicked.</li>
+          <li>Other map layers you pick (OpenStreetMap, OpenTopoMap, Esri, Waymarked Trails), and links (X, Polymarket, the sources), which load nothing until clicked.</li>
         </ul>
-        <p>Fonts are served from this site, not Google Fonts.</p>
+        <p>The Crystal Ball's fonts are served from this site, not Google Fonts.</p>
+
+        <h4>Hidden features</h4>
+        <p>A few features are tucked out of the way to keep the page tidy: the Tazewell area brief, the Analyst Desk, the Crystal Ball
+          (forecasts, and an astrology reading for fun), the &ldquo;hello&rdquo; box with prediction-market picks, and the owner's panel.
+          Hidden is not secret, and they follow the same rules. They read their data from GitHub only. The &ldquo;hello&rdquo; box links to
+          Polymarket but contacts it only if a link is clicked. The owner's panel talks to GitHub's API with the owner's own token.</p>
+
+        <h4>What the server does</h4>
+        <p>The brief is put together by scheduled jobs on GitHub Actions, not in your browser. They read about 70 public sources: news feeds,
+          government warning and alert services, earthquake, aircraft and ship feeds, sanctions lists, GDELT, internet-outage data, and
+          Polymarket prices to check the forecasts against. They translate foreign-language items with Google's and Microsoft's free
+          translation services, ask xAI's Grok (with Groq as a fallback) to search X and the web and to write, and check weekly which
+          KiwiSDR receivers the tuner can reach. Nothing about visitors goes into any of it. The full list is in the
+          <a href="https://github.com/TridentIntelFree/Trident-Brief" target="_blank" rel="noopener">source code</a>.</p>
 
         <h4>Saved on this device only</h4>
         <p>Folded sections, tuner and read-aloud settings, the map layer, a Morse log if you save one, map areas saved for offline use, an offline copy of the page,
