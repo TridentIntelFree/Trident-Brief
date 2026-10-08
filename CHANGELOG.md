@@ -4,6 +4,34 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.33.0 — 2026-10-08
+
+### Added: space weather
+- **A SPACE WEATHER section** (header link SPACE WX), folded on open:
+  - the NOAA scales now: G (geomagnetic storm), S (solar radiation) and
+    R (radio blackout), the worst in the past 24 hours, and the 3-day
+    outlook with the chance of blackouts and radiation storms;
+  - the Kp index, observed and forecast;
+  - the solar wind at L1: speed, density, Bz and Bt;
+  - GOES X-rays now and the M and X flares of the past 7 days;
+  - CMEs of the past 7 days, with the WSA-Enlil modelled Earth arrival
+    and Kp for any heading this way;
+  - SWPC alerts and warnings from the past 48 hours;
+  - **For Tazewell**, a rough guide: aurora chance, HF radio, GPS and the
+    power grid, keeping what is happening now apart from what is forecast.
+- Read on every half-hourly refresh by the server, from NOAA's Space Weather
+  Prediction Center and NASA's DONKI through CCMC (no key). Visitors'
+  browsers contact neither. The PRIVACY panel lists both.
+- **The brief's prompt** gets a short space-weather summary. The model is
+  told to mention it only at G3, R3 or S2 or stronger, for an Earth-directed
+  CME, or as a possible cause of GPS or HF-radio trouble.
+- **`intel.py space`** for sessions, plus a line in the overview and a
+  space-weather record in the daily digests on intel-data.
+- Cost: free data. The prompt grows by a few hundred tokens, a fraction of a
+  cent per brief.
+- Tested on mock NOAA and NASA responses in both layouts SWPC uses. The live
+  feeds are checked on the first GitHub run.
+
 ## 1.32.0 — 2026-10-08
 
 ### Changed: the hidden area brief covers 200 miles around Tazewell

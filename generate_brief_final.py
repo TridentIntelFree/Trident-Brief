@@ -2985,6 +2985,243 @@ def indicator_lines(ind):
     return out + ['']
 
 
+# ---------------------------------------------------------------- space weather
+# Free and keyless: NOAA's Space Weather Prediction Center for conditions now
+# (the R/S/G scales and 3-day outlook, Kp, solar wind from DSCOVR/ACE, GOES
+# X-rays and flares, SWPC alerts), and NASA's DONKI database through the CCMC
+# endpoint (no api.nasa.gov key) for CMEs and their WSA-Enlil arrival runs.
+SWPC = 'https://services.swpc.noaa.gov/'
+DONKI = 'https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get/'
+SW_UA = {'User-Agent': 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'}
+
+
+def _sw_get(url, timeout=20):
+    r = requests.get(url, timeout=timeout, headers=SW_UA)
+    r.raise_for_status()
+    return r.json()
+
+
+def _sw_rows(d):
+    """SWPC products come as a header row then rows, or as a list of objects."""
+    if isinstance(d, list) and d and isinstance(d[0], list):
+        return [dict(zip(d[0], r)) for r in d[1:]]
+    return [x for x in d or [] if isinstance(x, dict)]
+
+
+def _num(x):
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return None
+
+
+def _flare_class(flux):
+    if flux is None or flux <= 0:
+        return None
+    for letter, base in (('X', 1e-4), ('M', 1e-5), ('C', 1e-6), ('B', 1e-7), ('A', 1e-8)):
+        if flux >= base:
+            return f'{letter}{flux / base:.1f}'
+    return 'A0'
+
+
+def _sw_scales(now):
+    d = _sw_get(SWPC + 'products/noaa-scales.json')
+    def one(k):
+        x = d.get(k) or {}
+        g = lambda a, b: (x.get(a) or {}).get(b)
+        return {'date': ' '.join(filter(None, (x.get('DateStamp'), x.get('TimeStamp')))) or None,
+                'R': g('R', 'Scale'), 'S': g('S', 'Scale'), 'G': g('G', 'Scale'),
+                'r12': g('R', 'MinorProb'), 'r3': g('R', 'MajorProb'), 's1': g('S', 'Prob'), 'gtext': g('G', 'Text')}
+    return {'past24': one('-1'), 'now': one('0'), 'days': [one(str(i)) for i in (1, 2, 3) if str(i) in d]}
+
+
+def _sw_kp(now):
+    rows = _sw_rows(_sw_get(SWPC + 'products/noaa-planetary-k-index.json'))
+    obs = [(str(r.get('time_tag'))[:16], _num(r.get('Kp', r.get('kp_index', r.get('kp'))))) for r in rows]
+    obs = [x for x in obs if x[1] is not None][-24:]
+    out = {'recent': obs, 'now': obs[-1][1] if obs else None, 'at': obs[-1][0] if obs else None,
+           'max24': max((k for _, k in obs[-8:]), default=None)}
+    try:
+        fc = _sw_rows(_sw_get(SWPC + 'products/noaa-planetary-k-index-forecast.json'))
+        pred = [(str(r.get('time_tag'))[:16], _num(r.get('kp', r.get('Kp')))) for r in fc
+                if str(r.get('observed', '')).lower() == 'predicted']
+        pred = [x for x in pred if x[1] is not None]
+        out['forecast'] = pred[:24]
+        out['forecast_max'] = max(pred, key=lambda x: x[1]) if pred else None
+    except Exception as e:
+        out['forecast_err'] = str(e)[:80]
+    return out
+
+
+def _sw_wind(now):
+    pl = _sw_rows(_sw_get(SWPC + 'products/solar-wind/plasma-1-day.json'))
+    mg = _sw_rows(_sw_get(SWPC + 'products/solar-wind/mag-1-day.json'))
+    sp = [(r.get('time_tag'), _num(r.get('speed')), _num(r.get('density'))) for r in pl]
+    sp = [x for x in sp if x[1] is not None]
+    bz = [(r.get('time_tag'), _num(r.get('bz_gsm')), _num(r.get('bt'))) for r in mg]
+    bz = [x for x in bz if x[1] is not None]
+    last_hr = bz[-60:]
+    return {'speed': round(sp[-1][1]) if sp else None, 'density': sp[-1][2] if sp else None,
+            'speed_max24': round(max(x[1] for x in sp)) if sp else None,
+            'bz': bz[-1][1] if bz else None, 'bt': bz[-1][2] if bz else None,
+            'bz_min1h': min(x[1] for x in last_hr) if last_hr else None,
+            'at': str((sp or bz or [[None]])[-1][0])[:16]}
+
+
+def _sw_xray(now):
+    rows = _sw_get(SWPC + 'json/goes/primary/xrays-1-day.json')
+    lo = sorted((r for r in rows if str(r.get('energy')) == '0.1-0.8nm' and _num(r.get('flux'))), key=lambda r: str(r.get('time_tag')))
+    out = {}
+    if lo:
+        out['now'] = _flare_class(_num(lo[-1]['flux']))
+        out['at'] = str(lo[-1].get('time_tag'))[:16]
+        pk = max(lo, key=lambda r: _num(r['flux']))
+        out['peak24'] = _flare_class(_num(pk['flux']))
+        out['peak24_at'] = str(pk.get('time_tag'))[:16]
+    try:
+        fl = _sw_get(SWPC + 'json/goes/primary/xray-flares-7-day.json')
+        big = [{'peak': str(f.get('max_time'))[:16], 'cls': f.get('max_class'), 'begin': str(f.get('begin_time'))[:16]}
+               for f in fl if str(f.get('max_class') or '')[:1] in ('M', 'X')]
+        out['flares7d'] = sorted(big, key=lambda f: f['peak'], reverse=True)[:12]
+    except Exception as e:
+        out['flares_err'] = str(e)[:80]
+    return out
+
+
+def _sw_alerts(now):
+    rows = _sw_get(SWPC + 'products/alerts.json')
+    cut = (now - timedelta(hours=48)).strftime('%Y-%m-%d %H:%M')
+    out = []
+    for a in rows:
+        at = str(a.get('issue_datetime') or '')[:16]
+        if at < cut:
+            continue
+        msg = str(a.get('message') or '')
+        title = next((l.strip() for l in msg.splitlines()
+                      if re.match(r'\s*(ALERT|WARNING|WATCH|SUMMARY|EXTENDED WARNING|CANCEL)', l)), '') or msg.strip()[:90]
+        out.append({'at': at, 'id': a.get('product_id'), 'title': title[:140]})
+    out.sort(key=lambda a: a['at'], reverse=True)
+    return {'list': out[:20]}
+
+
+def _sw_cmes(now):
+    q = f"?startDate={(now - timedelta(days=7)):%Y-%m-%d}&endDate={now:%Y-%m-%d}"
+    cmes = _sw_get(DONKI + 'CME' + q, timeout=30) or []
+    out = []
+    for c in cmes:
+        an = [a for a in c.get('cmeAnalyses') or [] if a.get('isMostAccurate')] or (c.get('cmeAnalyses') or [])[-1:]
+        a = an[0] if an else {}
+        hit, kp, glance = None, None, False
+        for e in a.get('enlilList') or []:
+            for i in e.get('impactList') or []:
+                if str(i.get('location')) == 'Earth':
+                    hit = hit or i.get('arrivalTime'); glance = glance or bool(i.get('isGlancingBlow'))
+            if e.get('estimatedShockArrivalTime') and (e.get('isEarthGB') is not None or hit):
+                hit = hit or e.get('estimatedShockArrivalTime'); glance = glance or bool(e.get('isEarthGB'))
+            ks = [_num(e.get(k)) for k in ('kp_18', 'kp_90', 'kp_135', 'kp_180')]
+            ks = [k for k in ks if k is not None]
+            if ks:
+                kp = max(kp or 0, max(ks))
+        out.append({'id': c.get('activityID'), 'start': str(c.get('startTime'))[:16], 'src': c.get('sourceLocation') or '',
+                    'speed': _num(a.get('speed')), 'width': _num(a.get('halfAngle')) and _num(a.get('halfAngle')) * 2,
+                    'type': a.get('type'), 'earth': str(hit)[:16] if hit else None, 'glancing': glance,
+                    'kp': kp, 'note': (c.get('note') or '')[:240], 'link': c.get('link')})
+    out.sort(key=lambda c: c['start'], reverse=True)
+    try:
+        gst = _sw_get(DONKI + 'GST' + q, timeout=30) or []
+        storms = [{'start': str(g.get('startTime'))[:16],
+                   'kp': max((_num(k.get('kpIndex')) or 0 for k in g.get('allKpIndex') or []), default=None)} for g in gst]
+    except Exception:
+        storms = []
+    return {'list': out[:15], 'earth': [c for c in out if c['earth']], 'storms': storms}
+
+
+# A rough guide for Tazewell, VA (about 37 N, geomagnetic latitude about 47 N).
+# G level from Kp: Kp 5 = G1 ... Kp 9 = G5.
+def _sw_local(sw):
+    kp = sw.get('kp') or {}
+    sc = sw.get('scales') or {}
+    lv = lambda x: int(_num(x) or 0)
+    g_now = max(lv((sc.get('now') or {}).get('G')), int((kp.get('now') or 0) - 4))
+    fmax = (kp.get('forecast_max') or [None, None])[1] or 0
+    g_fc = max([lv(d.get('G')) for d in sc.get('days') or []] + [int(fmax - 4)])
+    k_now = kp.get('now') or 0
+    def say(level, now_txt, fc_txt, quiet):
+        return now_txt if g_now >= level else fc_txt if g_fc >= level else quiet
+    lines = []
+    if k_now >= 8:
+        lines.append('Aurora: likely visible from Tazewell now if it is dark and clear, at least low in the north')
+    elif k_now >= 7:
+        lines.append('Aurora: possible very low on the northern horizon now; a phone camera may catch it first')
+    elif fmax >= 7:
+        lines.append(f'Aurora: possible from Tazewell if the forecast storm (Kp {fmax:g}) peaks after dark; look low in the north')
+    else:
+        lines.append('Aurora: not expected this far south (it needs Kp 7 or more)')
+    r = lv((sc.get('now') or {}).get('R'))
+    lines.append('HF radio: ' + ('blackout on the sunlit side of the Earth now (R3 or worse)' if r >= 3 else
+                                 'degraded on the sunlit side now (R1-R2)' if r >= 1 else 'no radio blackout now') +
+                 ('; the storm also degrades HF at night' if g_now >= 2 else ''))
+    lines.append('GPS: ' + say(3, 'errors and dropouts possible now (G3 or stronger storm)',
+                               'errors possible if the forecast G3 or stronger storm arrives', 'normal as far as space weather goes'))
+    lines.append('Power grid: ' + say(4, 'voltage control problems possible now (G4 or stronger)',
+                                      'possible problems if the forecast G4 or stronger storm arrives', 'no space-weather concern'))
+    return lines
+
+
+def fetch_space_weather():
+    now = datetime.now(timezone.utc)
+    out, notes = {}, {}
+    for key, fn in (('scales', _sw_scales), ('kp', _sw_kp), ('wind', _sw_wind), ('xray', _sw_xray),
+                    ('alerts', _sw_alerts), ('cmes', _sw_cmes)):
+        try:
+            out[key] = fn(now)
+            notes[key] = 'ok'
+        except Exception as e:
+            notes[key] = 'ERR ' + str(e)[:80]
+    if not any(v == 'ok' for v in notes.values()):
+        raise RuntimeError('no space-weather source answered: ' + '; '.join(f'{k} {v}' for k, v in notes.items()))
+    out['local'] = _sw_local(out)
+    out['notes'] = notes
+    out['fetched_at'] = now.strftime('%Y-%m-%dT%H:%M:%SZ')
+    print('  space weather: ' + '; '.join(f'{k} {v}' for k, v in notes.items()))
+    return out
+
+
+def space_lines(sw):
+    """Space weather for the prompts, compact."""
+    if not sw:
+        return []
+    sc, kp, wd, xr = (sw.get(k) or {} for k in ('scales', 'kp', 'wind', 'xray'))
+    cm, al = sw.get('cmes') or {}, (sw.get('alerts') or {}).get('list') or []
+    out = ['SPACE WEATHER - NOAA SWPC and NASA DONKI, read by the pipeline this run:']
+    if sc:
+        n, p = sc.get('now') or {}, sc.get('past24') or {}
+        days = '; '.join(f"{d.get('date', '')[:10]}: R1-R2 {d.get('r12')}%, R3+ {d.get('r3')}%, S1+ {d.get('s1')}%, G{d.get('G')}"
+                         for d in sc.get('days') or [])
+        out.append(f"- NOAA scales now R{n.get('R')} S{n.get('S')} G{n.get('G')}; past 24 h max R{p.get('R')} S{p.get('S')} G{p.get('G')}; "
+                   f"outlook: {days or 'n/a'}")
+    if kp:
+        fm = kp.get('forecast_max')
+        out.append(f"- Kp now {kp.get('now')} ({kp.get('at')}Z), 24 h max {kp.get('max24')}; "
+                   f"forecast peak {fm[1] if fm else 'n/a'}{' at ' + fm[0] + 'Z' if fm else ''}")
+    if wd:
+        out.append(f"- Solar wind {wd.get('speed')} km/s (24 h max {wd.get('speed_max24')}), Bz {wd.get('bz')} nT "
+                   f"(lowest in the last hour {wd.get('bz_min1h')}); southward Bz lets a storm couple to Earth")
+    if xr:
+        fl = ', '.join(f"{f['cls']} {f['peak']}Z" for f in (xr.get('flares7d') or [])[:6])
+        out.append(f"- GOES X-rays now {xr.get('now')}, 24 h peak {xr.get('peak24')} at {xr.get('peak24_at')}Z; M/X flares, 7 days: {fl or 'none'}")
+    if cm:
+        e = cm.get('earth') or []
+        out.append(f"- CMEs in DONKI, 7 days: {len(cm.get('list') or [])}; with a modelled Earth arrival: " +
+                   ('; '.join(f"{c['id']} {c['speed'] and round(c['speed'])} km/s, arrival {c['earth']}Z"
+                              f"{' (glancing blow)' if c['glancing'] else ''}, model Kp up to {c['kp']}" for c in e[:4]) or 'none'))
+    if al:
+        out.append('- SWPC alerts and warnings, 48 h: ' + '; '.join(f"{a['at']}Z {a['title']}" for a in al[:6]))
+    out.append('Mention space weather only when it matters: G3 or stronger, R3 or stronger, S2 or stronger, an Earth-directed '
+               'CME, or as a possible cause of GPS or HF-radio anomalies elsewhere in the brief. Otherwise one line at most.')
+    return out + ['']
+
+
 def fetch_primary_leads(hours, wire_hours=None):
     leads, errors = {}, {}
     nw, err = fetch_navwarnings()
@@ -3017,6 +3254,10 @@ def fetch_primary_leads(hours, wire_hours=None):
         leads['indicators'] = fetch_indicators()
     except Exception as e:
         errors['indicators'] = str(e)[:160]
+    try:
+        leads['space'] = fetch_space_weather()
+    except Exception as e:
+        errors['space'] = str(e)[:160]
     leads['errors'] = errors
     return leads
 
@@ -3100,6 +3341,7 @@ def leads_block(leads, hours):
                 '']
     out += osint_lines(leads.get('osint'))
     out += indicator_lines(leads.get('indicators'))
+    out += space_lines(leads.get('space'))
     if not (nw or gd):
         return '\n'.join(out) + '\n'
     out += ['',
@@ -3617,6 +3859,8 @@ def fetch_server_feeds(leads=None):
         feeds['osint'] = osint_for_page(leads['osint'])
     if leads.get('indicators'):
         feeds['indicators'] = leads['indicators']
+    if leads.get('space'):
+        feeds['space'] = leads['space']
     if leads.get('wire'):
         feeds['wire'] = wire_for_page(leads['wire'])
     errors.update(leads.get('errors') or {})

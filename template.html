@@ -755,6 +755,14 @@ pre.raw{white-space:pre-wrap;font-family:inherit;line-height:1.7}
 .ind-row{display:flex;justify-content:space-between;gap:8px;border-top:1px solid rgba(148,163,184,.12);padding:2px 0}
 .ind-row span:last-child{font-family:var(--mono);color:#fff;white-space:nowrap}
 .ind-c .sig-small{margin-top:4px}
+.sw-sc{display:flex;gap:6px;margin:4px 0 6px}
+.sw-sc b{flex:1;text-align:center;font-family:var(--mono);font-size:1.05em;padding:5px 0;border-radius:7px;background:rgba(148,163,184,.12);color:#fff}
+.sw-sc b small{display:block;font-size:.62em;font-weight:400;color:var(--ink-dim);letter-spacing:.06em}
+.sw-sc b.l1{background:rgba(250,204,21,.25)}.sw-sc b.l2{background:rgba(249,115,22,.32)}.sw-sc b.l3{background:rgba(239,68,68,.38)}
+.sw-sc b.l4,.sw-sc b.l5{background:rgba(190,24,93,.5)}
+.ind-spark i.fc{background:#38bdf8;opacity:.6}
+.ind-c .sw-hit{color:#f97316}
+.ind-row.sw-txt span{font-family:inherit;white-space:normal;color:#e2e8f0}
 .os-note{color:var(--ink-faint);font-size:.78em;line-height:1.55;margin:10px 0 0}
 .os-note a{color:var(--ink-dim)}
 .tz-band{border-top:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.035)}
@@ -1093,8 +1101,8 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 
         <h4>What the server does</h4>
         <p>The brief is put together by scheduled jobs on GitHub Actions, not in your browser. They read about 70 public sources: news feeds,
-          government warning and alert services, earthquake, aircraft and ship feeds, sanctions lists, GDELT, internet-outage data, and
-          Polymarket prices to check the forecasts against. They translate foreign-language items with Google's and Microsoft's free
+          government warning and alert services, earthquake, aircraft and ship feeds, sanctions lists, GDELT, internet-outage data, space weather
+          (NOAA&rsquo;s Space Weather Prediction Center and NASA&rsquo;s DONKI at CCMC), and Polymarket prices to check the forecasts against. They translate foreign-language items with Google's and Microsoft's free
           translation services, ask xAI's Grok (with Groq as a fallback) to search X and the web and to write, and check weekly which
           KiwiSDR receivers the tuner can reach. Nothing about visitors goes into any of it. The full list is in the
           <a href="https://github.com/TridentIntelFree/Trident-Brief" target="_blank" rel="noopener">source code</a>.</p>
@@ -1478,6 +1486,20 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       internet outages from <a href="https://ioda.inetintel.cc.gatech.edu/" target="_blank" rel="noopener">IODA</a> (Georgia Tech), and
       sanctions lists from <a href="https://www.opensanctions.org/" target="_blank" rel="noopener">OpenSanctions</a>. Claimed losses are one side&rsquo;s
       figures; verified counts lag events by days; an outage is a lead, not a cause.</p>
+  </div>
+
+  <!-- ============ SPACE WEATHER ============ -->
+  <div class="section-band" id="spaceBand" style="display:none">
+    <div class="band-head">
+      <h2>&#9728;&#65039; Space Weather &mdash; storms, flares, CMEs</h2>
+      <div class="sub" id="spaceSub"></div>
+    </div>
+    <div class="ind-grid" id="spaceGrid"></div>
+    <p class="os-note">Read on every refresh by the server, not your browser: the NOAA scales, Kp, solar wind, GOES X-rays and alerts from
+      NOAA&rsquo;s <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">Space Weather Prediction Center</a>, and CMEs with
+      their WSA-Enlil arrival forecasts from NASA&rsquo;s <a href="https://kauai.ccmc.gsfc.nasa.gov/DONKI/" target="_blank" rel="noopener">DONKI</a>
+      (CCMC). CME arrival times are model runs, often hours off, and a CME&rsquo;s strength at Earth depends on its magnetic field, which
+      is only measured an hour or so before it arrives. G = geomagnetic storm, S = solar radiation storm, R = radio blackout, each 0&ndash;5.</p>
   </div>
 
   <!-- ============ RECURRENCE ============ -->
@@ -4951,6 +4973,94 @@ async function cbShow(){
   if(typeof foldable === 'function') foldable('indBand', false);
 })();
 
+/* ----------------------------------------------------- SPACE WEATHER */
+(function(){
+  var SW = (typeof FEEDS !== 'undefined' && FEEDS && FEEDS.space) || null;
+  var band = document.getElementById('spaceBand');
+  if(!band || !SW || !SW.fetched_at) return;
+  function et(t){                       // the feeds give UTC as "2026-10-08 14:21" or "2026-10-08T14:21"
+    if(!t) return '—';
+    var d = new Date(String(t).replace(' ', 'T').replace(/Z?$/, 'Z'));
+    if(isNaN(d)) return esc(t);
+    return d.toLocaleString('en-US', {weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZone:'America/New_York'}) + ' ET';
+  }
+  function row(a, b){ return '<div class="ind-row"><span>' + a + '</span><span>' + b + '</span></div>'; }
+  function lvl(x){ var n = parseInt(x, 10); return isNaN(n) ? 0 : n; }
+  function v(x, u){ return x == null ? '—' : x + (u || ''); }
+  function chips(o){
+    return '<div class="sw-sc">' + [['G', 'STORM'], ['S', 'RADIATION'], ['R', 'RADIO']].map(function(k){
+      var n = lvl(o[k[0]]); return '<b class="l' + n + '">' + k[0] + n + '<small>' + k[1] + '</small></b>'; }).join('') + '</div>';
+  }
+  function spark(obs, fc){
+    var all = obs.map(function(x){ return [x[0], x[1], 0]; }).concat((fc || []).map(function(x){ return [x[0], x[1], 1]; }));
+    return '<div class="ind-spark">' + all.map(function(x){
+      return '<i' + (x[2] ? ' class="fc"' : '') + ' style="height:' + Math.max(3, x[1]/9*100).toFixed(0) + '%" title="' + esc(x[0]) + 'Z Kp ' + x[1] + (x[2] ? ' (forecast)' : '') + '"></i>'; }).join('') + '</div>';
+  }
+  var cards = [], sc = SW.scales, kp = SW.kp, wd = SW.wind, xr = SW.xray, cm = SW.cmes, al = SW.alerts;
+  if(SW.local && SW.local.length)
+    cards.push('<div class="ind-c"><h4>FOR TAZEWELL</h4>' + SW.local.map(function(l){ return '<div class="ind-row sw-txt"><span>' + esc(l) + '</span></div>'; }).join('') +
+               '<div class="sig-small">a rough guide for about 37&deg;N</div></div>');
+  if(sc){
+    var h = '<div class="ind-c"><h4>NOAA SCALES &mdash; NOW</h4>' + chips(sc.now || {});
+    var p = sc.past24 || {};
+    h += '<div class="sig-small">worst in the past 24 h: G' + lvl(p.G) + ' S' + lvl(p.S) + ' R' + lvl(p.R) + '</div>';
+    (sc.days || []).forEach(function(d){
+      h += row(esc(String(d.date || '').slice(5, 10)), 'G' + lvl(d.G) + ' · R1–2 ' + v(d.r12, '%') + ' · R3+ ' + v(d.r3, '%') + ' · S1+ ' + v(d.s1, '%'));
+    });
+    cards.push(h + '<div class="sig-small">the next three days: storm level, and the chance of radio blackouts and radiation storms</div></div>');
+  }
+  if(kp){
+    var fm = kp.forecast_max;
+    cards.push('<div class="ind-c"><h4>Kp INDEX</h4><span class="big">' + v(kp.now) + '</span> now · 24 h max ' + v(kp.max24) +
+      spark(kp.recent || [], kp.forecast) +
+      '<div class="sig-small">3-hourly, observed (yellow) then forecast (blue)' + (fm ? ' · forecast peak Kp ' + fm[1] + ' around ' + et(fm[0]) : '') +
+      '. Kp 5 = G1 storm, 7 = G3, 9 = G5.</div></div>');
+  }
+  if(wd){
+    var bzs = wd.bz != null && wd.bz < -5;
+    cards.push('<div class="ind-c"><h4>SOLAR WIND</h4>' + row('speed', v(wd.speed, ' km/s')) + row('24 h fastest', v(wd.speed_max24, ' km/s')) +
+      row('density', v(wd.density, ' /cm³')) +
+      row(bzs ? '<span class="up">Bz (southward)</span>' : 'Bz', v(wd.bz, ' nT') + ' · lowest 1 h ' + v(wd.bz_min1h)) +
+      row('total field Bt', v(wd.bt, ' nT')) +
+      '<div class="sig-small">at L1, about an hour upstream of Earth · ' + et(wd.at) + '. Fast wind with a strongly southward Bz is what drives a storm.</div></div>');
+  }
+  if(xr){
+    var fl = xr.flares7d || [];
+    cards.push('<div class="ind-c"><h4>SOLAR FLARES &mdash; GOES X-RAYS</h4><span class="big">' + esc(xr.now || '—') + '</span> now · 24 h peak ' + esc(xr.peak24 || '—') +
+      (fl.length ? fl.slice(0, 6).map(function(f){ return row(et(f.peak), '<b' + (/^X/.test(f.cls) ? ' class="up"' : '') + '>' + esc(f.cls) + '</b>'); }).join('')
+                 : '<div class="sig-small">no M or X flares in 7 days</div>') +
+      '<div class="sig-small">M and X flares, 7 days. M5 or more can black out HF radio on the sunlit side (R2+).</div></div>');
+  }
+  if(cm){
+    var e = cm.earth || [], list = cm.list || [];
+    var h2 = '<div class="ind-c"><h4>CMEs &mdash; 7 DAYS</h4>';
+    h2 += e.length ? e.slice(0, 4).map(function(c){
+      return '<div class="ind-row"><span class="sw-hit">&#8594; Earth ' + et(c.earth) + (c.glancing ? ' (glancing)' : '') + '</span><span>' +
+        (c.speed ? Math.round(c.speed) + ' km/s' : '') + (c.kp ? ' · Kp ≤' + c.kp : '') + '</span></div>' +
+        '<div class="sig-small">left the Sun ' + et(c.start) + (c.src ? ' from ' + esc(c.src) : '') +
+        (c.link ? ' · <a href="' + esc(c.link) + '" target="_blank" rel="noopener">DONKI</a>' : '') + '</div>';
+    }).join('') : '<div class="sig-small">none with a modelled Earth arrival</div>';
+    h2 += '<div class="sig-small">' + list.length + ' CME' + (list.length === 1 ? '' : 's') + ' catalogued in 7 days' +
+      (list.length ? '; fastest ' + Math.round(Math.max.apply(null, list.map(function(c){ return c.speed || 0; }))) + ' km/s' : '') +
+      ((cm.storms || []).length ? ' · storms logged: ' + cm.storms.map(function(g){ return 'Kp ' + (Math.round(g.kp*3)/3).toFixed(1).replace(/\.0$/, '') + ' ' + et(g.start); }).join(', ') : '') +
+      '. Arrival times are model runs, often hours off.</div>';
+    cards.push(h2 + '</div>');
+  }
+  if(al && (al.list || []).length){
+    cards.push('<div class="ind-c"><h4>SWPC ALERTS &mdash; 48 H</h4>' + al.list.slice(0, 8).map(function(a){
+      return '<div class="ind-row sw-txt"><span>' + esc(a.title) + '</span></div><div class="sig-small">' + et(a.at) + '</div>'; }).join('') + '</div>');
+  }
+  if(!cards.length) return;
+  document.getElementById('spaceGrid').innerHTML = cards.join('');
+  var bad = Object.keys(SW.notes || {}).filter(function(k){ return /^ERR/.test(SW.notes[k]); });
+  var now = (sc && sc.now) || {};
+  document.getElementById('spaceSub').textContent = 'G' + lvl(now.G) + ' S' + lvl(now.S) + ' R' + lvl(now.R) +
+    (kp && kp.now != null ? ' · Kp ' + kp.now : '') + (cm && (cm.earth || []).length ? ' · ' + cm.earth.length + ' Earth-directed CME' + (cm.earth.length === 1 ? '' : 's') : '') +
+    ' · read ' + String(SW.fetched_at).replace('T', ' ').slice(0, 16) + 'Z' + (bad.length ? ' · unavailable this time: ' + bad.join(', ') : '');
+  band.style.display = '';
+  if(typeof foldable === 'function') foldable('spaceBand', false);
+})();
+
 /* The way in on a new device: tap the version number five times quickly. */
 (function(){
   var v = document.querySelector('.hdr-top .ver'), taps = [];
@@ -7849,7 +7959,7 @@ function printMode(mode){
    list is rebuilt as feeds arrive. Any in-page link to a section does the same. */
 (function(){
   var NAV = [['brief', 'BRIEF'], ['godseye', 'GOD\u2019S EYE'], ['terrainBand', 'TERRAIN'], ['eventBand', 'EVENTS'], ['wireBand', 'WIRE'],
-             ['sigBand', 'RADIO'], ['osBand', 'OSINT'], ['indBand', 'INDICATORS'], ['recurBand', 'RECURRING'], ['localBand', 'LOCAL INTEL'],
+             ['sigBand', 'RADIO'], ['osBand', 'OSINT'], ['indBand', 'INDICATORS'], ['spaceBand', 'SPACE WX'], ['recurBand', 'RECURRING'], ['localBand', 'LOCAL INTEL'],
              ['flyBand', 'NOVELTY'], ['archiveBand', 'ARCHIVE'], ['appBand', 'TRAIL MAP']];
   var nav = document.getElementById('secNav'); if(!nav) return;
   function shown(id){

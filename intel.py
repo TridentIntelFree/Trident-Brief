@@ -16,6 +16,7 @@ reads all of it through git, falling back to raw.githubusercontent.com.
     python3 intel.py telegram [N]      the latest Telegram war-channel posts, in English
     python3 intel.py gdelt | wire [N] | quakes | launches | disasters | gps
     python3 intel.py indicators        air-raid alarms (Ukraine, Israel), claimed vs verified losses, internet outages, sanctions
+    python3 intel.py space             space weather: NOAA G/S/R scales, Kp, solar wind, flares, CMEs and Earth arrivals (DONKI)
     python3 intel.py radio             radio monitor reports from X, and the retired relay's archive
     python3 intel.py spectro FILE [t0 t1]   spectrogram PNG of a radio clip (needs numpy, matplotlib, imageio-ffmpeg)
     python3 intel.py crystal | desk | area
@@ -156,6 +157,7 @@ def v_overview():
     v_warnings(limit=10)
     _osint_summary(f)
     _indicator_summary(f)
+    _space_summary(f)
     head('GDELT HOTSPOTS (3+ outlets)')
     for g in (f.get('gdelt') or [])[:8]:
         print(f"  {g.get('events', 0):>4} ev {g.get('outlets', 0):>3} outlets  {clip(g.get('place'), 50):50} {', '.join(g.get('what') or [])[:60]}")
@@ -272,6 +274,50 @@ def _indicator_summary(f, full=False):
 
 def v_indicators():
     _indicator_summary(feeds()[0], full=True)
+
+
+def _space_summary(f, full=False):
+    sw = f.get('space') or {}
+    if not sw:
+        return
+    bad = [k for k, v in (sw.get('notes') or {}).items() if str(v).startswith('ERR')]
+    head(f"SPACE WEATHER, read {str(sw.get('fetched_at'))[:16]}Z {age(sw.get('fetched_at'))}" +
+         (f" (unavailable this run: {', '.join(bad)})" if bad else ''))
+    sc, kp, wd, xr, cm = (sw.get(k) or {} for k in ('scales', 'kp', 'wind', 'xray', 'cmes'))
+    n, p = sc.get('now') or {}, sc.get('past24') or {}
+    if sc:
+        print(f"  NOAA scales now G{n.get('G')} S{n.get('S')} R{n.get('R')}; worst 24 h G{p.get('G')} S{p.get('S')} R{p.get('R')}")
+        for d in sc.get('days') or []:
+            print(f"    {str(d.get('date'))[:10]}: G{d.get('G')}  R1-2 {d.get('r12')}%  R3+ {d.get('r3')}%  S1+ {d.get('s1')}%")
+    if kp:
+        fm = kp.get('forecast_max')
+        print(f"  Kp now {kp.get('now')} ({kp.get('at')}Z), 24 h max {kp.get('max24')}, forecast peak {fm[1] if fm else '?'}"
+              + (f' at {fm[0]}Z' if fm else ''))
+        if full:
+            print('    observed: ' + ' '.join(f"{k:g}" for _, k in kp.get('recent') or []))
+            print('    forecast: ' + ' '.join(f"{k:g}" for _, k in kp.get('forecast') or []))
+    if wd:
+        print(f"  solar wind {wd.get('speed')} km/s (24 h max {wd.get('speed_max24')}), density {wd.get('density')}, "
+              f"Bz {wd.get('bz')} nT (lowest 1 h {wd.get('bz_min1h')}), Bt {wd.get('bt')}")
+    if xr:
+        print(f"  X-rays now {xr.get('now')}, 24 h peak {xr.get('peak24')} at {xr.get('peak24_at')}Z; M/X 7 d: " +
+              (', '.join(f"{x['cls']} {x['peak']}" for x in (xr.get('flares7d') or [])[:12 if full else 5]) or 'none'))
+    if cm:
+        print(f"  CMEs 7 d: {len(cm.get('list') or [])}; Earth-directed: {len(cm.get('earth') or [])}")
+        for c in (cm.get('list') if full else cm.get('earth')) or []:
+            print(f"    {c.get('start')}  {c.get('speed') and round(c['speed'])} km/s  type {c.get('type')}  "
+                  + (f"EARTH {c['earth']}Z{' glancing' if c.get('glancing') else ''} Kp<={c.get('kp')}" if c.get('earth') else 'not Earth-directed')
+                  + (f"\n      {clip(c.get('note'), 200)}" if full and c.get('note') else ''))
+        if cm.get('storms'):
+            print('  storms logged (DONKI GST): ' + ', '.join(f"Kp {g['kp']} {g['start']}" for g in cm['storms']))
+    for a in ((sw.get('alerts') or {}).get('list') or [])[:12 if full else 4]:
+        print(f"  alert {a['at']}Z {clip(a['title'], 110)}")
+    for l in sw.get('local') or []:
+        print('  Tazewell: ' + l)
+
+
+def v_space():
+    _space_summary(feeds()[0], full=True)
 
 
 def v_osint(theatre=None):
@@ -536,7 +582,15 @@ def digest(f, at):
         'launches': f.get('launches') or [],
         'disasters': [d for d in f.get('disasters') or [] if d.get('level') in ('Orange', 'Red')],
         'indicators': _ind_digest(f.get('indicators') or {}),
+        'space': _space_digest(f.get('space') or {}),
     }
+
+
+def _space_digest(sw):
+    sc, kp, xr, cm = (sw.get(k) or {} for k in ('scales', 'kp', 'xray', 'cmes'))
+    return {'now': sc.get('now'), 'past24': sc.get('past24'), 'kp': kp.get('now'), 'kp_max24': kp.get('max24'),
+            'kp_forecast_max': kp.get('forecast_max'), 'xray_peak24': xr.get('peak24'), 'flares7d': xr.get('flares7d'),
+            'cmes7d': len(cm.get('list') or []), 'earth_cmes': cm.get('earth') or [], 'wind': sw.get('wind')}
 
 
 def _ind_digest(ind):
@@ -600,7 +654,7 @@ def main(argv):
         return v_search(' '.join(a for a in args if not a.startswith('--') and a != str(days)), days)
     views = {'sync': sync, 'overview': v_overview, 'brief': v_brief, 'warnings': v_warnings, 'osint': v_osint,
              'telegram': v_telegram, 'gdelt': v_gdelt, 'wire': v_wire, 'quakes': v_quakes, 'launches': v_launches,
-             'disasters': v_disasters, 'gps': v_gps, 'radio': v_radio, 'spectro': v_spectro, 'indicators': v_indicators, 'crystal': v_crystal,
+             'disasters': v_disasters, 'gps': v_gps, 'radio': v_radio, 'spectro': v_spectro, 'indicators': v_indicators, 'space': v_space, 'crystal': v_crystal,
              'desk': v_desk, 'area': v_area, 'history': v_history, 'json': v_json}
     if cmd not in views:
         sys.exit(__doc__)
