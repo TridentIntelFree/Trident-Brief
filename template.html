@@ -6,6 +6,7 @@
 <meta name="description" content="The Trident Brief by Appalachian Intel - automated multi-INT fusion digest with live open-source signal feeds.">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
+<script>window.SW0 = ('serviceWorker' in navigator) ? navigator.serviceWorker.controller : null;  // which worker served this page</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#070b1c">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
@@ -7729,7 +7730,26 @@ document.getElementById('navChips') && document.getElementById('navChips').addEv
   sg.src = 'assets/signals.js'; sg.defer = true;
   document.body.appendChild(sg);
   if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost'))
-    navigator.serviceWorker.register('sw.js').catch(function(){});
+    // never take the service worker itself from the browser cache, and look for a new one on every opening
+    navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(function(r){
+      setTimeout(function(){ r.update().catch(function(){}); }, 4000);   // once the page has settled
+    }).catch(function(){});
+  /* When a new version's service worker takes over, reload once so every
+     script is the new one -- unless a track is recording or pocket mode is on,
+     where a reload would interrupt; then it waits for the next opening. */
+  if('serviceWorker' in navigator && window.SW0){
+    var swReloaded = false;
+    var swFresh = function(){
+      if(swReloaded) return;
+      var busy = document.getElementById('apPocket');
+      try{ busy = busy || (JSON.parse(localStorage.getItem('ap_track') || '{}').on); }catch(_){}
+      if(busy) return;
+      swReloaded = true; location.reload();
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', swFresh);
+    // a new worker can take over before this line runs; then the event is already gone
+    if(navigator.serviceWorker.controller !== window.SW0) swFresh();
+  }
 })();
 
 function openArch(a){

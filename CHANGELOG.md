@@ -4,6 +4,25 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.29.1 — 2026-10-08
+
+### Fixed: phones running the previous version of the map
+- The map snapped back, and the new route settings did not show, until a
+  refresh. The service worker served the map script cache-first, so a phone
+  ran the version before the last one. The read-aloud script had the same
+  problem before. The map script is now fetched fresh whenever there is
+  signal, and the saved copy is used only offline.
+- The service worker is never taken from the browser's cache, and the page
+  asks for a new one a few seconds after opening. When a new one takes over,
+  the page reloads once, but not while a track is recording or pocket mode is
+  on. (The test browser here would not run an update check at all, so this
+  part is not proven here.)
+
+### Changed: route settings where you can see them
+- ON FOOT and GETTING THERE now sit at the top of the route section in the GO
+  TO tab. They also show before a destination is picked, with how to pick one.
+  With a saved route, PLAN AGAIN WITH THESE SETTINGS sits right under them.
+
 ## 1.29.0 — 2026-10-08
 
 ### Added: route settings, ANYWHERE / PUBLIC LAND ONLY / DRIVE, THEN WALK
