@@ -1,7 +1,22 @@
 {
- "built_at": "2026-10-08T02:37:02Z",
+ "built_at": "2026-10-08T02:39:15Z",
  "license": "Works of the US federal government: public domain in the United States (17 U.S.C. 105).",
  "docs": [
+  {
+   "id": "army-fm-21-76-survival",
+   "title": "Survival (FM 21-76 / MCRP 3-02F)",
+   "publisher": "US Army and US Marine Corps",
+   "year": 1992,
+   "about": "The classic Army survival manual: psychology, planning, kits, shelter, water, fire, plants and animals for food, poisonous plants, dangerous animals, field-expedient tools, direction finding, signalling and crossing water.",
+   "url": "https://archive.org/download/MManuals/UsMarineCorps-Survival-Mcrp3-02f.pdf",
+   "note": "Superseded by later editions but still the most widely used. Copy kept by the Internet Archive.",
+   "file": "library/army-fm-21-76-survival.pdf",
+   "shrunk": true,
+   "bytes": 23863551,
+   "pages": 571,
+   "sha256": "1a6acd88b3f7bca1ec92098334ea30327a6d5670aa0a8ad94a8956f631b41887",
+   "fetched_at": "2026-10-08T02:39:10Z"
+  },
   {
    "id": "nws-lightning-outdoors",
    "title": "Lightning: Don\u2019t Get Caught Outside",
@@ -11,10 +26,11 @@
    "url": "https://www.weather.gov/media/safety/Lightning-Brochure18.pdf",
    "note": "",
    "file": "library/nws-lightning-outdoors.pdf",
+   "shrunk": false,
    "bytes": 2147532,
    "pages": 2,
    "sha256": "c20046dc15a3f778254c23e513d8276cac15717bc9f16dc1e5dc35583664c0e6",
-   "fetched_at": "2026-10-08T02:36:57Z"
+   "fetched_at": "2026-10-08T02:39:11Z"
   },
   {
    "id": "cdc-tick-removal",
@@ -25,10 +41,11 @@
    "url": "https://www.cdc.gov/ticks/media/pdfs/2025/07/CDC_Tick_Removal_Fact_Sheet.pdf",
    "note": "",
    "file": "library/cdc-tick-removal.pdf",
+   "shrunk": false,
    "bytes": 174729,
    "pages": 1,
    "sha256": "8236da7908ccbf901f8c26a60cfb491ee22cfce35bdcd94f685af24f4c3ea100",
-   "fetched_at": "2026-10-08T02:36:58Z"
+   "fetched_at": "2026-10-08T02:39:12Z"
   }
  ]
 }
