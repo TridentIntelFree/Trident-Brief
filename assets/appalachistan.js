@@ -257,6 +257,14 @@ function init(){
   var view = load('ap_view', null);
   if(view && view.c && isFinite(view.z)) map.setView(view.c, view.z);
   else map.fitBounds([[35.0,-84.3],[39.4,-77.6]]);
+  /* Touching the map to look around stops FOLLOW, so the next GPS fix does
+     not snap the view back; the FOLLOW button turns it on again. */
+  var el = map.getContainer();
+  map.on('dragstart', stopFollow);
+  el.addEventListener('wheel', stopFollow, {passive:true});
+  el.addEventListener('touchstart', function(e){ if(e.touches.length > 1) stopFollow(); }, {passive:true});
+  el.addEventListener('dblclick', stopFollow);
+  el.querySelectorAll('.leaflet-control-zoom a').forEach(function(a){ a.addEventListener('click', stopFollow); });
   map.on('moveend', function(){ store('ap_view', {c:[map.getCenter().lat, map.getCenter().lng], z:map.getZoom()}); refreshKinds(); if(tab === 'offline') paintPanel(); });
 
   var bases = {}, baseObjs = {};
@@ -930,7 +938,13 @@ function measureClear(){
 }
 
 /* ------------------------------------------------------ map clicks */
+function stopFollow(){
+  if(!follow) return;
+  follow = false;
+  var b = $('apFollow'); if(b) b.classList.remove('on');
+}
 function onMapClick(e){
+  stopFollow();
   if(measure.on){ measureClick(e.latlng); return; }
   var la = e.latlng.lat, lo = e.latlng.lng, t = onTrail([la, lo]);
   var html = '<div class="ap-pop"><div class="k">Point</div><b>' + ddm(la,'N','S',2) + ' ' + ddm(lo,'E','W',3) + '</b>' +
