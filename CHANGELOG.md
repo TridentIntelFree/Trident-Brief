@@ -4,6 +4,15 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.28.5 — 2026-10-08
+
+### Fixed: the map snapped back to you while you explored
+- Turning GPS on also turns on FOLLOW, and every GPS fix re-centred the map
+  on you, even mid-drag or mid-zoom. Now dragging, pinching, the zoom
+  buttons, a double tap, the mouse wheel or a tap on the map turns FOLLOW off,
+  so you can look around and set waypoints. Press FOLLOW to go back to
+  following.
+
 ## 1.28.4 — 2026-10-08
 
 ### Library: FM 21-76 is in, with a warning
