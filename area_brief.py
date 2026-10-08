@@ -1,10 +1,15 @@
-"""Daily area brief: Tazewell County, Virginia (24651) and the towns around it.
+"""Daily area brief: Tazewell County, Virginia (24651) at the centre, and the
+region out to 200 miles around it, in one report.
 
 Run each morning by .github/workflows/area-brief.yml. Law enforcement and
 courts, fire/EMS/rescue, hazards (weather, roads, power, water), and local and
 state politics for Tazewell County -- Tazewell, North Tazewell, Richlands,
 Cedar Bluff, Bluefield VA -- and across the line into Bluefield WV and Mercer
 County, with the neighbouring counties watched for anything that spills over.
+
+Each section runs from Tazewell outward: the county and its towns first, then the
+wider region (southern WV, eastern KY, northeast TN, southwest VA, northwest NC)
+for what matters there. One Grok call.
 
 Like the main brief it gathers free leads first (National Weather Service
 alerts for the counties, and local headlines from Google News and the area's
@@ -32,7 +37,7 @@ from generate_brief_final import parse_feed
 
 OUT = 'data/area/tazewell.json'
 HOURS = 36                    # look-back for leads; the brief reports the last 24 h first
-SEARCH_BUDGET = int(os.environ.get('AREA_SEARCH_BUDGET') or 8)
+SEARCH_BUDGET = int(os.environ.get('AREA_SEARCH_BUDGET') or 12)   # 8 for the county, ~4 more for the region
 # The owner wants names and specifics: people are named as the source names
 # them (minors stay unnamed, as the sources leave them). Set False to describe
 # private people by role and town instead ("a Richlands man, 34").
@@ -155,28 +160,43 @@ def prompt_for(now, heads, alerts):
              'Do not name private individuals -- suspects, defendants, victims, patients, minors. Describe them by '
              'role, age if given, and town ("a 34-year-old Richlands man"). Name agencies, officials, candidates '
              'and public figures.')
-    return f"""AREA BRIEF -- TAZEWELL COUNTY, VIRGINIA (ZIP 24651) AND SURROUNDS
+    return f"""AREA BRIEF -- TAZEWELL, VIRGINIA (ZIP 24651) AND 200 MILES AROUND IT
 Today is {et:%A %d %B %Y} (Eastern). It is {now:%H:%M} UTC.
 
-AREA: Tazewell County, Virginia: Tazewell, North Tazewell, Richlands, Cedar Bluff, Bluefield VA, Pocahontas,
-Raven, Doran, Claypool Hill, Pounding Mill, Springville, Falls Mills, Jewell Ridge. Across the state line:
-Bluefield WV and Mercer County WV (Princeton, Bluewell, Bramwell). Report the neighbouring counties
-(Buchanan, Russell, Smyth, Bland VA; McDowell WV) only when an item affects people in the core area.
+AREA: one report with Tazewell at the centre, working outward.
+- THE CORE, covered in full: Tazewell County, Virginia (Tazewell, North Tazewell, Richlands, Cedar Bluff,
+  Bluefield VA, Pocahontas, Raven, Doran, Claypool Hill, Pounding Mill, Springville, Falls Mills, Jewell
+  Ridge) and across the state line Bluefield WV and Mercer County WV (Princeton, Bluewell, Bramwell); the
+  neighbouring counties (Buchanan, Russell, Smyth, Bland VA; McDowell WV) when it touches the core.
+- THE REGION, out to about 200 miles, for what is significant there: southwest and southside Virginia
+  (Roanoke, Blacksburg, Bristol, Abingdon, Wise, Danville), southern West Virginia (Beckley, Charleston,
+  Logan, Huntington), eastern Kentucky (Pikeville, Hazard, Harlan, Ashland), northeast Tennessee
+  (Tri-Cities, Knoxville) and northwest North Carolina (Boone, Wilkesboro, Winston-Salem). In the region,
+  report the bigger things: manhunts and major cases, crime and drug trends across counties, state
+  government actions that land on the area, big employers and energy, severe weather and interstate closures.
+
+In every section list the core first, then the region, nearest first. Give every item its place: town,
+county and state.
 
 PRIORITIES, in this order:
 1. LAW ENFORCEMENT AND COURTS -- Tazewell County Sheriff's Office; Virginia State Police (Division IV);
    Richlands, Tazewell, Bluefield VA, Cedar Bluff and Bluefield WV police; Mercer County Sheriff; WV State
    Police (Princeton). Arrests and charges, investigations, pursuits, drug seizures, shootings, missing
    persons, wanted notices, court and sentencing outcomes, jail matters (Southwest Virginia Regional Jail).
+   In the region: state police, large sheriff and city cases, federal cases (FBI, DEA, ATF, US Attorneys for
+   the Western District of Virginia and Southern District of West Virginia), crime and drug trends.
 2. FIRE, EMS AND RESCUE -- structure fires, serious crashes and road closures from crashes, rescues,
    mine or industrial incidents, hazmat, medevac calls.
-3. HAZARDS -- the NWS alerts below, flooding and high water, winter weather, wildfire and burn bans, power
+3. HAZARDS -- the NWS alerts below (for the core), flooding and high water, winter weather, wildfire and burn bans, power
    outages (Appalachian Power), water or boil-water notices, VDOT and WVDOH closures on US-19, US-460,
-   US-52, Route 16, Route 67, I-77.
+   US-52, Route 16, Route 67, I-77. In the region: severe weather, I-77, I-81, I-64, US-460, US-19 and US-23,
+   large power, water, rail or chemical incidents, health alerts.
 4. GOVERNMENT AND POLITICS -- Board of Supervisors, town councils, school board, county and town budgets
    and taxes, elections and candidates, the area's state legislators, state actions that land here.
-5. OTHER LOCAL -- employers, mines and plants opening or closing, hospitals (Carilion Tazewell, Clinch
-   Valley, Bluefield), anything else a resident would want to know today.
+   In the region: Richmond, Charleston, Frankfort and Nashville decisions that reach this area.
+5. ECONOMY AND OTHER -- employers, mines and plants opening or closing, hospitals (Carilion Tazewell, Clinch
+   Valley, Bluefield), anything else a resident would want to know today. In the region: plants, mines,
+   hospitals and big employers opening, closing or laying off; energy (coal, gas, power lines, data centres).
 
 FREE LEADS, already collected -- check, use, and cite them; do not search for what they already tell you:
 NWS ALERTS NOW:
@@ -184,9 +204,10 @@ NWS ALERTS NOW:
 LOCAL HEADLINES, last {HOURS} hours:
 {lines}
 
-SEARCH: you have about {SEARCH_BUDGET} searches. Spend them on X (local sheriff and police pages, county and
-town accounts, WVVA, WJHL, WCYB, Bluefield Daily Telegraph, local scanner and community accounts) and on
-the web for detail the headlines lack. Keep queries short and specific to this area.
+SEARCH: you have about {SEARCH_BUDGET} searches. Spend most on the core: X (local sheriff and police pages,
+county and town accounts, WVVA, WJHL, WCYB, Bluefield Daily Telegraph, local scanner and community accounts)
+and the web for detail the headlines lack. Spend about four on the region (state police, emergency
+management, WDBJ, WSLS, WCHS, WSAZ, WYMT, WBIR). Keep queries short and specific.
 
 RULES
 - The last 24 hours first; older items only if still developing, and say how old.
@@ -200,13 +221,13 @@ RULES
 - Plain, factual, short. No speculation about guilt.
 
 FORMAT (markdown)
-**BLUF:** two or three sentences: what matters most in the area today.
+**BLUF:** two or three sentences: what matters most today, in Tazewell first, then the region.
 
 ## LAW ENFORCEMENT AND COURTS
 ## FIRE, EMS AND RESCUE
 ## HAZARDS, WEATHER AND ROADS
 ## GOVERNMENT AND POLITICS
-## OTHER LOCAL
+## ECONOMY AND OTHER
 ## WATCH -- NEXT 48 HOURS
 (scheduled meetings, court dates, forecast hazards, anything developing)
 """
@@ -217,15 +238,15 @@ def ask_grok(prompt, key):
                       headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {key}'},
                       json={'model': 'grok-4-1-fast-reasoning',
                             'input': [{'role': 'system', 'content':
-                                       'You are a local intelligence analyst for Tazewell County, Virginia. You write a '
-                                       'short, factual daily area brief from local news, official pages and X posts, '
-                                       'citing every item.'},
+                                       'You are a local intelligence analyst for Tazewell County, Virginia, and the '
+                                       'region within 200 miles of it. You write a short, factual daily area brief from '
+                                       'local news, official pages and X posts, Tazewell first, citing every item.'},
                                       {'role': 'user', 'content': prompt}],
                             'tools': [{'type': 'x_search', 'from_date':
                                        (datetime.now(timezone.utc) - timedelta(days=2)).strftime('%Y-%m-%d')},
                                       {'type': 'web_search'}],
                             'temperature': 0.4,
-                            'max_output_tokens': 7000})
+                            'max_output_tokens': 9000})
     if r.status_code == 400 and 'from_date' in r.text:
         return ask_grok_plain(prompt, key)
     if r.status_code != 200:
@@ -239,7 +260,7 @@ def ask_grok_plain(prompt, key):
                       json={'model': 'grok-4-1-fast-reasoning',
                             'input': [{'role': 'user', 'content': prompt}],
                             'tools': [{'type': 'x_search'}, {'type': 'web_search'}],
-                            'temperature': 0.4, 'max_output_tokens': 7000})
+                            'temperature': 0.4, 'max_output_tokens': 9000})
     if r.status_code != 200:
         raise RuntimeError(f'xAI answered HTTP {r.status_code}: {r.text[:200]}')
     return _text(r.json())
@@ -271,7 +292,7 @@ def main():
         sys.exit('The GROK_API_KEY secret is not set.')
     text, cost = ask_grok(prompt_for(now, heads, alerts), key)
     print(f'area brief: {len(text)} characters' + (f', cost ${cost:.3f}' if cost is not None else ''))
-    payload = {'area': 'Tazewell County, VA', 'at': now.strftime('%Y-%m-%dT%H:%M:%SZ'), 'brief': text,
+    payload = {'area': 'Tazewell, VA and 200 miles around', 'at': now.strftime('%Y-%m-%dT%H:%M:%SZ'), 'brief': text,
                'cost_usd': cost, 'leads': {'headlines': len(heads), 'alerts': len(alerts)}}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:

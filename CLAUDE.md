@@ -101,7 +101,7 @@ The owner's standing rules:
   setup steps that were not asked for.
 - **Hidden features stay hidden, not encrypted, and never secret.** The
   PRIVACY panel names them and everything they contact. Gestures open them:
-  - "Appalachian Intel" ×3: Tazewell brief
+  - "Appalachian Intel" ×3, then the code 0330: Tazewell brief (Tazewell and 200 miles around it)
   - title ×3: Analyst Desk
   - left trident ×3: Crystal Ball
   - version ×5: owner panel

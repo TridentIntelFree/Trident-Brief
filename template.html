@@ -1085,7 +1085,8 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <p>The Crystal Ball's fonts are served from this site, not Google Fonts.</p>
 
         <h4>Hidden features</h4>
-        <p>A few features are tucked out of the way to keep the page tidy: the Tazewell area brief, the Analyst Desk, the Crystal Ball
+        <p>A few features are tucked out of the way to keep the page tidy: the Tazewell area brief (Tazewell and 200 miles around it;
+          it asks for a code, which keeps it out of casual reach but locks nothing: the brief is a plain file in the public repository), the Analyst Desk, the Crystal Ball
           (forecasts, and an astrology reading for fun), the &ldquo;hello&rdquo; box with prediction-market picks, and the owner's panel.
           Hidden is not secret, and they follow the same rules. They read their data from GitHub only. The &ldquo;hello&rdquo; box links to
           Polymarket but contacts it only if a link is clicked. The owner's panel talks to GitHub's API with the owner's own token.</p>
@@ -1525,7 +1526,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
   <!-- Owner's daily area brief (area_brief.py). Not shown until the hidden gesture. -->
   <div class="section-band tz-band" id="tzBand" hidden>
     <div class="band-head">
-      <h2>&#128205; Tazewell County &mdash; Area Brief</h2>
+      <h2>&#128205; Tazewell &amp; 200 Miles &mdash; Area Brief</h2>
       <div class="sub" id="tzSub"></div>
     </div>
     <div class="key-opts" id="tzTools" style="display:none">
@@ -4415,14 +4416,24 @@ async function tzShow(){
     if(taps.length < 3) return;
     taps = [];
     var band = document.getElementById('tzBand');
-    if(band.hidden) tzShow();
+    if(band.hidden){
+      /* A door, not a lock: the code keeps it out of casual reach. The brief
+         itself is a plain file in the public repository. */
+      var ok = false; try{ ok = sessionStorage.getItem('tz_ok') === '1'; }catch(_){}
+      if(!ok){
+        var c = prompt('Code');
+        if(c == null || c.trim() !== '0330') return;
+        try{ sessionStorage.setItem('tz_ok', '1'); }catch(_){}
+      }
+      tzShow();
+    }
     else { hideDesk(band); if(window.BRIEFME && BRIEFME.state.playing) BRIEFME.stop(); }
   });
   document.getElementById('tzHide').onclick = function(){ hideDesk(document.getElementById('tzBand')); };
   document.getElementById('tzRead').onclick = function(){
     if(!window.BRIEFME || !TZ.brief) return;
     BRIEFME.read({root:document.getElementById('tzBody'), label:'TAZEWELL AREA BRIEF', at:TZ.brief.at,
-                  title:'Area brief for Tazewell County and surrounding areas.',
+                  title:'Area brief for Tazewell and the region within 200 miles.',
                   when:new Date(TZ.brief.at).toLocaleString('en-US', {weekday:'long', hour:'numeric', minute:'2-digit',
                                                                        timeZone:'America/New_York'}) + ' Eastern'});
   };
