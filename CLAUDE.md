@@ -22,6 +22,7 @@ Then drill in as the question needs:
 | `telegram [N]` | Telegram war-channel posts, machine-translated (marked `[tr]`) |
 | `gdelt`, `wire [N]`, `quakes`, `launches`, `disasters`, `gps` | the other feeds |
 | `indicators` | air-raid alarms (Ukraine, Israel), claimed vs verified war losses, internet outages (IODA), sanctions lists |
+| `space` | space weather: NOAA G/S/R scales and 3-day outlook, Kp, solar wind, flares, CMEs with modelled Earth arrival (DONKI) |
 | `radio` | what radio monitors reported on X (daily), and the retired relay's archive |
 | `spectro FILE [t0 t1]` | spectrogram PNG of a radio clip, to look at with Read |
 | `crystal`, `desk`, `area` | Crystal Ball forecasts, Analyst Desk, Tazewell area brief |
@@ -63,6 +64,9 @@ blocked from these sandboxes, so use `intel.py`, not the page.
   harmonic comb about every 3.4 s; speech shows shifting pitch contours and
   syllable-rate level changes. Detectors fooled by the buzz have been wrong
   before (6 Oct 2026).
+- **Space weather:** SWPC readings are measurements; a CME's Earth arrival is
+  a WSA-Enlil model run, often hours off, and its strength depends on a
+  magnetic field measured only about an hour before arrival.
 - Say plainly when a source is stale, frozen or missing. `intel.py` prints
   each source's age. NGA's public warning feed has been frozen at May 2024
   since at least mid-2026.
