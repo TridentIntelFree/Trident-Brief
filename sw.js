@@ -14,7 +14,8 @@ const TILES = 'tb-tiles-v1';      // areas saved on purpose: never trimmed
 const BROWSE = 'tb-browse-v1';    // tiles kept from ordinary browsing: capped
 const SHELL_FILES = ['./', 'assets/leaflet/leaflet.js', 'assets/leaflet/leaflet.css',
                      'assets/leaflet/images/layers.png', 'assets/leaflet/images/layers-2x.png',
-                     'assets/appalachistan.js', 'assets/appalachia.json', 'assets/briefing.js'];
+                     'assets/appalachistan.js', 'assets/appalachia.json', 'assets/briefing.js',
+                     'manifest.webmanifest', 'assets/icons/icon-192.png', 'assets/icons/apple-touch-icon.png'];
 const TILE_HOSTS = ['basemap.nationalmap.gov', 'elevation.nationalmap.gov'];
 const BROWSE_CAP = 6000;          // tiles kept from ordinary browsing
 const noCors = {};                // hosts that refused CORS

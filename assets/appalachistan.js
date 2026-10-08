@@ -239,6 +239,15 @@ if(window.TB_PRIVATE){
 }
 var sb = $('apStart'); if(sb) sb.onclick = start;
 if(location.hash === '#appBand') start();
+/* The home-screen shortcut "Emergency" lands here: map open, EMERGENCY tab, section unfolded. */
+function openSos(){
+  var fb = BAND.querySelector('.fold-btn');
+  if(BAND.classList.contains('folded') && fb) fb.click();
+  start(); showTab('sos');
+  setTimeout(function(){ $('apTabs').scrollIntoView({block:'start'}); }, 400);
+}
+if(location.hash === '#apSos') setTimeout(openSos, 300);
+addEventListener('hashchange', function(){ if(location.hash === '#apSos') openSos(); });
 
 function init(){
   var L = window.L;
@@ -500,6 +509,8 @@ function onFix(pos){
   me = {lat:c.latitude, lon:c.longitude, acc:c.accuracy, alt:c.altitude, altAcc:c.altitudeAccuracy,
         spd:c.speed, hdg:c.heading, t:pos.timestamp || Date.now()};
   lastGpsErr = '';
+  sigMaybe();
+  if(pocket){ if(TRACK.on) addTrackPoint(me, prev); pocketTick(); return; }   // nothing to draw under a black screen
   var L = window.L, ll = [me.lat, me.lon];
   if(!meMarker){
     accCircle = L.circle(ll, {radius:me.acc, color:'#3b82f6', weight:1, fillColor:'#3b82f6', fillOpacity:.12, interactive:false}).addTo(map);
@@ -537,6 +548,90 @@ function keepAwake(on){
 document.addEventListener('visibilitychange', function(){
   if(document.visibilityState === 'visible' && watchId != null && !wakeLock) keepAwake(true);
 });
+/* ------------------------------------------------------------ pocket
+   A web page cannot use GPS with the screen off: iPhone and Android both stop
+   it when the screen locks. Pocket mode is the nearest thing. The screen stays
+   on but goes pure black (OLED pixels showing black are off), touches are
+   locked so a pocket cannot press anything, and GPS keeps recording. Holding
+   anywhere for a second and a half shows the way out. */
+var pocket = null;
+function pocketOn(tries){
+  if(pocket) return;
+  if(!tries){
+    try{ var de = document.documentElement; if(de.requestFullscreen) de.requestFullscreen({navigationUI:'hide'}).catch(function(){}); }catch(_){}
+  }
+  start();
+  if(!map){ if((tries || 0) < 20) setTimeout(function(){ pocketOn((tries || 0) + 1); }, 500); return; }
+  if(!TRACK.on){ TRACK.on = true; saveTrack(); }
+  if(watchId == null) startLocate();
+  keepAwake(true);
+  var o = document.createElement('div');
+  o.id = 'apPocket';
+  o.innerHTML = '<div class="pk-hint" id="pkHint"></div><div class="pk-line" id="pkLine"></div>' +
+                '<button class="pk-exit" id="pkExit" type="button" hidden>LEAVE POCKET MODE</button>';
+  document.body.appendChild(o);
+  document.documentElement.classList.add('ap-pocketed');
+  pocket = {el:o, hold:null, moved:0, since:Date.now(), timer:setInterval(pocketTick, 60000)};
+  var hint = 'POCKET MODE \u00b7 GPS keeps recording.<br><br>Don\u2019t press the power button: locking the phone stops the page and the track.' +
+             '<br><br>Hold anywhere for 2 seconds to come back.' +
+             (!('wakeLock' in navigator) ? '<br><br><b>This phone won\u2019t let a web page keep the screen on.</b> Set Auto-Lock to Never while you track (iPhone: Settings \u2192 Display &amp; Brightness \u2192 Auto-Lock).' : '') +
+             '<br><br>To save battery with no signal, airplane mode is fine: GPS still works in it.';
+  $('pkHint').innerHTML = hint;
+  setTimeout(function(){ var h = $('pkHint'); if(h) h.style.opacity = '0'; }, 9000);
+  setTimeout(function(){ if(pocket && 'wakeLock' in navigator && !wakeLock){ var h = $('pkHint');
+    if(h){ h.innerHTML = 'The phone refused to keep the screen on. Set Auto-Lock to Never while you track, or the track stops when it locks.' +
+                 '<br><br>Hold anywhere for 2 seconds to come back.'; h.style.opacity = '1'; } } }, 2500);
+  var exit = $('pkExit');
+  o.addEventListener('pointerdown', function(e){
+    if(e.target === exit) return;
+    e.preventDefault();
+    clearTimeout(pocket.hold);
+    pocket.hold = setTimeout(function(){
+      exit.hidden = false;
+      clearTimeout(pocket.hide); pocket.hide = setTimeout(function(){ exit.hidden = true; }, 5000);
+    }, 1500);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function(ev){ o.addEventListener(ev, function(){ if(pocket) clearTimeout(pocket.hold); }); });
+  o.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  exit.addEventListener('click', function(e){ e.stopPropagation(); pocketOff(); });
+  pocketTick();
+}
+function pocketOff(){
+  if(!pocket) return;
+  clearInterval(pocket.timer); clearTimeout(pocket.hold); clearTimeout(pocket.hide);
+  pocket.el.remove(); pocket = null;
+  document.documentElement.classList.remove('ap-pocketed');
+  try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function(){}); }catch(_){}
+  saveTrack(); drawTrack();
+  if(me) onFix({coords:{latitude:me.lat, longitude:me.lon, accuracy:me.acc, altitude:me.alt, altitudeAccuracy:me.altAcc,
+                        speed:me.spd, heading:me.hdg}, timestamp:me.t});
+  paintPanel();
+}
+/* One dim line, moved now and then so nothing burns into the screen. */
+function pocketTick(){
+  if(!pocket) return;
+  var el = $('pkLine'); if(!el) return;
+  var st = trackStats(), now = new Date();
+  el.textContent = (TRACK.on ? '\u25cf REC ' : '') + fmtDist(st.d) + ' \u00b7 ' +
+    (me ? '\u00b1' + Math.round(me.acc) + ' m' : (lastGpsErr ? 'no GPS fix' : 'waiting for GPS')) + ' \u00b7 ' +
+    now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  if(Date.now() - pocket.moved > 60000){
+    pocket.moved = Date.now();
+    el.style.left = (5 + Math.random()*45) + '%'; el.style.top = (8 + Math.random()*80) + '%';
+  }
+}
+/* If the phone locked anyway, say so on return rather than pretend the track is whole. */
+var hiddenAt = 0;
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
+  if(pocket && hiddenAt && Date.now() - hiddenAt > 60000){
+    var h = $('pkHint');
+    if(h){ h.innerHTML = 'The screen was locked from ' + new Date(hiddenAt).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) +
+             ' to ' + new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) + ', so nothing was recorded in that time. Tracking again now.';
+           h.style.opacity = '1'; setTimeout(function(){ if($('pkHint')) $('pkHint').style.opacity = '0'; }, 12000); }
+  }
+  hiddenAt = 0;
+});
 function toggleCompass(){
   if(compassOn){ compassOn = false; compassDeg = null; pointArrow(); paintPanel(); return; }
   var go = function(){
@@ -559,6 +654,7 @@ function toggleCompass(){
   } else go();
 }
 $('apLocate').onclick = function(){ start(); var f = function(){ watchId == null ? startLocate() : stopLocate(); }; map ? f() : setTimeout(f, 900); };
+if($('apPocketBtn')) $('apPocketBtn').onclick = function(){ pocketOn(); };
 $('apFollow').onclick = function(){
   follow = !follow; this.classList.toggle('on', follow);
   if(follow && me && map) map.panTo([me.lat, me.lon]);
@@ -626,8 +722,8 @@ function addTrackPoint(f, prev){
   var pts = TRACK.pts, last = pts[pts.length - 1];
   if(last && dist([last[1], last[2]], [f.lat, f.lon]) < Math.max(5, f.acc/2)) return;
   pts.push([Math.round(f.t/1000), +f.lat.toFixed(6), +f.lon.toFixed(6), f.alt == null ? null : Math.round(f.alt*10)/10]);
-  if(pts.length % 5 === 0 || pts.length < 5) saveTrack();
-  drawTrack();
+  if(pts.length % 5 === 0 || pts.length < 5 || pocket) saveTrack();
+  if(!pocket) drawTrack();
 }
 function saveTrack(){
   if(!store('ap_track', TRACK)) lastGpsErr = 'Track too large to save on this device; export it as GPX.';
@@ -890,6 +986,114 @@ function runSave(label, tiles0, bounds, zr){
     paintPanel();
   });
 }
+/* --------------------------------------------------- signal catcher
+   Out of signal, the page leans on what it saved. When a bar or two comes
+   back it takes what it can, cheaply: the weather alerts and the next twelve
+   hours' forecast for where you are (position rounded to about a kilometre,
+   two small requests), and the USGS map for a few kilometres around you if
+   that ground was never saved (about 1 MB). It asks only when the phone says
+   it is connected, at most every 30 minutes after a success and every 10
+   after a failure, never in data-saver mode, and in private mode only when
+   you press CHECK NOW. The radio's own hunt for a tower is the phone's
+   business; airplane mode is the way to stop that. */
+var SIG = load('ap_sig', null), sigBusy = false, sigNext = 0, sigNote = '';
+function sigMaybe(){
+  if(sigBusy || Date.now() < sigNext || !navigator.onLine || !me) return;
+  if(window.TB_PRIVATE || (navigator.connection && navigator.connection.saveData)) return;
+  if(SIG && Date.now() - SIG.at < 30*60000 && dist([SIG.lat, SIG.lon], [me.lat, me.lon]) < 5000){ sigNext = SIG.at + 30*60000; return; }
+  signalCheck(false);
+}
+function signalCheck(asked){
+  if(sigBusy) return;
+  var p = me ? [me.lat, me.lon] : (map ? [map.getCenter().lat, map.getCenter().lng] : null);
+  if(!p){ sigNote = 'Open the map or turn on GPS first.'; paintPanel(); return; }
+  if(!navigator.onLine){ sigNote = 'The phone reports no connection.'; paintPanel(); return; }
+  var la = +p[0].toFixed(2), lo = +p[1].toFixed(2);
+  sigBusy = true; sigNote = 'Checking\u2026'; if(asked) paintPanel();
+  function get(u){
+    var c = new AbortController(), t = setTimeout(function(){ c.abort(); }, 15000);
+    return fetch(u, {signal:c.signal, credentials:'omit'}).then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .finally(function(){ clearTimeout(t); });
+  }
+  var nws = get('https://api.weather.gov/alerts/active?point=' + la + ',' + lo).then(function(d){
+    return (d.features || []).map(function(f){ var q = f.properties || {}; return {e:q.event, h:q.headline, ends:q.ends || q.expires}; }).slice(0, 6);
+  }).catch(function(){ return null; });
+  var om = get('https://api.open-meteo.com/v1/forecast?latitude=' + la + '&longitude=' + lo +
+               '&current=temperature_2m,weather_code,wind_gusts_10m&hourly=temperature_2m,precipitation_probability,weather_code,wind_gusts_10m' +
+               '&daily=sunset&forecast_hours=12&forecast_days=1&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto')
+    .then(function(d){ return {now:d.current, hours:d.hourly, sunset:(d.daily && d.daily.sunset || [])[0]}; }).catch(function(){ return null; });
+  Promise.all([nws, om]).then(function(r){
+    sigBusy = false;
+    if(r[0] == null && r[1] == null){
+      sigNext = Date.now() + 10*60000;
+      sigNote = 'The signal was too weak to fetch anything. It will try again when it can.';
+      paintPanel(); return;
+    }
+    var old = SIG || {};
+    SIG = {at:Date.now(), lat:la, lon:lo, alerts:r[0] != null ? r[0] : old.alerts, wx:r[1] || old.wx, part:r[0] == null || r[1] == null};
+    store('ap_sig', SIG);
+    sigNext = Date.now() + 30*60000;
+    sigNote = '';
+    grabAround(p);
+    paintPanel();
+  });
+}
+addEventListener('online', function(){ sigNext = 0; sigMaybe(); });
+
+/* The USGS topo for about 6 km square around you, zoom 10-15, once per area. */
+function grabAround(p){
+  if((job && !job.finished) || !('caches' in window)) return;
+  if(SAVED.filter(function(s){ return s.auto; }).length >= 20) return;     // about 25 MB of these is plenty
+  var covered = SAVED.some(function(s){
+    var m = /^AT miles (\d+)\D+(\d+)/.exec(s.label || '');
+    if(m){ var t = onTrail(p); return t && t.off < 1200 && t.mile >= +m[1] && t.mile <= +m[2]; }
+    return s.b && s.z && s.z[1] >= 14 && p[0] > s.b[0] && p[0] < s.b[2] && p[1] > s.b[1] && p[1] < s.b[3];
+  });
+  if(covered) return;
+  var dLat = 3/110.54, dLon = 3/(111.32*Math.cos(p[0]*D)), T = BASES.topo;
+  var b = [p[0] - dLat, p[1] - dLon, p[0] + dLat, p[1] + dLon], tiles = tilesForBounds(b, 10, 15), ok = 0, i = 0;
+  caches.open(TILE_CACHE).then(function(cache){
+    function worker(){
+      if(i >= tiles.length) return Promise.resolve();
+      var t = tiles[i++], url = tileUrl(T.url, t[0], t[1], t[2]);
+      return caches.match(url).then(function(hit){
+        if(hit){ ok++; return cache.put(url, hit); }
+        return fetch(url, {mode:'cors', credentials:'omit'}).then(function(r){ if(!r.ok) throw 0; ok++; return cache.put(url, r); });
+      }).catch(function(){}).then(worker);
+    }
+    return Promise.all([worker(), worker(), worker()]);
+  }).then(function(){
+    if(ok < tiles.length*0.8) return;              // a half-saved square would only mislead
+    SAVED.push({label:'Around you, saved when signal appeared', layer:T.name, b:b, z:[10, 15], n:ok, at:Date.now(), auto:true});
+    store('ap_saved', SAVED);
+    paintPanel();
+  }).catch(function(){});
+}
+function sigBlock(){
+  var h = '<h4>FROM THE OUTSIDE</h4>';
+  if(!SIG) h += '<div class="ap-dim">Nothing fetched yet. When the phone has signal, the page picks up weather alerts and a forecast for where you are, and saves the map around you.</div>';
+  else {
+    var age = Math.round((Date.now() - SIG.at)/60000);
+    h += '<div class="ap-dim">Last heard ' + (age < 60 ? age + ' min' : Math.round(age/60) + ' h') + ' ago, for about ' + SIG.lat.toFixed(2) + ', ' + SIG.lon.toFixed(2) +
+         (SIG.part ? ' (partly: one source did not answer)' : '') + '.</div>';
+    if(SIG.alerts && SIG.alerts.length){
+      h += '<div class="ap-list">' + SIG.alerts.map(function(a){
+        return '<div class="ap-li"><span><b class="ap-bad">' + esc(a.e || 'Alert') + '</b> <small>' + esc((a.h || '').slice(0, 140)) + '</small></span></div>'; }).join('') + '</div>';
+    } else if(SIG.alerts) h += '<div>No weather alerts here (National Weather Service).</div>';
+    var w = SIG.wx;
+    if(w && w.now){
+      var hrs = w.hours || {}, rows = [];
+      (hrs.time || []).forEach(function(t, k){ if(k % 3 === 0) rows.push(t.slice(11, 16) + ' ' + Math.round(hrs.temperature_2m[k]) + '\u00b0F ' +
+        (hrs.precipitation_probability[k] != null ? hrs.precipitation_probability[k] + '% rain' : '') + (hrs.wind_gusts_10m[k] > 25 ? ', gusts ' + Math.round(hrs.wind_gusts_10m[k]) + ' mph' : '')); });
+      h += '<div>Then: ' + Math.round(w.now.temperature_2m) + '\u00b0F, gusts ' + Math.round(w.now.wind_gusts_10m) + ' mph' +
+           (w.sunset ? ' &middot; sunset ' + esc(String(w.sunset).slice(11, 16)) : '') + ' <small class="ap-dim">(local time, Open-Meteo)</small></div>';
+      if(rows.length) h += '<div class="ap-dim">' + rows.map(esc).join(' &middot; ') + '</div>';
+    }
+  }
+  h += '<div class="ap-row"><button class="ap-btn" data-act="sig-check"' + (sigBusy ? ' disabled' : '') + '>CHECK NOW</button>' +
+       '<span class="ap-dim">' + esc(sigNote || (navigator.onLine ? 'The phone reports a connection.' : 'The phone reports no connection.')) + '</span></div>';
+  return h;
+}
 function storageLine(el){
   if(!navigator.storage || !navigator.storage.estimate){ el.textContent = ''; return; }
   navigator.storage.estimate().then(function(e){
@@ -1027,8 +1231,10 @@ function paintPanel(){
          kv('POINTS', st.n.toLocaleString()) + '</div>';
     h += '<div class="ap-row"><button class="ap-btn' + (TRACK.on ? ' warn' : '') + '" data-act="track">' + (TRACK.on ? 'STOP RECORDING' : 'START RECORDING') + '</button>' +
          '<button class="ap-btn" data-act="gpx"' + (st.n || WPTS.length ? '' : ' disabled') + '>EXPORT GPX</button>' +
-         '<button class="ap-btn" data-act="track-clear"' + (st.n ? '' : ' disabled') + '>CLEAR TRACK</button></div>';
-    h += '<div class="ap-dim">Records while this page is open and the screen is on; the screen is kept awake while GPS runs where the phone allows it. Points worse than ±50 m are skipped. The track is kept on this device and survives a reload; export it as GPX to keep it for good.</div>';
+         '<button class="ap-btn" data-act="track-clear"' + (st.n ? '' : ' disabled') + '>CLEAR TRACK</button>' +
+         '<button class="ap-btn on" data-act="pocket">&#9681; POCKET MODE</button></div>';
+    h += '<div class="ap-dim">Records while this page is open and the screen is on; the screen is kept awake while GPS runs where the phone allows it. ' +
+         'No web page can use GPS with the screen off, so for the pocket use POCKET MODE: the screen goes black and locked but stays on, and the track keeps recording. Points worse than ±50 m are skipped. The track is kept on this device and survives a reload; export it as GPX to keep it for good.</div>';
     h += '<h4>IMPORT A GPX</h4><div class="ap-row"><input type="file" id="apGpxIn" accept=".gpx,application/gpx+xml,application/xml,text/xml"></div>';
     if(GPX.length){
       h += '<div class="ap-list">' + GPX.map(function(g, i){
@@ -1112,8 +1318,6 @@ function paintPanel(){
 
   else if(tab === 'sos'){
     var p = me ? [me.lat, me.lon] : here;
-    h += '<div class="ap-row"><a class="ap-btn warn" href="tel:911" style="text-decoration:none">&#128222; CALL 911</a>' +
-         '<span class="ap-dim">Call if you can; text 911 if you can’t. Text-to-911 works in many US counties, not all. A text can get through on a signal too weak for a call.</span></div>';
     if(!p) h += '<div class="ap-dim">Open the map to see your coordinates.</div>';
     else {
       h += '<h4>' + (me ? 'YOUR LOCATION &middot; GPS ±' + Math.round(me.acc) + ' m at ' + new Date(me.t).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})
@@ -1126,9 +1330,7 @@ function paintPanel(){
       var msg = 'EMERGENCY. My location: ' + p[0].toFixed(5) + ', ' + p[1].toFixed(5) + ' (USNG ' + usng(p[0], p[1]) + ')' +
                 (me ? ', GPS +/-' + Math.round(me.acc) + ' m' : ', approximate') + (tr && tr.off < 3000 ? ', near Appalachian Trail mile ' + tr.mile.toFixed(1) : '') +
                 '. https://www.openstreetmap.org/?mlat=' + p[0].toFixed(5) + '&mlon=' + p[1].toFixed(5) + '#map=15/' + p[0].toFixed(5) + '/' + p[1].toFixed(5);
-      h += '<div class="ap-row"><a class="ap-btn" style="text-decoration:none" href="sms:?&body=' + encodeURIComponent(msg) + '">&#9993; TEXT MY LOCATION</a>' +
-           '<button class="ap-btn" data-act="copy" data-msg="' + esc(msg) + '">COPY</button>' +
-           (navigator.share ? '<button class="ap-btn" data-act="share" data-msg="' + esc(msg) + '">SHARE</button>' : '') + '</div>';
+      h += smsAsk(msg);
       if(!me) h += gpsLine();
       if(POIS.length){
         h += '<h4>WAYS OUT</h4><div class="ap-list">';
@@ -1141,12 +1343,38 @@ function paintPanel(){
         h += '</div><div class="ap-dim">Straight-line distance and true bearing. Stay on the trail unless you know the ground.</div>';
       }
     }
+    h += sigBlock();
+    h += '<div class="ap-row"><button class="ap-btn on" data-act="pocket">&#9681; POCKET MODE</button>' +
+         '<a class="ap-btn" style="text-decoration:none" href="#apGuide" data-act="guide">SURVIVAL GUIDE &darr;</a></div>';
   }
 
   el.innerHTML = h;
   var st = $('apStore'); if(st) storageLine(st);
   if(tab === 'goto') drawArrow();
 }
+
+/* Sending a text is asked four times, and the last ask is the link that opens
+   Messages, where Send still has to be pressed. A pocket or a slip should
+   never send anyone a location. */
+var smsStep = 0, smsTimer = null;
+var SMS_ASKS = ['Text your location to someone? (1 of 4)',
+                'Sure? It opens your Messages app with your coordinates written in. (2 of 4)',
+                'Your exact position goes to whoever you pick. Still want to? (3 of 4)',
+                'Last check: open Messages now? You still choose who and press Send. (4 of 4)'];
+function smsAsk(msg){
+  var h = '<div class="ap-row">';
+  if(!smsStep) h += '<button class="ap-btn" data-act="sms-ask">&#9993; TEXT MY LOCATION</button>';
+  else {
+    h += '<span class="ap-warn">' + SMS_ASKS[smsStep - 1] + '</span></div><div class="ap-row">';
+    h += smsStep < 4 ? '<button class="ap-btn" data-act="sms-ask">YES</button>'
+                     : '<a class="ap-btn warn" style="text-decoration:none" data-act="sms-go" href="sms:?&body=' + encodeURIComponent(msg) + '">YES, OPEN MESSAGES</a>' +
+                       (navigator.share ? '<button class="ap-btn" data-act="share" data-msg="' + esc(msg) + '">SHARE INSTEAD</button>' : '');
+    h += '<button class="ap-btn" data-act="sms-no">NO</button>';
+  }
+  return h + '<button class="ap-btn" data-act="copy" data-msg="' + esc(msg) + '">COPY</button></div>' +
+    (smsStep ? '' : '<div class="ap-dim">Asks four times before anything opens. A text waits in Messages and goes out by itself when one bar of signal appears.</div>');
+}
+function smsReset(){ smsStep = 0; clearTimeout(smsTimer); }
 
 /* panel actions */
 $('apPanel').addEventListener('change', function(e){
@@ -1170,6 +1398,12 @@ $('apPanel').addEventListener('click', function(e){
     if(TRACK.on && watchId == null) startLocate();
     paintPanel();
   }
+  else if(a === 'pocket') pocketOn();
+  else if(a === 'sig-check') signalCheck(true);
+  else if(a === 'guide'){ var g = $('apGuide'); if(g) g.open = true; }
+  else if(a === 'sms-ask'){ smsStep = Math.min(4, smsStep + 1); clearTimeout(smsTimer); smsTimer = setTimeout(function(){ smsReset(); paintPanel(); }, 60000); paintPanel(); }
+  else if(a === 'sms-no'){ smsReset(); paintPanel(); }
+  else if(a === 'sms-go'){ smsReset(); setTimeout(paintPanel, 500); }
   else if(a === 'track-clear'){ if(confirm('Delete the recorded track from this device?')){ TRACK.pts = []; saveTrack(); drawTrack(); paintPanel(); } }
   else if(a === 'gpx') download('appalachistan-' + new Date().toISOString().slice(0,10) + '.gpx', gpxText());
   else if(a === 'gpx-del'){ GPX.splice(+b.dataset.i, 1); store('ap_gpx', GPX); drawGpx(); paintPanel(); }
@@ -1205,7 +1439,7 @@ $('apPanel').addEventListener('click', function(e){
     (navigator.clipboard ? navigator.clipboard.writeText(m) : Promise.reject()).then(function(){ b.textContent = 'COPIED'; })
       .catch(function(){ prompt('Copy this:', m); });
   }
-  else if(a === 'share'){ navigator.share({text:b.dataset.msg}).catch(function(){}); }
+  else if(a === 'share'){ smsReset(); navigator.share({text:b.dataset.msg}).catch(function(){}); paintPanel(); }
 });
 
 window.APPALACHISTAN = {start:start, usng:usng, utm:utm, sunDay:sunDay, onTrail:onTrail, dist:dist, bearing:bearing,

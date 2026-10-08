@@ -4,6 +4,39 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.26.0 — 2026-10-08
+
+### Added: the trail map as an emergency tool
+- **Installs as a real app.** A manifest and trident icons, so "Add to Home
+  Screen" opens it full screen, offline from the first tap. Long-press the
+  icon (Android) for Map and Emergency shortcuts.
+- **POCKET mode** (map bar, TRACK and EMERGENCY tabs). A web page cannot use
+  GPS with the screen off on any phone, so this is the nearest thing: the
+  screen stays on but pure black (OLED pixels showing black are off), touches
+  are locked, and GPS keeps recording the track. A dim line with distance,
+  accuracy and time moves every minute. Hold for two seconds to see the way
+  out. It says plainly that the power button stops tracking, tells iPhones to
+  set Auto-Lock to Never when the screen cannot be kept on, and if the phone
+  locks anyway it reports the gap instead of pretending the track is whole.
+- **Signal catcher** in the EMERGENCY tab. When a bar comes back, it takes NWS
+  weather alerts and the next 12 hours from Open-Meteo for your position
+  (rounded to about a kilometre), and saves about 1 MB of USGS map around you
+  if that ground was never saved. At most every 30 minutes (10 after a
+  failure), only when the phone reports a connection, never in data-saver
+  mode, and in private mode only with CHECK NOW. Kept on the device for when
+  the signal goes again.
+- **Text my location asks four times** before it opens Messages, where Send
+  still has to be pressed. The CALL 911 button is gone.
+- **Survival guide**, collapsible and saved with the page, written for these
+  mountains: lost (blazes, laurel hells, following water), signal and battery,
+  being found, cold, lightning, flash floods, water (including mine drainage),
+  bears, snakes, ticks, old mines, waterfalls, hunting season, shelter and
+  first aid.
+- The PRIVACY panel lists the signal catcher's contacts.
+
+Cost per run: nothing; no model calls. A visitor's phone uses two small
+requests and about 1 MB of map per new area when signal appears.
+
 ## 1.25.2 — 2026-10-08
 
 ### Changed: the PRIVACY panel discloses everything, hidden features included

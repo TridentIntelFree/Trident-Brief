@@ -6,6 +6,14 @@
 <meta name="description" content="The Trident Brief by Appalachian Intel - automated multi-INT fusion digest with live open-source signal feeds.">
 <meta name="color-scheme" content="dark">
 <meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#070b1c">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trident">
 <title>The Trident Brief &middot; Appalachian Intel</title>
 <meta name="generator" content="Trident Brief __VERSION__">
 <style>
@@ -358,6 +366,21 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
   letter-spacing:.08em;padding:8px 11px;border-radius:8px 8px 0 0;cursor:pointer;min-height:36px}
 .ap-tab.on{background:rgba(59,130,246,.22);border-color:var(--blue);color:#fff}
 .ap-tab.ap-sos{color:#fca5a5}
+.ap-guide{margin-top:10px;border:1px solid rgba(239,68,68,.35);border-radius:10px;background:rgba(10,17,36,.9);padding:10px 14px;line-height:1.55}
+.ap-guide > summary{font-family:var(--mono);font-size:.78em;letter-spacing:.1em;color:#fca5a5;cursor:pointer;font-weight:700}
+.ap-guide details{margin:6px 0;border-top:1px solid var(--line2);padding-top:6px}
+.ap-guide details > summary{cursor:pointer;color:var(--ink);font-weight:600}
+.ap-guide ul{margin:6px 0 4px 18px}.ap-guide li{margin:5px 0;color:var(--ink-dim)}
+.ap-guide b{color:var(--ink)}
+/* pocket mode: pure black, touch-locked, one dim moving line */
+#apPocket{position:fixed;inset:0;z-index:2147483000;background:#000;touch-action:none;user-select:none;-webkit-user-select:none;
+  -webkit-touch-callout:none;overscroll-behavior:none}
+html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
+#apPocket .pk-hint{position:absolute;left:8%;right:8%;top:22%;color:#8a7a5a;font:14px/1.6 var(--mono);text-align:center;transition:opacity 1.5s}
+#apPocket .pk-hint b{color:#c9a96a}
+#apPocket .pk-line{position:absolute;left:10%;top:85%;color:#4a1414;font:12px var(--mono);white-space:nowrap}
+#apPocket .pk-exit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:18px 26px;font:700 15px var(--mono);
+  background:#120606;color:#fca5a5;border:1px solid #7f1d1d;border-radius:12px}
 .ap-panel{border:1px solid var(--line);border-radius:0 10px 10px 10px;padding:14px;background:rgba(10,17,36,.9);
   font-size:.88em;line-height:1.6;min-height:120px}
 .ap-panel h4{font-family:var(--mono);font-size:.72em;letter-spacing:.12em;color:var(--ink-faint);margin:10px 0 4px;font-weight:600}
@@ -970,6 +993,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <li>The space station's position: wheretheiss.at, every 90 seconds.</li>
           <li>Earthquakes (USGS), weather alerts (NWS) and launches (The Space Devs), only when the server failed to collect them.</li>
           <li>The trail map's USGS tiles, when you scroll to it. In private mode it waits for its button.</li>
+          <li>With the map's GPS on, when signal appears (at most every 30 minutes): weather alerts from the National Weather Service and a forecast
+            from Open-Meteo for your position rounded to about a kilometre, and the USGS map for a few kilometres around you if that ground was never
+            saved. In private mode only when you press CHECK NOW.</li>
         </ul>
 
         <h4>Contacted only when you press something</h4>
@@ -979,6 +1005,8 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <li><b>Transcribe:</b> the speech model is downloaded once from jsDelivr and Hugging Face. The audio is transcribed on your device and never sent anywhere.</li>
           <li><b>Terrain, imagery and site weather:</b> public AWS open-data buckets (Sentinel-2, USGS elevation, terrain tiles) and Open-Meteo, for the place you picked.</li>
           <li><b>ZIP lookup:</b> zippopotam.us.</li>
+          <li><b>Text my location</b> asks four times, then opens your own Messages app with your coordinates written in; nothing goes anywhere
+            unless you pick someone and press Send. The page itself sends nothing.</li>
           <li><b>Local Intel with your own xAI key:</b> your ZIP and the request go to xAI under your key, and xAI's terms apply.</li>
           <li>Other map layers you pick (OpenStreetMap, OpenTopoMap, Esri, Waymarked Trails), and links (X, Polymarket, the sources), which load nothing until clicked.</li>
         </ul>
@@ -1582,6 +1610,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       <div class="ap-search"><input type="search" id="apFind" placeholder="find shelter, water, peak, town&hellip;" autocomplete="off"><div class="ap-hits" id="apHits"></div></div>
       <button class="ap-btn ap-gps" id="apLocate" title="show where you are (uses the phone's GPS; works without signal)">&#9678; LOCATE</button>
       <button class="ap-btn" id="apFollow" title="keep the map centred on you">FOLLOW</button>
+      <button class="ap-btn" id="apPocketBtn" title="record your track with the screen black and locked, for the pocket">&#9681; POCKET</button>
     </div>
     <div class="ap-kinds" id="apKinds"></div>
     <div class="ap-mapwrap">
@@ -1598,10 +1627,115 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       <button class="ap-tab ap-sos" data-tab="sos">EMERGENCY</button>
     </div>
     <div class="ap-panel" id="apPanel"></div>
+    <details class="ap-guide" id="apGuide">
+      <summary>&#9978; SURVIVAL GUIDE &middot; Appalachian &middot; works offline</summary>
+      <p class="ap-dim">General guidance for the southern and central Appalachians, not training. A wilderness first-aid class is worth more than any page.
+        Saved with the page, so it opens with no signal.</p>
+
+      <details><summary>Lost</summary>
+        <ul>
+          <li><b>Stop.</b> Sit down, drink, eat something, and think before you move. Panic walking is how a short mistake becomes a long one.</li>
+          <li><b>If someone knows your route, stay put.</b> Searchers find people who stay in one place, near a trail or clearing if you can.</li>
+          <li><b>AT blazes:</b> white, 2&times;6 inches, on trees and rocks. Blue blazes lead off to water, shelters and views. Two blazes stacked mean a turn or junction.
+            If you have not seen a blaze for a while, go back to the last one you saw.</li>
+          <li><b>Stay out of laurel and rhododendron thickets</b> (&ldquo;laurel hells&rdquo;). They can run for miles and be nearly impossible to cross or get out of.</li>
+          <li><b>Following water downhill</b> often reaches a road here, because the hollows are lived in. It also leads over waterfalls and into thickets.
+            Walk beside the stream, not in it, and turn back at any drop.</li>
+          <li>Ridgelines, old logging roads, power-line cuts and gas-pipeline clearings are easier going than the slopes, and the high ones often have signal.</li>
+        </ul>
+      </details>
+
+      <details><summary>Signal and battery</summary>
+        <ul>
+          <li><b>With no signal, a phone burns battery hunting for a tower.</b> Airplane mode stops that. GPS and this map still work in airplane mode.</li>
+          <li>Every hour or two, turn airplane mode off on high, open ground: a ridgetop, bald or overlook. Give it a few minutes.</li>
+          <li><b>A text gets through on a signal too weak for a call,</b> and waits in Messages until it can go out. Keep it short.</li>
+          <li>Cold kills batteries. Keep the phone in an inside pocket, and dim the screen. Low Power Mode helps.</li>
+          <li>POCKET MODE on the map records your track with the screen black and locked. Pressing the power button stops it.</li>
+        </ul>
+      </details>
+
+      <details><summary>Being found</summary>
+        <ul>
+          <li><b>Three of anything means help:</b> three whistle blasts, three flashes of a light, three fires, three piles of rocks.</li>
+          <li>A whistle carries much farther than a voice and costs no energy. Blow three, rest, repeat.</li>
+          <li>Helicopters cannot see through leaf cover. Get to a clearing, bald or open rock, and spread bright clothing or a space blanket.</li>
+          <li>Before any hike: tell someone your route and when to raise the alarm if you are not back.</li>
+        </ul>
+      </details>
+
+      <details><summary>Cold, storms and floods</summary>
+        <ul>
+          <li><b>Hypothermia is the big killer in these mountains, in summer too.</b> Cold rain and wind at 4,000&ndash;6,000 ft are enough.
+            It is about 3&ndash;5&deg;F cooler for every 1,000 ft you climb.</li>
+          <li>Watch for shivering, then the &ldquo;umbles&rdquo;: stumbles, mumbles, fumbles, grumbles. Get out of the wind, into dry layers, off the ground; eat and drink something warm.
+            Cotton stays wet and cold.</li>
+          <li><b>Lightning:</b> summer afternoons. Get off summits, ridges, balds and open fields, away from lone tall trees, fire towers and metal. A group spreads out.
+            Wait 30 minutes after the last thunder.</li>
+          <li><b>Flash floods:</b> narrow hollows and creeks rise fast from rain you cannot see upstream. Do not camp beside a creek in a narrow hollow when rain is coming.
+            Do not cross moving water above your knees. If water is rising, climb, do not follow it.</li>
+          <li><b>Fog on balds</b> hides the trail. Wait, or go blaze to blaze.</li>
+        </ul>
+      </details>
+
+      <details><summary>Water</summary>
+        <ul>
+          <li><b>Treat all water,</b> however clear. Giardia and other bugs are common in mountain streams.</li>
+          <li>Boiling: a rolling boil for 1 minute (3 minutes above 6,500 ft). Or a filter, or tablets, used as the label says.</li>
+          <li><b>Coal country:</b> skip streams with orange-stained rocks. That is mine drainage, full of metals that filters and boiling do not remove.</li>
+          <li>You can last weeks without food, days without water, and only hours in cold rain without shelter. Shelter first, water second.</li>
+        </ul>
+      </details>
+
+      <details><summary>Animals and plants</summary>
+        <ul>
+          <li><b>Black bears</b> are usually shy. Do not run. Stand tall, talk firmly, back away slowly. If a black bear attacks, fight back hard.
+            Hang food or use a canister; some sections require canisters at times, so check local rules.</li>
+          <li><b>Timber rattlesnakes and copperheads</b> live here. Watch hands and feet on rocky ledges in warm weather; step onto logs, not over them.
+            If bitten: stay calm, keep the limb still and about level with the heart, take off rings and tight things.
+            No tourniquet, no cutting, no sucking, no ice. Get to a hospital.</li>
+          <li><b>Ticks:</b> Lyme disease is common in Virginia, West Virginia and northward. Check every day (behind knees, waist, armpits, scalp).
+            Pull a tick straight out with fine tweezers close to the skin. A spreading rash or fever in the weeks after needs a doctor.</li>
+          <li><b>Yellow jackets</b> nest in the ground in late summer. If you step on a nest, run; do not swat.</li>
+          <li><b>Poison ivy:</b> leaves of three, and hairy vines up trees. Wash with soap and cool water soon after touching it.</li>
+          <li><b>Do not eat mushrooms or plants you cannot identify for certain.</b> Deadly look-alikes grow here.</li>
+        </ul>
+      </details>
+
+      <details><summary>Ground that kills</summary>
+        <ul>
+          <li><b>Old coal mines</b> (Southwest Virginia, West Virginia, Kentucky, Pennsylvania): never go into a portal or near an open shaft.
+            Bad air with no oxygen, collapses and hidden vertical shafts. Stay out, stay alive.</li>
+          <li><b>Waterfalls:</b> slick rock at the top of falls kills people every year. Stay back from the edge and never climb a falls.</li>
+          <li><b>Hunting season:</b> fall into winter, plus spring turkey season. Wear blaze orange.</li>
+          <li>Wet leaves over rock are as slick as ice. Cliff edges hide in fog and leaf cover.</li>
+        </ul>
+      </details>
+
+      <details><summary>Shelter and fire</summary>
+        <ul>
+          <li>Out of the wind and off the ground first. A deep pile of dry leaves under and over you insulates well.</li>
+          <li>AT shelters (three-sided lean-tos) are roughly every 8 miles on average; the map's search finds them.</li>
+          <li>Dry fuel when everything is wet: dead twigs still on trees that snap cleanly, resin-soaked pine (fatwood), birch bark.
+            Respect fire bans.</li>
+        </ul>
+      </details>
+
+      <details><summary>First aid basics</summary>
+        <ul>
+          <li><b>Bleeding:</b> firm, direct pressure, and keep pressing. Do not keep lifting to look.</li>
+          <li><b>Sprained ankle:</b> wrap or tape it, use a stick or poles, take short steps. Walking out slowly beats waiting if no one knows where you are.</li>
+          <li><b>Shock:</b> lie down, keep warm, raise the legs if there is no head, neck or leg injury.</li>
+          <li><b>Head knock:</b> watch for confusion, vomiting or worsening headache. Those mean get help.</li>
+          <li>Treat hot spots before they are blisters.</li>
+        </ul>
+      </details>
+    </details>
     <div class="ap-fine">
       A navigation aid, not a substitute for a paper map, a compass and knowing how to use them. Phones lose
       battery and signal, and browsers pause a page when the screen turns off, so a track records only while
-      this page is open and the screen is on. Bearings are to true north; a magnetic compass along the AT reads
+      this page is open and the screen is on. POCKET keeps the screen on but black and locked, so the track keeps
+      recording in a pocket; pressing the power button still stops it. Bearings are to true north; a magnetic compass along the AT reads
       roughly 5&deg;&ndash;16&deg; west of true. Trail miles are measured along OpenStreetMap's line from Springer
       Mountain, not taken from a guidebook. That line is smoother than the trail as measured on the ground, so
       these miles run a few percent below guidebook miles, and the gap grows northward (the HERE tab shows it for
