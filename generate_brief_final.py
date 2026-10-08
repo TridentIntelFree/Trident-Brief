@@ -3015,7 +3015,7 @@ def _sw_first(urls, timeout=20):
         try:
             return _sw_get(u, timeout)
         except Exception as e:
-            errs.append(f"{u.rsplit('/', 1)[-1]}: {str(e)[:70]}")
+            errs.append(f"{u.split('/')[2]}: {str(e)[:150]}")
     raise RuntimeError('; '.join(errs))
 
 
@@ -3164,6 +3164,28 @@ def _sw_cmes(now):
     return {'list': out[:15], 'earth': [c for c in out if c['earth']], 'storms': storms}
 
 
+def _sw_discussion(now):
+    """SWPC's forecasters' own discussion, written twice a day: it says in words
+    which CMEs they are tracking and whether any is expected at Earth."""
+    r = requests.get(SWPC + 'text/discussion.txt', timeout=20, headers=SW_UA)
+    r.raise_for_status()
+    txt = r.text.replace('\r', '')
+    issued = next((l[1:].strip().split(':', 1)[-1].strip() for l in txt.splitlines() if l.startswith(':Issued:')), '')
+    body = [l for l in txt.splitlines() if l.strip() and not l.startswith((':', '#'))]
+    secs, cur = {}, None
+    for l in body:
+        h = l.strip().rstrip('.')
+        if h.lower() in ('solar activity', 'energetic particle', 'energetic particles', 'solar wind', 'geospace'):
+            cur = h.title(); secs[cur] = []
+        elif cur:
+            secs[cur].append(l.strip())
+    tidy = lambda t: re.sub(r'\.24 hr Summary\.\.\.\s*', 'Past 24 h: ', re.sub(r'\.Forecast\.\.\.\s*', ' Forecast: ', t)).strip()
+    out = {k: tidy(' '.join(' '.join(v).split()))[:900] for k, v in secs.items() if v}
+    if not out:
+        out = {'Discussion': ' '.join(' '.join(body).split())[:1800]}
+    return {'issued': issued, 'sections': out}
+
+
 # A rough guide for Tazewell, VA (about 37 N, geomagnetic latitude about 47 N).
 # G level from Kp: Kp 5 = G1 ... Kp 9 = G5.
 def _sw_local(sw):
@@ -3200,12 +3222,12 @@ def fetch_space_weather():
     now = datetime.now(timezone.utc)
     out, notes = {}, {}
     for key, fn in (('scales', _sw_scales), ('kp', _sw_kp), ('wind', _sw_wind), ('xray', _sw_xray),
-                    ('alerts', _sw_alerts), ('cmes', _sw_cmes)):
+                    ('alerts', _sw_alerts), ('cmes', _sw_cmes), ('discussion', _sw_discussion)):
         try:
             out[key] = fn(now)
             notes[key] = 'ok'
         except Exception as e:
-            notes[key] = 'ERR ' + str(e)[:80]
+            notes[key] = 'ERR ' + str(e)[:320]
     if not any(v == 'ok' for v in notes.values()):
         raise RuntimeError('no space-weather source answered: ' + '; '.join(f'{k} {v}' for k, v in notes.items()))
     out['local'] = _sw_local(out)
@@ -3245,6 +3267,9 @@ def space_lines(sw):
                               f"{' (glancing blow)' if c['glancing'] else ''}, model Kp up to {c['kp']}" for c in e[:4]) or 'none'))
     if al:
         out.append('- SWPC alerts and warnings, 48 h: ' + '; '.join(f"{a['at']}Z {a['title']}" for a in al[:6]))
+    ds = sw.get('discussion') or {}
+    for k, v in list((ds.get('sections') or {}).items())[:4]:
+        out.append(f"- SWPC forecasters' discussion ({ds.get('issued')}), {k}: {v[:500]}")
     out.append('Mention space weather only when it matters: G3 or stronger, R3 or stronger, S2 or stronger, an Earth-directed '
                'CME, or as a possible cause of GPS or HF-radio anomalies elsewhere in the brief. Otherwise one line at most.')
     return out + ['']

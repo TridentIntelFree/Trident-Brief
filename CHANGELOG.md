@@ -4,6 +4,21 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.33.2 — 2026-10-08
+
+### Added: NOAA forecasters' discussion in space weather
+- Solar wind now arrives (1.33.1 worked). NASA's DONKI still answers GitHub's
+  servers with something other than JSON, so CME details may be missing.
+- **NOAA's forecasters' discussion** is now read on each refresh: SWPC's
+  forecasters write it twice a day, in words. It covers solar activity,
+  energetic particles, solar wind and geospace, including which CMEs they
+  are tracking and when any is expected at Earth. It appears as a card in
+  SPACE WX, in the brief's prompt and in `intel.py space`, so CME news gets
+  through even when DONKI does not answer.
+- When DONKI fails, the note now records what both NASA addresses
+  returned, so the cause can be found.
+- Cost: free; a few hundred more prompt tokens per brief.
+
 ## 1.33.1 — 2026-10-08
 
 ### Fixed: space weather's first live run
