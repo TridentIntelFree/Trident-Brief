@@ -320,6 +320,13 @@ Built for being stuck in the woods:
   NWS alerts and a 12-hour Open-Meteo forecast for the position rounded to
   about a kilometre, and about 1 MB of USGS map around you if that ground was
   never saved.
+- **Plan a walking route** (GO TO tab). It uses OpenStreetMap paths (Overpass)
+  and AWS terrain heights, fetched once with signal. Tobler's hiking function
+  times two routes: a trails-and-roads route over the mapped network, and the
+  quickest route over a ~30 m terrain grid. Each comes with a profile, climb,
+  steep ground, drop-offs, crossings, water and ways out, a cue sheet and a
+  daylight check. The kept route, plus the map along it, is followed offline
+  with an off-route warning.
 - **Text my location** asks four times before it opens Messages. There is no
   call button.
 - **Survival guide.** Collapsible, Appalachian-specific, saved with the page.

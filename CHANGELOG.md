@@ -4,6 +4,51 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.27.0 — 2026-10-08
+
+### Added: PLAN A WALKING ROUTE (GO TO tab)
+- From where you are (or the map centre) to the GO TO destination, up to
+  30 km. Planning needs signal once: OpenStreetMap's paths, roads, streams,
+  springs and shelters for the area (Overpass), and terrain heights from the
+  AWS terrain tiles, a few MB. Everything else is worked out on the phone.
+- **Two routes, side by side:**
+  - **Trails and roads:** the quickest path over the mapped network. Straight
+    off-trail legs are used only to reach it, never over ground steeper than
+    30°.
+  - **Over the ground (quickest):** the quickest way across a grid of about
+    30 m cells. It uses paths where they help and cuts across where the slope
+    allows. It never crosses ground steeper than 30° off trail, or a river
+    without a bridge.
+- **Speed model.** Walking speed is Tobler's hiking function on the slope, at
+  0.6 of that off trail.
+- **The analysis, kept with the route:**
+  - distance, walking time, climb and descent;
+  - an elevation profile coloured by steepness, the steepest stretch each way,
+    and the mix of trail, track, road and off-trail;
+  - arrival against sunset, or that it is dark now and when sunrise is;
+  - hazards in order: stretches steeper than 25°, ground over 45° within about
+    30 m of the line (drop-offs), stream and river crossings (bridges and fords
+    noted), road walks on busy roads, and how much is off trail, with what the
+    data cannot see;
+  - water, shelters, trailheads and roads (ways out) along it, by mile;
+  - a cue sheet ("1.2 mi on Saddle Trail, 0.4 mi on FR 222…").
+- **USE THIS** keeps the route on the phone, saves the USGS map about 750 m
+  either side of it, and switches the navigation bar to following it:
+  - the arrow aims about 80 m ahead on the route;
+  - it shows distance and time left;
+  - **OFF ROUTE** appears, with the way back, when you are more than about
+    50 m off.
+
+  Pocket mode's line shows the same. The route can be exported as GPX.
+- Planning is a press of a button, so it also works in private mode. The
+  PRIVACY panel names the Overpass servers.
+
+### Fixed
+- The track is pink, not orange: orange is the Appalachian Trail.
+
+Cost per run: nothing; no model calls. A visitor's phone uses a few MB when
+planning, and about 1–2 MB of map per route kept.
+
 ## 1.26.2 — 2026-10-08
 
 ### Fixed: a "route" on the map that had nothing to do with your waypoint

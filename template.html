@@ -504,6 +504,10 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 .ap-dim{color:var(--ink-faint)}
 .ap-warn{color:#fbbf24}
 .ap-good{color:#86efac;font-weight:700}
+.ap-prof{display:block;width:100%;height:90px;margin:8px 0 2px;background:rgba(7,11,28,.6);border:1px solid var(--line2);border-radius:6px}
+.ap-ropt{border:1px solid var(--line2);border-radius:9px;padding:8px 10px;margin:8px 0;background:rgba(7,11,28,.5)}
+.ap-ropt.on{border-color:var(--blue)}
+.ap-ul{margin:4px 0 4px 18px;line-height:1.5}.ap-ul li{margin:3px 0}
 .ap-hud{position:absolute;left:8px;right:8px;bottom:30px;z-index:900;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:10px;
   background:rgba(7,11,28,.9);border:1px solid #ef4444;color:var(--ink);font-family:var(--mono);font-size:.78em;cursor:pointer;line-height:1.35}
 .ap-hud[hidden]{display:none}
@@ -1014,6 +1018,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <li><b>Transcribe:</b> the speech model is downloaded once from jsDelivr and Hugging Face. The audio is transcribed on your device and never sent anywhere.</li>
           <li><b>Terrain, imagery and site weather:</b> public AWS open-data buckets (Sentinel-2, USGS elevation, terrain tiles) and Open-Meteo, for the place you picked.</li>
           <li><b>ZIP lookup:</b> zippopotam.us.</li>
+          <li><b>Plan a walking route:</b> the paths, roads and streams in a box around your start and destination from OpenStreetMap's Overpass servers
+            (overpass-api.de, overpass.kumi.systems, overpass.private.coffee), and terrain heights from the AWS terrain tiles. The route is worked out on your
+            phone and kept there.</li>
           <li><b>Text my location</b> asks four times, then opens your own Messages app with your coordinates written in; nothing goes anywhere
             unless you pick someone and press Send. The page itself sends nothing.</li>
           <li><b>Local Intel with your own xAI key:</b> your ZIP and the request go to xAI under your key, and xAI's terms apply.</li>
