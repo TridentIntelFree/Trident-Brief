@@ -400,7 +400,7 @@ def main():
             h = str(f.get('horizon', '')).strip().lower().replace(' ', '')
             h = h if h in HORIZONS else '72h'
             p = max(1, min(99, int(round(float(f.get('probability'))))))
-            new.append({'id': f'{today}-{n}', 'made': stamp, 'horizon': h,
+            new.append({'id': f"{now.strftime('%Y-%m-%dT%H%M')}-{n}", 'made': stamp, 'horizon': h,
                         'deadline': (now + timedelta(days=HORIZONS[h])).strftime('%Y-%m-%dT%H:%M:%SZ'),
                         'region': str(f.get('region', ''))[:40], 'event': str(f.get('event', ''))[:300],
                         'probability': p, 'term': wep_for(p),
@@ -410,7 +410,9 @@ def main():
             continue
     if not new:
         sys.exit('Grok returned no usable forecasts; the previous crystal ball is left in place.')
-    forecasts = [f for f in forecasts if f['made'][:10] != today] + new     # a rerun the same day replaces that day's set
+    # every run's forecasts are kept and scored, a rerun on the same day included: discarding a set
+    # before it is due would hide forecasts that might have gone wrong
+    forecasts = forecasts + new
     sc = score(forecasts)
     nuc = ans.get('nuclear') or {}
     out = {'v': 1, 'at': stamp, 'brief_collected': collected, 'bluf': str(ans.get('bluf', ''))[:600],
