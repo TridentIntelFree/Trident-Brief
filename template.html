@@ -5046,6 +5046,12 @@ async function cbShow(){
       '. Arrival times are model runs, often hours off.</div>';
     cards.push(h2 + '</div>');
   }
+  var ds = SW.discussion;
+  if(ds && ds.sections){
+    cards.push('<div class="ind-c"><h4>NOAA FORECASTERS&rsquo; DISCUSSION</h4>' + Object.keys(ds.sections).map(function(k){
+      return '<div class="ind-row sw-txt"><span><b>' + esc(k) + ':</b> ' + esc(ds.sections[k]) + '</span></div>'; }).join('') +
+      '<div class="sig-small">written by SWPC forecasters twice a day · issued ' + esc(ds.issued || '?') + '</div></div>');
+  }
   if(al && (al.list || []).length){
     cards.push('<div class="ind-c"><h4>SWPC ALERTS &mdash; 48 H</h4>' + al.list.slice(0, 8).map(function(a){
       return '<div class="ind-row sw-txt"><span>' + esc(a.title) + '</span></div><div class="sig-small">' + et(a.at) + '</div>'; }).join('') + '</div>');

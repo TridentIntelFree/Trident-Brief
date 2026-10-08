@@ -312,6 +312,9 @@ def _space_summary(f, full=False):
             print('  storms logged (DONKI GST): ' + ', '.join(f"Kp {g['kp']} {g['start']}" for g in cm['storms']))
     for a in ((sw.get('alerts') or {}).get('list') or [])[:12 if full else 4]:
         print(f"  alert {a['at']}Z {clip(a['title'], 110)}")
+    ds = sw.get('discussion') or {}
+    for k, v in (ds.get('sections') or {}).items():
+        print(f"  forecasters ({ds.get('issued')}), {k}: {v if full else clip(v, 220)}")
     for l in sw.get('local') or []:
         print('  Tazewell: ' + l)
 
