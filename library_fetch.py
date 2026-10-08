@@ -8,7 +8,7 @@ the survival guide; a visitor saves them to their phone with one button.
 Run by .github/workflows/library.yml (on change, and monthly to pick up new
 editions). Each file must be a PDF under 30 MB, or it is skipped and the old
 copy kept. Writes library/<id>.pdf and library/index.json."""
-import hashlib, json, os, re, sys, time
+import hashlib, json, os, re, shutil, subprocess, sys, tempfile, time
 from datetime import datetime, timezone
 
 import requests
@@ -45,7 +45,9 @@ DOCS = [
      'url': 'https://www.msha.gov/sites/default/files/Alerts%20and%20Hazards/Safety%20Alert%20-%20Abandoned%20Mines.pdf', 'note': ''},
 ]
 OUT = 'library'
-MAX = 30 * 1024 * 1024
+MAX = 40 * 1024 * 1024          # what a phone is asked to keep
+RAW_MAX = 150 * 1024 * 1024     # what is downloaded before shrinking
+SHRINK_OVER = 12 * 1024 * 1024
 UA = 'TridentBrief-library/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'
 # Some government and archive sites answer scripts with a bot check page. As
 # the feed collector does, ask honestly first, then as an ordinary browser.
@@ -68,6 +70,28 @@ def get_pdf(urls):
     raise ValueError('no PDF: ' + ' | '.join(why)[:600])
 
 
+def shrink(blob):
+    """Scanned manuals run to tens of MB. Ghostscript's ebook setting (about
+    150 dpi) keeps them readable on a phone at a fraction of the size."""
+    gs = shutil.which('gs')
+    if not gs or len(blob) <= SHRINK_OVER:
+        return blob, False
+    with tempfile.TemporaryDirectory() as t:
+        src, dst = os.path.join(t, 'in.pdf'), os.path.join(t, 'out.pdf')
+        open(src, 'wb').write(blob)
+        try:
+            subprocess.run([gs, '-sDEVICE=pdfwrite', '-dCompatibilityLevel=1.5', '-dPDFSETTINGS=/ebook',
+                            '-dNOPAUSE', '-dBATCH', '-dQUIET', '-sOutputFile=' + dst, src], check=True, timeout=900)
+            out = open(dst, 'rb').read()
+        except Exception as e:
+            print('     shrink failed:', e)
+            return blob, False
+    if out.startswith(b'%PDF') and len(out) < len(blob):
+        print('     shrunk %.1f MB -> %.1f MB' % (len(blob)/1048576, len(out)/1048576))
+        return out, True
+    return blob, False
+
+
 def pages(blob):
     return len(re.findall(rb'/Type\s*/Page(?![s\w])', blob)) or None
 
@@ -86,8 +110,12 @@ def main():
         try:
             blob, used = get_pdf([d['url']] + d.get('also', []))
             entry['url'] = used
+            if len(blob) > RAW_MAX:
+                raise ValueError('larger than 150 MB')
+            blob, shrunk = shrink(blob)
             if len(blob) > MAX:
-                raise ValueError('larger than 30 MB')
+                raise ValueError('%.0f MB even after shrinking; over the 40 MB limit' % (len(blob)/1048576))
+            entry['shrunk'] = shrunk
             with open(path, 'wb') as f:
                 f.write(blob)
             entry.update(bytes=len(blob), pages=pages(blob), sha256=hashlib.sha256(blob).hexdigest(),
