@@ -74,7 +74,16 @@ blocked from these sandboxes, so use `intel.py`, not the page.
 - `template.html` / `assets/`: the page. `signals.js` is the radio analyzer,
   `briefing.js` reads the brief aloud.
 - `crystal_ball.py`, `analyst_desk.py`, `area_brief.py`: hidden desks, one
-  Grok call a day each. `astro_lore.py` runs after the Crystal Ball: the
+  Grok call a day each. The Crystal Ball forecasts four windows (48 h daily,
+  7 d weekly, 30 d monthly, 1 y quarterly). `forecast_engine.py` does all the
+  free work around that call:
+  - the records (alarms, alerts, claimed losses, quakes);
+  - the statistical engine (fly-brain analog days);
+  - the fly's matches against past warnings;
+  - blind Polymarket benchmark questions;
+  - automatic settling and the scoreboard.
+
+  Event questions are settled by a separate small web-search grading call. `astro_lore.py` runs after the Crystal Ball: the
   computed sky, national charts, almanac, lore against the intel (fly-brain
   overlaps), a weekly fair test of astrology's claims against years of
   records, and a second small Grok call for the reading
@@ -95,6 +104,7 @@ The owner's standing rules:
   - title ×3: Analyst Desk
   - left trident ×3: Crystal Ball
   - version ×5: owner panel
+  - the small "hello" box, top right: prediction-market top picks
 - **No Reddit,** as a source or a search.
 - **Listen like a person.** Other people's receivers are used live, by a
   human pressing a button, one at a time, never recorded round the clock.

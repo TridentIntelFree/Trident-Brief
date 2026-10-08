@@ -87,6 +87,33 @@ Mercer County.
 
 ## Crystal Ball (owner only)
 
+**Forecasts in four windows, scored.** Every morning there is a fresh 48-hour
+set, a 7-day set weekly, a 30-day set monthly and a 12-month set quarterly:
+about 8, 8, 8 and 12 questions. Every question names how it settles (a
+source, a threshold, a deadline). Up to four forecasters answer, and each is
+scored against its own baseline:
+- **The engine** (`forecast_engine.py`, free). It answers questions on what
+  the app measures over years: Ukraine's alarms, Israel's rocket alerts,
+  Russia's claimed personnel and drone losses, and USGS quakes. It forecasts
+  by analog: the fly brain (the Mushroom Body hash, a similarity search) finds
+  the past days most like today, and what followed them is the forecast,
+  shrunk toward the plain base rate. These questions settle themselves from
+  the records.
+- **The oracle** (Grok, one call). It answers the questions the records cannot,
+  starting from base rates.
+- **The fly.** For an oracle question, it reports how often the most similar
+  past warnings came true. It answers only when it has at least four genuine
+  precedents.
+- **The crowd.** Open Polymarket questions on world affairs are put to the
+  oracle without their price, and both are scored when the market settles.
+  The biggest disagreements are shown only behind the small "hello" box at
+  the top right. They are not shown in the Crystal Ball.
+
+The ledger shows a Brier score per window and forecaster, against its
+baseline, plus a calibration chart. Event questions are settled by a separate
+small grading call with web search, comparing reported numbers with each
+question's threshold.
+
 `crystal_ball.py`, run each morning by `.github/workflows/crystal-ball.yml`
 (12:43 UTC), using only `GROK_API_KEY`. It makes one reasoning call with no
 searching, over:

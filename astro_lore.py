@@ -466,20 +466,10 @@ def _il_day(row):
 
 
 def load_series(now):
-    cache = json.load(open(SERIES, encoding='utf-8')) if os.path.exists(SERIES) else {}
-    out, notes = {}, []
-    for key, fn in (('ua_alarms', lambda: _csv_series(IND_UA_ALERTS, cache.get('ua_alarms'), _ua_day, 600_000)),
-                    ('il_rockets', lambda: _csv_series(IND_IL_ALERTS, cache.get('il_rockets'), _il_day, 3_000_000)),
-                    ('ru_losses', lambda: _losses()),
-                    ('quakes', lambda: _quakes(cache.get('quakes'), now))):
-        try:
-            out[key] = fn()
-        except Exception as e:
-            out[key] = cache.get(key) or {}
-            notes.append(f'{key}: {str(e)[:80]} (kept {len(out[key])} cached days)')
-    with open(SERIES, 'w', encoding='utf-8') as f:
-        json.dump(out, f, separators=(',', ':'))
-    return out, notes
+    """The records, kept and refreshed by forecast_engine (one cache for the Crystal Ball and the fair test)."""
+    from forecast_engine import refresh_series
+    series, notes = refresh_series(now)
+    return {k: {d: v for d, v in s.items() if not d.startswith('_')} for k, s in series.items()}, notes
 
 
 def _losses():
