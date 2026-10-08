@@ -1445,5 +1445,198 @@
   "made": "2026-10-08T00:35:08Z",
   "term": "very likely",
   "deadline": "2027-10-08T23:59:59Z"
+ },
+ {
+  "id": "2026-10-08T1901-1",
+  "source": "oracle",
+  "made": "2026-10-08T19:01:12Z",
+  "horizon": "48h",
+  "deadline": "2026-10-10T19:01:12Z",
+  "region": "short",
+  "event": "Ukraine MoD reports at least one long-range strike on Russian energy infrastructure",
+  "criterion": "Ukrainian General Staff or MoD statement confirming a strike on an oil refinery or energy site inside Russia before 10 Oct 2026 19:01 UTC",
+  "probability": 62,
+  "term": "likely",
+  "base_rate": 35,
+  "basis": [
+   "Zelenskyy statements on preparing responses",
+   "prior Omsk strike confirmation",
+   "engine base rate of elevated Ukrainian claims"
+  ],
+  "watch_for": "Ukrainian General Staff Telegram post or Kyiv Independent report naming a new target",
+  "wrong_if": "No Ukrainian strike claims or confirmations appear in MoD channels by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-10-08T1901-2",
+  "source": "oracle",
+  "made": "2026-10-08T19:01:12Z",
+  "horizon": "48h",
+  "deadline": "2026-10-10T19:01:12Z",
+  "region": "short",
+  "event": "Houthi forces launch ballistic missile or drone at a Saudi airport with claimed impact",
+  "criterion": "Houthi military spokesman or Saudi MoD statement reports a missile or drone reaching King Khalid, Najran or Khamis Mushait airport before 10 Oct 2026 19:01 UTC",
+  "probability": 51,
+  "term": "roughly even chance",
+  "base_rate": 28,
+  "basis": [
+   "multiple Houthi claims and Saudi intercepts in last 24h",
+   "escalation pattern in Riyadh-area targets",
+   "high volume of Red Sea/Hormuz incidents"
+  ],
+  "watch_for": "Yahya Saree statement or Saudi intercept report naming airport target",
+  "wrong_if": "No new Houthi airport-strike claims or intercepts reported by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-10-08T1901-3",
+  "source": "oracle",
+  "made": "2026-10-08T19:01:12Z",
+  "horizon": "48h",
+  "deadline": "2026-10-10T19:01:12Z",
+  "region": "short",
+  "event": "Eritrean troops advance or clash beyond Adigrat in Tigray",
+  "criterion": "ACLED or Ethiopian/Eritrean state media reports Eritrean forces controlling territory or engaging beyond Adigrat before 10 Oct 2026 19:01 UTC",
+  "probability": 37,
+  "term": "unlikely",
+  "base_rate": 22,
+  "basis": [
+   "witness reports of crossings and Ethiopian drone strikes",
+   "renewed friction noted in regional outlets",
+   "Tigray listed in GDELT hotspots"
+  ],
+  "watch_for": "ACLED update or local official statement on new positions near Edaga Hamus",
+  "wrong_if": "No reports of further Eritrean movement or clashes past Adigrat by deadline",
+  "fly": null
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 294 air-raid alarms on 9 Oct 2026 and 10 Oct 2026, a faster pace than the past 30 days",
+  "probability": 53,
+  "base_rate": 50,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 32 were followed by this",
+   "base rate 50% over the whole record",
+   "closest: 7 Jul 2024, 22 Jul 2024, 16 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-10-09",
+   "end": "2026-10-10",
+   "op": ">",
+   "threshold": 294,
+   "unit_days": false
+  },
+  "criterion": "More than 294 air-raid alarms on 9 Oct 2026 and 10 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-08T1901-4",
+  "made": "2026-10-08T19:01:12Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-10T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,188 Russian personnel losses claimed by Ukraine's MoD on 9 Oct 2026 and 10 Oct 2026, a faster pace than the past 30 days",
+  "probability": 65,
+  "base_rate": 53,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 40 were followed by this",
+   "base rate 53% over the whole record",
+   "closest: 16 Jun 2026, 1 Nov 2024, 13 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-10-09",
+   "end": "2026-10-10",
+   "op": ">",
+   "threshold": 3188,
+   "unit_days": false
+  },
+  "criterion": "More than 3,188 Russian personnel losses claimed by Ukraine's MoD on 9 Oct 2026 and 10 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-08T1901-5",
+  "made": "2026-10-08T19:01:12Z",
+  "term": "likely",
+  "deadline": "2026-10-10T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,249 Russian drones claimed destroyed by Ukraine's MoD on 9 Oct 2026 and 10 Oct 2026, a faster pace than the past 30 days",
+  "probability": 58,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 35 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 17 Aug 2026, 18 Aug 2026, 7 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-10-09",
+   "end": "2026-10-10",
+   "op": ">",
+   "threshold": 3249,
+   "unit_days": false
+  },
+  "criterion": "More than 3,249 Russian drones claimed destroyed by Ukraine's MoD on 9 Oct 2026 and 10 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-08T1901-6",
+  "made": "2026-10-08T19:01:12Z",
+  "term": "likely",
+  "deadline": "2026-10-10T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 9 Oct 2026 and 10 Oct 2026 (Home Front Command)",
+  "probability": 12,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 6 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 28 Sep 2015, 2 Oct 2019, 25 Sep 2021"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-10-09",
+   "end": "2026-10-10",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 9 Oct 2026 and 10 Oct 2026 (Home Front Command)",
+  "id": "2026-10-08T1901-7",
+  "made": "2026-10-08T19:01:12Z",
+  "term": "very unlikely",
+  "deadline": "2026-10-10T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 9 Oct 2026 and 10 Oct 2026 (USGS)",
+  "probability": 52,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 31 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 31 Oct 2005, 7 Nov 2005, 3 Oct 2026"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-10-09",
+   "end": "2026-10-10",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 9 Oct 2026 and 10 Oct 2026 (USGS)",
+  "id": "2026-10-08T1901-8",
+  "made": "2026-10-08T19:01:12Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-10T23:59:59Z"
  }
 ]
