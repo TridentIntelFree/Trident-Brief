@@ -4,6 +4,21 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.28.4 — 2026-10-08
+
+### Library: FM 21-76 is in, with a warning
+- The library now has **FM 21-76 / MCRP 3-02F *Survival***, the Army and
+  Marine Corps manual. It is 571 pages with searchable text, reduced to
+  23.9 MB, and checked page by page for readability. With it are the NWS
+  lightning brochure and the CDC tick sheet.
+- **Its 1992 first aid is partly out of date.** For snakebite it describes
+  cutting and suction, which current guidance says never to do. The library
+  entry now says so in amber, and says to follow the app's survival guide
+  where they differ.
+- **Still not fetched:** the newer ATP 3-50.21 and the MSHA mines alert. Their
+  hosts answer scripts with a bot check, which is not bypassed. The monthly
+  run tries again.
+
 ## 1.28.3 — 2026-10-08
 
 ### Library: the Army manual, shrunk to fit a phone

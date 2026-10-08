@@ -1843,11 +1843,11 @@ function libPaint(){
       el.innerHTML = docs.map(function(d){
         return '<div class="ap-lib-doc"><div class="t">' + esc(d.title) + '</div><div class="ap-dim">' + esc(d.publisher) + (d.year ? ', ' + d.year : '') +
           (d.pages ? ' &middot; ' + d.pages + ' pages' : '') + ' &middot; ' + (d.bytes/1048576).toFixed(1) + ' MB' +
-          (d.shrunk ? ' (scanned; images reduced to about 150 dpi for phones)' : '') + '</div><div>' + esc(d.about) + '</div>' +
+          (d.shrunk ? ' (images reduced to about 150 dpi to fit a phone)' : '') + '</div><div>' + esc(d.about) + '</div>' +
           '<div class="ap-row"><a class="ap-btn" style="text-decoration:none" href="' + esc(d.file) + '" target="_blank" rel="noopener">OPEN</a>' +
           (d._saved ? '<span class="ap-good">saved on this phone</span> <button class="ap-btn" data-lib-del="' + esc(d.file) + '">REMOVE</button>'
                     : '<button class="ap-btn" data-lib-save="' + esc(d.file) + '">&#11015; SAVE FOR OFFLINE</button>') + '</div>' +
-          (d.note ? '<div class="ap-dim">' + esc(d.note) + '</div>' : '') + '</div>';
+          (d.note ? '<div class="' + (/out of date/.test(d.note) ? 'ap-warn' : 'ap-dim') + '">' + esc(d.note) + '</div>' : '') + '</div>';
       }).join('') + '<div class="ap-dim">' + esc(ix.license || '') + ' Sources: ' + docs.map(function(d){
         return '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(d.publisher) + '</a>'; }).join(', ') + '.</div>' +
         (docs.length ? '<div class="ap-row"><button class="ap-btn" data-lib-save="*">SAVE ALL (' + (docs.reduce(function(a, d){ return a + (d.bytes || 0); }, 0)/1048576).toFixed(1) + ' MB)</button></div>' : '');

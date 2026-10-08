@@ -27,7 +27,8 @@ DOCS = [
      'about': 'The classic Army survival manual: psychology, planning, kits, shelter, water, fire, plants and animals for food, poisonous plants, '
               'dangerous animals, field-expedient tools, direction finding, signalling and crossing water.',
      'url': 'https://archive.org/download/MManuals/UsMarineCorps-Survival-Mcrp3-02f.pdf',
-     'note': 'Superseded by later editions but still the most widely used. Copy kept by the Internet Archive.'},
+     'note': 'From 1992, and some first aid in it is out of date: for snakebite it describes cutting and suction, which current medical '
+             'guidance says never to do. Where it differs from the survival guide above, follow the guide. Copy kept by the Internet Archive.'},
     {'id': 'nws-lightning-outdoors',
      'title': 'Lightning: Don’t Get Caught Outside',
      'publisher': 'NOAA National Weather Service', 'year': 2018,
