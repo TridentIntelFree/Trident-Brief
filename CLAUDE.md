@@ -99,7 +99,8 @@ The owner's standing rules:
 - **One secret only.** The xAI key lives in the `GROK_API_KEY` repository
   secret. Never put it in a page, never ask for another secret, and never add
   setup steps that were not asked for.
-- **Hidden features stay hidden, not encrypted.** Gestures open them:
+- **Hidden features stay hidden, not encrypted, and never secret.** The
+  PRIVACY panel names them and everything they contact. Gestures open them:
   - "Appalachian Intel" ×3: Tazewell brief
   - title ×3: Analyst Desk
   - left trident ×3: Crystal Ball
@@ -111,6 +112,8 @@ The owner's standing rules:
 - **Private for visitors.** No tracking, cookies or analytics. Any new
   outside site the page contacts goes in the PRIVACY panel (`#privModal`), and
   anything it fetches on its own goes through `jget`, so private mode blocks it.
+- **Always honest about contacts.** Every site the page or the server jobs
+  reach out to is disclosed in the PRIVACY panel, hidden features included.
 - **Mind the cost.** Prefer free sources and caching to model calls, and say
   what a change costs per run.
 - **Be honest about results.** Noise is noise, a frozen feed is frozen, and

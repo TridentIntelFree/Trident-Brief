@@ -391,7 +391,9 @@ site the page contacts and when, and what it keeps on the device. It has a
 own; anything a visitor presses still works) and a button that erases
 everything the site saved on the device. The page sends no referrer, and the
 Crystal Ball's fonts are served from `assets/fonts/` rather than Google Fonts.
-GitHub, as the host, still sees visitors' IP addresses; the owner does not.
+GitHub, as the host, still sees visitors' IP addresses; the owner does not. Hidden
+features are hidden, not secret: the panel names them, says what they contact,
+and also lists what the server jobs contact.
 
 ## Layout
 

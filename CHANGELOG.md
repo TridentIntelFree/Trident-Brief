@@ -4,6 +4,19 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.25.2 — 2026-10-08
+
+### Changed: the PRIVACY panel discloses everything, hidden features included
+- Hidden features are hidden, not secret. The panel now names them (Tazewell
+  area brief, Analyst Desk, Crystal Ball, the "hello" market picks, the
+  owner's panel) and says what each contacts: GitHub for data, Polymarket only
+  through a clicked link, GitHub's API for the owner's panel. This reverses
+  1.25.1's removal of the Crystal Ball and Polymarket names.
+- New "What the server does" part: the scheduled jobs read about 70 public
+  sources, use Google's and Microsoft's free translation, ask xAI's Grok (Groq
+  as a fallback) to search and write, read Polymarket prices, and check
+  KiwiSDR receivers weekly. Nothing about visitors goes into any of it.
+
 ## 1.25.1 — 2026-10-08
 
 ### Fixed: the hidden desks showing in the scroll
