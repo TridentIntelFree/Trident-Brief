@@ -19,6 +19,7 @@ DOCS = [
      'publisher': 'US Army', 'year': 2018,
      'about': 'The Army’s survival manual: priorities, shelter, water, fire, food, navigation, signalling, first aid and travel.',
      'url': 'https://irp.fas.org/doddir/army/atp3-50-21.pdf',
+     'also': ['https://www.globalsecurity.org/military/library/policy/army/atp/atp3-50-21.pdf'],
      'note': 'Approved for public release; distribution is unlimited. Copy hosted by the Federation of American Scientists.'},
     {'id': 'nws-lightning-outdoors',
      'title': 'Lightning: Don’t Get Caught Outside',
@@ -39,6 +40,25 @@ DOCS = [
 OUT = 'library'
 MAX = 30 * 1024 * 1024
 UA = 'TridentBrief-library/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'
+# Some government and archive sites answer scripts with a bot check page. As
+# the feed collector does, ask honestly first, then as an ordinary browser.
+BROWSER = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+           'Chrome/124.0 Safari/537.36')
+
+
+def get_pdf(urls):
+    why = []
+    for u in urls:
+        for ua in (UA, BROWSER):
+            try:
+                r = requests.get(u, headers={'User-Agent': ua, 'Accept': 'application/pdf,*/*'}, timeout=120)
+                if r.ok and r.content.startswith(b'%PDF'):
+                    return r.content, u
+                why.append('%s %s %s %r' % (u.split('/')[2], r.status_code, r.headers.get('content-type', '?'), r.content[:60]))
+            except Exception as e:
+                why.append('%s %s' % (u.split('/')[2], e))
+            time.sleep(1)
+    raise ValueError('no PDF: ' + ' | '.join(why)[:600])
 
 
 def pages(blob):
@@ -55,12 +75,10 @@ def main():
     for d in DOCS:
         path = os.path.join(OUT, d['id'] + '.pdf')
         entry = dict(d, file=path)
+        entry.pop('also', None)
         try:
-            r = requests.get(d['url'], headers={'User-Agent': UA}, timeout=120)
-            r.raise_for_status()
-            blob = r.content
-            if not blob.startswith(b'%PDF'):
-                raise ValueError('not a PDF')
+            blob, used = get_pdf([d['url']] + d.get('also', []))
+            entry['url'] = used
             if len(blob) > MAX:
                 raise ValueError('larger than 30 MB')
             with open(path, 'wb') as f:
