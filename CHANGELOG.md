@@ -4,6 +4,14 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.26.1 — 2026-10-08
+
+### Fixed: no way to turn GPS on from the OFFLINE tab
+- Only the HERE and EMERGENCY tabs had a GPS button, and the one on the map
+  bar said LOCATE. Every tab now shows START GPS, or "GPS on ± m" with STOP GPS,
+  and the bar button reads START GPS / GPS ON. GPS needs no signal: tested with
+  the network cut and the page loaded from its saved copy.
+
 ## 1.26.0 — 2026-10-08
 
 ### Added: the trail map as an emergency tool

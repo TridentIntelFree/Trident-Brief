@@ -481,7 +481,7 @@ function startLocate(){
   if(watchId != null) return;
   watchId = navigator.geolocation.watchPosition(onFix, onFixErr,
     {enableHighAccuracy:true, maximumAge:5000, timeout:30000});
-  $('apLocate').classList.add('on');
+  $('apLocate').classList.add('on'); $('apLocate').innerHTML = '&#9678; GPS ON';
   follow = true; $('apFollow').classList.add('on');
   keepAwake(true);
   paintPanel();
@@ -489,7 +489,7 @@ function startLocate(){
 function stopLocate(){
   if(watchId != null) navigator.geolocation.clearWatch(watchId);
   watchId = null;
-  $('apLocate').classList.remove('on');
+  $('apLocate').classList.remove('on'); $('apLocate').innerHTML = '&#9678; START GPS';
   keepAwake(false);
   paintPanel();
 }
@@ -1124,11 +1124,21 @@ function gpsLine(){
   var age = Math.round((Date.now() - me.t)/1000);
   return '';
 }
+/* GPS on or off from any tab. It needs no signal, so it belongs everywhere,
+   OFFLINE above all. */
+function gpsBar(){
+  if(watchId == null) return '<div class="ap-row"><button class="ap-btn ap-gps" data-act="locate">&#9678; START GPS</button>' +
+    '<span class="ap-dim">GPS works with no signal and in airplane mode.</span></div>';
+  return '<div class="ap-row"><span class="' + (me ? '' : 'ap-warn') + '">&#9678; GPS on' +
+    (me ? ' &middot; \u00b1' + Math.round(me.acc) + ' m' : ' &middot; ' + esc(lastGpsErr || 'waiting for a fix\u2026')) + '</span>' +
+    '<button class="ap-btn" data-act="stop">STOP GPS</button></div>';
+}
 function paintPanel(){
   var el = $('apPanel'); if(!el) return;
   var h = '';
   var here = me ? [me.lat, me.lon] : (map ? [map.getCenter().lat, map.getCenter().lng] : null);
 
+  if(tab !== 'here' && tab !== 'sos') h += gpsBar();
   if(tab === 'here'){
     h += gpsLine();
     if(me){
@@ -1387,7 +1397,7 @@ $('apPanel').addEventListener('change', function(e){
 $('apPanel').addEventListener('click', function(e){
   var b = e.target.closest('[data-act]'); if(!b) return;
   var a = b.dataset.act;
-  if(a === 'locate') startLocate();
+  if(a === 'locate'){ start(); if(map) startLocate(); else setTimeout(function(){ if(map) startLocate(); }, 900); }
   else if(a === 'stop') stopLocate();
   else if(a === 'compass') toggleCompass();
   else if(a === 'wpt-here' && me) addWpt(me.lat, me.lon);
