@@ -9,7 +9,7 @@
      cap), so ground you have browsed is there offline even if you never pressed
      SAVE. Other tile servers are passed straight through and never stored:
      OpenTopoMap and Waymarked Trails do not allow bulk or offline copies. */
-const SHELL = 'tb-shell-v1';
+const SHELL = 'tb-shell-v2';     // v2: drops copies of briefing.js cached before it went network-first
 const TILES = 'tb-tiles-v1';      // areas saved on purpose: never trimmed
 const BROWSE = 'tb-browse-v1';    // tiles kept from ordinary browsing: capped
 const SHELL_FILES = ['./', 'assets/leaflet/leaflet.js', 'assets/leaflet/leaflet.css',
@@ -61,6 +61,20 @@ async function networkFirst(req, e){
     const res = await Promise.race([net, timeout]);
     return res && res.ok ? res : saved;
   } catch(err){ return saved; }
+}
+
+/* A script that changes with the page: the network when it answers within six
+   seconds, the saved copy otherwise (and never the page in its place). */
+async function freshAsset(req, e){
+  const cache = await caches.open(SHELL);
+  const key = shellKey(req.url);
+  const saved = await cache.match(key);
+  const net = fetch(req).then(res => { if(res.ok) cache.put(key, res.clone()); return res; });
+  if(!saved) return net.catch(() => new Response('', {status: 504}));
+  e.waitUntil(net.catch(() => null));
+  const timeout = new Promise(r => setTimeout(() => r(null), 6000));
+  try { const res = await Promise.race([net, timeout]); return res && res.ok ? res : saved; }
+  catch(err){ return saved; }
 }
 
 async function cacheFirstRefresh(req, e){
@@ -117,8 +131,9 @@ self.addEventListener('fetch', e => {
   if(url.origin !== self.location.origin) return;
   if(req.mode === 'navigate'){ e.respondWith(networkFirst(req, e)); return; }
   const p = url.pathname;
-  if(p.includes('/assets/leaflet/') || p.endsWith('/assets/appalachistan.js') || p.endsWith('/assets/appalachia.json') ||
-     p.endsWith('/assets/briefing.js'))
+  // the read-aloud script changes with the page, so it is fetched fresh whenever there is signal
+  if(p.endsWith('/assets/briefing.js')){ e.respondWith(freshAsset(req, e)); return; }
+  if(p.includes('/assets/leaflet/') || p.endsWith('/assets/appalachistan.js') || p.endsWith('/assets/appalachia.json'))
     e.respondWith(cacheFirstRefresh(req, e));
 });
 
