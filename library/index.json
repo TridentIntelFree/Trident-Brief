@@ -1,0 +1,34 @@
+{
+ "built_at": "2026-10-08T02:33:37Z",
+ "license": "Works of the US federal government: public domain in the United States (17 U.S.C. 105).",
+ "docs": [
+  {
+   "id": "nws-lightning-outdoors",
+   "title": "Lightning: Don\u2019t Get Caught Outside",
+   "publisher": "NOAA National Weather Service",
+   "year": 2018,
+   "about": "What to do when a storm catches you outdoors, from the people who forecast them.",
+   "url": "https://www.weather.gov/media/safety/Lightning-Brochure18.pdf",
+   "note": "",
+   "file": "library/nws-lightning-outdoors.pdf",
+   "bytes": 2147532,
+   "pages": 2,
+   "sha256": "c20046dc15a3f778254c23e513d8276cac15717bc9f16dc1e5dc35583664c0e6",
+   "fetched_at": "2026-10-08T02:33:35Z"
+  },
+  {
+   "id": "cdc-tick-removal",
+   "title": "Tick Removal",
+   "publisher": "CDC",
+   "year": 2025,
+   "about": "How to take a tick off, and what to watch for afterwards.",
+   "url": "https://www.cdc.gov/ticks/media/pdfs/2025/07/CDC_Tick_Removal_Fact_Sheet.pdf",
+   "note": "",
+   "file": "library/cdc-tick-removal.pdf",
+   "bytes": 174729,
+   "pages": 1,
+   "sha256": "8236da7908ccbf901f8c26a60cfb491ee22cfce35bdcd94f685af24f4c3ea100",
+   "fetched_at": "2026-10-08T02:33:36Z"
+  }
+ ]
+}
