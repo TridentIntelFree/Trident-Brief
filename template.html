@@ -4146,8 +4146,8 @@ function orPro(a){
      the lore against the intel, and the fair test of whether any of it predicts anything */
   var R = a.reading || {}, h = '';
   var day = function(s){ return new Date(s).toLocaleDateString([], {weekday:'short', day:'numeric', month:'short'}); };
-  if(R.title) h += '<p class="or-pro-title">' + esc(R.title) + '</p>';
-  (R.overview || []).forEach(function(t, i){ h += '<p class="or-read' + (i ? '' : ' first') + '">' + esc(t) + '</p>'; });
+  if(R.title) h += '<p class="or-pro-title bm-key">' + esc(R.title) + '</p>';
+  (R.overview || []).forEach(function(t, i){ h += '<p class="bm-key or-read' + (i ? '' : ' first') + '">' + esc(t) + '</p>'; });
   var nat = (a.nations || []).filter(function(n){ return n.hits && n.hits.length; });
   var rn = {}; (R.nations || []).forEach(function(n){ rn[n.nation] = n.reading; });
   if(nat.length){
@@ -4161,7 +4161,7 @@ function orPro(a){
   var lvi = (a.lore_vs_intel || []).filter(function(c){ return c.matches && c.matches.length && c.matches[0].z >= 1.5; }).slice(0, 6);
   if(R.lore_and_intel || lvi.length){
     h += '<h4 class="or-sub">Where the lore meets the intel</h4>';
-    if(R.lore_and_intel) h += '<p class="or-read">' + esc(R.lore_and_intel) + '</p>';
+    if(R.lore_and_intel) h += '<p class="bm-key or-read">' + esc(R.lore_and_intel) + '</p>';
     if(lvi.length) h += '<ul class="or-lvi">' + lvi.map(function(c){
       var m = c.matches[0];
       return '<li><b>' + esc(c.label) + '</b> <span class="or-fine">(' + esc(c.lore) + ')</span><br>' +
@@ -4178,7 +4178,7 @@ function orPro(a){
   }
   var test = (a.test || {}).results || [];
   if(test.length){
-    h += '<h4 class="or-sub">The fair test</h4>' + (R.the_test ? '<p class="or-read">' + esc(R.the_test) + '</p>' : '') +
+    h += '<h4 class="or-sub">The fair test</h4>' + (R.the_test ? '<p class="bm-key or-read">' + esc(R.the_test) + '</p>' : '') +
       '<table class="or-table or-test"><tr><th>the claim</th><th>tested on</th><th>result</th></tr>' + test.map(function(r){
         return '<tr><td>' + esc(r.claim) + '</td><td>' + esc(r.metric) + ', ' + r.days.toLocaleString() + ' days from ' + esc(r.from.slice(0, 4)) + '</td><td class="' +
                (/no better|opposite/.test(r.verdict) ? 'or-no' : 'or-ok') + '">' + esc(r.verdict) + '</td></tr>'; }).join('') + '</table>' +
@@ -4195,7 +4195,8 @@ async function orHeavens(){
     var sky = mod.heavens(A, new Date()); OR.sky = sky;
     var pro = await orAstro();
     var paras = mod.reading(sky, CB.ball);
-    el.innerHTML = '<div class="or-sky">' + mod.wheel(sky) + '<div class="or-sky-side">' +
+    el.innerHTML = '<div class="key-opts or-hread"><button class="bm-go" id="orHeavRead" type="button">&#128266; READ THE HEAVENS</button></div>' +
+      '<div class="or-sky">' + mod.wheel(sky) + '<div class="or-sky-side">' +
       '<div class="or-moonline">' + mod.moonFace(sky) + '<div><b>' + esc(sky.moon.name) + '</b><br>' + Math.round(sky.moon.lit*100) + '% lit</div></div>' +
       '<ul class="or-planets">' + sky.bodies.map(function(b){
         var d = pro && pro.sky ? (pro.sky.bodies || []).filter(function(x){ return x.name === b.name; })[0] : null;
@@ -4206,11 +4207,17 @@ async function orHeavens(){
       (pro && pro.sky && pro.sky.void_moon && pro.sky.void_moon.void ? '<p class="or-fine">The Moon is void of course until ' + esc(new Date(pro.sky.void_moon.until).toLocaleString([], {weekday:'short', hour:'numeric'})) + '.</p>' : '') +
       '</div></div>' +
       (pro && pro.reading && (pro.reading.overview || []).length ? orPro(pro)
-        : paras.map(function(t, i){ return '<p class="or-read' + (i ? '' : ' first') + '">' + esc(t) + '</p>'; }).join('') + (pro ? orPro(pro) : '')) +
+        : paras.map(function(t, i){ return '<p class="bm-key or-read' + (i ? '' : ' first') + '">' + esc(t) + '</p>'; }).join('') + (pro ? orPro(pro) : '')) +
       '<p class="or-fine">The sky is real: positions for ' + esc(new Date().toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'})) +
       ', computed by <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener">Astronomy Engine</a>' +
       (pro && pro.reading ? '; the reading is written each morning by Grok from those computed facts' : '') +
       '. What it means is astrology, read for fun. It forecasts nothing, and the fair test above shows how that claim holds up.</p>';
+    var hb = document.getElementById('orHeavRead');
+    if(hb) hb.onclick = function(){
+      if(!window.BRIEFME) return;
+      BRIEFME.read({root:el, label:'THE HEAVENS', at:new Date().toISOString(),
+                    title:'The heavens tonight: an astrology reading, for fun.', when:new Date().toLocaleString('en-US', {weekday:'long', hour:'numeric', minute:'2-digit'})});
+    };
   }catch(e){ el.innerHTML = '<p class="or-fine">The heavens could not be read in this browser.</p>'; }
 }
 async function cbShow(){

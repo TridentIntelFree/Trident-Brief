@@ -206,7 +206,7 @@ function build(mode){
     }
     add(el, text, bluf ? 'bluf' : assess ? 'assess' : 'item');
   });
-  items.push({el:null, text:'End of brief.', kind:'end'});
+  items.push({el:null, text:SRC === MAIN ? 'End of brief.' : 'The end.', kind:'end'});
   /* quick mode: drop theatre headings with nothing under them */
   if(mode === 'quick') items = items.filter(function(it, i){
     if(it.kind !== 'H3' && it.kind !== 'H2') return true;

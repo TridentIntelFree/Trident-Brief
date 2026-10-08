@@ -4,6 +4,19 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.24.1 — 2026-10-08
+
+### Fixed: READ IT TO ME still skipped the Crystal Ball and the astrology
+- **A stale reader on the phone.** The service worker served the read-aloud
+  script cache-first: a saved copy right away, the new one fetched only for
+  next time. So phones kept the reader from before the Crystal Ball fix. It is
+  now fetched fresh whenever there is signal, with the saved copy only when
+  offline, and the renamed cache drops every old copy on the next visit.
+- **The astrology was never marked for Key judgements mode**, so that mode
+  skipped it. The reading paragraphs now count, and the Heavens has its own
+  🔊 READ THE HEAVENS button (10 parts in key judgements, 58 in full).
+- Readings other than the main brief end with "The end.", not "End of brief."
+
 ## 1.24.0 — 2026-10-08
 
 ### Forecasts in four windows, built to be scored
