@@ -75,6 +75,26 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 }
 .sigint{color:var(--amber);font-size:.76em;font-weight:700;margin-top:6px;letter-spacing:.05em;font-family:var(--mono)}
 .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;position:relative;z-index:1}
+.secnav{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;position:relative;z-index:1}
+.secnav a{font-family:var(--mono);font-size:.68em;letter-spacing:.06em;color:var(--ink);text-decoration:none;padding:6px 10px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(59,130,246,.12)}
+.secnav a:active{background:rgba(59,130,246,.35)}
+.print-box{max-width:520px}.print-body{padding:12px 16px 18px}
+.print-opt{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;margin:8px 0;padding:12px 14px;border-radius:10px;cursor:pointer;
+  background:rgba(7,11,28,.6);border:1px solid var(--line);color:var(--ink);font:inherit}
+.print-opt small{color:var(--ink-dim);font-size:.8em}.print-note{color:var(--ink-faint);font-size:.8em;margin-top:10px}
+.pick-list{padding:10px}
+.pick-h{font-family:var(--mono);font-size:.72em;color:var(--ink-dim);letter-spacing:.06em;margin-bottom:6px}
+.pick-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:rgba(7,11,28,.6);border:1px solid var(--line2);border-radius:8px;
+  color:var(--ink);padding:9px 10px;margin:4px 0;cursor:pointer;font:inherit}
+.pick-row i{width:10px;height:10px;border-radius:50%;flex:none}
+.pick-row span{display:flex;flex-direction:column;min-width:0}.pick-row b{font-weight:600;font-size:.9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick-row small{color:var(--ink-faint);font-family:var(--mono);font-size:.7em}
+.pick-zoom{margin-top:6px;background:rgba(59,130,246,.18);border:1px solid var(--blue);color:#fff;border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:.75em;cursor:pointer}
+/* Things you tap never select text: rapid or held taps used to highlight words (the hidden gestures worst of all). */
+button,a.pill,.pill,.secnav a,.nav-chips a,summary,.band-head h2,.ap-tab,.ap-btn,.lyr,.fold-btn,.bfold-btn,[data-act],[data-layer],
+.brand,h1,.ver,.hello-btn,.back-top,.content > h2,.content > h3,.tile{
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .pill{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);color:var(--ink-dim);
   padding:6px 12px;border-radius:999px;font-size:.75em;font-family:var(--mono);letter-spacing:.03em}
 .pill b{color:var(--ink);font-weight:700}
@@ -356,7 +376,7 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .ap-btn.warn{border-color:#ef4444;color:#fecaca}
 .ap-btn:disabled{opacity:.45;cursor:default}
 .ap-kinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.ap-mapwrap{position:relative}
+.ap-mapwrap{position:relative;isolation:isolate}
 #apMap{height:clamp(420px,68vh,820px);border:1px solid var(--line);border-radius:10px;background:#0b1224;overflow:hidden}
 .ap-boot{height:100%;display:grid;place-items:center;color:var(--ink-faint);font-family:var(--mono);font-size:.8em;text-align:center;padding:20px}
 .ap-net{position:absolute;left:50%;transform:translateX(-50%);top:10px;z-index:900;white-space:nowrap;font-family:var(--mono);font-size:.68em;padding:3px 8px;border-radius:6px;
@@ -951,7 +971,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 .priv-erase{border-color:rgba(239,68,68,.6);color:#fca5a5}
 .disc{margin-top:12px;font-size:.94em;color:#4b5670;max-width:760px;margin-left:auto;margin-right:auto;font-family:system-ui,sans-serif;line-height:1.6}
 
-.back-top{position:fixed;right:16px;bottom:16px;z-index:40;background:rgba(59,130,246,.9);color:#fff;border:none;
+.back-top{position:fixed;right:16px;bottom:16px;z-index:90;background:rgba(59,130,246,.9);color:#fff;border:none;
   width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:1.1em;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 .back-top.show{display:block}
 
@@ -961,6 +981,21 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
   .t-val{font-size:1.5em}
 }
 @media print{
+  /* PRINT / PDF modes: only what was asked for */
+  html[data-print] .section-band,html[data-print] .pills,html[data-print] .secnav,html[data-print] .hello-btn,html[data-print] .modal,
+  html[data-print] .bm-bar,html[data-print] .footer,html[data-print] .toolbar,html[data-print] .nav-chips{display:none!important}
+  html[data-print^="brief"] #briefBody .bf-hid{display:revert!important}
+  html[data-print^="brief"] .bfold-btn{display:none!important}
+  html[data-print="brief-short"] #briefBody > *:not(.pr-keep):not(h2){display:none!important}
+  html[data-print="brief-short"] #briefBody > h2:not(.pr-keep){display:none!important}
+  html[data-print="map"] .header,html[data-print="map"] #briefBody,html[data-print="map"] .toolbar{display:none!important}
+  html[data-print="map"] #appBand{display:block!important}
+  html[data-print="map"] #appBand > :not(.band-head):not(.ap-mapwrap):not(.ap-panel){display:none!important}
+  html[data-print="map"] #appBand .fold-btn,html[data-print="map"] #apHud,html[data-print="map"] .leaflet-control-zoom,
+  html[data-print="map"] .leaflet-control-layers,html[data-print="map"] .ap-net,html[data-print="map"] .ap-row button{display:none!important}
+  html[data-print="map"] .ap-panel{background:#fff;color:#000;border-color:#999}
+  html[data-print="map"] .ap-panel *{color:#000!important;background:transparent!important;border-color:#bbb!important}
+  html[data-print="map"] #apMap{break-after:page}
   body{background:#fff;color:#000;padding:0}
   .container{border:none;box-shadow:none;max-width:none}
   .toolbar,.local-intel,.back-top,.ge-grid,#archiveBand,.header::after{display:none!important}
@@ -973,6 +1008,19 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 </head>
 <body>
 <div class="container">
+
+  <!-- Print: the brief alone (full or condensed), or the trail map. -->
+  <div class="modal" id="printModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-box print-box">
+      <div class="modal-bar"><h3>PRINT / PDF</h3><button class="x-btn" type="button" onclick="document.getElementById('printModal').classList.remove('open')">&times;</button></div>
+      <div class="print-body">
+        <button type="button" class="print-opt" onclick="printMode('brief')"><b>The brief, full text</b><small>every section opened, no globe, maps or panels</small></button>
+        <button type="button" class="print-opt" onclick="printMode('brief-short')"><b>The brief, condensed</b><small>bottom line, key judgements and what to watch for: a page or two</small></button>
+        <button type="button" class="print-opt" onclick="printMode('map')"><b>The trail map</b><small>the map as it is on screen, with the open tab (your route, waypoints, coordinates)</small></button>
+        <p class="print-note">Choose "Save as PDF" in the print window for a file. Made on your phone from what is already here: nothing extra is fetched or paid for.</p>
+      </div>
+    </div>
+  </div>
 
   <!-- "hello": the prediction-market picks. Small and plain on purpose. -->
   <button class="hello-btn" id="helloBtn" type="button">hello</button>
@@ -1081,12 +1129,11 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       <span class="pill"><span class="dot live" id="freshDot"></span><b id="freshAge">--</b>&nbsp;since collection</span>
       <span class="pill" title="scheduled 11:04 and 23:04 UTC; GitHub can start a scheduled run late">NEXT COLLECTION <b id="nextRun">--</b></span>
       <span class="pill" id="stalePill" style="display:none"></span>
-      <a class="pill" href="#godseye" style="text-decoration:none"><span class="dot live"></span>GOD'S EYE FEEDS</a>
       <a class="pill" href="#eventBand" style="text-decoration:none">EVENT BOARD <b id="pillEvents">0</b></a>
-      <a class="pill" href="#appBand" style="text-decoration:none">&#129406; APPALACHISTAN</a>
       <a class="pill" href="#wireBand" style="text-decoration:none;display:none" id="pillWireA" title="headlines published since this brief was collected">NEW ON THE WIRE <b id="pillWire">0</b></a>
-      <button class="pill" style="cursor:pointer" onclick="window.print()">PRINT / PDF</button>
+      <button class="pill" type="button" style="cursor:pointer" onclick="document.getElementById('printModal').classList.add('open')">PRINT / PDF</button>
     </div>
+    <nav class="secnav" id="secNav" aria-label="Jump to a section"></nav>
   </div>
 
   <!-- ============ GOD'S EYE LIVE LAYER ============ -->
@@ -1119,9 +1166,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
             <button class="lyr on" data-layer="raid" title="Ukrainian air-raid alarms by oblast: hours under alarm in the 24 hours to the dataset's newest record (updated about once a day)"><i style="background:#facc15"></i>AIR RAIDS <b id="nRaid">0</b></button>
           </span>
           <span class="lyr-group"><b>orbital</b>
-            <button class="lyr on" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
-            <button class="lyr on" data-layer="rocket"><i style="background:#c084fc"></i>R/B <b id="nRocket">0</b></button>
-            <button class="lyr on" data-layer="debris"><i style="background:#7c8aa5"></i>DEBRIS <b id="nDebris">0</b></button>
+            <button class="lyr" data-layer="sats"><i style="background:#7dd3fc"></i>PAYLOAD <b id="nSats">0</b></button>
+            <button class="lyr" data-layer="rocket"><i style="background:#c084fc"></i>R/B <b id="nRocket">0</b></button>
+            <button class="lyr" data-layer="debris"><i style="background:#7c8aa5"></i>DEBRIS <b id="nDebris">0</b></button>
             <button class="lyr on" data-layer="iss"><i style="background:#a78bfa"></i>ISS</button>
           </span>
           <span class="lyr-group"><b>surface</b>
@@ -1639,6 +1686,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <li><b>Save the map.</b> OFFLINE tab: SAVE THIS VIEW for the area on screen, or SAVE A STRETCH OF TRAIL by AT miles. Pick the detail (zoom 15 is good for walking).</li>
           <li><b>Plan your route</b> (GO TO tab, see below) and press USE THIS: the route and the map along it are kept on the phone.</li>
           <li><b>Save the manuals</b> you want from the Library in the survival guide.</li>
+          <li><b>Print a paper copy</b> as a backup: &#128424; PRINT above the map prints what is on screen on a page of its own. Zoom and move it first, and let the map finish loading.</li>
         </ul>
       </details>
 
@@ -1736,6 +1784,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       <button class="ap-btn ap-gps" id="apLocate" title="turn the phone's GPS on or off (works without signal)">&#9678; START GPS</button>
       <button class="ap-btn" id="apFollow" title="keep the map centred on you">FOLLOW</button>
       <button class="ap-btn" id="apPocketBtn" title="record your track with the screen black and locked, for the pocket">&#9681; POCKET</button>
+      <button class="ap-btn" type="button" onclick="printMode('map')" title="print or save as PDF the map as it is on screen, with the open tab">&#128424; PRINT</button>
     </div>
     <div class="ap-kinds" id="apKinds"></div>
     <div class="ap-mapwrap">
@@ -1888,7 +1937,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
   </div>
 </div>
 
-<button class="back-top" id="backTop" onclick="scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#8593;</button>
+<button class="back-top" id="backTop" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">&#8593;</button>
 
 <div class="modal" id="archModal" onclick="if(event.target===this)closeArch()">
   <div class="modal-box">
@@ -2294,7 +2343,7 @@ var GE = { lat:38.8977, lon:-77.0365, state:'', label:'GLOBAL' };
 
 var G = {
   rot:[20,-15], R:0, baseR:0, zoom:1, cx:0, cy:0, spin:true, sel:null, drag:null,
-  layers:{events:true, quake:true, sats:true, rocket:true, debris:true, hazard:true, air:true, naval:true, iss:true,
+  layers:{events:true, quake:true, sats:false, rocket:false, debris:false, hazard:true, air:true, naval:true, iss:true,   // the satellite catalogue (thousands of dots) starts off
           conflict:true, navwarn:true, jam:true, osint:true, tg:true, front:true, raid:true},
   air:[], iss:null, sats:[], satsRaw:null, airSnapshot:[], airSnapAt:null, airGlobal:[]
 };
@@ -2822,12 +2871,17 @@ cv.addEventListener('mousedown',onDown); cv.addEventListener('touchstart',onDown
 addEventListener('mousemove',onMove);   cv.addEventListener('touchmove',onMove,{passive:false});
 addEventListener('mouseup',onUp);       cv.addEventListener('touchend',onUp);
 
+var COARSE = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+var PICK_R = COARSE ? 26 : 16;                    // a fingertip is bigger than a cursor
 function pick(p){
-  var best=null, bd=20*20;
+  var near = [];
   (G._hit||[]).forEach(function(c){
     var d=(c.sx-p.x)*(c.sx-p.x)+(c.sy-p.y)*(c.sy-p.y);
-    if(d<bd){ bd=d; best=c; }
+    if(d < PICK_R*PICK_R) near.push({c:c, d:d});
   });
+  near.sort(function(a, b){ return a.d - b.d; });
+  if(near.length > 1){ if(G.spin) setSpin(false); return pickList(near.map(function(n){ return n.c; })); }
+  var best = near.length ? near[0].c : null;
   if(!best) best = pickSat(p.x, p.y);
   // Having picked something out, you want to read it, not watch it rotate away.
   if(best && G.spin) setSpin(false);
@@ -2851,6 +2905,39 @@ function hoverTest(p){
   if(!hit && pickSat(p.x, p.y)) hit = true;
   cv.style.cursor = hit ? 'pointer' : '';
 }
+
+/* Crowded spot: list everything under the finger and let the person choose,
+   instead of guessing which dot they meant. */
+function contactName(c){
+  var d = c.d || {};
+  var t = c.k === 'quake' ? 'M' + Number(d.mag).toFixed(1) + ' ' + (d.place || '') :
+          c.k === 'air' ? String(d.flight || d.r || d.hex || 'aircraft').trim() + (d.t ? ' \u00b7 ' + d.t : '') :
+          d.headline || d.title || d.name || d.event || d.place || d.channel || d.oblast || d.area || '';
+  return String(t || (KIND[c.k] || {}).label || c.k).slice(0, 80);
+}
+var PICKS = [];
+function pickList(list){
+  PICKS = list.slice(0, 12);
+  G.sel = null; selCard(null);
+  var el = document.getElementById('detailPanel');
+  el.innerHTML = '<div class="pick-list"><div class="pick-h">' + list.length + ' contacts here' + (list.length > 12 ? ' (nearest 12)' : '') + ' \u2014 tap one</div>' +
+    PICKS.map(function(c, i){
+      var k = KIND[c.k] || {};
+      return '<button type="button" class="pick-row" data-pick="' + i + '"><i style="background:' + (c.color || k.color || '#94a3b8') + '"></i>' +
+             '<span><b>' + esc(contactName(c)) + '</b><small>' + esc(k.label || c.k) + '</small></span></button>';
+    }).join('') +
+    '<button type="button" class="pick-zoom" data-pickzoom="1">ZOOM IN HERE</button></div>';
+  if(window.innerWidth < 900) el.scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+document.getElementById('detailPanel').addEventListener('click', function(e){
+  var r = e.target.closest('[data-pick]');
+  if(r){ var c = PICKS[+r.dataset.pick]; if(c){ G.sel = c; renderDetail(c); } return; }
+  if(e.target.closest('[data-pickzoom]') && PICKS.length){
+    var c0 = PICKS[0];
+    if(isFinite(c0.lon) && isFinite(c0.lat)) G.rot = [-c0.lon, c0.lat];   // same convention as re-targeting
+    setZoom(G.zoom * 2.5);
+  }
+});
 
 function fmtTime(ts){ try{ return new Date(ts).toISOString().replace('T',' ').slice(0,16)+'Z'; }catch(_){ return ''; } }
 
@@ -4049,6 +4136,7 @@ window.TB = {
   renderDetail: function(c){ return renderDetail(c); },
   selMark: function(cv, x, y, c){ return selMark(cv, x, y, c); },
   selMiss: function(cv, x, y){ return selMiss(cv, x, y); },
+  pickList: function(list){ return pickList(list); }, get PICK_R(){ return PICK_R; },
   navRings: function(){ return navRings(); },
   frontRings: function(){ return frontRings(); },
   get OSI(){ return OSI; }, osiColor: function(e){ return osiColor(e); },
@@ -7352,7 +7440,7 @@ function agoShort(ms){
     var la = parseFloat(parts[0]), lo = parseFloat(parts[1]);
     if(!isFinite(la) || !isFinite(lo)) return;
     document.getElementById('trCoord').value = la.toFixed(4) + ', ' + lo.toFixed(4);
-    band.scrollIntoView({behavior:'smooth', block:'start'});
+    openBand(band);                                      // unfold it first: a folded band showed nothing
     /* A contact with a date opens straight onto the question it raises: what
        did this ground look like before, and what does it look like now. */
     var when = b.dataset.when || '';
@@ -7717,6 +7805,71 @@ function hideDesk(band){
   });
 })();
 
+/* PRINT / PDF. Each mode only sets which parts the print stylesheet keeps.
+   Condensed is built here from what read-aloud calls the key judgements:
+   the bottom line, the assessments, the indicators and the forecast check. */
+function printMode(mode){
+  document.getElementById('printModal').classList.remove('open');
+  var root = document.documentElement;
+  root.dataset.print = mode;
+  document.querySelectorAll('.pr-keep').forEach(function(e){ e.classList.remove('pr-keep'); });
+  if(mode === 'brief-short' && window.BRIEFME){
+    var body = document.getElementById('briefBody');
+    window.BRIEFME.build('quick').forEach(function(it){
+      var el = it.el; if(!el) return;
+      while(el && el.parentNode !== body) el = el.parentNode;
+      if(!el) return;
+      el.classList.add('pr-keep');
+      for(var h = el.previousElementSibling; h; h = h.previousElementSibling) if(h.tagName === 'H2'){ h.classList.add('pr-keep'); break; }
+    });
+  }
+  if(mode === 'map'){
+    var ab = document.getElementById('appBand');
+    if(ab && ab.classList.contains('folded')) ab.querySelector('.fold-btn').click();
+    if(window.apPrepPrint) window.apPrepPrint();
+    setTimeout(function(){ window.print(); }, 1600);      // let the map's tiles arrive first
+    return;
+  }
+  setTimeout(function(){ window.print(); }, 50);
+}
+
+/* The header's section links. Every section starts folded; a link opens it and
+   goes there. Sections that have nothing to show yet are left out, and the
+   list is rebuilt as feeds arrive. Any in-page link to a section does the same. */
+(function(){
+  var NAV = [['brief', 'BRIEF'], ['godseye', 'GOD\u2019S EYE'], ['terrainBand', 'TERRAIN'], ['eventBand', 'EVENTS'], ['wireBand', 'WIRE'],
+             ['sigBand', 'RADIO'], ['osBand', 'OSINT'], ['indBand', 'INDICATORS'], ['recurBand', 'RECURRING'], ['localBand', 'LOCAL INTEL'],
+             ['flyBand', 'NOVELTY'], ['archiveBand', 'ARCHIVE'], ['appBand', 'TRAIL MAP']];
+  var nav = document.getElementById('secNav'); if(!nav) return;
+  function shown(id){
+    if(id === 'brief') return !!document.getElementById('briefBody');
+    var b = document.getElementById(id); return !!b && !b.hidden && b.style.display !== 'none';
+  }
+  function build(){
+    nav.innerHTML = NAV.filter(function(n){ return shown(n[0]); }).map(function(n){
+      return '<a href="#' + (n[0] === 'brief' ? 'briefBody' : n[0]) + '" data-sec="' + n[0] + '">' + n[1] + '</a>'; }).join('');
+  }
+  build(); setTimeout(build, 2500); setTimeout(build, 8000);
+  function go(id){
+    if(id === 'brief' || id === 'briefBody'){
+      var top = document.getElementById('navChips') || document.getElementById('briefBody');
+      if(top) top.scrollIntoView({block:'start', behavior:'smooth'});
+      return true;
+    }
+    var b = document.getElementById(id);
+    if(b && b.classList.contains('section-band') && !b.hidden){ openBand(b); return true; }
+    return false;
+  }
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[href^="#"]'); if(!a) return;
+    var id = a.dataset.sec || a.getAttribute('href').slice(1);
+    if(id && (id === 'brief' || id === 'briefBody' || (document.getElementById(id) || {}).classList && document.getElementById(id).classList.contains('section-band'))){
+      if(go(id)) e.preventDefault();
+    }
+  });
+  if(location.hash && location.hash.length > 1) setTimeout(function(){ go(location.hash.slice(1)); }, 700);
+})();
+
 /* A hidden desk opened by its gesture always opens unfolded: a fold left
    from last time would otherwise look as if the gesture did nothing. */
 function openBand(band){
@@ -7727,8 +7880,9 @@ function openBand(band){
      globe, a section opening), and that left people at the radio. A touch or
      a wheel means the person has taken over, so it stops. */
   var tries = 0, took = false, mine = function(){ took = true; };
-  addEventListener('touchstart', mine, {once:true, passive:true});
-  addEventListener('wheel', mine, {once:true, passive:true});
+  setTimeout(function(){
+    ['touchstart', 'wheel', 'pointerdown', 'mousedown', 'keydown'].forEach(function(ev){ addEventListener(ev, mine, {once:true, passive:true}); });
+  }, 0);                                                 // after the click that opened it, so that one does not count
   (function go(){
     if(took || band.hidden) return;
     if(Math.abs(band.getBoundingClientRect().top) > 8) band.scrollIntoView({block:'start'});
@@ -7753,13 +7907,11 @@ function foldable(id, foldedByDefault){
     band.classList.toggle('folded', f);
     btn.textContent = f ? '\u25b8 show' : '\u25be hide';
     btn.setAttribute('aria-expanded', f ? 'false' : 'true');
-    if(!desk) try{ localStorage.setItem(key, f ? '1' : '0'); }catch(_){}
     // canvases inside were laid out at zero size while hidden
     if(!f) setTimeout(function(){ dispatchEvent(new Event('resize')); }, 30);
   }
-  var saved = null;
-  try{ saved = localStorage.getItem(key); }catch(_){}
-  set(desk ? true : saved == null ? !!foldedByDefault : saved === '1');
+  try{ localStorage.removeItem(key); }catch(_){}     // older versions remembered folds; every opening now starts tidy
+  set(true);                                           // every section starts folded: the header's links open them
   btn.onclick = function(){ set(!band.classList.contains('folded')); };
   head.querySelector('h2').onclick = function(){ set(!band.classList.contains('folded')); };
 }
@@ -7778,7 +7930,8 @@ function foldBrief(){
   Array.prototype.forEach.call(body.children, function(h){
     if(h.tagName !== 'H2' && h.tagName !== 'H3') return;
     h.dataset.fkey = 'trident_bfold_' + h.textContent.trim().replace(/^[\d.\s]+/, '').slice(0, 48).toLowerCase();
-    try{ if(localStorage.getItem(h.dataset.fkey) === '1') h.classList.add('bfolded'); }catch(_){}
+    try{ localStorage.removeItem(h.dataset.fkey); }catch(_){}
+    if(h.tagName === 'H2') h.classList.add('bfolded');   // the brief opens as a list of its sections
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'bfold-btn';
     b.onclick = function(e){ e.stopPropagation(); setBriefFold(h, !h.classList.contains('bfolded')); };
@@ -7788,7 +7941,6 @@ function foldBrief(){
 }
 function setBriefFold(h, f){
   h.classList.toggle('bfolded', f);
-  try{ localStorage.setItem(h.dataset.fkey, f ? '1' : '0'); }catch(_){}
   applyBriefFolds();
 }
 function applyBriefFolds(){
@@ -8418,8 +8570,27 @@ async function boot(){
     return bi;
   }
 
+  function nearAll(ev, radius){
+    const r = cv.getBoundingClientRect();
+    const px = ev.clientX - r.left, py = ev.clientY - r.top, out = [];
+    const n = cg.drawRange.count;
+    for(let i=0;i<n;i++){
+      if(!meta[i]) continue;
+      _wp.set(cPos[i*3], cPos[i*3+1], cPos[i*3+2]).applyMatrix4(world.matrixWorld);
+      if(occluded(_wp)) continue;
+      v3.copy(_wp).project(camera);
+      if(v3.z > 1) continue;
+      const sx = (v3.x*0.5+0.5)*r.width, sy = (-v3.y*0.5+0.5)*r.height;
+      const dd = (sx-px)*(sx-px) + (sy-py)*(sy-py);
+      if(dd < radius*radius) out.push([dd, i]);
+    }
+    out.sort((a, b) => a[0] - b[0]);
+    return out.map(x => Object.assign({}, meta[x[1]], {color:'#'+col.fromArray(cCol, x[1]*3).getHexString()}));
+  }
   function pick(ev){
-    const i = nearest(ev, 20);
+    const many = nearAll(ev, window.TB.PICK_R || 20);
+    if(many.length > 1){ if(window.TB.G.spin) window.TB.setSpin(false); window.TB.pickList(many); return; }
+    const i = nearest(ev, window.TB.PICK_R || 20);
     const best = i < 0 ? null
       : Object.assign({}, meta[i], {color:'#'+col.fromArray(cCol, i*3).getHexString()});
     // stop the rotation once something is selected, so it stays under the cursor

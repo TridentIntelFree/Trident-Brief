@@ -136,7 +136,11 @@ function elText(el){
 }
 
 /* ------------------------------------------------------- the script */
-function visible(el){ return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length); }
+/* Shown, or only folded away: a collapsed section is still read, and opens as it is reached. */
+function visible(el){
+  if(el.offsetWidth || el.offsetHeight || el.getClientRects().length) return true;
+  return !!(el.closest('.bf-hid, .section-band.folded') && getComputedStyle(el).display !== 'none');
+}
 function indicatorLine(t){
   var p = t.split(/\s*(?:->|→)\s*/);
   if(p.length < 3) return null;
@@ -262,6 +266,8 @@ function mark(){
   document.querySelectorAll('.bm-now').forEach(function(e){ e.classList.remove('bm-now'); });
   var it = P.items[P.i]; if(!it) return;
   if(it.el){
+    if(it.el.closest('.bf-hid') && window.unfoldTo) window.unfoldTo(it.el);
+    var fb = it.el.closest('.section-band.folded'); if(fb){ var bt = fb.querySelector('.fold-btn'); if(bt) bt.click(); }
     it.el.classList.add('bm-now');
     if(Date.now() - P.userScroll > 6000){
       var r = it.el.getBoundingClientRect();

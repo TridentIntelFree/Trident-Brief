@@ -4,6 +4,67 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.31.0 — 2026-10-08
+
+### Added: printing that prints what you asked for
+- **PRINT / PDF** in the header asks what to print:
+  - **Brief**, the whole brief as text, with no maps, globe or panels;
+  - **Brief, condensed**, the BLUF and the key items (the same ones the
+    quick read-aloud uses) on a page or two;
+  - **Trail map**, the map on a page of its own, then the panel under it
+    (where you are, nearest water, shelter and trailhead, daylight).
+- **🖨 PRINT** on the trail map's toolbar prints the map straight away.
+- No cost: it is all done on the phone, with no model call.
+
+### Fixed: walking routes find the legal long way round
+- **The wide search no longer loses the roads.** Looking 8 km or 20 km out,
+  the roads and trails are now fetched as four quarters, one after another,
+  with more time for each (2½ minutes). Before, one big request could time
+  out, and the planner carried on with no roads at all, then wrongly
+  reported private land in the way. If the roads still do not arrive, it now
+  says so and does not claim there is no legal route.
+- **Joins the nearest point along a road**, not just the road's mapped
+  points, which can be a kilometre apart on a straight road. It tries up to
+  30 joins within 3 km (was 8 within 1.5 km), no more than 3 to any one
+  road. It skips private lanes and driveways, which go nowhere legally.
+- **Bridges at the coarse scale:** on a wide search a river could cut a road
+  in the grid cell beside its bridge. Road cells next to a bridge now cross.
+- **The destination gets no private-land allowance** in the over-the-ground
+  route either; only the 250 m to get off the land you start on. That short
+  stretch is now described as such, not as "no way round".
+- **Virginia DWR land always counts as permit land** (an Access Permit at 17+
+  unless you hold a hunting or fishing licence), whatever access PAD-US
+  lists. With I HAVE THE PERMITS it counts as public.
+- **Says when land data is incomplete.** If a land source holds more parcels
+  than it sends, the route says some public land may be missing. PAD-US now
+  fetches up to 6,000 parcels (was 3,000).
+- Cost: none (free OpenStreetMap, Forest Service and PAD-US data, on the
+  phone).
+
+### Changed: easier to get around
+- **Every section starts folded** when the app opens, and so does each part
+  of the brief. A folded section shows only its heading. Old saved
+  "unfolded" settings are ignored.
+- **Section links in the header** (BRIEF, GOD'S EYE, TERRAIN, EVENTS, WIRE,
+  RADIO, OSINT, INDICATORS, RECURRING, LOCAL INTEL, NOVELTY, ARCHIVE,
+  TRAIL MAP) open the section and go to it. Sections with nothing in them
+  yet are left out.
+- **The globe is less cluttered.** Satellites, rocket bodies and debris now
+  start switched off (their buttons still turn them on). A tap picks up
+  everything within a finger's width. If more than one thing is there, it
+  lists them to choose from, with a button to zoom in.
+
+### Fixed
+- **Terrain analysis from the map:** the TERRAIN link on a map point now
+  opens the folded terrain section, not just scrolls to it.
+- **The blue back-to-top button works.** The trail map's layers were drawn
+  over it. The map is now kept in its own layer, so it no longer covers the
+  button, the pop-up panels or the "hello" box.
+- **Buttons no longer select text** when they are held or tapped quickly,
+  and quick taps no longer zoom the page.
+- **Read-aloud still reads a folded brief.** It opens each part as it
+  reaches it.
+
 ## 1.30.3 — 2026-10-08
 
 ### Changed: walking routes walk, and never trespass
