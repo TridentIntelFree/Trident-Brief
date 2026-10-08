@@ -306,6 +306,24 @@ device so the section works with no signal. Tiles from OpenTopoMap,
 OpenStreetMap, Esri and Waymarked Trails are never stored, as their terms
 require.
 
+Built for being stuck in the woods:
+
+- **Installs as an app.** `manifest.webmanifest` and `assets/icons/` let "Add to
+  Home Screen" open it full screen and offline, with Map and Emergency
+  shortcuts (`#appBand`, `#apSos`).
+- **POCKET mode.** No web page can use GPS with the screen off, so the screen
+  stays on but goes pure black and touch-locked, and the track keeps
+  recording. Hold for two seconds to come back. If the phone locks anyway, it
+  says how long nothing was recorded.
+- **Signal catcher** (EMERGENCY tab). When signal appears and GPS is on, at most
+  every 30 minutes (10 after a failure), never in data-saver or private mode:
+  NWS alerts and a 12-hour Open-Meteo forecast for the position rounded to
+  about a kilometre, and about 1 MB of USGS map around you if that ground was
+  never saved.
+- **Text my location** asks four times before it opens Messages. There is no
+  call button.
+- **Survival guide.** Collapsible, Appalachian-specific, saved with the page.
+
 ## What a run costs
 
 xAI bills per search as well as per token, and the searches are most of it: on
