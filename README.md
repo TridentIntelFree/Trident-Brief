@@ -382,6 +382,17 @@ level of the image pyramid is chosen from what the panel can actually display
 and from the tile byte counts already in the header, so a phone downloads a
 quarter of what a desktop does for the same view.
 
+## Privacy
+
+Free, open source, and not watching anyone: no accounts, ads, cookies,
+analytics or tracking pixels. The footer's PRIVACY panel lists every outside
+site the page contacts and when, and what it keeps on the device. It has a
+**private mode** (the page then asks nobody but GitHub for anything on its
+own; anything a visitor presses still works) and a button that erases
+everything the site saved on the device. The page sends no referrer, and the
+Crystal Ball's fonts are served from `assets/fonts/` rather than Google Fonts.
+GitHub, as the host, still sees visitors' IP addresses; the owner does not.
+
 ## Layout
 
 | Path | Purpose |
