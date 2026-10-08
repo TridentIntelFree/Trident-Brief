@@ -4,6 +4,17 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.30.2 — 2026-10-08
+
+### Changed: a walking route stays a walking route
+- With PUBLIC LAND ONLY and no legal way in the nearby area, the planner no
+  longer suggests driving. It looks again wider, about 8 km and then about
+  20 km around, for public roads, trails and public land, roads and trails
+  only so the data stays small. It plans the long way round on foot.
+- If even that finds nothing, it says so plainly, with no driving
+  suggestion: ask the landowner.
+- Long routes show their time as days, at 7 hours of walking a day.
+
 ## 1.30.1 — 2026-10-08
 
 ### Fixed: PUBLIC LAND ONLY routed across known private land
