@@ -2992,13 +2992,31 @@ def indicator_lines(ind):
 # endpoint (no api.nasa.gov key) for CMEs and their WSA-Enlil arrival runs.
 SWPC = 'https://services.swpc.noaa.gov/'
 DONKI = 'https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get/'
+DONKI_API = 'https://api.nasa.gov/DONKI/'           # NASA's public DEMO_KEY: a published demo key, not a secret
 SW_UA = {'User-Agent': 'TridentBrief/1.0 (github.com/TridentIntelFree/Trident-Brief)'}
 
 
 def _sw_get(url, timeout=20):
-    r = requests.get(url, timeout=timeout, headers=SW_UA)
+    r = requests.get(url, timeout=timeout, headers=dict(SW_UA, Accept='application/json'))
     r.raise_for_status()
-    return r.json()
+    if not r.text.strip():
+        return []                                   # DONKI answers an empty body when nothing matches
+    try:
+        return r.json()
+    except ValueError:
+        raise RuntimeError(f"not JSON from {url.split('/')[2]} ({r.headers.get('content-type', '?')}): "
+                           + ' '.join(r.text[:70].split()))
+
+
+def _sw_first(urls, timeout=20):
+    """The first of several addresses that answers: NOAA moves products now and then."""
+    errs = []
+    for u in urls:
+        try:
+            return _sw_get(u, timeout)
+        except Exception as e:
+            errs.append(f"{u.rsplit('/', 1)[-1]}: {str(e)[:70]}")
+    raise RuntimeError('; '.join(errs))
 
 
 def _sw_rows(d):
@@ -3054,18 +3072,27 @@ def _sw_kp(now):
 
 
 def _sw_wind(now):
-    pl = _sw_rows(_sw_get(SWPC + 'products/solar-wind/plasma-1-day.json'))
-    mg = _sw_rows(_sw_get(SWPC + 'products/solar-wind/mag-1-day.json'))
-    sp = [(r.get('time_tag'), _num(r.get('speed')), _num(r.get('density'))) for r in pl]
+    pl = _sw_rows(_sw_first([SWPC + 'json/rtsw/rtsw_wind_1m.json', SWPC + 'products/solar-wind/plasma-1-day.json']))
+    mg = _sw_rows(_sw_first([SWPC + 'json/rtsw/rtsw_mag_1m.json', SWPC + 'products/solar-wind/mag-1-day.json']))
+    act = lambda rows: [r for r in rows if r.get('active') in (None, True, 'true', 1)]
+    pl, mg = act(pl), act(mg)
+    pl.sort(key=lambda r: str(r.get('time_tag')))
+    mg.sort(key=lambda r: str(r.get('time_tag')))
+    cut = (now - timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M')
+    rec = lambda rows: [r for r in rows if str(r.get('time_tag')).replace(' ', 'T') >= cut]
+    sp = [(r.get('time_tag'), _num(r.get('proton_speed', r.get('speed'))), _num(r.get('proton_density', r.get('density')))) for r in rec(pl)]
     sp = [x for x in sp if x[1] is not None]
-    bz = [(r.get('time_tag'), _num(r.get('bz_gsm')), _num(r.get('bt'))) for r in mg]
+    bz = [(r.get('time_tag'), _num(r.get('bz_gsm')), _num(r.get('bt'))) for r in rec(mg)]
     bz = [x for x in bz if x[1] is not None]
-    last_hr = bz[-60:]
+    hr = (now - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M')
+    last_hr = [x for x in bz if str(x[0]).replace(' ', 'T') >= hr] or bz[-60:]
+    if not sp and not bz:
+        raise RuntimeError('no solar-wind readings in the last 24 hours')
     return {'speed': round(sp[-1][1]) if sp else None, 'density': sp[-1][2] if sp else None,
             'speed_max24': round(max(x[1] for x in sp)) if sp else None,
             'bz': bz[-1][1] if bz else None, 'bt': bz[-1][2] if bz else None,
             'bz_min1h': min(x[1] for x in last_hr) if last_hr else None,
-            'at': str((sp or bz or [[None]])[-1][0])[:16]}
+            'at': str((sp or bz)[-1][0])[:16]}
 
 
 def _sw_xray(now):
@@ -3098,7 +3125,8 @@ def _sw_alerts(now):
             continue
         msg = str(a.get('message') or '')
         title = next((l.strip() for l in msg.splitlines()
-                      if re.match(r'\s*(ALERT|WARNING|WATCH|SUMMARY|EXTENDED WARNING|CANCEL)', l)), '') or msg.strip()[:90]
+                      if re.match(r'\s*(CONTINUED ALERT|ALERT|EXTENDED WARNING|WARNING|WATCH|SUMMARY|CANCEL \w+)\s*:', l)), '') \
+            or ' '.join(msg.split())[:90]
         out.append({'at': at, 'id': a.get('product_id'), 'title': title[:140]})
     out.sort(key=lambda a: a['at'], reverse=True)
     return {'list': out[:20]}
@@ -3106,7 +3134,7 @@ def _sw_alerts(now):
 
 def _sw_cmes(now):
     q = f"?startDate={(now - timedelta(days=7)):%Y-%m-%d}&endDate={now:%Y-%m-%d}"
-    cmes = _sw_get(DONKI + 'CME' + q, timeout=30) or []
+    cmes = _sw_first([DONKI + 'CME' + q, DONKI_API + 'CME' + q + '&api_key=DEMO_KEY'], timeout=30) or []
     out = []
     for c in cmes:
         an = [a for a in c.get('cmeAnalyses') or [] if a.get('isMostAccurate')] or (c.get('cmeAnalyses') or [])[-1:]
@@ -3128,7 +3156,7 @@ def _sw_cmes(now):
                     'kp': kp, 'note': (c.get('note') or '')[:240], 'link': c.get('link')})
     out.sort(key=lambda c: c['start'], reverse=True)
     try:
-        gst = _sw_get(DONKI + 'GST' + q, timeout=30) or []
+        gst = _sw_first([DONKI + 'GST' + q, DONKI_API + 'GST' + q + '&api_key=DEMO_KEY'], timeout=30) or []
         storms = [{'start': str(g.get('startTime'))[:16],
                    'kp': max((_num(k.get('kpIndex')) or 0 for k in g.get('allKpIndex') or []), default=None)} for g in gst]
     except Exception:
