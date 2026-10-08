@@ -1221,11 +1221,11 @@ function timed(u, opt, ms){
 }
 
 /* OpenStreetMap paths, roads, streams, springs and shelters in the box. */
-function osmBox(b){
+function osmBox(b, wide){
   var bb = '(' + [b[0], b[1], b[2], b[3]].map(function(v){ return v.toFixed(5); }).join(',') + ')';
-  var q = '[out:json][timeout:60];(' +
-    'way["highway"~"^(path|footway|bridleway|steps|pedestrian|track|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|unclassified|residential|service|living_street|road)$"]["access"!~"^(private|no)$"]["foot"!~"^(no|private)$"]' + bb + ';' +
-    'way["waterway"~"^(river|stream|canal)$"]' + bb + ';' +
+  var q = '[out:json][timeout:' + (wide ? 120 : 60) + '];(' +
+    'way["highway"~"^(path|footway|bridleway|' + (wide ? '' : 'steps|pedestrian|service|living_street|') + 'track|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|unclassified|residential|road)$"]["access"!~"^(private|no)$"]["foot"!~"^(no|private)$"]' + bb + ';' +
+    'way["waterway"~"^(' + (wide ? 'river' : 'river|stream|canal') + ')$"]' + bb + ';' +
     'node["natural"="spring"]' + bb + ';node["amenity"~"^(drinking_water|shelter)$"]' + bb + ';' +
     'node["barrier"~"^(gate|lift_gate|swing_gate|chain)$"]' + bb + ';' +
     ');out tags geom qt;';
@@ -1321,7 +1321,9 @@ function legTime(a, b, cls, dem, pl){
     var la = a[0] + (b[0] - a[0])*i/n, lo = a[1] + (b[1] - a[1])*i/n, h = dem.sample(la, lo), s = d/n;
     var S = (h != null && prev != null) ? (h - prev)/s : 0;
     if(cls === OFF && Math.abs(S) > MAX_OFF_SLOPE) return Infinity;
-    t += s/(tobler(S)*CLS_SPEED[cls])*(pl && cls === OFF ? COST[pubAt(pl, la, lo)] : 1);
+    var tier = pl && cls === OFF ? pubAt(pl, la, lo) : 2;
+    if(tier === 0 && !nearEnd(la, lo)) return Infinity;
+    t += s/(tobler(S)*CLS_SPEED[cls])*COST[tier];
     if(h != null) prev = h;
   }
   return t;
@@ -1345,7 +1347,9 @@ function netRoute(A, B, osm, dem, pl){
     for(var i = 1; i < e.geometry.length; i++){
       var u = node(e.geometry[i-1]), v = node(e.geometry[i]);
       if(u === v) continue;
-      var a = [lat[u], lon[u]], b = [lat[v], lon[v]], pen = pl ? COST[Math.max(Math.min(np(u).t, np(v).t), wt.t)] : 1;
+      var a = [lat[u], lon[u]], b = [lat[v], lon[v]], tr = pl ? Math.max(Math.min(np(u).t, np(v).t), wt.t) : 2;
+      if(tr === 0 && !nearEnd(a[0], a[1]) && !nearEnd(b[0], b[1])) continue;     // private: not walkable
+      var pen = COST[tr];
       adj[u].push([v, legTime(a, b, cls, dem)*pen, wi]); adj[v].push([u, legTime(b, a, cls, dem)*pen, wi]);
     }
   });
@@ -1437,6 +1441,15 @@ function gridRoute(A, B, b, osm, dem, pl){
   if(s0 < 0 || g < 0) return null;
   var PR = pl ? pubRaster(pl, b, nx, ny, cs, mx, my) : null, PUB = PR && PR.t;
   function lvl(c, on){ return PUB ? 2 - Math.max(PUB[c], on ? OKP[c] : 0) : 0; }
+  var NEAR = new Uint8Array(n), rc = Math.ceil(END_R/cs);
+  [A, B].forEach(function(P){
+    var c0 = cell(P[0], P[1]); if(c0 < 0) return;
+    var ci = c0%nx, cj = Math.floor(c0/nx);
+    for(var dj = -rc; dj <= rc; dj++) for(var di = -rc; di <= rc; di++){
+      var ii = ci + di, jj = cj + dj; if(ii < 0 || jj < 0 || ii >= nx || jj >= ny || di*di + dj*dj > rc*rc) continue;
+      NEAR[jj*nx + ii] = 1;
+    }
+  });
   var G = new Float64Array(n).fill(Infinity), FROM = new Int32Array(n).fill(-1), CLOSED = new Uint8Array(n);
   var gi = g%nx, gj = Math.floor(g/nx), VMAX = tobler(-0.05);
   var h = new Heap(); G[s0] = 0; h.push(0, s0);
@@ -1452,7 +1465,9 @@ function gridRoute(A, B, b, osm, dem, pl){
       if(WT[v] === 2 && !(P[v] >= 0 && BR[v])) continue;           // a river: only on a bridge
       var d = k < 4 ? cs : cs*Math.SQRT2, S = (E[v] === E[v] && E[u] === E[u]) ? (E[v] - E[u])/d : 0;
       if(!onPath && Math.abs(S) > MAX_OFF_SLOPE) continue;
-      var t = G[u] + d/(tobler(S)*CLS_SPEED[cls])*(PUB ? COST[2 - lvl(v, onPath)] : 1) + (WT[v] === 1 && !onPath ? 20 : 0);
+      var lv = PUB ? lvl(v, onPath) : 0;
+      if(lv === 2 && !NEAR[v]) continue;                           // private: not walkable
+      var t = G[u] + d/(tobler(S)*CLS_SPEED[cls])*COST[2 - lv] + (WT[v] === 1 && !onPath ? 20 : 0);
       if(t < G[v]){ G[v] = t; FROM[v] = u;
         var hx = (vi - gi)*cs, hy = (vj - gj)*cs; h.push(t + Math.sqrt(hx*hx + hy*hy)/VMAX, v); }
     }
@@ -1619,6 +1634,11 @@ var RMODE = load('ap_rmode', {pub:false, drive:false});
    PAD-US "Proclamation" areas (a national forest's outer boundary, private
    inholdings and all) are never counted. Each level has its cost: */
 var COST = [40, 6, 1];
+/* PUBLIC LAND ONLY is strict: private land cannot be walked at all, except
+   within 250 m of the start or the destination (your own land, where you
+   parked). Public roads across private land stay walkable. */
+var END = [], END_R = 250;
+function nearEnd(la, lo){ for(var i = 0; i < END.length; i++) if(dist(END[i], [la, lo]) < END_R) return true; return false; }
 function padTier(p){
   var acc = String(p.Pub_Access || p.PUB_ACCESS || p.pub_access || ''), cat = String(p.Category || p.CATEGORY || p.category || ''),
       own = String(p.Own_Type || p.OWN_TYPE || p.own_type || ''), nm = p.Unit_Nm || p.Loc_Nm || p.Mang_Name || 'public land';
@@ -1628,7 +1648,8 @@ function padTier(p){
     if(/^(PVT|NGO|UNK)$/i.test(own)) return {t:1, why:nm + ': listed open, but ' + (/^NGO$/i.test(own) ? 'owned by a nonprofit' : /^PVT$/i.test(own) ? 'privately owned' : 'owner unknown') + ' (PAD-US)'};
     return {t:2, why:nm};
   }
-  if(/^(RA|restricted)/i.test(acc)) return {t:1, why:nm + ': restricted access (permit, season or fee) in PAD-US'};
+  if(/^(RA|restricted)/i.test(acc)) return RMODE.permit ? {t:2, why:nm + ' (needs a permit or licence; you said you have it)'}
+                                                          : {t:1, why:nm + ': restricted access (permit, season or fee) in PAD-US. Virginia WMAs need a DWR Access Permit at 17+ unless you hold a hunting or fishing licence'};
   return {t:1, why:nm + ': public access unknown in PAD-US'};
 }
 var PUB_SRC = [
@@ -1740,9 +1761,35 @@ function osmCars(from, to){
   }
   return next();
 }
+/* With PUBLIC LAND ONLY, where to park depends on what lies between the car
+   and the destination. A coarse walk from the destination outward over the
+   ownership map (100 m cells, 0.75 m/s, private and questionable land at
+   their cost) gives every possible parking spot its cost of walking in. */
+function accessField(pl, to, R){
+  var lat0 = to[0], mx = 111320*Math.cos(lat0*D), my = 110540, cs = 100;
+  var b = [to[0] - R/my, to[1] - R/mx, to[0] + R/my, to[1] + R/mx];
+  var nx = Math.ceil(2*R/cs), ny = nx, n = nx*ny, PR = pubRaster(pl, b, nx, ny, cs, mx, my), T = PR.t;
+  var G = new Float64Array(n).fill(Infinity), h = new Heap();
+  var g0 = Math.floor(ny/2)*nx + Math.floor(nx/2); G[g0] = 0; h.push(0, g0);
+  var DI = [1, -1, 0, 0, 1, 1, -1, -1], DJ = [0, 0, 1, -1, 1, -1, 1, -1];
+  while(h.size()){
+    var u = h.pop(), ui = u%nx, uj = Math.floor(u/nx);
+    for(var k = 0; k < 8; k++){
+      var vi = ui + DI[k], vj = uj + DJ[k]; if(vi < 0 || vj < 0 || vi >= nx || vj >= ny) continue;
+      var v = vj*nx + vi;
+      if(T[v] === 0 && (vi - Math.floor(nx/2))*(vi - Math.floor(nx/2)) + (vj - Math.floor(ny/2))*(vj - Math.floor(ny/2)) > 9) continue;   // private, beyond 300 m of the destination
+      var t = G[u] + (k < 4 ? cs : cs*Math.SQRT2)/0.75*COST[T[v]];
+      if(t < G[v]){ G[v] = t; h.push(t, v); }
+    }
+  }
+  return function(la, lo){
+    var i = Math.floor((lo - b[1])*mx/cs), j = Math.floor((la - b[0])*my/cs);
+    return (i < 0 || j < 0 || i >= nx || j >= ny) ? Infinity : G[j*nx + i];
+  };
+}
 /* Shortest time by car from near the start, then the best place to leave the
    car: least drive time plus a rough walking time from there (0.75 m/s). */
-function driveRoute(from, to, osm){
+function driveRoute(from, to, osm, acc){
   var key = {}, lat = [], lon = [], adj = [], WAYS = [], BAR = {};
   /* bollards, blocks and chains stop a car; a gate costs 15 times the time and is reported, unless tagged open to cars */
   osm.elements.forEach(function(e){
@@ -1778,7 +1825,7 @@ function driveRoute(from, to, osm){
     for(var k = 0; k < ed.length; k++){ var v2 = ed[k][0], nt = best[u] + ed[k][1]; if(nt < best[v2]){ best[v2] = nt; prev[v2] = u; via[v2] = ed[k][2]; h.push(nt, v2); } }
   }
   var park = -1, score = Infinity;
-  for(var n = 0; n < N; n++){ if(!isFinite(best[n])) continue; var s = best[n] + dist([lat[n], lon[n]], to)/0.75; if(s < score){ score = s; park = n; } }
+  for(var n = 0; n < N; n++){ if(!isFinite(best[n])) continue; var s = best[n] + (acc ? acc(lat[n], lon[n]) : dist([lat[n], lon[n]], to)/0.75); if(s < score){ score = s; park = n; } }
   if(park < 0) return {fail:'no road reached'};
   var seq = [], cur = park; while(cur >= 0){ seq.push(cur); cur = prev[cur]; } seq.reverse();
   var pts = [], dd = 0, cue = [], tracks = 0, gates = 0;
@@ -1810,9 +1857,14 @@ function planRoute(){
   if(!navigator.onLine){ alert('Planning needs signal once, to get the paths and the ground for this area. Your saved route still works offline.'); return; }
   plan = {busy:true, note:mode.drive ? 'Getting the roads from OpenStreetMap…' : 'Getting the paths and roads from OpenStreetMap…', from:from, to:to, name:target.name, opts:[], mode:mode};
   paintPanel();
-  var first = !mode.drive ? Promise.resolve({walkFrom:from}) : osmCars(from, to).then(function(osm){
+  var R = Math.min(15000, Math.max(6000, span*0.6));
+  var landNear = mode.drive && mode.pub ? publicLand([to[0] - R/110540, to[1] - R/(111320*Math.cos(to[0]*D)), to[0] + R/110540, to[1] + R/(111320*Math.cos(to[0]*D))]) : Promise.resolve(null);
+  var first = !mode.drive ? Promise.resolve({walkFrom:from}) : Promise.all([osmCars(from, to), landNear]).then(function(res){
+    var osm = res[0], ln = res[1];
     planNote('Working out the drive…');
-    var dr = driveRoute(from, to, osm);
+    var acc = ln && ln.ok ? accessField(ln, to, R) : null;
+    if(mode.pub && !acc) plan.parkWhy = 'no public-land data for choosing where to park, so it parked by distance alone';
+    var dr = driveRoute(from, to, osm, acc);
     if(dr.fail){ plan.driveWhy = dr.fail; return {walkFrom:from}; }
     if(dr.t < 90 || dist(dr.park, from) < 400){ plan.driveWhy = 'driving gets you no nearer than walking from here'; return {walkFrom:from}; }
     return {walkFrom:dr.park, drive:dr};
@@ -1826,34 +1878,52 @@ function planRoute(){
                       r.wi = d.pts.length; r.pts = d.pts.concat(r.pts); }
       });
       plan.opts = out; plan.busy = false; plan.note = '';
+      if(!out.length) plan.note = mode.pub ? 'No legal walking route from ' + (st.drive ? 'the parking spot' : 'here') + ' within about ' + (plan.searched || 2) + ' km around: ' +
+                                             'private land closes every way in, with no public road, trail or public land through it. Ask the landowner for permission.'
+                                           : 'No route found: ' + [plan.netWhy, plan.gridWhy].filter(Boolean).join('; ') + '.';
       drawRoutes(); fitRoute(out[0]); paintPanel();
     }
     if(wspan < 30){ planNote('Working out the routes…'); return finish([{kind:'net', pts:[[A[0], A[1], null, OFF, ''], [to[0], to[1], null, OFF, '']]}], null, {sample:function(){ return null; }}); }
     planNote(st.drive ? 'Getting the paths for the walk in…' : plan.note);
-    var pad = Math.max(2000, wspan*0.4);                  // room for a trail that swings well wide of the straight line
-    var dLat = pad/110540, dLon = pad/(111320*Math.cos(A[0]*D));
-    var b = [Math.min(A[0], to[0]) - dLat, Math.min(A[1], to[1]) - dLon, Math.max(A[0], to[0]) + dLat, Math.max(A[1], to[1]) + dLon];
-    var osmP = osmBox(b).catch(function(e){ plan.osmErr = e.message || String(e); return null; });
-    var plP = mode.pub ? publicLand(b) : Promise.resolve(null);
-    var demP = osmP.then(function(){ return demFor(b); });
-    return Promise.all([osmP, demP, plP]).then(function(res){
-      var osm = res[0], dem = res[1], pl = res[2];
-      if(mode.pub){
-        plan.pubGot = pl.got;
-        if(!pl.ok){ plan.pubWhy = 'no public-land data arrived (' + pl.got.join('; ') + '), so these routes cannot tell public land from private'; pl = null; }
-      }
-      plan.pub = !!pl; plan.land = pl;
-      planNote('Working out the routes…');
-      return new Promise(function(ok){ setTimeout(ok, 30); }).then(function(){
-        var out = [], net = osm ? netRoute(A, to, osm, dem, pl) : null, grid = gridRoute(A, to, b, osm, dem, pl);
-        if(net && net.pts) out.push(net); else plan.netWhy = !osm ? 'no path data' : !net ? 'no mapped paths here' :
-          net.fail === 'start' ? 'no path within 1.5 km of the start that can be reached safely' :
-          net.fail === 'end' ? 'no path within 1.5 km of the destination that can be reached safely' : 'the paths here do not connect';
-        if(grid && grid.pts) out.push(grid); else plan.gridWhy = 'no way across the ground without very steep slopes or an unbridged river';
-        out.forEach(function(r){ r.pub = !!pl; });
-        finish(out, osm, dem);
+    /* A legal way can be a long way round. With PUBLIC LAND ONLY, when the
+       first area holds no legal line, look again wider: about 8 km, then
+       about 20 km around (roads and trails only, so the data stays small). */
+    var pads = [Math.max(2000, wspan*0.4)];
+    if(mode.pub) pads.push(Math.max(8000, wspan), Math.max(20000, wspan*2));
+    END = [A, to];
+    function attempt(k){
+      var pad = pads[k], wide = k > 0;
+      var dLat = pad/110540, dLon = pad/(111320*Math.cos(A[0]*D));
+      var b = [Math.min(A[0], to[0]) - dLat, Math.min(A[1], to[1]) - dLon, Math.max(A[0], to[0]) + dLat, Math.max(A[1], to[1]) + dLon];
+      if(wide) planNote('No legal way in the nearby area; looking about ' + Math.round(pad/1000) + ' km around for public roads, trails and public land…');
+      var osmP = osmBox(b, wide).catch(function(e){ plan.osmErr = e.message || String(e); return null; });
+      var plP = mode.pub ? publicLand(b) : Promise.resolve(null);
+      var demP = osmP.then(function(){ return demFor(b); });
+      return Promise.all([osmP, demP, plP]).then(function(res){
+        var osm = res[0], dem = res[1], pl = res[2];
+        if(mode.pub){
+          plan.pubGot = pl.got;
+          if(!pl.ok){ throw new Error('PUBLIC LAND ONLY needs the land-ownership maps, and none arrived (' + pl.got.join('; ') + '). Try again with better signal, ' +
+                                      'or plan with ANYWHERE and check the land yourself with SHOW LAND OWNERSHIP HERE'); }
+        }
+        plan.pub = !!pl; plan.land = pl;
+        planNote('Working out the routes…');
+        return new Promise(function(ok){ setTimeout(ok, 30); }).then(function(){
+          plan.netWhy = plan.gridWhy = '';
+          var out = [], net = osm ? netRoute(A, to, osm, dem, pl) : null, grid = gridRoute(A, to, b, osm, dem, pl);
+          if(net && net.pts) out.push(net); else plan.netWhy = !osm ? 'no path data' : !net ? 'no mapped paths here' :
+            net.fail === 'start' ? 'no path within 1.5 km of the start that can be reached ' + (mode.pub ? 'legally and ' : '') + 'safely' :
+            net.fail === 'end' ? 'no path within 1.5 km of the destination that can be reached ' + (mode.pub ? 'legally and ' : '') + 'safely' : 'the paths here do not connect';
+          if(grid && grid.pts) out.push(grid); else plan.gridWhy = mode.pub ? 'no way across the ground without crossing private land, very steep slopes or an unbridged river'
+                                                                          : 'no way across the ground without very steep slopes or an unbridged river';
+          if(!out.length && k + 1 < pads.length) return attempt(k + 1);
+          plan.searched = Math.round(pad/1000);
+          out.forEach(function(r){ r.pub = !!pl; });
+          finish(out, osm, dem);
+        });
       });
-    });
+    }
+    return attempt(0);
   }).catch(function(e){
     plan.busy = false;
     plan.note = 'Could not plan: ' + (e.message || e) + '. Planning needs a usable signal for a minute or two.';
@@ -2015,7 +2085,7 @@ function routeSummary(r){
   return '<div class="ap-grid">' + (r.drive ? kv('DRIVE', fmtDist(r.drive.d) + ', about ' + fmtDur(r.drive.t*1000)) : '') +
     (r.pub ? kv('PRIVATE LAND', a.privM > 20 ? '<span class="ap-bad">' + fmtDist(a.privM) + '</span>' : 'none in the data') +
              kv('QUESTIONABLE ACCESS', a.quesM > 20 ? '<span class="ap-warn">' + fmtDist(a.quesM) + '</span>' : 'none in the data') : '') +
-    kv(r.drive ? 'WALK IN' : 'DISTANCE', fmtDist(a.d)) + kv('WALKING TIME', fmtDur(a.t*1000) + ' <span class="ap-dim">(Tobler, no breaks)</span>') +
+    kv(r.drive ? 'WALK IN' : 'DISTANCE', fmtDist(a.d) + (a.t > 9*3600 ? ' <span class="ap-warn">(about ' + Math.ceil(a.t/(7*3600)) + ' days at 7 hours of walking a day)</span>' : '')) + kv('WALKING TIME', fmtDur(a.t*1000) + ' <span class="ap-dim">(Tobler, no breaks)</span>') +
     kv('CLIMB / DESCENT', '+' + Math.round(a.up*3.28084).toLocaleString() + ' / −' + Math.round(a.down*3.28084).toLocaleString() + ' ft') +
     kv('OFF-TRAIL', a.byCls[OFF] > 20 ? fmtDist(a.byCls[OFF]) : 'none') + '</div>';
 }
@@ -2071,7 +2141,7 @@ function routeDetail(r, f){
   if(a.cue.length) h += '<h4>THE WAY</h4><ol class="ap-ul">' + a.cue.map(function(c){
     return '<li>' + fmtMi(c.len) + ' ' + (c.cls === OFF ? '<b>off trail</b>' : 'on ' + (c.name ? '<b>' + esc(c.name) + '</b> (' + CLS_NAME[c.cls] + ')' : 'a ' + CLS_NAME[c.cls])) + '</li>'; }).join('') + '</ol>';
   h += r.pub ? '<div class="ap-dim"><b>Public land only:</b> keeps to Forest Service-owned land and government land PAD-US lists as open (' + esc((r.pubGot || []).join('; ')) + '), plus public roads ' +
-               'and paths marked public. Questionable access costs six times the time, private land forty, so each is used only when there is no better way, and listed. Off trail is fine there. The data is not a survey and can be out of date; posted signs, closures, seasonal rules and permits still apply, ' +
+               'and paths marked public. Private land is not crossed beyond 250 m of the start and destination; questionable access costs six times the time and is listed. Off trail is fine there. The data is not a survey and can be out of date; posted signs, closures, seasonal rules and permits still apply, ' +
                'and in hunting season wear blaze orange.</div>'
              : '<div class="ap-dim"><b>Anywhere:</b> this route ignores who owns the land. Respect posted signs and ask before crossing private land.</div>';
   h += '<div class="ap-dim">Times are Tobler’s hiking function on the slope (off-trail at 0.6 of trail pace), with no breaks. Heights are from ~10–20 m terrain data, ' +
@@ -2079,14 +2149,37 @@ function routeDetail(r, f){
   return h;
 }
 function modeName(r){ return (r.drive ? 'DRIVE, THEN ' : '') + (r.kind === 'net' ? 'TRAILS AND ROADS' : 'OVER THE GROUND (QUICKEST)') + ' \u00b7 ' + (r.pub ? 'PUBLIC LAND ONLY' : 'ANYWHERE'); }
+/* Land ownership for the area on screen, on demand: green public, amber questionable, nothing for private. */
+var landLayer = null, landNote = 'needs signal; shades the area on screen';
+function landShow(){
+  if(landLayer){ map.removeLayer(landLayer); landLayer = null; landNote = ''; paintPanel(); return; }
+  if(!map) return;
+  var bb = map.getBounds(), b = [bb.getSouth(), bb.getWest(), bb.getNorth(), bb.getEast()];
+  if(dist([b[0], b[1]], [b[2], b[3]]) > 40000){ landNote = 'zoom in to under about 25 km across first'; paintPanel(); return; }
+  if(!navigator.onLine){ landNote = 'no signal'; paintPanel(); return; }
+  landNote = 'fetching\u2026'; paintPanel();
+  publicLand(b).then(function(pl){
+    var L = window.L; landLayer = L.layerGroup().addTo(map);
+    pl.polys.forEach(function(pg){
+      L.polygon(pg.rings.map(function(r){ return r.map(function(c){ return [c[1], c[0]]; }); }),
+        {color:pg.t === 2 ? '#22c55e' : '#fbbf24', weight:1.5, opacity:.8, fillOpacity:.15}).bindTooltip(pg.t === 2 ? 'Public: ' + pg.why : 'Questionable: ' + pg.why).addTo(landLayer);
+    });
+    landNote = pl.polys.length ? 'green public, amber questionable, unshaded private (' + pl.got.join('; ') + ')' : 'no public land found here (' + pl.got.join('; ') + ')';
+    paintPanel();
+  });
+}
 function modeBar(){
   function b(k, v, label){ return '<button class="ap-btn' + (!!RMODE[k] === v ? ' on' : '') + '" data-act="rmode" data-k="' + k + '" data-v="' + (v ? 1 : 0) + '">' + label + '</button>'; }
   return '<div class="ap-row"><span class="ap-dim">ON FOOT</span>' + b('pub', false, 'ANYWHERE') + b('pub', true, 'PUBLIC LAND ONLY') + '</div>' +
+    (RMODE.pub ? '<div class="ap-row"><span class="ap-dim">PERMIT LAND</span>' + b('permit', false, 'AVOID') + b('permit', true, 'I HAVE THE PERMITS') + '</div>' : '') +
     '<div class="ap-row"><span class="ap-dim">GETTING THERE</span>' + b('drive', false, 'WALK ALL THE WAY') + b('drive', true, 'DRIVE, THEN WALK') + '</div>' +
     '<div class="ap-dim">' + (RMODE.pub ? 'Public land only: Forest Service land and government land open to the public, plus public roads and paths marked public; off trail is fine there. ' +
-                                          'Questionable access (permits, easements, permissive or untagged paths) is avoided and flagged; private land is avoided harder.'
+                                          'Private land is never crossed (beyond 250 m of your start and destination); public roads through it are fine. Questionable access (permits, easements, permissive or untagged paths) is avoided and flagged.'
                                         : 'Anywhere: ignores who owns the land.') +
-    (RMODE.drive ? ' Drives public roads to the best place to park, then walks in.' : '') + '</div>';
+    (RMODE.pub && RMODE.permit ? ' Permit land (state wildlife areas and the like) counts as public: carry the permit or licence.' : '') +
+    (RMODE.drive ? ' Drives public roads to the best place to park' + (RMODE.pub ? ' for a walk in on public land' : '') + ', then walks in.' : '') + '</div>' +
+    '<div class="ap-row"><button class="ap-btn" data-act="land-show">' + (landLayer ? 'HIDE LAND OWNERSHIP' : 'SHOW LAND OWNERSHIP HERE') + '</button>' +
+    '<span class="ap-dim">' + esc(landNote) + '</span></div>';
 }
 function routeBlock(){
   var h = '<h4>ROUTE</h4>';
@@ -2095,6 +2188,8 @@ function routeBlock(){
   if(plan && plan.opts.length){
     h += '<div class="ap-dim">' + (plan.opts.length > 1 ? 'Two ways' : 'A way') + ' to ' + esc(plan.name) + '. Tap SHOW to see one on the map, USE THIS to keep it for offline and follow it.</div>';
     if(plan.driveWhy) h += '<div class="ap-warn">No drive: ' + esc(plan.driveWhy) + '. These walk from where you are.</div>';
+    if(plan.parkWhy) h += '<div class="ap-warn">' + esc(plan.parkWhy) + '.</div>';
+    else if(plan.mode && plan.mode.drive && plan.mode.pub) h += '<div class="ap-dim">Parking was chosen for the cheapest walk in across public land, not the shortest distance.</div>';
     if(plan.pubWhy) h += '<div class="ap-bad">' + esc(plan.pubWhy) + '.</div>';
     plan.opts.forEach(function(r, i){
       h += '<div class="ap-ropt' + ((plan.show || 0) === i ? ' on' : '') + '"><b>' + modeName(r) + '</b>' + routeSummary(r) +
@@ -2492,6 +2587,7 @@ $('apPanel').addEventListener('click', function(e){
   else if(a === 'pocket') pocketOn();
   else if(a === 'sig-check') signalCheck(true);
   else if(a === 'route-plan') planRoute();
+  else if(a === 'land-show'){ start(); landShow(); }
   else if(a === 'rmode'){ RMODE[b.dataset.k] = b.dataset.v === '1'; store('ap_rmode', RMODE); paintPanel(); }
   else if(a === 'route-show' && plan){ plan.show = +b.dataset.i; drawRoutes(); fitRoute(plan.opts[plan.show]); paintPanel(); }
   else if(a === 'route-use') useRoute(+b.dataset.i);
