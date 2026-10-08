@@ -1,5 +1,147 @@
 [
  {
+  "id": "2026-10-06T0153-1",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "24h",
+  "deadline": "2026-10-07T01:53:09Z",
+  "region": "Middle East",
+  "event": "UKMTO issues at least one new advisory for a fifth tanker strike or near-miss in the Strait of Hormuz",
+  "probability": 65,
+  "term": "likely",
+  "basis": [
+   "three or four prior incidents in 48 hours",
+   "UKMTO-linked observer reports"
+  ],
+  "watch_for": "next gCaptain or shipping X post confirming fresh hit",
+  "wrong_if": "no new incident reported by 06 Oct 2026 2359 UTC"
+ },
+ {
+  "id": "2026-10-06T0153-2",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "24h",
+  "deadline": "2026-10-07T01:53:09Z",
+  "region": "Ukraine",
+  "event": "Ukrainian sources release satellite or drone imagery of at least one additional Russian airbase strike beyond Khanskaya",
+  "probability": 40,
+  "term": "unlikely",
+  "basis": [
+   "SBU Alpha pattern on Su-35/Su-34",
+   "ongoing tit-for-tat escalation"
+  ],
+  "watch_for": "Ukrainska Pravda or Militarnyi post with new imagery",
+  "wrong_if": "no new base strike imagery released by 06 Oct 2026 2359 UTC"
+ },
+ {
+  "id": "2026-10-06T0153-3",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "72h",
+  "deadline": "2026-10-09T01:53:09Z",
+  "region": "Middle East",
+  "event": "Houthi forces publicly claim and show evidence of a missile or drone strike on Saudi-backed positions near Dhubab or Bab el-Mandeb",
+  "probability": 55,
+  "term": "roughly even chance",
+  "basis": [
+   "Houthis retain inland reach",
+   "threats of retaliation after losses"
+  ],
+  "watch_for": "Houthi statement or video on X or Telegram",
+  "wrong_if": "no verified Houthi claim or strike evidence by 08 Oct 2026 2359 UTC"
+ },
+ {
+  "id": "2026-10-06T0153-4",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "72h",
+  "deadline": "2026-10-09T01:53:09Z",
+  "region": "Africa",
+  "event": "Eritrean government issues statement accusing Ethiopia of border violations or airstrikes near Tigray",
+  "probability": 35,
+  "term": "unlikely",
+  "basis": [
+   "post-Mekelle strikes northwest of capital",
+   "risk of wider Horn spillover"
+  ],
+  "watch_for": "Asmara foreign ministry or state media release",
+  "wrong_if": "no Eritrean accusation by 08 Oct 2026 2359 UTC"
+ },
+ {
+  "id": "2026-10-06T0153-5",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "72h",
+  "deadline": "2026-10-09T01:53:09Z",
+  "region": "Ukraine",
+  "event": "Russian forces strike Kyiv's Northern Bridge for a fifth consecutive day",
+  "probability": 70,
+  "term": "likely",
+  "basis": [
+   "four prior consecutive days confirmed"
+  ],
+  "watch_for": "Kyiv Independent or local X reports of new drone activity",
+  "wrong_if": "no strike reported on 06 or 07 Oct 2026"
+ },
+ {
+  "id": "2026-10-06T0153-6",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "7d",
+  "deadline": "2026-10-13T01:53:09Z",
+  "region": "Middle East",
+  "event": "At least two additional Hormuz tanker incidents trigger a 15%+ spike in regional war-risk insurance premiums",
+  "probability": 50,
+  "term": "roughly even chance",
+  "basis": [
+   "accelerating rerouting already noted",
+   "multiple strikes in short window"
+  ],
+  "watch_for": "Lloyd's or broker advisory on rate changes",
+  "wrong_if": "no premium spike reported by 13 Oct 2026"
+ },
+ {
+  "id": "2026-10-06T0153-7",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "7d",
+  "deadline": "2026-10-13T01:53:09Z",
+  "region": "Cyber",
+  "event": "CISA or equivalent adds at least one new critical infrastructure victim of SharePoint CVE-2026-65660 exploitation",
+  "probability": 60,
+  "term": "likely",
+  "basis": [
+   "active Warlock actor targeting of water/telecom"
+  ],
+  "watch_for": "CISA KEV update or utility outage report",
+  "wrong_if": "no new confirmed victim by 13 Oct 2026"
+ },
+ {
+  "id": "2026-10-06T0153-8",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "7d",
+  "deadline": "2026-10-13T01:53:09Z",
+  "region": "Africa",
+  "event": "TPLF leadership publicly claims ongoing control of territory outside Mekelle or launches counter-attack",
+  "probability": 30,
+  "term": "unlikely",
+  "basis": [
+   "withdrawal from capital but strikes persist",
+   "limited independent verification"
+  ],
+  "watch_for": "TPLF statement or Reuters confirmation",
+  "wrong_if": "no TPLF claim or counter-attack by 13 Oct 2026"
+ },
+ {
+  "id": "2026-10-06T0153-9",
+  "made": "2026-10-06T01:53:09Z",
+  "horizon": "7d",
+  "deadline": "2026-10-13T01:53:09Z",
+  "region": "Indo-Pacific",
+  "event": "Taiwan MND reports a single-day total of 9 or more PLA aircraft crossing the median line",
+  "probability": 25,
+  "term": "unlikely",
+  "basis": [
+   "September totals below norms",
+   "no surge signal yet"
+  ],
+  "watch_for": "Taiwan MND daily report",
+  "wrong_if": "no day exceeds 8 crossings by 13 Oct 2026"
+ },
+ {
   "id": "2026-10-06-1",
   "made": "2026-10-06T18:37:38Z",
   "horizon": "24h",
@@ -132,6 +274,134 @@
   ],
   "watch_for": "Polish MOD readiness statement",
   "wrong_if": "no operational-status announcement by 13 Oct 18:00 UTC"
+ },
+ {
+  "id": "2026-10-07T1904-1",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "24h",
+  "deadline": "2026-10-08T19:04:56Z",
+  "region": "Ukraine",
+  "event": "Ukrainian General Staff or Russian MoD confirms at least one new long-range strike on a Russian energy facility or airbase",
+  "probability": 65,
+  "term": "likely",
+  "basis": [
+   "Samara oil facility blaze already reported",
+   "ongoing Ukrainian drone claims in Telegram channels"
+  ],
+  "watch_for": "Russian MoD Telegram post on intercepted drones or fires",
+  "wrong_if": "No new Russian energy or airbase damage claims in next 24h"
+ },
+ {
+  "id": "2026-10-07T1904-2",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "24h",
+  "deadline": "2026-10-08T19:04:56Z",
+  "region": "Middle East",
+  "event": "UKMTO or gCaptain reports at least one new tanker strike or boarding attempt in Strait of Hormuz",
+  "probability": 55,
+  "term": "roughly even chance",
+  "basis": [
+   "attacks already at record weekly levels",
+   "multiple maritime advisories active"
+  ],
+  "watch_for": "new UKMTO alert or vessel AIS anomaly",
+  "wrong_if": "No new Hormuz incident reported by 08 Oct 19:00 UTC"
+ },
+ {
+  "id": "2026-10-07T1904-3",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "72h",
+  "deadline": "2026-10-10T19:04:56Z",
+  "region": "Middle East",
+  "event": "Saudi MoD or Houthi statement confirms successful ballistic missile impact on Saudi airport or oil facility",
+  "probability": 40,
+  "term": "unlikely",
+  "basis": [
+   "recent Houthi launches toward Abha, Khamis Mushait, Riyadh",
+   "intensified fighting near Bab el-Mandeb"
+  ],
+  "watch_for": "Saudi MoD interception failure report or Houthi claim of hit",
+  "wrong_if": "All Houthi missiles intercepted with no confirmed ground impact by 10 Oct"
+ },
+ {
+  "id": "2026-10-07T1904-4",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "72h",
+  "deadline": "2026-10-10T19:04:56Z",
+  "region": "Africa",
+  "event": "Ethiopian federal or TPLF statement acknowledges Eritrean troop deployment in Tigray",
+  "probability": 35,
+  "term": "unlikely",
+  "basis": [
+   "local witness reports of Eritrean presence near Adigrat",
+   "no major announcement yet"
+  ],
+  "watch_for": "official Ethiopian statement or TPLF denial",
+  "wrong_if": "No Eritrean involvement statement from either side by 10 Oct"
+ },
+ {
+  "id": "2026-10-07T1904-5",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "72h",
+  "deadline": "2026-10-10T19:04:56Z",
+  "region": "Black Sea",
+  "event": "Bulgarian or UKMTO report confirms additional vessel struck by drone in Black Sea EEZ",
+  "probability": 30,
+  "term": "unlikely",
+  "basis": [
+   "Alfa Watan search ended, Able still at risk",
+   "recent drone attack pattern"
+  ],
+  "watch_for": "new Bulgarian maritime authority notice",
+  "wrong_if": "No new Black Sea vessel incident by 10 Oct"
+ },
+ {
+  "id": "2026-10-07T1904-6",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "7d",
+  "deadline": "2026-10-14T19:04:56Z",
+  "region": "Ukraine",
+  "event": "Kyiv reports power or water outages affecting at least three additional oblasts beyond current disruptions",
+  "probability": 60,
+  "term": "likely",
+  "basis": [
+   "ongoing Russian energy infrastructure strikes",
+   "recent Kyiv outages"
+  ],
+  "watch_for": "Ukrenergo or local oblast emergency declarations",
+  "wrong_if": "No expansion of reported outages by 14 Oct"
+ },
+ {
+  "id": "2026-10-07T1904-7",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "7d",
+  "deadline": "2026-10-14T19:04:56Z",
+  "region": "Indo-Pacific",
+  "event": "Taiwan MND reports a single day with 25+ PLA aircraft sorties and 15+ median-line crossings",
+  "probability": 25,
+  "term": "unlikely",
+  "basis": [
+   "current tempo at 14 sorties/9 crossings",
+   "National Day period ending"
+  ],
+  "watch_for": "Taiwan MND daily summary exceeding threshold",
+  "wrong_if": "No day reaches 25 sorties by 14 Oct"
+ },
+ {
+  "id": "2026-10-07T1904-8",
+  "made": "2026-10-07T19:04:56Z",
+  "horizon": "7d",
+  "deadline": "2026-10-14T19:04:56Z",
+  "region": "Middle East",
+  "event": "Pakistan or Turkey announces troop deployment to Saudi Arabia in response to Houthi attacks",
+  "probability": 20,
+  "term": "very unlikely",
+  "basis": [
+   "earlier reports of agreement to deploy",
+   "escalating Houthi strikes"
+  ],
+  "watch_for": "official Ankara or Islamabad statement",
+  "wrong_if": "No deployment announcement by 14 Oct"
  },
  {
   "id": "2026-10-07-1",

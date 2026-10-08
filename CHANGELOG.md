@@ -4,6 +4,19 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.23.2 — 2026-10-08
+
+### Fixed: forecasts were thrown away before they could be scored
+- **The flaw:** a second Crystal Ball run on the same UTC day replaced that
+  day's forecasts. A same-day rerun on 6 Oct discarded the first set
+  (9 forecasts), and the manual run on the evening of 7 Oct discarded the
+  morning's 8. Both sets were genuine forecasts that might have gone wrong,
+  so dropping them flattered the record.
+- **The fix:** every run's forecasts are now kept and scored, with an ID
+  unique to the run.
+- **The lost 17** are restored to `data/crystal/forecasts.json` from git
+  history, unchanged. The next run resolves the ones that have come due.
+
 ## 1.23.1 — 2026-10-08
 
 ### Fixed
