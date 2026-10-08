@@ -4,6 +4,23 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.33.1 — 2026-10-08
+
+### Fixed: space weather's first live run
+- **Solar wind** answered 404: NOAA has moved that file. It now reads NOAA's
+  real-time solar-wind files first (the active spacecraft only), and falls
+  back to the older files.
+- **CMEs** came back as something other than JSON. DONKI is now asked for
+  JSON, and an empty answer counts as no CMEs. If NASA's CCMC server still
+  fails, it tries api.nasa.gov with NASA's published demo key (not a secret,
+  nothing to set up). A failure now records what came back, so the cause
+  shows in the next run.
+- **Alert titles** such as "CONTINUED ALERT: Electron 2MeV Integral Flux"
+  now read properly.
+- The first live run otherwise worked: NOAA scales, Kp, GOES X-rays and
+  alerts all arrived. They showed today's M6.7 flare, with the Type II and IV
+  radio bursts that usually go with a CME.
+
 ## 1.33.0 — 2026-10-08
 
 ### Added: space weather
