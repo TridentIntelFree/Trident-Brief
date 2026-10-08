@@ -1,0 +1,9 @@
+/* The Crystal Ball's two typefaces, served from this site so that opening it
+   does not tell Google Fonts who you are. Latin subsets only. Both are under
+   the SIL Open Font License 1.1 (OFL-*.txt beside this file). */
+@font-face{font-family:'Cinzel';font-style:normal;font-weight:400 900;font-display:swap;
+  src:url(cinzel-latin.woff2) format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:500;font-display:swap;
+  src:url(cormorant-garamond-500-latin.woff2) format('woff2')}
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:swap;
+  src:url(cormorant-garamond-500i-latin.woff2) format('woff2')}

@@ -227,7 +227,11 @@ function start(){
   sc.onerror = function(){ if(boot) boot.textContent = 'The map library could not be loaded. Online: reload the page. Offline: this device has not saved the map yet.'; };
   document.head.appendChild(sc);
 }
-if('IntersectionObserver' in window){
+if(window.TB_PRIVATE){
+  // private mode: no tile server is asked for anything until the button is pressed
+  var bt = $('apBoot');
+  if(bt) bt.firstChild.textContent = 'private mode: the map loads USGS tiles when you press \u00b7 ';
+} else if('IntersectionObserver' in window){
   var io = new IntersectionObserver(function(es){
     if(es.some(function(e){ return e.isIntersecting; })){ io.disconnect(); start(); }
   }, {rootMargin:'400px'});
@@ -250,7 +254,9 @@ function init(){
   Object.keys(BASES).forEach(function(k){
     var b = BASES[k];
     baseObjs[k] = L.tileLayer(b.url, {maxNativeZoom:b.max, maxZoom:19, subdomains:'abc', attribution:b.attr,
-                                      keepBuffer:3, crossOrigin: false});
+                                      keepBuffer:3, crossOrigin: false,
+                                      // the page sends no referrer; OSM-based servers refuse tiles without one, so they get the site name only
+                                      referrerPolicy: /openstreetmap|opentopomap/.test(b.url) ? 'strict-origin' : 'no-referrer'});
     bases[b.name] = baseObjs[k];
   });
   if(!BASES[baseKey]) baseKey = 'topo';
@@ -267,7 +273,7 @@ function init(){
     if(e.layer === lidarLayer){ store('ap_lidar', e.type === 'overlayadd'); if(tab === 'offline') paintPanel(); }
   });
   hikingLayer = L.tileLayer('https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png',
-    {maxZoom:19, maxNativeZoom:17, opacity:.85,
+    {maxZoom:19, maxNativeZoom:17, opacity:.85, referrerPolicy:'strict-origin',
      attribution:'<a href="https://hiking.waymarkedtrails.org" target="_blank" rel="noopener">Waymarked Trails</a> (CC-BY-SA)'});
   atLayer = L.layerGroup().addTo(map);
   wptLayer = L.layerGroup().addTo(map);

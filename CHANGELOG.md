@@ -4,6 +4,28 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.25.0 — 2026-10-08
+
+### Added: privacy for visitors
+- **A PRIVACY panel**, opened from the footer (or `#privacy`). It says in plain
+  words what the page contacts and when, what it keeps on the device, and what
+  it cannot hide: GitHub hosts the page and sees visitors' IP addresses; the
+  site's owner sees nothing. No accounts, ads, cookies, analytics or pixels.
+- **Private mode.** One switch in the panel. The page then asks nobody but
+  GitHub for anything on its own: the air picture uses the server's snapshot,
+  the space station and the browser-side feed retries stay off, and the trail
+  map waits for its button. Anything a visitor presses still works.
+- **Erase everything this site saved on this device:** settings, Morse logs,
+  offline maps, the offline copy, the speech model and any remembered key or
+  token. Only this site's own keys and caches are touched.
+- **No referrer.** Other sites are not told which page a visitor came from.
+  The OpenStreetMap-based tile servers, which refuse tiles without one, get
+  the site name only.
+- **The Crystal Ball's fonts are served from this site**, so opening it no
+  longer contacts Google Fonts (Cinzel and Cormorant Garamond, SIL OFL 1.1).
+
+Cost per run: nothing; no model calls or new sources.
+
 ## 1.24.1 — 2026-10-08
 
 ### Fixed: READ IT TO ME still skipped the Crystal Ball and the astrology

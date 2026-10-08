@@ -108,6 +108,9 @@ The owner's standing rules:
 - **No Reddit,** as a source or a search.
 - **Listen like a person.** Other people's receivers are used live, by a
   human pressing a button, one at a time, never recorded round the clock.
+- **Private for visitors.** No tracking, cookies or analytics. Any new
+  outside site the page contacts goes in the PRIVACY panel (`#privModal`), and
+  anything it fetches on its own goes through `jget`, so private mode blocks it.
 - **Mind the cost.** Prefer free sources and caching to model calls, and say
   what a change costs per run.
 - **Be honest about results.** Noise is noise, a frozen feed is frozen, and

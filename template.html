@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="The Trident Brief by Appalachian Intel - automated multi-INT fusion digest with live open-source signal feeds.">
 <meta name="color-scheme" content="dark">
+<meta name="referrer" content="no-referrer">
 <title>The Trident Brief &middot; Appalachian Intel</title>
 <meta name="generator" content="Trident Brief __VERSION__">
 <style>
@@ -894,6 +895,18 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 .footer{background:#080d1e;border-top:1px solid var(--line);padding:22px clamp(16px,3.5vw,40px);text-align:center;color:var(--ink-faint);font-size:.8em;font-family:var(--mono);line-height:1.8}
 .footer a{color:var(--ink-dim);text-decoration:none;border-bottom:1px dotted rgba(100,116,139,.5)}
 .footer a:hover{color:var(--cyan)}
+.footer .priv-link{background:none;border:0;border-bottom:1px dotted rgba(100,116,139,.5);color:var(--ink-dim);font:inherit;cursor:pointer;padding:0}
+.footer .priv-link:hover{color:var(--cyan)}
+.priv-box{max-width:760px}
+.priv-body{padding:16px 22px 24px;color:var(--ink-dim);line-height:1.6;font-size:.95em}
+.priv-body p{margin:8px 0}
+.priv-body h4{font-family:var(--mono);color:var(--blue);font-size:.8em;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 6px}
+.priv-body ul{margin:6px 0 6px 20px}.priv-body li{margin:5px 0}
+.priv-body b{color:var(--ink)}
+.priv-body a{color:var(--cyan)}
+.priv-switch,.priv-erase{font-family:var(--mono);font-size:.85em;padding:7px 12px;border-radius:7px;cursor:pointer;background:rgba(7,11,28,.7);color:var(--ink);border:1px solid var(--line)}
+.priv-switch.on{border-color:var(--green);color:#86efac}
+.priv-erase{border-color:rgba(239,68,68,.6);color:#fca5a5}
 .disc{margin-top:12px;font-size:.94em;color:#4b5670;max-width:760px;margin-left:auto;margin-right:auto;font-family:system-ui,sans-serif;line-height:1.6}
 
 .back-top{position:fixed;right:16px;bottom:16px;z-index:40;background:rgba(59,130,246,.9);color:#fff;border:none;
@@ -925,6 +938,57 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     <div class="modal-box hello-box">
       <div class="modal-bar"><h3>hello</h3><button class="x-btn" type="button" onclick="document.getElementById('helloModal').classList.remove('open')">&times;</button></div>
       <div class="hello-body" id="helloBody"></div>
+    </div>
+  </div>
+  <!-- Privacy: what this page contacts, what it keeps, and the switches. -->
+  <div class="modal" id="privModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-box priv-box">
+      <div class="modal-bar"><h3>PRIVACY</h3><button class="x-btn" type="button" onclick="document.getElementById('privModal').classList.remove('open')">&times;</button></div>
+      <div class="priv-body">
+        <p><b>Free, open and not watching you.</b> No accounts, no ads, no cookies, no analytics, no tracking pixels. The
+          <a href="https://github.com/TridentIntelFree/Trident-Brief" target="_blank" rel="noopener">source is public</a>, so anyone can check this page against what the code does.
+          The person who runs the site cannot see who visits: there is no visitor log they can read.</p>
+
+        <h4>Private mode</h4>
+        <p>Normally the page fetches a few live feeds from other sites on its own. Private mode stops that: the page then talks only to GitHub,
+          which hosts it, and shows what the server collected instead. Anything you press still works.</p>
+        <p><button class="priv-switch" id="privToggle" type="button"></button> <span id="privState"></span></p>
+
+        <h4>Who can see that you visited</h4>
+        <ul>
+          <li><b>GitHub</b> hosts the page and its data (github.io and raw.githubusercontent.com). Like any web host it receives your IP address,
+            and it keeps server logs under its <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">privacy statement</a>.
+            The site's owner gets none of it. Private mode cannot change this; a VPN or Tor can.</li>
+          <li>Every other site the page contacts sees your IP address too, as with any web page. The page sends no referrer, so those sites
+            are not told which page you were on. The map tile servers that require it (OpenStreetMap, OpenTopoMap, Waymarked Trails) are told the site name only.</li>
+        </ul>
+
+        <h4>Contacted automatically (not in private mode)</h4>
+        <ul>
+          <li>Live aircraft: airplanes.live, opendata.adsb.fi, adsb.lol and the OpenSky Network, every 90 seconds, with the map target's
+            position (Tazewell unless you enter a ZIP).</li>
+          <li>The space station's position: wheretheiss.at, every 90 seconds.</li>
+          <li>Earthquakes (USGS), weather alerts (NWS) and launches (The Space Devs), only when the server failed to collect them.</li>
+          <li>The trail map's USGS tiles, when you scroll to it. In private mode it waits for its button.</li>
+        </ul>
+
+        <h4>Contacted only when you press something</h4>
+        <ul>
+          <li><b>Radio tuner:</b> your browser connects straight to a volunteer's KiwiSDR. Its operator sees your IP address, and like every KiwiSDR
+            it may show other listeners a rough location worked out from it, next to the name &ldquo;Trident Brief listener&rdquo;. Nothing is recorded by this site.</li>
+          <li><b>Transcribe:</b> the speech model is downloaded once from jsDelivr and Hugging Face. The audio is transcribed on your device and never sent anywhere.</li>
+          <li><b>Terrain, imagery and site weather:</b> public AWS open-data buckets (Sentinel-2, USGS elevation, terrain tiles) and Open-Meteo, for the place you picked.</li>
+          <li><b>ZIP lookup:</b> zippopotam.us.</li>
+          <li><b>Local Intel with your own xAI key:</b> your ZIP and the request go to xAI under your key, and xAI's terms apply.</li>
+          <li>Other map layers you pick (OpenStreetMap, OpenTopoMap, Esri, Waymarked Trails), and links (X, Polymarket, sources), which load nothing until clicked.</li>
+        </ul>
+        <p>The Crystal Ball's fonts are served from this site, not Google Fonts.</p>
+
+        <h4>Saved on this device only</h4>
+        <p>Folded sections, tuner and read-aloud settings, the map layer, a Morse log if you save one, map areas saved for offline use, an offline copy of the page,
+          and the speech model if you used it. An xAI key or owner token is kept only if you ticked &ldquo;remember&rdquo;. None of it is sent anywhere.</p>
+        <p><button class="priv-erase" id="privErase" type="button">Erase everything this site saved on this device</button></p>
+      </div>
     </div>
   </div>
   <div class="header">
@@ -1533,8 +1597,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
 
   <div class="footer">
     APPALACHIAN INTEL &middot; THE TRIDENT BRIEF v__VERSION__ | AUTOMATED MULTI-INT COLLECTION | __PROVIDER__<br>
+    FREE &middot; OPEN SOURCE &middot; NO TRACKING &middot; <button class="priv-link" id="privLink" type="button">PRIVACY</button><span id="privFoot"></span><br>
     MONITORING 100+ HIGH-VALUE X ACCOUNTS + WEB SOURCES | SIGINT + HUMINT + OSINT-WEB + CHATTER FUSION<br>
-    LIVE LAYER: USGS &middot; adsb.lol &middot; NOAA/NWS &middot; wheretheiss.at &middot; Launch Library 2 &mdash;
+    LIVE LAYER: USGS &middot; airplanes.live &middot; adsb.fi &middot; adsb.lol &middot; NOAA/NWS &middot; wheretheiss.at &middot; Launch Library 2 &mdash;
     inspired by <a href="https://github.com/bilawalsidhu/gods-eye-view" target="_blank" rel="noopener">God's Eye View</a>
     <div class="disc">
       <b>Intelligence disclaimer.</b> SIGINT (verified): high confidence, official sources. HUMINT (assessed): medium-high,
@@ -3288,7 +3353,16 @@ function pickSat(px, py){
 }
 
 /* =====================  tiles  ===================== */
-function jget(url, ms){
+/* Private mode: the page asks nobody but GitHub (which hosts it) for anything
+   on its own. Things a visitor presses still work; the automatic live feeds
+   fall back to what the server collected. */
+var PRIVATE = window.TB_PRIVATE = (function(){ try{ return localStorage.getItem('trident_private') === '1'; }catch(_){ return false; } })();
+function offsite(url){
+  var m = /^https?:\/\/([^\/]+)/.exec(url);
+  return !!m && m[1] !== location.host && m[1] !== 'raw.githubusercontent.com' && m[1] !== 'api.github.com';
+}
+function jget(url, ms, asked){
+  if(PRIVATE && !asked && offsite(url)){ var pe = new Error('private mode'); pe.priv = true; return Promise.reject(pe); }
   var ctl = new AbortController();
   var to = setTimeout(function(){ ctl.abort(); }, ms || 12000);
   return fetch(url, {signal: ctl.signal, headers:{'Accept':'application/json'}})
@@ -3296,6 +3370,7 @@ function jget(url, ms){
     .finally(function(){ clearTimeout(to); });
 }
 function why(e){
+  if(e && e.priv) return 'private mode';
   if(e && e.name === 'AbortError') return 'timeout';
   if(e && e.status === 429) return 'rate limited';
   if(e && e.status) return 'HTTP ' + e.status;
@@ -3569,7 +3644,7 @@ function paintAirTile(merged, milAc, loc, locErr){
     : ('server-collected · ' + snapAge() + ' · ' +
        merged.filter(function(a){ return a._mil; }).length + ' military' +
        (emerg.length ? ' · ' + emerg.length + ' SQUAWK ALERT' : '') +
-       (locErr ? ' · live providers blocked' : ''));
+       (PRIVATE ? ' · private mode' : locErr ? ' · live providers blocked' : ''));
   document.getElementById('aList').innerHTML = emerg.concat(merged).filter(function(v,i,x){return x.indexOf(v)===i;})
     .slice(0,3).map(function(a){
       var sq=String(a.squawk||''), hot=['7500','7600','7700'].indexOf(sq)>-1;
@@ -3581,6 +3656,11 @@ function paintAirTile(merged, milAc, loc, locErr){
 }
 
 function feedAir(refreshGlobal){
+  if(PRIVATE){                       // the server's snapshot only; no live provider is asked
+    if(G.airSnapshot && G.airSnapshot.length){ G.air = G.airSnapshot; paintAirTile(G.airSnapshot, [], [], null); }
+    else down('tileAir','dAir','aCount','aSub', 'private mode');
+    return;
+  }
   var nm = 250;
   var local = tryChain(localUrls(GE.lat, GE.lon, nm), 14000).then(acList)
                 .catch(function(e){ return {err: (e.chain||[]).join(' | ') || why(e)}; });
@@ -3646,7 +3726,7 @@ requestAnimationFrame(loop);
 
 /* --- re-target onto a ZIP --- */
 function retarget(zip){
-  return jget('https://api.zippopotam.us/us/'+zip, 9000).then(function(d){
+  return jget('https://api.zippopotam.us/us/'+zip, 9000, true).then(function(d){
     var p=(d.places||[])[0]; if(!p) throw new Error('no place');
     GE.lat=parseFloat(p.latitude); GE.lon=parseFloat(p.longitude);
     GE.state=p['state abbreviation']||'';
@@ -4130,7 +4210,7 @@ function orLoadAstronomy(){
 function orFonts(){
   if(document.getElementById('orFonts')) return;
   var l = document.createElement('link'); l.id = 'orFonts'; l.rel = 'stylesheet';
-  l.href = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap';
+  l.href = 'assets/fonts/fonts.css';      // served from here, not Google Fonts
   document.head.appendChild(l);
 }
 async function orAstro(){
@@ -7293,6 +7373,46 @@ function agoShort(ms){
       '<h4>Every market question</h4><table><tr><th>question</th><th>ours</th><th>market</th></tr>' + picks.map(function(f){
         return '<tr><td>' + esc(f.event) + '</td><td>' + f.probability + '%</td><td>' + f.market.p_market + '%</td></tr>'; }).join('') + '</table>';
   };
+})();
+
+/* Privacy: the switch for private mode, and erasing what this site saved here.
+   Only this site's own keys and caches are touched: other github.io pages on
+   the same address keep theirs. */
+(function(){
+  var m = document.getElementById('privModal'); if(!m) return;
+  function paint(){
+    var b = document.getElementById('privToggle');
+    b.textContent = PRIVATE ? 'Private mode: ON' : 'Private mode: off';
+    b.classList.toggle('on', PRIVATE);
+    document.getElementById('privState').textContent = PRIVATE
+      ? 'The page asks nobody but GitHub for anything on its own.' : 'Live feeds load from the sites listed below.';
+    document.getElementById('privFoot').textContent = PRIVATE ? ' \u00b7 PRIVATE MODE ON' : '';
+  }
+  function open(){ paint(); m.classList.add('open'); }
+  document.getElementById('privLink').onclick = open;
+  if(location.hash === '#privacy') open();
+  addEventListener('hashchange', function(){ if(location.hash === '#privacy') open(); });
+  document.getElementById('privToggle').onclick = function(){
+    try{ PRIVATE ? localStorage.removeItem('trident_private') : localStorage.setItem('trident_private', '1'); }
+    catch(_){ alert('This browser would not save the setting (private browsing?).'); return; }
+    location.reload();               // the feeds start at load, so a reload is the honest way to switch
+  };
+  document.getElementById('privErase').onclick = async function(){
+    if(!confirm('Erase everything this site saved on this device? Settings, saved Morse logs, offline maps, ' +
+                'the offline copy, the speech model and any remembered key or token will be gone.')) return;
+    var mine = /^(trident_|sig_|bm_|ap_)/;
+    [window.localStorage, window.sessionStorage].forEach(function(st){
+      try{ Object.keys(st).forEach(function(k){ if(mine.test(k)) st.removeItem(k); }); }catch(_){}
+    });
+    try{ if(window.caches){ var ks = await caches.keys();
+      await Promise.all(ks.filter(function(k){ return /^tb-|^transformers-cache/.test(k); }).map(function(k){ return caches.delete(k); })); } }catch(_){}
+    try{ if(navigator.serviceWorker){ var here = location.href.replace(/[^\/]*([?#].*)?$/, '');
+      var regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.filter(function(r){ return r.scope.indexOf(here) === 0; }).map(function(r){ return r.unregister(); })); } }catch(_){}
+    alert('Erased. The page now reloads with its defaults, and keeps a fresh offline copy as it loads.');
+    location.href = location.pathname;
+  };
+  paint();
 })();
 
 /* A hidden desk opened by its gesture always opens unfolded: a fold left
