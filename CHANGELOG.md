@@ -4,6 +4,35 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.30.0 — 2026-10-08
+
+### Added: HOW TO USE THE MAP
+- A collapsible guide at the top of the map section, in ten short parts:
+  before you go, moving around, GPS, going somewhere, planning a route,
+  tracks and pocket mode, waypoints and measuring, in trouble, what the
+  colours mean, and what to do if something looks wrong.
+
+### Improved: public land vs questionable vs private
+- PUBLIC LAND ONLY now sorts every stretch three ways instead of two:
+  - **Public:** Forest Service-owned land; PAD-US open-access land owned by
+    a government; public roads; paths tagged for the public.
+  - **Questionable:** PAD-US restricted (permit, season or fee) or unknown
+    access; conservation easements; open access on private or nonprofit
+    land; paths tagged permissive, or with no access tags, on land that is
+    not public. It costs 6 times the time.
+  - **Private:** costs 40 times the time.
+- **PAD-US proclamation boundaries are ignored.** They are a national
+  forest's outer line, private inholdings and all.
+- Each questionable or private stretch is listed with its reason and drawn in
+  amber or red dashes. While routes are compared, public land is shaded green
+  and questionable land amber.
+- **Gates:** gates on a walking route are listed, with those marked private
+  or locked called out. For driving, bollards, blocks and chains stop the
+  car, and other gates cost 15 times the time and are reported, unless tagged
+  open to cars.
+
+Cost per run: nothing; no model calls.
+
 ## 1.29.1 — 2026-10-08
 
 ### Fixed: phones running the previous version of the map

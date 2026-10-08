@@ -373,6 +373,8 @@ h1{font-size:clamp(1.7em,5.2vw,2.6em);color:var(--blue);text-transform:uppercase
 .ap-guide details > summary{cursor:pointer;color:var(--ink);font-weight:600}
 .ap-guide ul{margin:6px 0 4px 18px}.ap-guide li{margin:5px 0;color:var(--ink-dim)}
 .ap-guide b{color:var(--ink)}
+.ap-guide.ap-howto{border-color:var(--line);margin:0 0 10px}
+.ap-guide.ap-howto > summary{color:var(--cyan)}
 .ap-lib-doc{border-top:1px solid var(--line2);padding:8px 0}
 .ap-lib-doc .t{color:var(--ink);font-weight:600}
 .ap-lib-doc .ap-row{margin-top:4px}
@@ -1627,6 +1629,102 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         trail data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>
       </div>
     </div>
+    <details class="ap-guide ap-howto" id="apHowTo">
+      <summary>&#10067; HOW TO USE THE MAP</summary>
+      <p class="ap-dim">Everything below works with no signal once it is saved, except where it says it needs signal.</p>
+
+      <details><summary>Before you go (with signal)</summary>
+        <ul>
+          <li><b>Install it.</b> iPhone: Safari &rarr; Share &rarr; Add to Home Screen. Android: Chrome menu &rarr; Install app. It then opens full screen and offline.</li>
+          <li><b>Save the map.</b> OFFLINE tab: SAVE THIS VIEW for the area on screen, or SAVE A STRETCH OF TRAIL by AT miles. Pick the detail (zoom 15 is good for walking).</li>
+          <li><b>Plan your route</b> (GO TO tab, see below) and press USE THIS: the route and the map along it are kept on the phone.</li>
+          <li><b>Save the manuals</b> you want from the Library in the survival guide.</li>
+        </ul>
+      </details>
+
+      <details><summary>Moving around the map</summary>
+        <ul>
+          <li>Drag to move, pinch or <b>+ / &minus;</b> to zoom. Touching the map turns <b>FOLLOW</b> off so it stays where you put it; press FOLLOW to snap back to you.</li>
+          <li><b>Search</b> finds shelters, water, peaks and towns by name. <b>Jump to</b> goes to a section of trail.</li>
+          <li>The coloured buttons above the map (Shelters, Water, Campsites&hellip;) show or hide each kind of point.</li>
+          <li>The <b>layers button</b> (top right of the map) changes the base map and turns on the lidar hillshade, hiking routes, your track, waypoints and imported GPX.</li>
+          <li><b>Tap any spot</b> for its coordinates, trail mile and distance from you, with GO TO, SAVE WAYPOINT and TERRAIN + WEATHER.</li>
+        </ul>
+      </details>
+
+      <details><summary>GPS and where you are</summary>
+        <ul>
+          <li><b>START GPS</b> (on the bar or any tab) uses the phone's own GPS. It needs no signal and works in airplane mode; give it open sky for a minute.</li>
+          <li>The <b>HERE</b> tab shows your coordinates, height, speed, trail mile and how far off the trail you are, the nearest shelter and water, and sunrise, sunset and daylight left.</li>
+          <li><b>COMPASS</b> (HERE or GO TO) makes the arrows point the way the phone faces. Without it they are north-up unless you are walking.</li>
+        </ul>
+      </details>
+
+      <details><summary>Going somewhere</summary>
+        <ul>
+          <li>Tap a spot and choose <b>GO TO</b>, or GO on a waypoint or point. A labelled red circle marks it, and a <b>bar over the map</b> shows the arrow, distance and bearing.</li>
+          <li>The bar says <b>YOU ARE THERE</b> within GPS accuracy. Tap it for the GO TO tab; <b>&times;</b> stops going there.</li>
+        </ul>
+      </details>
+
+      <details><summary>Planning a route</summary>
+        <ul>
+          <li>In <b>GO TO</b>, choose the settings at the top:
+            <b>ON FOOT</b> &mdash; ANYWHERE, or PUBLIC LAND ONLY (national forest and other open public land; off trail is fine there, private land is avoided).
+            <b>GETTING THERE</b> &mdash; WALK ALL THE WAY, or DRIVE, THEN WALK (it finds the best place to park).</li>
+          <li>With PUBLIC LAND ONLY, a route is marked in three ways: <b>public</b> (Forest Service-owned or government land open to all, public roads);
+            <b style="color:#fbbf24">questionable</b> (permit or seasonal land, easements, paths marked permissive or with no access tags) in amber dashes;
+            and <b style="color:#ef4444">private</b> in red dashes. Each stretch says why. While you compare routes, public land is shaded green and questionable land amber.
+            Gates on the way are listed too.</li>
+          <li><b>PLAN A ROUTE</b> needs signal for a minute. You get two options: <b>trails and roads</b>, and the <b>quickest over the ground</b>. SHOW puts one on the map.</li>
+          <li>Each comes with distance, walking time, climb, a height profile, steep ground and drop-offs, stream crossings, water and ways out, the turns, and whether you beat sunset.</li>
+          <li><b>USE THIS</b> keeps it and saves the map along it. The bar then follows the route: <b>on route</b>, distance and time left, or <b>OFF ROUTE</b> with the way back.</li>
+          <li>Times are walking pace with no breaks. The data cannot see thickets, blowdowns or posted land: use your eyes.</li>
+        </ul>
+      </details>
+
+      <details><summary>Recording a track, and pocket mode</summary>
+        <ul>
+          <li>TRACK tab: <b>START RECORDING</b>. The pink line is where you have been; EXPORT GPX keeps it for good.</li>
+          <li><b>POCKET</b> (bar or TRACK tab): the screen goes black and locked but stays on, so the track keeps recording in your pocket. <b>Hold anywhere for 2 seconds</b> to come back.</li>
+          <li>Pressing the power button stops tracking (no web page can use GPS with the screen off). On iPhone, set Auto-Lock to Never while you track.</li>
+          <li>IMPORT A GPX shows someone else's route in purple.</li>
+        </ul>
+      </details>
+
+      <details><summary>Waypoints and measuring</summary>
+        <ul>
+          <li>WAYPOINTS tab: SAVE WHERE I AM (your car, a camp), or SAVE MAP CENTRE. Saving one by tapping the map offers to navigate to it.</li>
+          <li>MEASURE tab: tap along a trail or road to measure it before you walk it.</li>
+        </ul>
+      </details>
+
+      <details><summary>In trouble</summary>
+        <ul>
+          <li><b>EMERGENCY</b> tab: your coordinates in three formats to read out, trail mile, and the nearest trailheads, towns and shelters.</li>
+          <li><b>TEXT MY LOCATION</b> asks four times, then opens Messages with your position written in; it waits there and sends when a bar of signal appears.</li>
+          <li>When signal comes back it fetches weather alerts and a forecast, and saves the map around you.</li>
+          <li>The <b>survival guide</b> and the <b>library</b> are just below the map.</li>
+        </ul>
+      </details>
+
+      <details><summary>What the colours mean</summary>
+        <ul>
+          <li><b style="color:#f97316">Orange line</b>: the Appalachian Trail. <b style="color:#ec4899">Pink</b>: your track. <b style="color:#3b82f6">Blue dot</b>: you. <b style="color:#fbbf24">Yellow pins</b>: waypoints.</li>
+          <li><b style="color:#ef4444">Red dashed line and circle</b>: straight line to where you are going.</li>
+          <li>A planned route: <b style="color:#22c55e">green</b> trail, <b style="color:#a3e635">lime</b> track, <b style="color:#94a3b8">grey</b> road, <b style="color:#facc15">yellow dashed</b> off trail,
+            <b style="color:#60a5fa">blue</b> drive, thin red dashes where it crosses land that is not public.</li>
+        </ul>
+      </details>
+
+      <details><summary>If something looks wrong</summary>
+        <ul>
+          <li>After an update the app reloads itself once; if a button you expect is missing, close and reopen it with signal.</li>
+          <li>A position jumping about means a poor fix: the accuracy (&plusmn; m) is shown; step into the open.</li>
+          <li>In private mode (footer &rarr; PRIVACY) the map waits for its button and nothing is fetched on its own.</li>
+        </ul>
+      </details>
+    </details>
     <div class="ap-bar">
       <select id="apJump" title="jump to a section of trail"><option value="">Jump to&hellip;</option></select>
       <div class="ap-search"><input type="search" id="apFind" placeholder="find shelter, water, peak, town&hellip;" autocomplete="off"><div class="ap-hits" id="apHits"></div></div>
