@@ -141,8 +141,9 @@ self.addEventListener('fetch', e => {
   if(req.mode === 'navigate'){ e.respondWith(networkFirst(req, e)); return; }
   const p = url.pathname;
   // the read-aloud script changes with the page, so it is fetched fresh whenever there is signal
-  if(p.endsWith('/assets/briefing.js')){ e.respondWith(freshAsset(req, e)); return; }
-  if(p.includes('/assets/leaflet/') || p.endsWith('/assets/appalachistan.js') || p.endsWith('/assets/appalachia.json'))
+  if(p.endsWith('/assets/briefing.js') || p.endsWith('/assets/appalachistan.js')){ e.respondWith(freshAsset(req, e)); return; }
+  // the map script changes with the page too: cache-first kept phones one version behind (the map kept snapping back after the fix)
+  if(p.includes('/assets/leaflet/') || p.endsWith('/assets/appalachia.json'))
     e.respondWith(cacheFirstRefresh(req, e));
 });
 

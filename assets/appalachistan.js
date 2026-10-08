@@ -2024,6 +2024,7 @@ function modeBar(){
 function routeBlock(){
   var h = '<h4>ROUTE</h4>';
   if(plan && plan.busy) return h + '<div class="ap-warn">' + esc(plan.note) + '</div>';
+  if(!(plan && plan.opts.length)) h += modeBar();          // the settings first, where they are seen
   if(plan && plan.opts.length){
     h += '<div class="ap-dim">' + (plan.opts.length > 1 ? 'Two ways' : 'A way') + ' to ' + esc(plan.name) + '. Tap SHOW to see one on the map, USE THIS to keep it for offline and follow it.</div>';
     if(plan.driveWhy) h += '<div class="ap-warn">No drive: ' + esc(plan.driveWhy) + '. These walk from where you are.</div>';
@@ -2041,17 +2042,18 @@ function routeBlock(){
   if(plan && plan.note) h += '<div class="ap-bad">' + esc(plan.note) + '</div>';
   if(ROUTE && target && dist(ROUTE.to, [target.lat, target.lon]) < 50){
     var f = routeFix();
+    h += '<div class="ap-row"><button class="ap-btn" data-act="route-plan">PLAN AGAIN WITH THESE SETTINGS</button></div>';
     h += '<div><b>' + modeName(ROUTE) + '</b> to ' + esc(ROUTE.name) + ', planned ' + new Date(ROUTE.made).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) +
          (ROUTE.saving ? ' &middot; saving the map along it…' : ROUTE.tiles ? ' &middot; map along it saved (' + esc(ROUTE.tiles) + ' tiles)' :
           ' &middot; <span class="ap-warn">map along it not saved' + (ROUTE.tileErr ? ' (no tiles arrived; try SAVE MAP ALONG IT with signal)' : '') + '</span>') + '</div>';
     if(f) h += '<div class="' + (f.offRoute ? 'ap-bad' : 'ap-good') + '">' + (f.offRoute ? 'OFF ROUTE by ' + fmtDist(f.off) : 'On route') + ' &middot; ' + fmtMi(f.left) + ' and about ' + fmtDur(f.tl*1000) + ' to go</div>';
     h += routeSummary(ROUTE) + routeDetail(ROUTE, f);
-    h += '<h4>PLAN AGAIN</h4>' + modeBar() + '<div class="ap-row"><button class="ap-btn" data-act="route-plan">PLAN AGAIN</button>' +
+    h += '<div class="ap-row"><button class="ap-btn" data-act="route-plan">PLAN AGAIN (settings at the top)</button>' +
          (ROUTE.tiles || ROUTE.saving ? '' : '<button class="ap-btn" data-act="route-save">SAVE MAP ALONG IT</button>') +
          '<button class="ap-btn" data-act="route-gpx">EXPORT GPX</button><button class="ap-btn warn" data-act="route-del">DELETE ROUTE</button></div>';
     return h;
   }
-  return h + modeBar() + '<div class="ap-row"><button class="ap-btn on" data-act="route-plan">&#129406; PLAN A ROUTE</button></div>' +
+  return h + '<div class="ap-row"><button class="ap-btn on" data-act="route-plan">&#129406; PLAN A ROUTE</button></div>' +
     '<div class="ap-dim">Needs signal once (OpenStreetMap paths and roads, AWS terrain heights, and for public land only the Forest Service and PAD-US land maps; a few MB). ' +
     'Finds a trails-and-roads route and the quickest way over the ground, ' +
     'with climb, time, steep ground, crossings, water and ways out, then keeps the route and the map along it on the phone.</div>';
@@ -2219,7 +2221,8 @@ function paintPanel(){
   }
 
   else if(tab === 'goto'){
-    if(!target) h += '<div class="ap-dim">Pick a destination: tap GO TO on any shelter, water source, waypoint or map point.</div>';
+    if(!target) h += '<div class="ap-dim">Pick a destination: tap the map and choose GO TO (or GO on a waypoint, shelter or water source). Then plan a route here with these settings:</div>' +
+                     '<h4>ROUTE SETTINGS</h4>' + modeBar();
     else {
       h += '<h4>GOING TO</h4><div class="ap-big">' + esc(target.name) + '</div>' +
            '<div class="ap-coord">' + usng(target.lat, target.lon) + ' &middot; ' + ddm(target.lat,'N','S',2) + ' ' + ddm(target.lon,'E','W',3) + '</div>';
