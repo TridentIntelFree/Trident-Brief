@@ -4,6 +4,23 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.30.3 — 2026-10-08
+
+### Changed: walking routes walk, and never trespass
+- Nothing in the planner suggests doing anything but walking. The
+  missing-land-data message no longer suggests switching mode, and the
+  distance limit no longer says "pick a nearer waypoint".
+- **Walks up to 60 km in a straight line** (about 3–4 days) are planned, up
+  from 30 km. Beyond 60 km it suggests planning to a waypoint along the way,
+  then on from there.
+- **PUBLIC LAND ONLY never crosses private land.** The one allowance is up to
+  250 m to leave the spot you start on; the destination no longer gets one.
+- **If the destination is on private land, or cut off by it**, even after
+  the wider search, the route ends at the nearest point you can reach
+  legally and says how far that is from the destination.
+- **If you start boxed in by private land**, with no legal way off it, it
+  says that.
+
 ## 1.30.2 — 2026-10-08
 
 ### Changed: a walking route stays a walking route
