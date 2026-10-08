@@ -1,5 +1,5 @@
 {
- "built_at": "2026-10-08T02:39:15Z",
+ "built_at": "2026-10-08T02:49:17Z",
  "license": "Works of the US federal government: public domain in the United States (17 U.S.C. 105).",
  "docs": [
   {
@@ -9,13 +9,13 @@
    "year": 1992,
    "about": "The classic Army survival manual: psychology, planning, kits, shelter, water, fire, plants and animals for food, poisonous plants, dangerous animals, field-expedient tools, direction finding, signalling and crossing water.",
    "url": "https://archive.org/download/MManuals/UsMarineCorps-Survival-Mcrp3-02f.pdf",
-   "note": "Superseded by later editions but still the most widely used. Copy kept by the Internet Archive.",
+   "note": "From 1992, and some first aid in it is out of date: for snakebite it describes cutting and suction, which current medical guidance says never to do. Where it differs from the survival guide above, follow the guide. Copy kept by the Internet Archive.",
    "file": "library/army-fm-21-76-survival.pdf",
    "shrunk": true,
    "bytes": 23863551,
    "pages": 571,
-   "sha256": "1a6acd88b3f7bca1ec92098334ea30327a6d5670aa0a8ad94a8956f631b41887",
-   "fetched_at": "2026-10-08T02:39:10Z"
+   "sha256": "58e3f9c678ba0482027a9438211cd01dd2b8720b456b776d4952d71a2e344770",
+   "fetched_at": "2026-10-08T02:49:11Z"
   },
   {
    "id": "nws-lightning-outdoors",
@@ -30,7 +30,7 @@
    "bytes": 2147532,
    "pages": 2,
    "sha256": "c20046dc15a3f778254c23e513d8276cac15717bc9f16dc1e5dc35583664c0e6",
-   "fetched_at": "2026-10-08T02:39:11Z"
+   "fetched_at": "2026-10-08T02:49:13Z"
   },
   {
    "id": "cdc-tick-removal",
@@ -45,7 +45,7 @@
    "bytes": 174729,
    "pages": 1,
    "sha256": "8236da7908ccbf901f8c26a60cfb491ee22cfce35bdcd94f685af24f4c3ea100",
-   "fetched_at": "2026-10-08T02:39:12Z"
+   "fetched_at": "2026-10-08T02:49:14Z"
   }
  ]
 }
