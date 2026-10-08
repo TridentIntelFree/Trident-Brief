@@ -1472,7 +1472,16 @@ function gridRoute(A, B, b, osm, dem, pl){
         var hx = (vi - gi)*cs, hy = (vj - gj)*cs; h.push(t + Math.sqrt(hx*hx + hy*hy)/VMAX, v); }
     }
   }
-  if(!isFinite(G[g])) return {fail:'link'};
+  var short = 0, shortWhy = '';
+  if(!isFinite(G[g])){
+    if(!PUB) return {fail:'link'};
+    /* No legal way to the destination itself: go to the nearest point that can be reached legally. */
+    var bestC = -1, bestD = Infinity;
+    for(var c2 = 0; c2 < n; c2++){ if(!isFinite(G[c2])) continue; var dd = dist([cLat(c2), cLon(c2)], B); if(dd < bestD - 1 || (Math.abs(dd - bestD) <= 1 && G[c2] < G[bestC])){ bestD = dd; bestC = c2; } }
+    if(bestC < 0 || bestC === s0) return {fail:'link'};
+    g = bestC; short = bestD;
+    shortWhy = lvl(cell(B[0], B[1]), P[cell(B[0], B[1])] >= 0) === 2 ? 'the destination itself is on private land' : 'private land lies between';
+  }
   var seq = [], cur = g; while(cur >= 0){ seq.push(cur); cur = FROM[cur]; } seq.reverse();
   var pts = seq.map(function(c, i){
     var on = P[c] >= 0 && (i === 0 || P[seq[i-1]] >= 0);
@@ -1480,8 +1489,9 @@ function gridRoute(A, B, b, osm, dem, pl){
     if(lv) why = on && OKP[c] >= PUB[c] && OKW[c] ? OKW[c] : PR.w[c] >= 0 ? pl.polys[PR.w[c]].why : LAND0.why;
     return [cLat(c), cLon(c), E[c] === E[c] ? E[c] : null, on ? P[c] : OFF, on ? (names[c] || '') : '', !!BR[c], false, lv, why];
   });
-  pts[0][0] = A[0]; pts[0][1] = A[1]; pts[pts.length-1][0] = B[0]; pts[pts.length-1][1] = B[1];
-  return {kind:'grid', pts:thin(pts, cs*0.4), cell:Math.round(cs)};
+  pts[0][0] = A[0]; pts[0][1] = A[1];
+  if(!short){ pts[pts.length-1][0] = B[0]; pts[pts.length-1][1] = B[1]; }
+  return {kind:'grid', pts:thin(pts, cs*0.4), cell:Math.round(cs), short:short, shortWhy:shortWhy};
 }
 /* Drop grid points that add nothing, but never across a change of class. */
 function thin(pts, tol){
@@ -1637,7 +1647,7 @@ var COST = [40, 6, 1];
 /* PUBLIC LAND ONLY is strict: private land cannot be walked at all, except
    within 250 m of the start or the destination (your own land, where you
    parked). Public roads across private land stay walkable. */
-var END = [], END_R = 250, STRICT = true;
+var END = [], END_R = 250, STRICT = true;   // END holds the start only: leaving the spot you stand on
 function nearEnd(la, lo){ if(!STRICT) return true; for(var i = 0; i < END.length; i++) if(dist(END[i], [la, lo]) < END_R) return true; return false; }
 function padTier(p){
   var acc = String(p.Pub_Access || p.PUB_ACCESS || p.pub_access || ''), cat = String(p.Category || p.CATEGORY || p.category || ''),
@@ -1879,8 +1889,8 @@ function planRoute(){
                       r.wi = d.pts.length; r.pts = d.pts.concat(r.pts); }
       });
       plan.opts = out; plan.busy = false; plan.note = '';
-      if(!out.length) plan.note = mode.pub ? 'No walking route could be found from ' + (st.drive ? 'the parking spot' : 'here') + ' within about ' + (plan.searched || 2) + ' km around, even crossing private land: ' +
-                                             'the ground is too steep or cut by unbridged rivers.'
+      if(!out.length) plan.note = mode.pub ? 'No legal walking route from ' + (st.drive ? 'the parking spot' : 'here') + ' within about ' + (plan.searched || 2) + ' km around: ' +
+                                             'private land, very steep ground or unbridged rivers close every way, even to a point nearer the destination.'
                                            : 'No route found: ' + [plan.netWhy, plan.gridWhy].filter(Boolean).join('; ') + '.';
       drawRoutes(); fitRoute(out[0]); paintPanel();
     }
@@ -1891,8 +1901,8 @@ function planRoute(){
        about 20 km around (roads and trails only, so the data stays small). */
     var pads = wspan > 25000 ? [Math.max(5000, wspan*0.25)] : [Math.max(2000, wspan*0.4)];
     if(mode.pub) pads.push(Math.max(8000, wspan*0.5), Math.max(20000, wspan*0.8));
-    STRICT = true; plan.fallback = false;
-    END = [A, to];
+    STRICT = true;
+    END = [A];
     function attempt(k){
       var pad = pads[k], wide = k > 0 || wspan > 25000;
       var dLat = pad/110540, dLon = pad/(111320*Math.cos(A[0]*D));
@@ -1917,16 +1927,9 @@ function planRoute(){
             net.fail === 'end' ? 'no path within 1.5 km of the destination that can be reached ' + (mode.pub ? 'legally and ' : '') + 'safely' : 'the paths here do not connect';
           if(grid && grid.pts) out.push(grid); else plan.gridWhy = mode.pub ? 'no way across the ground without crossing private land, very steep slopes or an unbridged river'
                                                                           : 'no way across the ground without very steep slopes or an unbridged river';
-          if(!out.length && k + 1 < pads.length) return attempt(k + 1);
-          /* Still nothing legal: give the walking route with the least private land, said plainly. */
-          if(!out.length && mode.pub && STRICT){
-            STRICT = false; plan.fallback = true;
-            planNote('No fully legal way; finding the walking route with the least private land\u2026');
-            var n2 = osm ? netRoute(A, to, osm, dem, pl) : null, g2 = gridRoute(A, to, b, osm, dem, pl);
-            if(n2 && n2.pts) out.push(n2);
-            if(g2 && g2.pts) out.push(g2);
-            STRICT = true;
-          }
+          var reaches = out.some(function(r){ return !r.short; });
+          if(!reaches && k + 1 < pads.length) return attempt(k + 1);
+          if(reaches) out = out.filter(function(r){ return !r.short; });
           plan.searched = Math.round(pad/1000);
           out.forEach(function(r){ r.pub = !!pl; });
           finish(out, osm, dem);
@@ -2199,8 +2202,12 @@ function routeBlock(){
     h += '<div class="ap-dim">' + (plan.opts.length > 1 ? 'Two ways' : 'A way') + ' to ' + esc(plan.name) + '. Tap SHOW to see one on the map, USE THIS to keep it for offline and follow it.</div>';
     if(plan.driveWhy) h += '<div class="ap-warn">No drive: ' + esc(plan.driveWhy) + '. These walk from where you are.</div>';
     if(plan.parkWhy) h += '<div class="ap-warn">' + esc(plan.parkWhy) + '.</div>';
-    if(plan.fallback) h += '<div class="ap-bad"><b>No fully legal walking route</b> within about ' + (plan.searched || 20) + ' km: private land closes every way in. ' +
-      'These are the walking routes with the least private land. The red-dashed stretches cross private land, listed below: you need the owners\u2019 permission for them.</div>';
+    var sh = plan.opts.filter(function(r){ return r.short; })[0];
+    var boxed = sh && walkPart(sh).pts.every(function(q){ return dist([q[0], q[1]], plan.from) < END_R + 60; });
+    if(boxed) h += '<div class="ap-bad"><b>You are on private land with no legal way off it</b> within about ' + (plan.searched || 2) + ' km: no public road, ' +
+      'public path or public land can be reached without crossing someone else\u2019s land. No route is drawn beyond the edge of where you stand.</div>';
+    else if(sh) h += '<div class="ap-bad"><b>' + esc(plan.name) + ' cannot be reached on foot without crossing private land</b> (searched about ' + (plan.searched || 2) + ' km around). ' +
+      'This route ends at the nearest point you can reach legally, ' + fmtDist(sh.short) + ' from it' + (sh.shortWhy ? ' (' + esc(sh.shortWhy) + ')' : '') + '.</div>';
     else if(plan.mode && plan.mode.drive && plan.mode.pub) h += '<div class="ap-dim">Parking was chosen for the cheapest walk in across public land, not the shortest distance.</div>';
     if(plan.pubWhy) h += '<div class="ap-bad">' + esc(plan.pubWhy) + '.</div>';
     plan.opts.forEach(function(r, i){

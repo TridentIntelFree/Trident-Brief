@@ -6,18 +6,20 @@ MAJOR for a change to what the brief is.
 
 ## 1.30.3 — 2026-10-08
 
-### Changed: point A to point B on foot always gets a walking route
-- Nothing in the planner suggests doing anything but walking any more. The
+### Changed: walking routes walk, and never trespass
+- Nothing in the planner suggests doing anything but walking. The
   missing-land-data message no longer suggests switching mode, and the
   distance limit no longer says "pick a nearer waypoint".
 - **Walks up to 60 km in a straight line** (about 3–4 days) are planned, up
   from 30 km. Beyond 60 km it suggests planning to a waypoint along the way,
   then on from there.
-- **If PUBLIC LAND ONLY finds no fully legal way even 20 km around**, you
-  still get the walking route with the least private land. It is labelled
-  "No fully legal walking route", with every private stretch listed and
-  drawn red, so you know where to ask permission. When a legal route exists,
-  it is always the one given.
+- **PUBLIC LAND ONLY never crosses private land.** The one allowance is up to
+  250 m to leave the spot you start on; the destination no longer gets one.
+- **If the destination is on private land, or cut off by it**, even after
+  the wider search, the route ends at the nearest point you can reach
+  legally and says how far that is from the destination.
+- **If you start boxed in by private land**, with no legal way off it, it
+  says that.
 
 ## 1.30.2 — 2026-10-08
 
