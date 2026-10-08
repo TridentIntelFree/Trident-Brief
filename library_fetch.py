@@ -21,6 +21,13 @@ DOCS = [
      'url': 'https://irp.fas.org/doddir/army/atp3-50-21.pdf',
      'also': ['https://www.globalsecurity.org/military/library/policy/army/atp/atp3-50-21.pdf'],
      'note': 'Approved for public release; distribution is unlimited. Copy hosted by the Federation of American Scientists.'},
+    {'id': 'army-fm-21-76-survival',
+     'title': 'Survival (FM 21-76 / MCRP 3-02F)',
+     'publisher': 'US Army and US Marine Corps', 'year': 1992,
+     'about': 'The classic Army survival manual: psychology, planning, kits, shelter, water, fire, plants and animals for food, poisonous plants, '
+              'dangerous animals, field-expedient tools, direction finding, signalling and crossing water.',
+     'url': 'https://archive.org/download/MManuals/UsMarineCorps-Survival-Mcrp3-02f.pdf',
+     'note': 'Superseded by later editions but still the most widely used. Copy kept by the Internet Archive.'},
     {'id': 'nws-lightning-outdoors',
      'title': 'Lightning: Don’t Get Caught Outside',
      'publisher': 'NOAA National Weather Service', 'year': 2018,

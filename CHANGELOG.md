@@ -4,6 +4,15 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.28.2 — 2026-10-08
+
+### Library: the Army survival manual from a source that answers
+- irp.fas.org and msha.gov answer scripts with an empty bot-check page
+  (HTTP 202), and globalsecurity.org asks for payment. Getting round either
+  is not on, so those two stay listed and are tried again monthly.
+- Added **FM 21-76 / MCRP 3-02F *Survival* (1992)**, the classic Army and
+  Marine Corps survival manual, from the Internet Archive.
+
 ## 1.28.1 — 2026-10-08
 
 ### Fixed: two of the four library manuals did not arrive
