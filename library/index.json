@@ -1,5 +1,5 @@
 {
- "built_at": "2026-10-08T02:35:25Z",
+ "built_at": "2026-10-08T02:37:02Z",
  "license": "Works of the US federal government: public domain in the United States (17 U.S.C. 105).",
  "docs": [
   {
@@ -14,7 +14,7 @@
    "bytes": 2147532,
    "pages": 2,
    "sha256": "c20046dc15a3f778254c23e513d8276cac15717bc9f16dc1e5dc35583664c0e6",
-   "fetched_at": "2026-10-08T02:35:21Z"
+   "fetched_at": "2026-10-08T02:36:57Z"
   },
   {
    "id": "cdc-tick-removal",
@@ -28,7 +28,7 @@
    "bytes": 174729,
    "pages": 1,
    "sha256": "8236da7908ccbf901f8c26a60cfb491ee22cfce35bdcd94f685af24f4c3ea100",
-   "fetched_at": "2026-10-08T02:35:22Z"
+   "fetched_at": "2026-10-08T02:36:58Z"
   }
  ]
 }
