@@ -4,6 +4,33 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.29.0 — 2026-10-08
+
+### Added: route settings, ANYWHERE / PUBLIC LAND ONLY / DRIVE, THEN WALK
+- **ON FOOT: ANYWHERE** is the planner as it was: it ignores who owns the land.
+- **ON FOOT: PUBLIC LAND ONLY** keeps to land the public may walk. That means
+  Forest Service land, from the Forest Service's own ownership map, which
+  shows the private inholdings inside a national forest, plus areas PAD-US
+  lists as open access. Public roads and paths tagged open count too, wherever
+  they run. Off trail is fine on public land. Private land costs forty times
+  the time, so a route crosses it only when there is no way round, and then
+  each crossing is listed by mile and drawn red-dashed on the map. If no
+  public-land data arrives, it says the route cannot tell public from private.
+- **GETTING THERE: DRIVE, THEN WALK** drives public roads to the best place to
+  leave the car, then walks in by the foot setting chosen.
+  - Roads come from OpenStreetMap: everything within 6 km of the start and
+    destination, and main roads between.
+  - Speeds come from road type and speed limit, and one-way streets are
+    respected. All of it is worked out on the phone.
+  - The parking spot is the least drive time plus walking time, marked
+    "Park here".
+  - It gives the drive's cue sheet, and warns about forest roads (gates,
+    seasonal closures, clearance). The navigation bar follows the drive and
+    the walk as one route.
+- The PRIVACY panel lists the Forest Service and PAD-US map servers.
+
+Cost per run: nothing; no model calls.
+
 ## 1.28.5 — 2026-10-08
 
 ### Fixed: the map snapped back to you while you explored

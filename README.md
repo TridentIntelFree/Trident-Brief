@@ -327,6 +327,10 @@ Built for being stuck in the woods:
   steep ground, drop-offs, crossings, water and ways out, a cue sheet and a
   daylight check. The kept route, plus the map along it, is followed offline
   with an off-route warning.
+- **Route settings:** ANYWHERE, or PUBLIC LAND ONLY (Forest Service ownership
+  plus PAD-US open-access land; private land avoided, and any unavoidable
+  crossing listed). Then WALK ALL THE WAY, or DRIVE, THEN WALK, which drives
+  OSM roads to the best place to park, then walks in.
 - **Text my location** asks four times before it opens Messages. There is no
   call button.
 - **Survival guide.** Collapsible, Appalachian-specific, saved with the page.
