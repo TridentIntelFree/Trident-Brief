@@ -287,7 +287,7 @@ function init(){
   atLayer = L.layerGroup().addTo(map);
   wptLayer = L.layerGroup().addTo(map);
   gpxLayer = L.layerGroup().addTo(map);
-  trackLine = L.polyline([], {color:'#ef4444', weight:4, opacity:.9}).addTo(map);
+  trackLine = L.polyline([], {color:'#f97316', weight:4, opacity:.9}).addTo(map);   // orange: red is the GO TO line
   var overlays = {'Appalachian Trail': atLayer, 'Lidar hillshade, ~1 m (from zoom 11)': lidarLayer,
                   'Hiking routes (online only)': hikingLayer,
                   'My track': trackLine, 'Waypoints': wptLayer, 'Imported GPX': gpxLayer};
@@ -298,7 +298,7 @@ function init(){
 
   buildKinds();
   buildJump();
-  drawTrack(); drawWpts(); drawGpx();
+  drawTrack(); drawWpts(); drawGpx(); drawTarget(); drawHud();   // a destination chosen earlier is shown, named, from the start
   netStatus();
   addEventListener('online', netStatus); addEventListener('offline', netStatus);
   if(TRACK.on) startLocate();       // a track left running keeps recording on reload
@@ -614,7 +614,9 @@ function pocketTick(){
   var st = trackStats(), now = new Date();
   el.textContent = (TRACK.on ? '\u25cf REC ' : '') + fmtDist(st.d) + ' \u00b7 ' +
     (me ? '\u00b1' + Math.round(me.acc) + ' m' : (lastGpsErr ? 'no GPS fix' : 'waiting for GPS')) + ' \u00b7 ' +
-    now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+    now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) +
+    (target && me ? ' \u00b7 \u2192 ' + target.name + ' ' + fmtDist(dist([me.lat, me.lon], [target.lat, target.lon])) + ' ' +
+                    Math.round(bearing([me.lat, me.lon], [target.lat, target.lon])) + '\u00b0' : '');
   if(Date.now() - pocket.moved > 60000){
     pocket.moved = Date.now();
     el.style.left = (5 + Math.random()*45) + '%'; el.style.top = (8 + Math.random()*80) + '%';
@@ -645,6 +647,7 @@ function toggleCompass(){
       compassDeg = h;
       pointArrow();
       if(tab === 'goto') drawArrow();
+      drawHud();
     });
     paintPanel();
   };
@@ -690,10 +693,34 @@ function drawTarget(){
   if(targetLine){ map.removeLayer(targetLine); targetLine = null; }
   var pts = me ? [[me.lat, me.lon], [target.lat, target.lon]] : [[target.lat, target.lon]];
   targetLine = L.layerGroup([
-    L.circleMarker([target.lat, target.lon], {radius:9, color:'#ef4444', weight:3, fill:false}),
+    L.circleMarker([target.lat, target.lon], {radius:9, color:'#ef4444', weight:3, fill:false})
+      .bindTooltip('GO TO: ' + esc(target.name), {permanent:true, direction:'right', offset:[10, 0], className:'ap-tgt-tip'}),
     me ? L.polyline(pts, {color:'#ef4444', weight:2, dashArray:'6 6', interactive:false}) : L.layerGroup()
   ]).addTo(map);
+  drawHud();
 }
+/* The bar over the map while going somewhere: where, how far, which way. */
+function drawHud(){
+  var el = $('apHud'); if(!el) return;
+  if(!target){ el.hidden = true; return; }
+  el.hidden = false;
+  var line = '<b>' + esc(target.name) + '</b>';
+  if(!me) line += ' &middot; <span class="ap-warn">turn GPS on to be guided</span>';
+  else {
+    var d = dist([me.lat, me.lon], [target.lat, target.lon]), b = bearing([me.lat, me.lon], [target.lat, target.lon]), h = heading();
+    if(d <= Math.max(25, me.acc)) line += ' &middot; <span class="ap-good">YOU ARE THERE</span> <small>(within GPS accuracy, \u00b1' + Math.round(me.acc) + ' m)</small>';
+    else line = '<svg class="ap-hud-arrow" viewBox="0 0 64 64"><g transform="rotate(' + (h == null ? b : b - h).toFixed(0) + ' 32 32)">' +
+                '<path d="M32 6 L46 46 L32 37 L18 46 Z" fill="#ef4444"/></g></svg>' + line + ' &middot; <b>' + fmtDist(d) + '</b> &middot; ' +
+                Math.round(b) + '\u00b0 ' + card(b) + ' <small>' + (h == null ? '(arrow is north-up)' : '(arrow is ahead-up)') + '</small>';
+  }
+  el.innerHTML = '<span class="ap-hud-go">' + line + '</span><button class="ap-hud-x" data-hud="x" title="stop going there">&times;</button>';
+}
+document.addEventListener('click', function(e){
+  var hb = e.target.closest && e.target.closest('#apHud');
+  if(!hb) return;
+  if(e.target.closest('[data-hud="x"]')){ target = null; store('ap_target', null); if(targetLine){ map.removeLayer(targetLine); targetLine = null; } drawHud(); paintPanel(); }
+  else { start(); showTab('goto'); }
+});
 function drawArrow(){
   var a = document.getElementById('apGoArrow');
   if(!a || !me || !target) return;
@@ -711,8 +738,9 @@ document.addEventListener('click', function(e){
   var w = e.target.closest && e.target.closest('[data-ap-wpt]');
   if(w){
     var q = w.dataset.apWpt.split(',');
-    addWpt(parseFloat(q[0]), parseFloat(q[1]));
     if(map) map.closePopup();
+    var made = addWpt(parseFloat(q[0]), parseFloat(q[1]));
+    if(made && confirm('Saved "' + made.n + '". Navigate to it now?')) setTarget(made.lat, made.lon, made.n);
   }
 });
 
@@ -728,13 +756,30 @@ function addTrackPoint(f, prev){
 function saveTrack(){
   if(!store('ap_track', TRACK)) lastGpsErr = 'Track too large to save on this device; export it as GPX.';
 }
+/* A track is drawn in pieces: a gap of ten minutes or more, or a jump no
+   walker could make, starts a new piece, so a track left recording across
+   days is never joined up into a straight line that looks like a route. */
+function trackBreak(a, b){
+  var dt = b[0] - a[0], s = dist([a[1], a[2]], [b[1], b[2]]);
+  return dt > 600 || s > 1000 || (dt > 0 && s/dt > 4);   // 4 m/s is a fast run
+}
+function trackSegs(){
+  var segs = [], cur = [];
+  TRACK.pts.forEach(function(p, i){
+    if(i && trackBreak(TRACK.pts[i-1], p)){ if(cur.length) segs.push(cur); cur = []; }
+    cur.push(p);
+  });
+  if(cur.length) segs.push(cur);
+  return segs;
+}
 function drawTrack(){
-  if(trackLine) trackLine.setLatLngs(TRACK.pts.map(function(p){ return [p[1], p[2]]; }));
+  if(trackLine) trackLine.setLatLngs(trackSegs().map(function(sg){ return sg.map(function(p){ return [p[1], p[2]]; }); }));
 }
 function trackStats(){
   var pts = TRACK.pts, d = 0, moving = 0, gain = 0, loss = 0, ref = null;
   for(var i = 1; i < pts.length; i++){
     var s = dist([pts[i-1][1], pts[i-1][2]], [pts[i][1], pts[i][2]]), dt = pts[i][0] - pts[i-1][0];
+    if(trackBreak(pts[i-1], pts[i])) continue;      // a gap is not distance walked
     d += s;
     if(dt > 0 && dt < 600 && s/dt > 0.3) moving += dt;
   }
@@ -752,10 +797,12 @@ function trackStats(){
 function addWpt(lat, lon, name){
   var n = name || prompt('Name this waypoint', 'Waypoint ' + (WPTS.length + 1));
   if(n == null) return;
-  WPTS.push({n:String(n).slice(0, 60) || 'Waypoint', lat:+lat.toFixed(6), lon:+lon.toFixed(6), t:Date.now()});
+  var w = {n:String(n).slice(0, 60) || 'Waypoint', lat:+lat.toFixed(6), lon:+lon.toFixed(6), t:Date.now()};
+  WPTS.push(w);
   store('ap_wpts', WPTS);
   drawWpts();
   if(tab === 'wpt') paintPanel();
+  return w;
 }
 function drawWpts(){
   if(!wptLayer) return;
@@ -781,12 +828,16 @@ function gpxText(){
     out.push('<wpt lat="' + w.lat + '" lon="' + w.lon + '"><time>' + new Date(w.t).toISOString() + '</time><name>' + x(w.n) + '</name></wpt>');
   });
   if(TRACK.pts.length){
-    out.push('<trk><name>Track ' + new Date(TRACK.pts[0][0]*1000).toISOString().slice(0,10) + '</name><trkseg>');
-    TRACK.pts.forEach(function(p){
-      out.push('<trkpt lat="' + p[1] + '" lon="' + p[2] + '">' + (p[3] != null ? '<ele>' + p[3] + '</ele>' : '') +
-               '<time>' + new Date(p[0]*1000).toISOString() + '</time></trkpt>');
+    out.push('<trk><name>Track ' + new Date(TRACK.pts[0][0]*1000).toISOString().slice(0,10) + '</name>');
+    trackSegs().forEach(function(sg){
+      out.push('<trkseg>');
+      sg.forEach(function(p){
+        out.push('<trkpt lat="' + p[1] + '" lon="' + p[2] + '">' + (p[3] != null ? '<ele>' + p[3] + '</ele>' : '') +
+                 '<time>' + new Date(p[0]*1000).toISOString() + '</time></trkpt>');
+      });
+      out.push('</trkseg>');
     });
-    out.push('</trkseg></trk>');
+    out.push('</trk>');
   }
   out.push('</gpx>');
   return out.join('\n');
@@ -1223,7 +1274,8 @@ function paintPanel(){
              '<g id="apGoArrow"><path d="M32 12 L42 40 L32 34 L22 40 Z" fill="#ef4444"/></g></svg>' +
              '<div><div class="ap-big">' + fmtDist(d) + '</div><div>bearing <b>' + Math.round(b) + '° true</b> (' + card(b) + ')' +
              (hd == null ? ' &middot; <span class="ap-dim">arrow points to true north-up; walk or turn on the compass for a heading</span>' : '') + '</div>' +
-             '<div class="ap-dim">straight-line distance; the trail is usually longer. At 2 mph that is about ' + fmtDur(d/1609.344/2*3600e3) + '.</div></div></div>';
+             '<div class="ap-dim">straight-line distance; the trail is usually longer. At 2 mph that is about ' + fmtDur(d/1609.344/2*3600e3) + '.</div></div></div>' +
+             (compassOn ? '' : '<div class="ap-row"><button class="ap-btn" data-act="compass">&#129517; USE COMPASS</button><span class="ap-dim">so the arrow points the way to go, not north-up</span></div>');
         var tm = onTrail([me.lat, me.lon]), tt = onTrail([target.lat, target.lon]);
         if(tm && tt && tm.off < 1500 && tt.off < 1500)
           h += kv('ALONG THE TRAIL', '≈ ' + Math.abs(tt.mile - tm.mile).toFixed(1) + ' mi ' + (tt.mile > tm.mile ? 'northbound' : 'southbound'));

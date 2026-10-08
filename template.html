@@ -503,6 +503,15 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 @media (max-width:640px){.sig-canvas{height:320px}}
 .ap-dim{color:var(--ink-faint)}
 .ap-warn{color:#fbbf24}
+.ap-good{color:#86efac;font-weight:700}
+.ap-hud{position:absolute;left:8px;right:8px;bottom:30px;z-index:900;display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:10px;
+  background:rgba(7,11,28,.9);border:1px solid #ef4444;color:var(--ink);font-family:var(--mono);font-size:.78em;cursor:pointer;line-height:1.35}
+.ap-hud[hidden]{display:none}
+.ap-hud-go{flex:1;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ap-hud-arrow{width:34px;height:34px;flex:none}
+.ap-hud-x{background:none;border:0;color:var(--ink-dim);font-size:1.4em;cursor:pointer;padding:0 4px}
+.ap-tgt-tip{background:#ef4444;color:#fff;border:0;font:700 11px ui-monospace,monospace;box-shadow:none}
+.ap-tgt-tip::before{display:none}
 .ap-bad{color:#f87171}
 .ap-arrow{width:64px;height:64px;flex:none}
 .ap-prog{height:8px;border-radius:4px;background:#1e293b;overflow:hidden;margin:6px 0}
@@ -1616,6 +1625,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     <div class="ap-mapwrap">
       <div id="apMap"><div class="ap-boot" id="apBoot">map loads when you scroll here &middot; <button class="ap-btn" id="apStart">OPEN MAP NOW</button></div></div>
       <div class="ap-net" id="apNet"></div>
+      <div class="ap-hud" id="apHud" hidden></div>
     </div>
     <div class="ap-tabs" id="apTabs">
       <button class="ap-tab on" data-tab="here">HERE</button>

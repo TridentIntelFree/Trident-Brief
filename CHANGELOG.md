@@ -4,6 +4,25 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.26.2 — 2026-10-08
+
+### Fixed: a "route" on the map that had nothing to do with your waypoint
+- **A destination chosen earlier was remembered across visits** and drawn as a
+  red dashed line once GPS came on, with no name on it. It is now labelled
+  "GO TO: name" on the map from the start, and a bar over the map says where
+  you are going, how far, and which way, with &times; to stop.
+- **A track left recording joined separate outings with straight lines**, in
+  the same red as the GO TO line. The track is now orange, and it breaks after
+  a 10-minute gap or a jump no walker could make; gaps no longer count as
+  distance, and GPX export writes each piece as its own segment.
+
+### Added: navigate to a waypoint
+- Saving a waypoint from the map asks "Navigate to it now?".
+- The navigation bar shows an arrow, distance and bearing (north-up, or
+  ahead-up with the compass or while walking), and "YOU ARE THERE" within GPS
+  accuracy. Tap it for the GO TO tab, which now offers USE COMPASS.
+- Pocket mode's dim line includes the destination's distance and bearing.
+
 ## 1.26.1 — 2026-10-08
 
 ### Fixed: no way to turn GPS on from the OFFLINE tab
