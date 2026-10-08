@@ -4,6 +4,16 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.28.1 — 2026-10-08
+
+### Fixed: two of the four library manuals did not arrive
+- The first fetch got the CDC tick sheet and the NWS lightning brochure. The
+  Army survival manual and the MSHA mines alert came back as web pages, most
+  likely bot checks, instead of PDFs.
+- The fetcher now asks honestly first and then as an ordinary browser, as the
+  feed collector does. It tries a second source for the Army manual, and logs
+  what each server sent when no PDF arrives.
+
 ## 1.28.0 — 2026-10-08
 
 ### Added: a survival library of real manuals, for offline
