@@ -495,6 +495,7 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 .tu-bwv{font-family:var(--mono);color:#fff;display:inline-block;min-width:4.6em}
 .tu-now{margin-top:9px;font-size:.86em;color:var(--ink-dim);line-height:1.45}
 .tu-now b{color:#fff;font-family:var(--mono)}
+.tu-wbox{margin-top:6px}.tu-world{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0}.tu-world a{text-decoration:none}.tu-world span{font-family:var(--mono);opacity:.7;font-size:.85em}
 .tu-meter{position:relative;height:14px;border-radius:7px;background:#0b1328;border:1px solid var(--line2);margin-top:5px;overflow:hidden;max-width:420px}
 .tu-meter i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#0e7490,#22d3ee,#facc15)}
 .tu-meter span{position:relative;font-family:var(--mono);font-size:.72em;color:#fff;padding-left:7px;line-height:14px}
@@ -1091,7 +1092,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <h4>Contacted only when you press something</h4>
         <ul>
           <li><b>Radio tuner:</b> your browser connects straight to a volunteer's KiwiSDR. Its operator sees your IP address, and like every KiwiSDR
-            it may show other listeners a rough location worked out from it, next to the name &ldquo;Trident Brief listener&rdquo;. Nothing is recorded by this site.</li>
+            it may show other listeners a rough location worked out from it, next to the name &ldquo;Trident Brief listener&rdquo;. Nothing is recorded by this site.
+            Choosing a region contacts no one: the list of the world&rsquo;s receivers is this site&rsquo;s own file. A receiver link from it opens that receiver&rsquo;s own
+            page (often plain HTTP) only if you tap it; its owner then sees you as an ordinary visitor.</li>
           <li><b>Identify and decode</b> (Morse, RTTY, weather fax, SSTV, WHAT IS THIS?): run on your device, on the audio you are already hearing, and contact no one. A Signal Identification Wiki link opens sigidwiki.com only if you tap it.</li>
           <li><b>Transcribe:</b> the speech model is downloaded once from jsDelivr and Hugging Face. The audio is transcribed on your device and never sent anywhere.</li>
           <li><b>Terrain, imagery and site weather:</b> public AWS open-data buckets (Sentinel-2, USGS elevation, terrain tiles) and Open-Meteo, for the place you picked.</li>
@@ -1120,7 +1123,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           government warning and alert services, earthquake, aircraft and ship feeds, sanctions lists, GDELT, internet-outage data, space weather
           (NOAA&rsquo;s Space Weather Prediction Center, and NASA&rsquo;s DONKI at CCMC or, if that fails, api.nasa.gov with NASA&rsquo;s public demo key), and Polymarket prices to check the forecasts against. They translate foreign-language items with Google's and Microsoft's free
           translation services, ask xAI's Grok (with Groq as a fallback) to search X and the web and to write, and check weekly which
-          KiwiSDR receivers the tuner can reach. Nothing about visitors goes into any of it. The full list is in the
+          KiwiSDR receivers the tuner can reach (from kiwisdr.com&rsquo;s public list, which also gives the region links their worldwide list). Nothing about visitors goes into any of it. The full list is in the
           <a href="https://github.com/TridentIntelFree/Trident-Brief" target="_blank" rel="noopener">source code</a>.</p>
 
         <h4>Saved on this device only</h4>
@@ -1390,6 +1393,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <label>noise <select id="tuNr"><option value="off">off</option><option value="nb">blanker</option><option value="nr">reduction</option><option value="both">both</option></select></label>
       </div>
       <div class="tu-row">
+        <label>region <select id="tuReg"><option value="">anywhere: nearest the station</option></select></label>
         <label>receiver <select id="tuRx"><option value="auto">best for the channel</option></select></label>
         <label>volume <input type="range" id="tuVol" min="0" max="1.5" step="0.05" value="0.9"></label>
         <button class="ap-btn" id="tuScan" type="button">&#10227; SCAN PRESETS</button>
@@ -1397,6 +1401,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <label class="sig-chk"><input type="checkbox" id="tuStopVoice" checked> stop on voice</label>
       </div>
       <div class="tu-now" id="tuNow">loading the receiver list&hellip;</div>
+      <div class="tu-wbox" id="tuWorld"></div>
       <div class="tu-scan" id="tuScanOut"></div>
       <div class="tu-row tu-tx-row">
         <button class="ap-btn" id="tuTx" type="button">&#128483; TRANSCRIBE + TRANSLATE</button>
@@ -1541,7 +1546,8 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     <p class="sig-note">How the tuner works: a phone cannot receive shortwave, so you listen through a public KiwiSDR receiver
       that its owner shares online. The page connects to one receiver at a time, as one listener, and says who it is. It only
       uses receivers that accept secure connections (the ones this HTTPS page is allowed to reach), checked weekly, and lets go
-      after an hour untouched. &ldquo;Reported by radio monitors&rdquo; is what people who listen round the clock posted on X,
+      after an hour untouched. Choosing a region tries that region&rsquo;s receivers first; the many there it cannot reach are
+      listed as links that open the receiver&rsquo;s own page, tuned to the same frequency, in a new tab. &ldquo;Reported by radio monitors&rdquo; is what people who listen round the clock posted on X,
       collected once a day. The detectors are rules of thumb &mdash; confirm by ear. Listening is legal; the messages are coded
       and nothing here decodes them.</p>
 

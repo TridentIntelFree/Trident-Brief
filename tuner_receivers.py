@@ -10,6 +10,11 @@ ones that answer, opens one short audio connection to confirm it streams
 (four seconds, identified as "TridentBrief check"). The result is written
 to data/tuner/receivers.json, which the page reads.
 
+The whole public list, trimmed to what a listener needs (where, antenna,
+slots, the receiver's own noise figure and its address), is also written to
+data/tuner/world.json from the same download, so the page can offer the
+receivers it cannot reach itself as links that open their own pages.
+
 No receiver is used for listening here: the tuner connects only when a
 person presses a button, as the receivers' owners intend.
 """
@@ -29,6 +34,7 @@ import websockets
 import radio_monitor as rm
 
 OUT = 'data/tuner/receivers.json'
+WORLD = 'data/tuner/world.json'
 ORIGIN = 'https://tridentintelfree.github.io'
 
 
@@ -88,10 +94,39 @@ async def streams(hp):
     return n
 
 
+def num(v):
+    m = re.findall(r'-?\d+(?:\.\d+)?', v or '')
+    return float(m[0]) if m else None
+
+
+def world(rxs):
+    """Every public receiver that is up, open to all and placed on the map."""
+    out = []
+    for rx in rxs:
+        m = re.findall(r'-?\d+(?:\.\d+)?', rx.get('gps', ''))
+        if rx.get('offline', 'no') != 'no' or rx.get('pwd') not in (None, '', '0', 'no') or len(m) < 2 or not rx.get('url'):
+            continue
+        lat, lon = round(float(m[0]), 2), round(float(m[1]), 2)
+        if abs(lat) > 90 or abs(lon) > 180 or (lat == 0 and lon == 0):
+            continue
+        snr, top = num(rx.get('snr')), num(rx.get('users_max'))
+        out.append({'u': rx['url'].rstrip('/')[:120], 'loc': rx.get('loc', '')[:60], 'lat': lat, 'lon': lon,
+                    'ant': rx.get('antenna', '')[:60], 'max': int(top) if top else None,
+                    'snr': int(snr) if snr is not None else None})
+    return sorted(out, key=lambda r: r['u'])
+
+
 def main():
     rxs = rm.receivers()
     if not rxs:
         sys.exit('no receiver list; the previous one is left in place')
+    w = world(rxs)
+    if w:
+        os.makedirs(os.path.dirname(WORLD), exist_ok=True)
+        with open(WORLD, 'w', encoding='utf-8') as f:
+            json.dump({'checked': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'receivers': w},
+                      f, separators=(',', ':'), ensure_ascii=False)
+        print(f'{len(w)} public receivers written to {WORLD}')
     jobs = [(rx, hp) for rx in rxs for hp in candidates(rx)]
     with ThreadPoolExecutor(32) as ex:
         tls = [(rx, hp) for (rx, hp), ok in zip(jobs, ex.map(lambda j: answers_tls(j[1]), jobs)) if ok]

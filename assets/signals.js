@@ -778,12 +778,30 @@ function km(a, b){
   var r = Math.PI/180, x = Math.sin((b[0]-a[0])*r/2), y = Math.sin((b[1]-a[1])*r/2);
   return 12742*Math.asin(Math.sqrt(x*x + Math.cos(a[0]*r)*Math.cos(b[0]*r)*y*y));
 }
-/* receivers in order of preference: nearest the transmitter first, the ones
-   that have just refused us last */
+/* Regions, by rough boxes on the map: enough to put a receiver on the right
+   continent. Hawaii and the Pacific islands go with Oceania, Alaska with
+   North America, Madagascar and the Mascarenes with Africa. */
+var REGIONS = [['na', 'North America'], ['sa', 'South America'], ['eu', 'Europe'], ['af', 'Africa'],
+               ['me', 'Middle East'], ['as', 'Asia'], ['oc', 'Oceania and Pacific'], ['an', 'Antarctica']];
+function regionOf(lat, lon){
+  if(lat == null || lon == null) return '';
+  if(lat < -60) return 'an';
+  if(lon >= 150 || (lon <= -140 && lat < 45) || (lat < -11 && lon >= 100)) return 'oc';
+  if(lon < -30) return lat > 7 ? 'na' : 'sa';
+  if(lat >= 35 && lon < 45) return 'eu';
+  if(lat >= 12 && lat < 42 && lon >= 34 && lon < 63) return 'me';
+  if(lat < 35 && (lon < 52 || (lat < 12 && lon < 64))) return 'af';     // with the Indian Ocean islands
+  return 'as';
+}
+function regionName(k){ var r = REGIONS.filter(function(x){ return x[0] === k; })[0]; return r ? r[1] : ''; }
+/* receivers in order of preference: in the region you chose (if any), then
+   nearest the transmitter; the ones that have just refused us last */
 function ranked(near){
+  var R = T.region;
   return T.list.slice().sort(function(a, b){
     var fa = T.tried.indexOf(a.host) > -1, fb = T.tried.indexOf(b.host) > -1;
     if(fa !== fb) return fa ? 1 : -1;
+    if(R){ var ra = regionOf(a.lat, a.lon) === R, rb = regionOf(b.lat, b.lon) === R; if(ra !== rb) return ra ? -1 : 1; }
     return (a.lat == null ? 1e9 : km(near, [a.lat, a.lon])) - (b.lat == null ? 1e9 : km(near, [b.lat, b.lon]));
   });
 }
@@ -954,7 +972,8 @@ function retune(khz, mode, presetId){
   if(p && $('tuRx').value === 'auto' && !T.scan){
     var best = ranked(p.near)[0];
     if(best && best.host !== T.rx.host && T.rx.lat != null && best.lat != null &&
-       km(p.near, [T.rx.lat, T.rx.lon]) > km(p.near, [best.lat, best.lon]) + 1500){
+       (km(p.near, [T.rx.lat, T.rx.lon]) > km(p.near, [best.lat, best.lon]) + 1500 ||
+        (T.region && regionOf(T.rx.lat, T.rx.lon) !== T.region && regionOf(best.lat, best.lon) === T.region))){
       T.tried = []; connect(best); return;
     }
   }
@@ -1692,6 +1711,25 @@ function wireTuner(){
   $('tuVol').oninput = function(){ touch(); if(T.out) T.out.gain.value = +this.value; set('vol', +this.value); };
   $('tuVol').value = get('vol', 0.9);
   $('tuRx').onchange = function(){ touch(); probeStop(); if(T.ws){ T.tried = []; connect(pick()); } };
+  T.region = get('region', '');
+  $('tuReg').innerHTML = '<option value="">anywhere: nearest the station</option>' + REGIONS.map(function(r){ return '<option value="' + r[0] + '">' + r[1] + '</option>'; }).join('');
+  $('tuReg').value = T.region;
+  $('tuReg').onchange = function(){
+    touch(); probeStop(); T.region = this.value; set('region', T.region); $('tuWorld').dataset.n = '';
+    worldShow(); rxOptions();
+    if(T.ws && $('tuRx').value === 'auto'){ T.tried = []; connect(pick()); }
+  };
+  $('tuNow').addEventListener('click', function(e){
+    if(e.target.closest('button[data-stay]') && T.probe){
+      var rx = T.rx; probeStop(rx ? 'Staying on ' + esc(rx.loc || rx.host) + '.' : '');
+      if(rx && !T.ws){ T.tried = []; connect(rx); }
+    }
+  });
+  $('tuWorld').addEventListener('click', function(e){
+    var a = e.target.closest('a[data-u]');
+    if(a) a.href = a.dataset.u + '/?f=' + (+T.khz.toFixed(2)) + kiwiMode(T.mode);   // opens tuned where you are
+    if(e.target.closest('button[data-more]')){ this.dataset.n = 1e4; worldShow(); }
+  });
   $('tuScan').onclick = scanToggle;
   wireWaterfall();
   wireTranscribe();
@@ -1702,11 +1740,25 @@ function wireTuner(){
   fetch(base + 'data/tuner/receivers.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
     .catch(function(){ return null; }).then(function(d){
       T.list = (d && d.receivers) || [];
-      $('tuRx').innerHTML = '<option value="auto">best for the channel</option>' + T.list.map(function(r){
-        return '<option value="' + esc(r.host) + '">' + esc(r.loc || r.host) + '</option>'; }).join('');
+      rxOptions(); worldShow();
       tunerNow(T.list.length ? T.list.length + ' receivers reachable from this page' + (d.checked ? ' (checked ' + esc(d.checked.slice(0, 10)) + ')' : '') +
                                '. Press LISTEN or a preset.' : 'The receiver list did not load.');
     });
+}
+
+/* the receiver choice, grouped by region, the chosen region first */
+function rxOptions(){
+  var sel = $('tuRx'), was = sel.value || 'auto';
+  var order = REGIONS.map(function(r){ return r[0]; }).sort(function(a, b){ return (b === T.region) - (a === T.region); });
+  var inR = T.region && T.list.some(function(r){ return regionOf(r.lat, r.lon) === T.region; });
+  sel.innerHTML = '<option value="auto">best for the channel' + (inR ? ', ' + esc(regionName(T.region)) + ' first' : '') + '</option>' +
+    order.map(function(k){
+      var rs = T.list.filter(function(r){ return regionOf(r.lat, r.lon) === k; });
+      return rs.length ? '<optgroup label="' + esc(regionName(k)) + '">' + rs.map(function(r){
+        return '<option value="' + esc(r.host) + '">' + esc(r.loc || r.host) + '</option>'; }).join('') + '</optgroup>' : '';
+    }).join('') +
+    T.list.filter(function(r){ return !regionOf(r.lat, r.lon); }).map(function(r){ return '<option value="' + esc(r.host) + '">' + esc(r.loc || r.host) + '</option>'; }).join('');
+  sel.value = was; if(sel.value !== was) sel.value = 'auto';
 }
 
 function wire(){
@@ -1889,18 +1941,22 @@ setInterval(function(){
 
 /* The clearest receiver for a station. Nearest is not best on shortwave: a
    receiver too close can sit in the skip zone, and antennas and local noise
-   differ a lot. For the fax and RTTY presets (stations that send almost
-   without a break), with the receiver on "best for the channel", up to four
-   likely receivers are tried one at a time for about eight seconds each, the
-   station's tones measured against the noise beside them, and the clearest
-   kept. One receiver at a time, started by your tap; touching the tuning or
-   choosing a receiver stops it. */
-var PROBE_SEC = 8;
+   differ a lot. For the fax and RTTY presets, with the receiver on "best for
+   the channel", the receiver the preset tuned is checked first: the
+   station's tones measured against the noise beside them over about eight
+   seconds. If it hears the station well, it stays, and nothing is
+   interrupted. Only if it is weak are up to three others tried, one at a
+   time, stopping at the first that hears it well, and the clearest kept; a switch costs a second of sound and starts
+   the chart again, so it moves only for a clear gain (3 dB). Started by your
+   tap; touching the tuning, choosing a receiver or STAY HERE stops it. */
+var PROBE_SEC = 8, PROBE_GOOD = {fax:15, rtty:18}, PROBE_GAIN = 3;
 function probeStart(p){
   probeStop();
   T.tried = [];                                          // earlier refusals don't rule a candidate out: each gets its own try
   var cands = ranked(p.near).slice(0, 4);
   if(cands.length < 2) return;
+  if(T.rx && cands.indexOf(T.rx) > 0){ cands.splice(cands.indexOf(T.rx), 1); cands.unshift(T.rx); }   // the one already playing first
+  else if(T.rx && cands.indexOf(T.rx) < 0){ cands.pop(); cands.unshift(T.rx); }
   T.probe = {p:p, list:cands, i:0, res:[]};
   probeGo();
 }
@@ -1912,13 +1968,19 @@ function probeStop(msg){
 function probeGo(){
   var P = T.probe; if(!P) return;
   if(P.i >= P.list.length) return probeDone();
-  var rx = P.list[P.i];
-  T.probeMsg = 'Finding the clearest receiver for this station: ' + (P.i + 1) + ' of ' + P.list.length + ', ' + esc(rx.loc || rx.host) + '…' + probeSoFar();
-  T.tried = []; connect(rx);
+  var rx = P.list[P.i], here = T.ws && T.rx === rx;
+  T.probeMsg = (P.i === 0 ? 'Checking how well ' + esc(rx.loc || rx.host) + ' hears this station…'
+                          : 'That was weak, so trying others: ' + P.i + ' of ' + (P.list.length - 1) + ', ' + esc(rx.loc || rx.host) +
+                            '… (each switch drops a second of sound and starts the chart again)') +
+               probeSoFar() + ' <button class="ev-f" type="button" data-stay="1">STAY HERE</button>';
+  if(!here){ T.tried = []; connect(rx); }                 // the receiver already playing is measured as it is
   P.timer = setTimeout(function(){
     if(T.probe !== P) return;
-    probeNext(rx, T.live && T.rx === rx ? probeMeasure(P.p.dec) : null);
-  }, PROBE_SEC*1000 + 2500);                      // connecting takes a second or two
+    var q = T.live && T.rx === rx ? probeMeasure(P.p.dec) : null;
+    if(q != null && q >= PROBE_GOOD[P.p.dec]){ P.res.push({rx:rx, q:q}); return probeDone(); }   // good enough: stop here, no more switching
+    probeNext(rx, q);
+  }, PROBE_SEC*1000 + (here ? 500 : 2500));        // connecting takes a second or two
+  tunerNow();
 }
 function probeNext(rx, q, why){
   var P = T.probe; if(!P) return;
@@ -1943,11 +2005,19 @@ function probeDone(){
     }
     tunerNow(); return;
   }
+  var cur = P.res.filter(function(r){ return r.rx === T.rx && r.q != null; })[0];
+  if(cur && T.live && best.q - cur.q < PROBE_GAIN) best = cur;            // not worth another switch
+  if(P.res.length === 1){
+    T.probeMsg = esc(best.rx.loc || best.rx.host) + ' hears this station well (' + best.q + ' dB over the noise beside it): staying.';
+    tunerNow(); return;
+  }
   T.probeMsg = 'Clearest: ' + esc(best.rx.loc || best.rx.host) + ' (' + best.q + ' dB over the noise beside it).' + list;
   logEvent(Date.now(), 'mark', 'clearest receiver for ' + T.khz + ' kHz: ' + (best.rx.loc || best.rx.host) + ', ' + best.q + ' dB');
-  if(T.rx !== best.rx){ T.tried = []; connect(best.rx); }
-  if(DX.dec.fax){ DX.dec.fax.reset(); fxClear(); }         // a clean chart from the receiver it stays on
-  if(DX.dec.rtty){ DX.dec.rtty.machines.forEach(function(m){ m.text = ''; }); }
+  if(T.rx !== best.rx){
+    T.tried = []; connect(best.rx);
+    if(DX.dec.fax){ DX.dec.fax.reset(); fxClear(); }       // one clean chart from the receiver it stays on
+    if(DX.dec.rtty){ DX.dec.rtty.machines.forEach(function(m){ m.text = ''; }); }
+  }
   tunerNow();
 }
 /* the station's tones against the noise beside them, from the last few
@@ -1970,6 +2040,58 @@ function probeMeasure(kind){
     q = srt[srt.length - 1]/(srt[srt.length >> 1] || 1e-30);
   }
   return Math.round(10*Math.log10(q));
+}
+
+
+/* The rest of the world. Most public KiwiSDRs serve plain HTTP, which this
+   HTTPS page is not allowed to stream from, so the tuner cannot use them.
+   For a chosen region, the ones there are listed as links that open the
+   receiver's own page in a new tab, tuned to the same frequency: you listen
+   there, on the owner's page, as any visitor would. The list is this site's
+   own file (data/tuner/world.json, from the weekly check); nothing is
+   contacted until you tap a link. */
+var WORLD = null;
+function worldLoad(then){
+  if(WORLD) return then();
+  var base = (typeof window.DATA_BASE === 'string' ? window.DATA_BASE : '');
+  fetch(base + 'data/tuner/world.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
+    .catch(function(){ return null; }).then(function(d){ WORLD = (d && d.receivers) || []; WORLD.checked = d && d.checked; then(); });
+}
+function kiwiMode(m){ return {usb:'usb', lsb:'lsb', am:'am', cw:'cw', fm:'nbfm', nbfm:'nbfm', iq:'iq'}[m] || 'usb'; }
+function worldShow(){
+  var box = $('tuWorld'); if(!box) return;
+  var R = T.region;
+  if(!R){ box.innerHTML = ''; return; }
+  worldLoad(function(){
+    if(T.region !== R) return;
+    var here = T.list.filter(function(r){ return regionOf(r.lat, r.lon) === R; });
+    var mine = {}; T.list.forEach(function(r){ mine[r.host] = 1; });
+    var other = WORLD.filter(function(w){
+      if(regionOf(w.lat, w.lon) !== R) return false;
+      var h = w.u.replace(/^https?:\/\//, '').replace(/:443$/, '').split('/')[0];
+      return !mine[h];
+    });
+    var p = presetOf(T.preset), near = p && p.khz === T.khz ? p.near : null;
+    other.sort(function(a, b){                    // the quieter receivers first, then nearest the station
+      var d = (b.snr || 0) - (a.snr || 0);
+      if(Math.abs(d) > 2 || !near) return d;
+      return km(near, [a.lat, a.lon]) - km(near, [b.lat, b.lon]);
+    });
+    var n = +(box.dataset.n || 12);
+    box.innerHTML = '<div class="sig-small"><b>' + esc(regionName(R).toUpperCase()) + ':</b> ' +
+      (here.length ? here.length + ' receiver' + (here.length > 1 ? 's' : '') + ' the tuner can use here, tried first.'
+                   : 'no receiver there serves HTTPS, so the tuner itself cannot use one; it falls back to the nearest it can.') +
+      (!WORLD.length ? ' The worldwide list has not been built yet; it comes with the next weekly receiver check.' :
+       !other.length ? ' The public list has no others there.' :
+       ' ' + other.length + ' more there open on their own pages, tuned to the same frequency, in a new tab' +
+        (WORLD.checked ? ' (list of ' + esc(WORLD.checked.slice(0, 10)) + ')' : '') + ':') +
+      '</div>' + (other.length ? '<div class="tu-world">' + other.slice(0, n).map(function(w){
+        return '<a class="ev-f" href="' + esc(w.u) + '/" data-u="' + esc(w.u) + '" target="_blank" rel="noopener noreferrer" title="' +
+          esc(w.u.replace(/^https?:\/\//, '') + (w.ant ? ' · ' + w.ant : '')) + '">' + esc(w.loc || w.u.replace(/^https?:\/\//, '')) +
+          (w.snr != null ? ' <span>' + w.snr + ' dB</span>' : '') + '</a>'; }).join('') +
+        (other.length > n ? '<button class="ev-f" type="button" data-more="1">' + (other.length - n) + ' more…</button>' : '') + '</div>' : '') +
+      (other.length ? '<div class="sig-small">The dB is each receiver’s own noise figure (higher is quieter). Those pages are the owners’, outside this site: they see you as any visitor.</div>' : '');
+  });
 }
 
 /* -- what is this? */
