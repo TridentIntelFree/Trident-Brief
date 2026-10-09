@@ -57,6 +57,23 @@ function FM(sr, center, cutoff, ntaps){
     return center + Math.atan2(im, re)*k;
   };
 }
+/* The same, for fax: each sample's phase step as a vector (the product of
+   this sample and the last one's conjugate), for the caller to add up over
+   a dot before taking its angle. When noise swamps the signal for a moment
+   the vectors are short and count for little, so a weak chart gets fine
+   grain instead of the white and black speckle of single-sample spikes. */
+function FMvec(sr, center, cutoff, ntaps){
+  var h = lowpassTaps(ntaps, cutoff, sr), L = ntaps, ri = new Float32Array(L), rq = new Float32Array(L), p = 0;
+  var ph = 0, dph = TAU*center/sr, pi = 0, pq = 0, out = [0, 0];
+  return function(v){
+    ph += dph; if(ph > TAU) ph -= TAU;
+    ri[p] = v*Math.cos(ph); rq[p] = -v*Math.sin(ph); p = (p + 1) % L;
+    var i = 0, q = 0;
+    for(var j = 0; j < L; j++){ var x = (p + j) % L; i += h[j]*ri[x]; q += h[j]*rq[x]; }
+    out[0] = i*pi + q*pq; out[1] = q*pi - i*pq; pi = i; pq = q;
+    return out;
+  };
+}
 function fftPow(x){                              // power spectrum, Hann window, lower half
   var n = x.length, re = new Float64Array(n), im = new Float64Array(n);
   for(var i = 0; i < n; i++) re[i] = x[i]*(0.5 - 0.5*Math.cos(TAU*i/(n - 1)));
@@ -233,7 +250,7 @@ function fax(sr, opts){
            status:'listening', images:0, onstart:null, onstop:null, onlines:null, level:0,
            off:0, offSeen:false, slantFrom:'', lpmFrom:''};
   F.Ld = W*120/F.lpm;                            // dots per line at this line rate
-  var spp = sr/RATE, acc = 0, cnt = 0, pos = 0, demC = 1900, fm = FM(sr, demC, 800, 31);
+  var spp = sr/RATE, accR = 0, accI = 0, pos = 0, demC = 1900, fm = FMvec(sr, demC, 800, 31), kHz = sr/TAU;
   var N = 4096, ab = new Float32Array(N), an = 0, psd = null, hz = sr/N;
   var g3 = 2*Math.cos(TAU*300/RATE), g4 = 2*Math.cos(TAU*450/RATE);
   var tone = {n:0, s3:[0, 0], s4:[0, 0], e:0}, toneHit = {start:0, stop:0}, phasing = null, ticks = 0;
@@ -271,12 +288,12 @@ function fax(sr, opts){
     }
     var lines = (F.n - F.base)/F.Ld;
     if(!phasing && F.autoLpm && F.lpmFrom !== 'phasing' && lines >= 24 && ticks % 40 === 0) checkLpm();
-    if(!phasing && F.slantFrom !== 'phasing' && lines >= 40 && ticks % 30 === 0) checkSlant();
+    if(!phasing && lines >= 40 && ticks % 30 === 0) checkSlant();   // after phasing too: noise can throw its fit off
     /* joined part way, with no phasing lines: once straight, find the border */
     if(!phasing && F.slantFrom === 'measured' && !F.lined && lines >= 80){ F.lined = true; if(F.lineUp()) F.status = 'lined up by the chart\u2019s border (a best guess: SHIFT if it is off)'; }
   }
   function startImage(){
-    F.base = F.n; F.offset = 0; F.slant = 0; F.slantFrom = ''; F.images++; F.status = 'start tone: a new chart';
+    F.base = F.n; F.offset = 0; F.slant = 0; F.slantFrom = ''; F.phEnd = null; F.prop = null; F.images++; F.status = 'start tone: a new chart';
     if(F.lpmFrom !== 'set') F.lpmFrom = '';
     phasing = {from:null};                       // phasing lines follow once the tone stops
     if(F.onstart) F.onstart(F);
@@ -290,27 +307,45 @@ function fax(sr, opts){
   function setLpm(l, from){ F.lpm = l; F.Ld = W*120/l; F.lpmFrom = from; }
   /* phasing lines are dark with a short white pulse where each line begins */
   function finishPhasing(end){
-    var from = phasing.from; phasing = null;
+    var from = phasing.from; phasing = null; F.phEnd = end;
     if(F.autoLpm && end - from > W*8){
       var best = bestLpm(from, end - from);
       if(best) setLpm(best, 'phasing');
     }
-    var Ld = F.Ld, pts = [];
+    /* each line's pulse: the window of the pulse's width (5% of a line) that
+       is brightest against the line's own level. A sum over the window is
+       not broken up by noise the way a run of bright dots is. */
+    var Ld = F.Ld, pts = [], L = Math.round(Ld), pw = Math.max(3, Math.round(L*0.05));
     for(var li = 0; from + (li + 1)*Ld <= end; li++){
-      var s = Math.round(from + li*Ld), run = 0, top = 0, topEnd = 0, L = Math.round(Ld);
-      for(var x = 0; x < L*2; x++){              // twice round, so a pulse across the edge is whole
-        if(F.data[s + (x % L)] > 170){ run++; if(run > top){ top = run; topEnd = x; } } else run = 0;
+      var s = Math.round(from + li*Ld), tot = 0, win = 0, top = -1e9, at = 0;
+      for(var x = 0; x < L; x++) tot += F.data[s + x];
+      for(x = 0; x < pw; x++) win += F.data[s + x];
+      for(x = 0; x < L; x++){                    // round the edge, so a pulse across it is whole
+        if(win > top){ top = win; at = x; }
+        win += F.data[s + ((x + pw) % L)] - F.data[s + x];
       }
-      if(top > L*0.02 && top < L*0.12) pts.push([li, (topEnd - top + 1) % L]);
+      var inP = top/pw, outP = (tot - top)/(L - pw);
+      if(inP - outP > 60) pts.push([li, at]);    // a clear pulse on a dark line
     }
     if(pts.length < 6){ F.status = 'chart started (no phasing lines found: use SHIFT to line it up)'; return; }
     for(var i = 1; i < pts.length; i++){         // unwrap round the edge, then fit position = a + b*line
       while(pts[i][1] - pts[i-1][1] > Ld/2) pts[i][1] -= Ld;
       while(pts[i][1] - pts[i-1][1] < -Ld/2) pts[i][1] += Ld;
     }
-    var n = pts.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
-    pts.forEach(function(q){ sx += q[0]; sy += q[1]; sxx += q[0]*q[0]; sxy += q[0]*q[1]; });
-    var b = (n*sxy - sx*sy)/(n*sxx - sx*sx || 1), a = (sy - b*sx)/n;
+    /* a straight-line fit, refitted without the lines noise threw off */
+    function fit(P){
+      var n = P.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
+      P.forEach(function(q){ sx += q[0]; sy += q[1]; sxx += q[0]*q[0]; sxy += q[0]*q[1]; });
+      var b = (n*sxy - sx*sy)/(n*sxx - sx*sx || 1); return {b:b, a:(sy - b*sx)/n};
+    }
+    var f = fit(pts);
+    for(var round = 0; round < 2; round++){
+      var res = pts.map(function(q){ return Math.abs(q[1] - f.a - f.b*q[0]); }), mad = median(res.slice()) || 0.5;
+      var keep = pts.filter(function(q, j){ return res[j] <= Math.max(3*mad, 2); });
+      if(keep.length < 6 || keep.length === pts.length) break;
+      pts = keep; f = fit(pts);
+    }
+    var n = pts.length, b = f.b, a = f.a;
     F.slant = b/Ld; F.slantFrom = 'phasing';
     F.base = from; F.offset = ((a % Ld) + Ld) % Ld;
     F.status = 'chart started · lined up from ' + n + ' phasing lines';
@@ -338,7 +373,7 @@ function fax(sr, opts){
     else if(!phasing && !toneHit.start && w.p > 15*med) est = w.f - 2300;
     if(est == null || Math.abs(est) > 300) return;
     if(!F.offSeen){ F.off = est; F.offSeen = true; } else F.off += (est - F.off)*0.3;
-    if(Math.abs(1900 + F.off - demC) > 40){ demC = 1900 + F.off; fm = FM(sr, demC, 800, 31); }   // re-centre the demodulator
+    if(Math.abs(1900 + F.off - demC) > 40){ demC = 1900 + F.off; fm = FMvec(sr, demC, 800, 31); }   // re-centre the demodulator
   }
   function corr(lag, from, len){                 // normalised correlation of the dot stream with itself
     var sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, n = 0, d = F.data, li = Math.floor(lag), fr = lag - li;
@@ -368,30 +403,55 @@ function fax(sr, opts){
       if(F.onstart) F.onstart(F);                // redrawn at the new rate: nothing is lost
     } else if(!F.lpmFrom) F.lpmFrom = 'confirmed';
   }
+  /* How sharp the chart's columns are when the last lines are stacked at
+     slant s: borders, margins and the latitude and longitude grid line up
+     only at the true slant. Sloping lines (isobars, coasts) blur at every
+     slant, so they cannot pull the answer the way a line-to-line
+     correlation can. */
+  function sharpness(s, k0, n){
+    var L = F.Ld*(1 + s), S0 = F.base + F.offset + k0*F.Ld*(1 + F.slant), prof = new Float64Array(W);
+    for(var k = 0; k < n; k++){
+      var st = S0 + k*L;
+      for(var x = 0; x < W; x++){ var i = Math.floor(st + x*L/W); prof[x] += i < F.n ? F.data[i] : 0; }
+    }
+    /* smoothed over three dots first, so fine hatching that lines up on a
+       diagonal does not count as a column */
+    var sm = new Float64Array(W), e = 0;
+    for(x = 0; x < W; x++) sm[x] = prof[(x + W - 1) % W] + prof[x] + prof[(x + 1) % W];
+    for(x = 0; x < W; x++){ var d = sm[(x + 2) % W] - sm[x]; e += d*d; }
+    return e/(n*n);
+  }
   function checkSlant(){
-    /* how many dots a line really takes, from the repeat eight lines apart */
-    var K = 8, L0 = F.Ld*(1 + F.slant), len = Math.round(RATE*6), from = F.n - len - Math.round(K*L0*1.01) - 4;
-    if(from < F.base) return;
-    var c0 = Math.round(K*L0), span = Math.ceil(K*F.Ld*0.004), best = -2, bl = c0, cs = {};
-    for(var g = c0 - span; g <= c0 + span; g++){ cs[g] = corr(g, from, len); if(cs[g] > best){ best = cs[g]; bl = g; } }
-    if(best < 0.25 || cs[bl - 1] == null || cs[bl + 1] == null) return;
-    var dd = cs[bl - 1] - 2*best + cs[bl + 1], off = dd < 0 ? 0.5*(cs[bl - 1] - cs[bl + 1])/dd : 0;
-    var s2 = (bl + off)/K/F.Ld - 1;
-    if(Math.abs(s2) > 0.003) return;
+    var lines = F.lines(), L0 = F.Ld*(1 + F.slant);
+    var first = F.phEnd != null ? Math.ceil((F.phEnd - F.base - F.offset)/L0) + 1 : 0;   // the chart, not its phasing lines
+    var n = Math.min(80, lines - 2 - first);
+    if(n < 36) return;
+    var k0 = lines - n - 1, cur = F.slant, base = sharpness(cur, k0, n), best = base, bs = cur, step;
+    function tryS(sv){ var v = sharpness(sv, k0, n); if(v > best){ best = v; bs = sv; } }
+    /* a receiver's clock is off by a few parts in ten thousand at most:
+       half a dot a line either way is plenty */
+    for(step = -20; step <= 20; step++) if(step) tryS(cur + step*2.5e-5);
+    var c = bs; for(step = -10; step <= 10; step++) if(step) tryS(c + step*2.5e-6);
+    if(best < base*1.02 || Math.abs(bs - cur) < 2e-6) return;               // no clear gain over the slant in use
+    if(F.slantFrom === 'phasing'){                                          // phasing's fit stands unless the chart clearly and repeatedly says otherwise
+      var agree = F.prop != null && Math.abs(F.prop - bs) < 3e-5;
+      F.prop = bs;
+      if(best < base*1.1 || Math.abs(bs - cur) < 2e-5 || !agree) return;
+    }
     /* the lines already drawn keep their place: line k still begins where it did */
-    var k = Math.max(0, Math.floor((F.n - F.base - F.offset)/(F.Ld*(1 + F.slant))));
-    F.offset += k*F.Ld*(F.slant - s2);
-    F.slant = s2; F.slantFrom = 'measured';
+    var kk = Math.max(0, Math.floor((F.n - F.base - F.offset)/(F.Ld*(1 + F.slant))));
+    F.offset += kk*F.Ld*(F.slant - bs);
+    F.slant = bs; F.slantFrom = 'measured';
   }
   F.push = function(x){
     for(var i = 0; i < x.length; i++){
       ab[an] = x[i]; an = (an + 1) % N;
-      var f = fm(x[i]);
-      acc += f; cnt++; pos++;
+      var z = fm(x[i]);
+      accR += z[0]; accI += z[1]; pos++;
       F.level += (x[i]*x[i] - F.level)*0.0005;
       if(pos >= spp){
         pos -= spp;
-        var v = (acc/cnt - F.off - 1500)/800*255; acc = 0; cnt = 0;
+        var v = (demC + Math.atan2(accI, accR)*kHz - F.off - 1500)/800*255; accR = 0; accI = 0;
         put(v < 0 ? 0 : v > 255 ? 255 : v | 0);
         if(tone.n === 0 && F.level > 1e-7){       // with each half-second tick: the spectrum, for tuning
           var buf = new Float32Array(N); for(var j = 0; j < N; j++) buf[j] = ab[(an + j) % N];
@@ -445,7 +505,7 @@ function fax(sr, opts){
     return Math.abs(o) < 40 ? 'tuned right' : 'receiver ' + Math.abs(o) + ' Hz ' + (o > 0 ? 'high' : 'low') + ', corrected';
   };
   F.setLpm = function(l){ if(l === 'auto'){ F.autoLpm = true; F.lpmFrom = ''; } else { F.autoLpm = false; setLpm(+l, 'set'); } if(F.onstart) F.onstart(F); };
-  F.reset = function(){ F.base = F.n; F.offset = 0; F.slant = 0; F.slantFrom = ''; F.status = 'listening'; phasing = null; };
+  F.reset = function(){ F.base = F.n; F.offset = 0; F.slant = 0; F.slantFrom = ''; F.phEnd = null; F.prop = null; F.status = 'listening'; phasing = null; };
   return F;
 }
 

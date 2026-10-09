@@ -96,6 +96,9 @@ blocked from these sandboxes, so use `intel.py`, not the page.
 - `tuner_receivers.py`: weekly check of which KiwiSDRs the page's live tuner
   can reach over HTTPS, written to `data/tuner/receivers.json`; the whole
   public list goes to `data/tuner/world.json` for the region links.
+- `tests/fax_bench.js`: the weather-fax decoder against synthetic charts with
+  HF trouble (noise, fading, echo, mistuning, clock error, mid-chart joins).
+  Run it before and after any change to `assets/decoders.js`'s fax code.
 - `VERSION` and `CHANGELOG.md` are bumped with every change (PATCH for fixes,
   MINOR for features).
 
