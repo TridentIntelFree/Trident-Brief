@@ -4,6 +4,24 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.41.1 — 2026-10-09
+
+### Fixed: the receiver kept switching while tuning around or reading a fax
+- The receiver picker started by a fax or RTTY preset kept hopping through
+  receivers if you then tuned away by tapping or dragging the waterfall,
+  SEEK, SNAP, scrolling or the arrow keys. Only the frequency box, the step
+  buttons and the receiver choice stopped it. Now any retune away from the
+  preset stops it.
+- Retuning within a preset (SNAP every 8 s on SSTV, LISTEN, a mode change)
+  could move the receiver to the "best" one again. When that one was full
+  and refused, the tuner fell back, then went back a few seconds later: a
+  loop. It could also undo the receiver the picker had chosen.
+  - The automatic move now happens only when a preset is first chosen,
+    never while the picker is running, and never back to a receiver that
+    has just refused.
+- A weather chart visibly coming in (a clear line beat) now counts as a good
+  receiver, so the picker never leaves it.
+
 ## 1.41.0 — 2026-10-09
 
 ### Added: four radio helpers

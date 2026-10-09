@@ -1091,6 +1091,8 @@ function tunerPlay(f){
 function retune(khz, mode, presetId){
   touch();
   if(mode && mode !== T.mode) bwFor(mode);
+  var fresh = !!presetId && presetId !== T.preset;      // a preset just chosen, not a retune within it
+  if(T.probe && T.probe.p.id !== presetId) probeStop(); // tuning away by any means (waterfall, SEEK, keys, scroll) ends the search
   T.khz = Math.max(10, Math.min(30000, +khz || T.khz)); T.mode = mode || T.mode; T.preset = presetId || null;
   var pp = presetOf(T.preset);
   T.pbFix = pp && pp.pb ? pp.pb : null;
@@ -1104,13 +1106,16 @@ function retune(khz, mode, presetId){
   $('tuNote').textContent = p ? p.note + guideNote(p) + farNote(p) : '';
   if(!T.ws || !T.live){ return; }
   /* a preset's best receiver may be another one: on "best for the channel",
-     move when the current one is far from the transmitter */
-  if(p && $('tuRx').value === 'auto' && !T.scan){
+     move when the current one is far from the transmitter. Only when the
+     preset is first chosen: a retune within it (SNAP, LISTEN, the mode)
+     never moves the receiver, so nothing undoes the picker's choice or
+     goes back to a receiver that has just refused. */
+  if(p && fresh && $('tuRx').value === 'auto' && !T.scan && !T.probe){
     var best = rankedFor(p)[0];
-    if(best && best.host !== T.rx.host && T.rx.lat != null && best.lat != null &&
+    if(best && best.host !== T.rx.host && T.tried.indexOf(best.host) < 0 && T.rx.lat != null && best.lat != null &&
        (km(p.near, [T.rx.lat, T.rx.lon]) > km(p.near, [best.lat, best.lon]) + 1500 ||
         (T.region && regionOf(T.rx.lat, T.rx.lon) !== T.region && regionOf(best.lat, best.lon) === T.region))){
-      T.tried = []; connect(best); return;
+      connect(best); return;
     }
   }
   T.ws.send(tuneMsg()); T.rssi = []; T.next = 0; TX.fill = 0;       // a transcript clip is one channel
@@ -2117,6 +2122,8 @@ function probeGo(){
   P.timer = setTimeout(function(){
     if(T.probe !== P) return;
     var q = T.live && T.rx === rx ? probeMeasure(P.p.dec) : null;
+    var F = DX.dec.fax;                                  // a chart visibly coming in is never left for another receiver
+    if(q != null && P.p.dec === 'fax' && F && F.rhythm != null && F.rhythm >= 0.5) q = Math.max(q, PROBE_GOOD.fax);
     if(q != null && q >= PROBE_GOOD[P.p.dec]){ P.res.push({rx:rx, q:q}); return probeDone(); }   // good enough: stop here, no more switching
     probeNext(rx, q);
   }, PROBE_SEC*1000 + (here ? 500 : 2500));        // connecting takes a second or two
