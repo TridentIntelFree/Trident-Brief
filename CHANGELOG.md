@@ -4,6 +4,26 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.36.1 — 2026-10-09
+
+### Fixed: the app freezing after a while
+- **The globe kept the phone busy all the time, even off screen.** The 3D
+  globe drew every frame without stopping, and the positions of all
+  ~32,000 tracked satellites, rocket bodies and debris were worked out
+  every 2 seconds, even with those layers off. On an iPhone that builds up
+  until the page's drawing freezes and only a restart helps.
+- **Now the globe draws only while it can be seen:** on screen, its section
+  open, the app in front. Satellite positions are worked out only while one
+  of their layers is on and the globe is visible. Aircraft and ISS updates
+  pause while the app is in the background.
+- **Measured:** with the globe open and scrolled away, the page's
+  main-thread work fell from about 1,000 ms per second (fully busy) to
+  4 ms. It is 0 with the globe folded. On screen it runs as before, and it
+  wakes and turns again when you scroll back.
+- **If the phone takes the 3D drawing surface away anyway** (iOS does this
+  when memory runs short), the globe now switches to its 2D renderer and
+  says so, instead of freezing. Reopening the app brings 3D back.
+
 ## 1.36.0 — 2026-10-09
 
 ### Added: SSTV presets find the picture
