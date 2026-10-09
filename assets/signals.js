@@ -694,8 +694,13 @@ var PRESETS = [
     out.push({id:id, grp:grp, dec:'fax', pb:[1100, 2700], name:name + ' ' + listed, khz:Math.round((listed - 1.9)*10)/10, mode:'usb', near:near, note:note});
   }
   function sstv(grp, id, khz, mode, near, note){ out.push({id:id, grp:grp, dec:'sstv', pb:[900, 2700], name:'SSTV ' + khz, khz:khz, mode:mode, near:near, note:note}); }
+  function faxd(grp, id, name, dial, near, note){          // where only the USB dial frequency is published
+    out.push({id:id, grp:grp, dec:'fax', pb:[1100, 2700], name:name + ' ' + dial, khz:dial, mode:'usb', near:near, note:note});
+  }
+  function bc(grp, id, name, khz, near, note){ out.push({id:id, grp:grp, world:true, name:name, khz:khz, mode:'am', near:near, note:note}); }
   function rtty(grp, id, name, listed, near, note){ out.push({id:id, grp:grp, dec:'rtty', pb:[900, 2100], name:name + ' ' + listed, khz:Math.round((listed - 1.5)*10)/10, mode:'usb', near:near, note:note}); }
-  var NA = 'Weather fax: North America', EU = 'Weather fax: Europe', AP = 'Weather fax: Asia and Pacific', SV = 'SSTV: amateur pictures', RT = 'RTTY: weather by teleprinter';
+  var KC = 'Weather fax: Korea, China and Taiwan', RU = 'Weather fax: Russia', AM = 'Weather fax: Africa and the Middle East';
+  var NA = 'Weather fax: North America', EU = 'Weather fax: Europe', AP = 'Weather fax: Japan, Australia and New Zealand', SV = 'SSTV: amateur pictures', RT = 'RTTY: weather by teleprinter';
   var BOS = [41.7, -70.5], NOR = [29.9, -90.1], PTR = [38.0, -122.9], KOD = [57.8, -152.4], HAL = [44.7, -63.6], HON = [21.4, -158.0];
   fax(NA, 'fxb4', 'Boston', 4235, BOS, 'US Coast Guard Boston (NMF), North Atlantic charts: best at night.');
   fax(NA, 'fxb6', 'Boston', 6340.5, BOS, 'US Coast Guard Boston (NMF): evening and night.');
@@ -729,6 +734,41 @@ var PRESETS = [
   fax(AP, 'fxvmw10', 'Australia W', 10555, VMW, 'Bureau of Meteorology, Wiluna (VMW): Indian Ocean and Australian charts.');
   fax(AP, 'fxzk9', 'New Zealand', 9459, ZKLF, 'MetService Wellington (ZKLF): South Pacific charts.');
   fax(AP, 'fxzk13', 'New Zealand', 13550.5, ZKLF, 'MetService Wellington (ZKLF).');
+  var HLL = [37.5, 126.9], BAF = [39.9, 116.4], XSG = [31.2, 121.5], BMF = [25.0, 121.5];
+  fax(KC, 'fxhll13', 'Seoul', 13570, HLL, 'Korea Meteorological Administration (HLL2): Korean and NW Pacific charts and typhoon tracks. Heard as far as Brazil in Oct 2025. Four of its five frequencies are on at a time.');
+  fax(KC, 'fxhll9', 'Seoul', 9165, HLL, 'Korea Meteorological Administration (HLL2).');
+  fax(KC, 'fxhll7', 'Seoul', 7433.5, HLL, 'Korea Meteorological Administration (HLL2).');
+  fax(KC, 'fxhll5', 'Seoul', 5857.5, HLL, 'Korea Meteorological Administration (HLL2): night there.');
+  fax(KC, 'fxhll3', 'Seoul', 3585, HLL, 'Korea Meteorological Administration (HLL2): night there (12-24 UTC).');
+  fax(KC, 'fxbaf10', 'Beijing', 10116.9, BAF, 'Beijing Meteorological (BAF): Chinese and Asian charts.');
+  fax(KC, 'fxbaf14', 'Beijing', 14366.9, BAF, 'Beijing Meteorological (BAF): daytime there.');
+  fax(KC, 'fxbaf8', 'Beijing', 8121.9, BAF, 'Beijing Meteorological (BAF).');
+  fax(KC, 'fxbaf5', 'Beijing', 5526.9, BAF, 'Beijing Meteorological (BAF): night there.');
+  fax(KC, 'fxxsg12', 'Shanghai', 12382, XSG, 'Shanghai Meteorological (XSG): East China Sea and NW Pacific charts. Heard in Brazil in Oct 2025.');
+  fax(KC, 'fxxsg8', 'Shanghai', 8302, XSG, 'Shanghai Meteorological (XSG).');
+  fax(KC, 'fxxsg16', 'Shanghai', 16559, XSG, 'Shanghai Meteorological (XSG): daytime there.');
+  fax(KC, 'fxxsg4', 'Shanghai', 4170, XSG, 'Shanghai Meteorological (XSG): night there.');
+  fax(KC, 'fxbmf8', 'Taipei', 8140, BMF, 'Taiwan (BMF): older listings; recent reception not confirmed.');
+  fax(KC, 'fxbmf13', 'Taipei', 13900, BMF, 'Taiwan (BMF): older listings; recent reception not confirmed.');
+  var MUR = [68.97, 33.08], VAN = [49.09, 140.26];
+  faxd(RU, 'fxmur6', 'Murmansk', 6328.5, MUR, 'Murmansk meteo fax (RBW): Arctic and North Atlantic charts at set times, listed 03:30, 10:30, 13:30, 14:45 and 20:00. Listed as the USB dial frequency.');
+  faxd(RU, 'fxmur8', 'Murmansk', 8444, MUR, 'Murmansk meteo fax (RBW): the same set times. Listed as the USB dial frequency.');
+  faxd(RU, 'fxvan6', 'Vanino', 6455, VAN, 'Vanino Radio, Russian Far East: Sea of Okhotsk and Sea of Japan charts. Reported received on this USB dial frequency.');
+  var ZSJ = [-34.19, 18.43], DAK = [14.7, -17.45], GYAp = [51.63, -0.42];
+  fax(AM, 'fxzsj7', 'South Africa', 7508, ZSJ, 'Cape Naval Radio (ZSJ), Simon\u2019s Town: South Atlantic and Indian Ocean charts. In the published schedules; recent reception reports are scarce.');
+  fax(AM, 'fxzsj13', 'South Africa', 13538, ZSJ, 'Cape Naval Radio (ZSJ): daytime. In the published schedules; recent reception reports are scarce.');
+  fax(AM, 'fxzsj4', 'South Africa', 4014, ZSJ, 'Cape Naval Radio (ZSJ): night there (16-06 UTC), when available.');
+  fax(AM, 'fxdak13', 'Senegal', 13667.5, DAK, 'Dakar Meteo (6VU): West African and tropical Atlantic charts. Older listing; recent reception not confirmed.');
+  fax(AM, 'fxgyapg', 'Persian Gulf', 14436, GYAp, 'Northwood\u2019s Persian Gulf charts (GYA), sent from the UK: reported off air in 2019, kept in case it returns. For Middle East and Mediterranean weather, the German and UK charts cover the Mediterranean.');
+  var BA = 'Broadcast radio: Africa', BM = 'Broadcast radio: Middle East', BK = 'Broadcast radio: Korea and China';
+  bc(BA, 'bcfana', 'Radio Fana, Ethiopia', 6110, [9.0, 38.75], 'Radio Fana from Addis Ababa: East African music and talk in Amharic and other languages. Logged in Aug 2026 around 19:50-20:10 UTC.');
+  bc(BA, 'bcmali6', 'Radio Mali', 5995, [12.65, -8.0], 'ORTM Radio Mali from Bamako: logged in Aug 2026 around 18:00 UTC.');
+  bc(BA, 'bcmali9', 'Radio Mali', 9635, [12.65, -8.0], 'ORTM Radio Mali: reported 08:00-18:00 UTC in Feb 2026.');
+  bc(BM, 'bckuw', 'Radio Kuwait', 7250, [29.4, 47.9], 'Radio Kuwait: heard in June 2026, signing off around 10:00 UTC.');
+  bc(BK, 'bcvok13', 'Voice of Korea', 13760, [39.9, 126.0], 'North Korea\u2019s international service from Kujang: English at 04:00 UTC on 11735, 13760 and 15180 kHz this season.');
+  bc(BK, 'bcvok15', 'Voice of Korea', 15180, [39.9, 126.0], 'Voice of Korea (North Korea): 15179.95 kHz this season.');
+  bc(BK, 'bcvok9', 'Voice of Korea', 9890, [39.9, 126.0], 'Voice of Korea (North Korea): its Middle East and North Africa service at 16:00 UTC on 9890 and 11645 kHz.');
+  bc(BK, 'bccnr7', 'China National Radio', 7305, [39.9, 116.4], 'CNR 1, the Voice of China, in Mandarin: many hours a day on this frequency this season, including 20:23-22:00 UTC.');
   var USA = [38, -81], EUR = [51, 8], WORLD = [38, -81];
   sstv(SV, 'sv14a', 14230, 'usb', WORLD, 'The busiest SSTV calling frequency, worldwide (20 m): mostly daylight and weekends. SNAP tunes onto pictures sent a few kHz off.');
   sstv(SV, 'sv14b', 14233, 'usb', WORLD, 'The second 20 m SSTV frequency, for when 14230 is busy.');
@@ -742,7 +782,7 @@ var PRESETS = [
   rtty(RT, 'rtdwd147', 'Germany', 147.3, DWD, 'German Weather Service (DDH47) on long wave: Europe only, day and night.');
   return out;
 })());
-var SCAN = PRESETS.filter(function(p){ return !p.dec; });       // SCAN visits the listening presets only
+var SCAN = PRESETS.filter(function(p){ return !p.dec && !p.world; });       // SCAN visits the listening presets only
 var PASS = {usb:[300, 2700], lsb:[-2700, -300], am:[-4900, 4900], cw:[300, 800]};
 var STEP = [7,8,9,10,11,12,13,14,16,17,19,21,23,25,28,31,34,37,41,45,50,55,60,66,73,80,88,97,107,118,130,143,
   157,173,190,209,230,253,279,307,337,371,408,449,494,544,598,658,724,796,876,963,1060,1166,1282,1411,1552,
@@ -804,6 +844,16 @@ function ranked(near){
     if(R){ var ra = regionOf(a.lat, a.lon) === R, rb = regionOf(b.lat, b.lon) === R; if(ra !== rb) return ra ? -1 : 1; }
     return (a.lat == null ? 1e9 : km(near, [a.lat, a.lon])) - (b.lat == null ? 1e9 : km(near, [b.lat, b.lon]));
   });
+}
+/* the tuner reaches only HTTPS receivers (mostly Europe and the Americas):
+   say so when the nearest is far from the station */
+function farNote(p){
+  var best = null, d = 1e9;
+  T.list.forEach(function(r){ if(r.lat == null) return; var k = km(p.near, [r.lat, r.lon]); if(k < d){ d = k; best = r; } });
+  if(!best || d < 4000) return '';
+  var reg = regionOf(p.near[0], p.near[1]);
+  return ' The nearest receiver this page can use is ' + Math.round(d/100)*100 + ' km from the station (' + (best.loc || best.host) + '): fine for a strong signal at the right hour.' +
+         (reg ? ' For receivers nearer it, choose region ' + regionName(reg) + ': they open on their own pages.' : '');
 }
 function presetOf(id){ return PRESETS.filter(function(p){ return p.id === id; })[0]; }
 function tuneMsg(){
@@ -965,7 +1015,7 @@ function retune(khz, mode, presetId){
   $('tuKhz').value = +T.khz.toFixed(3); $('tuMode').value = T.mode;
   BAND.querySelectorAll('.tu-p').forEach(function(b){ b.classList.toggle('on', b.dataset.p === T.preset); });
   var p = presetOf(T.preset);
-  $('tuNote').textContent = p ? p.note : '';
+  $('tuNote').textContent = p ? p.note + farNote(p) : '';
   if(!T.ws || !T.live){ return; }
   /* a preset's best receiver may be another one: on "best for the channel",
      move when the current one is far from the transmitter */
@@ -1677,12 +1727,13 @@ function wireTuner(){
   $('tuPresets').innerHTML = SCAN.map(btn).join('');
   var pp = $('tuPresetsPic');
   if(pp){
-    var pics = PRESETS.filter(function(p){ return p.dec; }), groups = [];
+    var pics = PRESETS.filter(function(p){ return p.dec || p.world; }), groups = [];
     pics.forEach(function(p){ if(groups.indexOf(p.grp) < 0) groups.push(p.grp); });
-    pp.innerHTML = '<details id="tuPicList"><summary class="sig-h">PICTURES &amp; TEXT, WORLDWIDE: weather fax, SSTV, RTTY (' + pics.length + ')</summary>' +
+    groups.sort(function(a, b){ return /^Broadcast/.test(a) - /^Broadcast/.test(b); });     // sound-only stations last
+    pp.innerHTML = '<details id="tuPicList"><summary class="sig-h">WORLDWIDE: weather fax, SSTV, RTTY and broadcasts (' + pics.length + ')</summary>' +
       groups.map(function(g){ return '<div class="tu-pgrp"><div class="sig-small">' + esc(g.toUpperCase()) + '</div><div class="tu-presets">' +
         pics.filter(function(p){ return p.grp === g; }).map(btn).join('') + '</div></div>'; }).join('') +
-      '<div class="sig-small">Fax buttons show the station\u2019s listed frequency; the tuner sits 1.9 kHz below it, as fax needs. Schedules change: a silent one may be between broadcasts.</div></details>';
+      '<div class="sig-small">Fax buttons show the station\u2019s listed frequency; the tuner sits 1.9 kHz below it, as fax needs. Schedules change: a silent one may be between broadcasts. Notes say which were heard recently and which are only listed.</div></details>';
     var dl = $('tuPicList');
     try{ dl.open = localStorage.getItem('sig_piclist') === '1'; }catch(_){}
     dl.addEventListener('toggle', function(){ try{ localStorage.setItem('sig_piclist', dl.open ? '1' : '0'); }catch(_){} });
