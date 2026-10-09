@@ -37,6 +37,19 @@ nothing tries.
   if the start was missed. Each line is re-aligned on its sync pulse, so a
   slightly fast or slow receiver does not slant the picture. Pictures
   received stay in a gallery on the page.
+- **Picture & text presets** (a second row under the presets) tune
+  straight to stations that send pictures or text, and start the decoder
+  that reads them:
+  - weather fax: US Coast Guard Boston (4235, 6340.5, 9110, 12750 kHz),
+    New Orleans (8503.9), Point Reyes (8682), and the German Weather
+    Service (7880);
+  - SSTV: the amateur calling frequencies 14230, 14233, 7171, 3845 and
+    28680 kHz;
+  - RTTY: the German Weather Service's teleprinter on 10100.8 and 4583 kHz.
+
+  Fax is tuned 1.9 kHz below the listed frequency, as the stations expect,
+  and a receiver near each station is picked. SCAN still visits only the
+  listening presets.
 - **Morse to text** has moved into the same panel, and now also works on a
   shared tab, the microphone or a recording.
 - **PICTURE VIEW** makes the analyzer slow and tall, for pictures and words

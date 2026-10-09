@@ -452,6 +452,7 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 .sig-live{margin-bottom:14px}
 .tu{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;margin:4px 0 14px;background:rgba(15,23,48,.55)}
 .tu-presets{display:flex;flex-wrap:wrap;gap:5px}
+.tu-presets-pic{margin-top:5px;align-items:center}.tu-presets-pic .sig-small{margin-right:4px;letter-spacing:.06em}
 .tu-p span{font-family:var(--mono);opacity:.7;font-size:.85em;margin-left:3px}
 .tu-p.on{border-color:var(--cyan);color:#fff;background:rgba(34,211,238,.14)}
 .tu-note{min-height:1.2em;margin:6px 0 2px}
@@ -1365,6 +1366,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     </div>
     <div class="tu" id="sigTuner">
       <div class="tu-presets" id="tuPresets"></div>
+      <div class="tu-presets tu-presets-pic" id="tuPresetsPic"></div>
       <div class="tu-note sig-small" id="tuNote"></div>
       <div class="tu-row">
         <label>kHz <input id="tuKhz" type="number" inputmode="decimal" step="0.01" min="10" max="30000" value="4625"></label>
