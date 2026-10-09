@@ -4,6 +4,61 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.39.2 — 2026-10-09
+
+### Fixed: weak fax charts came out slanted and speckled
+- A new test bench, `tests/fax_bench.js`, sends a synthetic weather chart as
+  a real 120-lines-a-minute fax with HF trouble added:
+  - noise down to 0 dB;
+  - fading;
+  - an echo;
+  - static crashes;
+  - mistuning;
+  - a receiver clock error;
+  - joining part way through.
+  It decodes with the page's decoder and scores the result against the
+  original (1 = perfect).
+- **Slant from noisy phasing lines.** At about 8 dB the slant fitted from the
+  phasing lines could be wrong by 35 dots across a chart, and nothing
+  re-checked it. Now:
+  - each phasing pulse is found by its width, not by a run of bright dots that
+    noise breaks up;
+  - the fit drops the lines noise threw off;
+  - the chart itself can overrule the phasing fit, but only when two
+    readings in a row agree.
+- **Slant when joining mid-chart.** This was measured by correlating lines
+  eight apart, which sloping isobars and coasts could pull off. Now it is
+  the slant that makes the chart's columns sharpest when about 80 lines are
+  stacked: borders, margins and the latitude and longitude grid line up only
+  at the true slant.
+  - The search covers a realistic range, half a dot a line.
+  - Phasing lines are left out of the measurement.
+  - Dot-level hatching is smoothed out first, so it cannot fake a column.
+- **Speckle.** The detector now adds each dot's phase steps as vectors before
+  taking the angle. When noise swamps the signal for a moment those vectors
+  are short and count for little, so a weak chart gets fine grain instead of
+  black-and-white speckle.
+- **Scores, old → new:**
+
+  | Case | Old | New |
+  |---|---|---|
+  | 8 dB | 0.58 | 0.94 |
+  | 5 dB | 0.68 | 0.90 |
+  | 3 dB | 0.77 | 0.83 |
+  | 0 dB | 0.33 | 0.62 |
+  | Fading | 0.74 | 0.90 |
+  | Echo | 0.73 | 0.94 |
+  | 250 Hz off | 0.72 | 0.94 |
+  | Clock error | 0.64 | 0.87 |
+  | Joined mid-chart | 0.83 | 0.96 |
+  | Joined mid-chart, 6 dB | 0.74 | 0.92 |
+  | Joined mid-chart, fading | 0.63 | 0.87 |
+
+  No case got worse.
+- Checked in the page too: a weak, fading recording joined mid-chart, with a
+  receiver clock off by 200 ppm, comes out straight ("straightened 200 ppm").
+- Runs on the device; no new contacts, no cost.
+
 ## 1.39.1 — 2026-10-09
 
 ### Fixed: receiver regions near the Mediterranean
