@@ -4,6 +4,79 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.34.0 — 2026-10-09
+
+### Added: identify and decode, in the radio section
+A new IDENTIFY & DECODE panel under the tuner. It works on whatever you are
+hearing: the live tuner, a shared tab, the microphone, or a recording you
+open. Everything runs on your device, and nothing is sent anywhere. Only
+modes sent in the clear are decoded; encrypted traffic cannot be read, and
+nothing tries.
+- **WHAT IS THIS?** measures the last 8 seconds and gives the likely
+  matches, with an honest confidence (likely, possible, a guess) and the
+  reasons. It measures:
+  - how wide the signal is;
+  - how many tones it uses and how far apart;
+  - how fast it changes;
+  - whether it is keyed on and off, sweeps, pulses or holds steady;
+  - whether it is a tone sliding the way pictures are sent.
+
+  It weighs those with the frequency against about 60 known stations (time
+  signals, weather fax and RTTY, the Russian markers, US Air Force HFGCS,
+  VOLMET, beacons, FT8, the SSTV calling frequencies) and the band plan. Each
+  match has a DECODE IT button where a decoder exists, and a link to hear
+  samples on the Signal Identification Wiki.
+- **RTTY to text.** It finds the two tones itself (170, 425, 450 or 850 Hz
+  apart). It tries 45.45, 50 and 75 baud and both tone orders at once, and
+  keeps whichever reads as text. Save or copy the text.
+- **Weather fax to a picture.** The start tone begins a new chart, and the
+  phasing lines line it up and straighten its slant. SHIFT and the lean
+  buttons fix a chart joined part way. Save as PNG.
+- **SSTV to a picture.** Martin 1 and 2, Scottie 1, 2 and DX, Robot 36 and
+  72, and PD 50 to PD 290, started by the picture's own VIS code, or by hand
+  if the start was missed. Each line is re-aligned on its sync pulse, so a
+  slightly fast or slow receiver does not slant the picture. Pictures
+  received stay in a gallery on the page.
+- **Morse to text** has moved into the same panel, and now also works on a
+  shared tab, the microphone or a recording.
+- **PICTURE VIEW** makes the analyzer slow and tall, for pictures and words
+  drawn straight into a signal.
+- **"New to radio? What am I looking at?"**: a short guide to the waterfall,
+  the shapes signals make, sidebands, and what decoding legally means.
+- Tested on synthesized signals with noise and clock error: RTTY decoded
+  100% in four set-ups, fax and four SSTV formats came out clean, and the
+  identifier named all 14 kinds of test signal correctly. Real signals
+  fade and overlap, so expect errors on weak ones.
+- Cost: none. No model, no new site contacted by the page.
+
+### Fixed: the radio after scrolling around
+- **Scrolling past the radio no longer retunes it.** The waterfall used to
+  stop the page scrolling under a finger and count lifting the finger as a
+  tap, so it retuned to wherever your thumb was. On a computer, the mouse
+  wheel over it retuned too. Now:
+  - a vertical swipe scrolls the page;
+  - only a sideways drag moves the band;
+  - only a short, still tap tunes;
+  - the wheel tunes only after you click into the waterfall (or with
+    Shift held).
+- **The pictures pause while the radio is off screen.** The sound and the
+  decoders keep running. They are measured and redrawn when you come back,
+  so they are no longer drawn at the wrong size after the section was
+  folded or out of view.
+
+### Fixed: Whisper transcripts
+- **Delete them:** each transcript has a ✕, and there is CLEAR ALL. Deleting
+  also removes its line from the detections list.
+- **No more hundreds of repeats.** Getting stuck on one phrase is a known
+  Whisper failure. It is now kept in check three ways:
+  - Whisper may only write as much as the clip's length allows;
+  - if it still loops, it tries once more in its timestamp mode with a
+    repetition penalty;
+  - any repeat left over is folded to one copy marked ×N, with a plain note
+    that it got stuck.
+
+  A message read twice on purpose is left alone.
+
 ## 1.33.3 — 2026-10-09
 
 ### Changed: Tazewell's space-weather guide is hidden with the Tazewell report
