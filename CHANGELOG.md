@@ -4,6 +4,22 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.36.2 — 2026-10-09
+
+### Added: the fax status says whether the signal is good enough
+- **Signal:** how far the fax tones stand above the noise just outside
+  them, as strong, fair or weak, in dB.
+- **Line beat:** whether the sound has a fax's steady half-second line
+  rhythm.
+  - With a strong signal and no beat, it says it is probably not a fax.
+  - With a weak signal and no beat, it says the chart is lost in the noise,
+    and to try another receiver.
+- So a speckled, mostly white chart can now be told apart from a decoder
+  problem: it is a weak signal with the chart's white background getting
+  through.
+- Tested on a strong chart (strong, clear), weak and very weak charts (weak,
+  lost in the noise) and RTTY tones (strong, probably not a fax).
+
 ## 1.36.1 — 2026-10-09
 
 ### Fixed: the app freezing after a while

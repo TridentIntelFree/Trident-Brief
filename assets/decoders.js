@@ -265,6 +265,10 @@ function fax(sr, opts){
     }
     tuning();
     ticks++;
+    if(ticks % 20 === 0 && F.n - F.base > RATE*12){   // does it beat like a fax line? (0-1)
+      var len = Math.round(RATE*10), fr = F.n - len - Math.ceil(F.Ld*(1 + F.slant)) - 2;
+      if(fr > 0) F.rhythm = Math.max(0, corr(F.Ld*(1 + F.slant), fr, len));
+    }
     var lines = (F.n - F.base)/F.Ld;
     if(!phasing && F.autoLpm && F.lpmFrom !== 'phasing' && lines >= 24 && ticks % 40 === 0) checkLpm();
     if(!phasing && F.slantFrom !== 'phasing' && lines >= 40 && ticks % 30 === 0) checkSlant();
@@ -323,6 +327,11 @@ function fax(sr, opts){
       return {f:(bi + (d < 0 ? 0.5*(y0 - y2)/d : 0))*hz, p:y1};
     }
     var med = median(psd.subarray(Math.ceil(400/hz), Math.floor(3400/hz))) || 1e-20;
+    /* how clear the signal is: the fax band (black to white, as tuned) against
+       the noise just outside it, still inside the receiver's filter */
+    function band(lo, hi){ var a = 0, n = 0; for(var k = Math.ceil(lo/hz); k <= Math.floor(hi/hz); k++){ a += psd[k]; n++; } return n ? a/n : 0; }
+    var o = F.off, inb = band(1500 + o, 2300 + o), outb = (band(1150 + o, 1400 + o) + band(2420 + o, 2650 + o))/2;
+    if(outb > 0) F.snr = Math.round(10*Math.log10(inb/outb));
     var w = peak(1650, 2750), bk = peak(1150, 1850), est = null;
     if(w.p > 8*med && bk.p > 8*med && Math.abs(w.f - bk.f - 800) < 60) est = (w.f + bk.f)/2 - 1900;
     else if(phasing && bk.p > 15*med) est = bk.f - 1500;
@@ -422,6 +431,13 @@ function fax(sr, opts){
     F.offset += best.mid*F.Ld*(1 + F.slant)/W;
     if(F.onstart) F.onstart(F);
     return true;
+  };
+  F.quality = function(){
+    var b = [];
+    if(F.snr != null) b.push('signal ' + (F.snr >= 15 ? 'strong' : F.snr >= 8 ? 'fair' : 'weak') + ' (' + F.snr + ' dB over the noise)');
+    if(F.rhythm != null) b.push('line beat ' + (F.rhythm >= 0.5 ? 'clear' : F.rhythm >= 0.25 ? 'faint' :
+      F.snr != null && F.snr >= 8 ? 'none: probably not a fax' : 'none: lost in the noise (try another receiver)'));
+    return b.join(' · ');
   };
   F.tuning = function(){
     if(!F.offSeen) return '';
