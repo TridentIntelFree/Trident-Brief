@@ -686,20 +686,20 @@ var PRESETS = [
   /* pictures and text: each tunes where the decoder wants it and starts that
      decoder. Fax is tuned USB 1.9 kHz below the listed frequency, so the
      picture tones sit at 1500-2300 Hz; RTTY so its tones sit near 1500 Hz. */
-  {id:'fxb4', dec:'fax', name:'Fax Boston', khz:4233.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) weather charts on 4235 kHz: best at night. Charts go out most hours; a new one starts on its own.'},
-  {id:'fxb6', dec:'fax', name:'Fax Boston', khz:6338.6, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 6340.5 kHz: evening and night.'},
-  {id:'fxb9', dec:'fax', name:'Fax Boston', khz:9108.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 9110 kHz: day and evening.'},
-  {id:'fxb12', dec:'fax', name:'Fax Boston', khz:12748.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 12750 kHz: daytime.'},
-  {id:'fxno', dec:'fax', name:'Fax New Orleans', khz:8502.0, mode:'usb', near:[29.9, -90.1], note:'US Coast Guard New Orleans (NMG) on 8503.9 kHz: Gulf and Atlantic weather charts.'},
-  {id:'fxpr', dec:'fax', name:'Fax Pt Reyes', khz:8680.1, mode:'usb', near:[38.0, -122.9], note:'US Coast Guard Point Reyes (NMC) on 8682 kHz: Pacific weather charts.'},
-  {id:'fxdwd', dec:'fax', name:'Fax Germany', khz:7878.1, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK3) on 7880 kHz: European and Atlantic charts.'},
-  {id:'sv14a', dec:'sstv', name:'SSTV', khz:14230, mode:'usb', near:[38, -81], note:'The busiest SSTV calling frequency (20 m): amateurs swap pictures, mostly in daylight and at weekends.'},
-  {id:'sv14b', dec:'sstv', name:'SSTV', khz:14233, mode:'usb', near:[38, -81], note:'The second 20 m SSTV frequency, for when 14230 is busy.'},
-  {id:'sv7', dec:'sstv', name:'SSTV', khz:7171, mode:'lsb', near:[38, -81], note:'40 m SSTV, lower sideband: late afternoon and evening.'},
-  {id:'sv3', dec:'sstv', name:'SSTV', khz:3845, mode:'lsb', near:[38, -81], note:'80 m SSTV, lower sideband: evenings and night, nearer stations.'},
-  {id:'sv28', dec:'sstv', name:'SSTV', khz:28680, mode:'usb', near:[38, -81], note:'10 m SSTV: only when the band is open, around midday in good sun years.'},
-  {id:'rtdwd', dec:'rtty', name:'RTTY weather', khz:10099.3, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK9) on 10100.8 kHz: weather reports by teleprinter round the clock, 50 baud. A good first test of the RTTY decoder.'},
-  {id:'rtdwd4', dec:'rtty', name:'RTTY weather', khz:4581.5, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK2) on 4583 kHz: the night frequency.'}
+  {id:'fxb4', dec:'fax', pb:[1100, 2700], name:'Fax Boston', khz:4233.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) weather charts on 4235 kHz: best at night. Charts go out most hours; a new one starts on its own.'},
+  {id:'fxb6', dec:'fax', pb:[1100, 2700], name:'Fax Boston', khz:6338.6, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 6340.5 kHz: evening and night.'},
+  {id:'fxb9', dec:'fax', pb:[1100, 2700], name:'Fax Boston', khz:9108.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 9110 kHz: day and evening.'},
+  {id:'fxb12', dec:'fax', pb:[1100, 2700], name:'Fax Boston', khz:12748.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 12750 kHz: daytime.'},
+  {id:'fxno', dec:'fax', pb:[1100, 2700], name:'Fax New Orleans', khz:8502.0, mode:'usb', near:[29.9, -90.1], note:'US Coast Guard New Orleans (NMG) on 8503.9 kHz: Gulf and Atlantic weather charts.'},
+  {id:'fxpr', dec:'fax', pb:[1100, 2700], name:'Fax Pt Reyes', khz:8680.1, mode:'usb', near:[38.0, -122.9], note:'US Coast Guard Point Reyes (NMC) on 8682 kHz: Pacific weather charts.'},
+  {id:'fxdwd', dec:'fax', pb:[1100, 2700], name:'Fax Germany', khz:7878.1, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK3) on 7880 kHz: European and Atlantic charts.'},
+  {id:'sv14a', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:14230, mode:'usb', near:[38, -81], note:'The busiest SSTV calling frequency (20 m): amateurs swap pictures, mostly in daylight and at weekends.'},
+  {id:'sv14b', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:14233, mode:'usb', near:[38, -81], note:'The second 20 m SSTV frequency, for when 14230 is busy.'},
+  {id:'sv7', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:7171, mode:'lsb', near:[38, -81], note:'40 m SSTV, lower sideband: late afternoon and evening.'},
+  {id:'sv3', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:3845, mode:'lsb', near:[38, -81], note:'80 m SSTV, lower sideband: evenings and night, nearer stations.'},
+  {id:'sv28', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:28680, mode:'usb', near:[38, -81], note:'10 m SSTV: only when the band is open, around midday in good sun years.'},
+  {id:'rtdwd', dec:'rtty', pb:[900, 2100], name:'RTTY weather', khz:10099.3, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK9) on 10100.8 kHz: weather reports by teleprinter round the clock, 50 baud. A good first test of the RTTY decoder.'},
+  {id:'rtdwd4', dec:'rtty', pb:[900, 2100], name:'RTTY weather', khz:4581.5, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK2) on 4583 kHz: the night frequency.'}
 ];
 var SCAN = PRESETS.filter(function(p){ return !p.dec; });       // SCAN visits the listening presets only
 var PASS = {usb:[300, 2700], lsb:[-2700, -300], am:[-4900, 4900], cw:[300, 800]};
@@ -891,6 +891,12 @@ function retune(khz, mode, presetId){
   touch();
   if(mode && mode !== T.mode) bwFor(mode);
   T.khz = Math.max(10, Math.min(30000, +khz || T.khz)); T.mode = mode || T.mode; T.preset = presetId || null;
+  var pp = presetOf(T.preset);
+  T.pbFix = pp && pp.pb ? pp.pb : null;
+  if(T.pbFix){                                   // show the width it set, and keep noise reduction off: it smears pictures
+    $('tuBw').value = ((T.pbFix[1] - T.pbFix[0])/1000).toFixed(1); $('tuBwV').textContent = $('tuBw').value + ' kHz';
+    if($('tuNr').value !== 'off'){ $('tuNr').value = 'off'; if(T.ws && T.live) dspMsgs().forEach(function(m){ T.ws.send(m); }); }
+  }
   $('tuKhz').value = +T.khz.toFixed(3); $('tuMode').value = T.mode;
   BAND.querySelectorAll('.tu-p').forEach(function(b){ b.classList.toggle('on', b.dataset.p === T.preset); });
   var p = presetOf(T.preset);
@@ -1137,6 +1143,9 @@ function bwFor(mode){                           // a sensible width for each mod
   $('tuBwV').textContent = (+bw.value).toFixed(1) + ' kHz';
 }
 function passband(){
+  /* a picture or text preset sets its filter edges exactly: fax needs 1500-2300
+     Hz with room for a tuning error, SSTV 1100-2300 Hz with the same */
+  if(T.pbFix && T.mode !== 'am' && T.mode !== 'cw') return T.mode === 'lsb' ? [-T.pbFix[1], -T.pbFix[0]] : T.pbFix.slice();
   var bw = +$('tuBw').value*1000 || 2400;
   if(T.mode === 'usb') return [300, 300 + bw];
   if(T.mode === 'lsb') return [-(300 + bw), -300];
@@ -1583,7 +1592,7 @@ function wireWaterfall(){
   $('tuStep').value = String(get('step', 1));
   $('tuStep').onchange = function(){ set('step', +this.value); };
   $('tuBw').oninput = function(){ $('tuBwV').textContent = (+this.value).toFixed(1) + ' kHz'; };
-  $('tuBw').onchange = applyDsp;
+  $('tuBw').onchange = function(){ T.pbFix = null; applyDsp(); };
   $('tuNr').onchange = applyDsp;
   cv.addEventListener('keydown', function(e){
     if(e.target.id !== 'tuWf') return;
@@ -1731,7 +1740,7 @@ function makeDec(k, sr){
   var D = D_(), d;
   if(k === 'rtty'){ d = D.rtty(sr, {usos:$('rtUsos').checked}); }
   else if(k === 'fax'){
-    d = D.fax(sr, {lpm:+$('fxLpm').value});
+    d = D.fax(sr, {lpm:$('fxLpm').value});
     d.onstart = function(){ fxClear(); };
     fxClear();
   } else {
@@ -1857,7 +1866,10 @@ function decPaint(){
   $('rtState').textContent = !DX.on.rtty ? 'off' : R ? R.state() + idle : 'starting' + idle;
   if(R){ var o = $('rtOut'), atEnd = o.scrollTop + o.clientHeight >= o.scrollHeight - 20; o.textContent = R.text(); if(atEnd) o.scrollTop = o.scrollHeight; }
   var F = DX.dec.fax;
-  $('fxState').textContent = !DX.on.fax ? 'off' : F ? F.status + ' · ' + F.lines() + ' lines' + (F.slant ? ' · straightened ' + Math.round(F.slant*1e6) + ' ppm' : '') + idle : 'starting' + idle;
+  $('fxState').textContent = !DX.on.fax ? 'off' : F ? F.status + ' · ' + F.lines() + ' lines' +
+    ' · ' + F.lpm + ' lines/min' + (F.lpmFrom === 'phasing' ? ' (from the phasing lines)' : F.lpmFrom === 'measured' ? ' (measured)' : '') +
+    (F.slant ? ' · straightened ' + Math.round(Math.abs(F.slant)*1e6) + ' ppm' : '') + (F.tuning() ? ' · ' + F.tuning() : '') +
+    (F.level < 1e-7 ? ' · no sound' : '') + idle : 'starting' + idle;
   if(F) fxDraw(false);
   var V = DX.dec.sstv;
   $('svState').textContent = !DX.on.sstv ? 'off' : V ? V.status + (V.mode ? ' · line ' + V.rows + ' of ' + V.mode.h : '') + idle : 'starting' + idle;
@@ -1879,7 +1891,8 @@ function wireDecoders(){
       (S.mode === 'tuner' ? T.khz + ' kHz\n\n' : '\n') + $('rtOut').textContent], {type:'text/plain'}));
     a.download = 'rtty-' + d + 'Z.txt'; document.body.appendChild(a); a.click(); a.remove();
   };
-  $('fxLpm').onchange = function(){ if(DX.on.fax){ delete DX.dec.fax; fxClear(); } };
+  $('fxLpm').onchange = function(){ if(DX.dec.fax) DX.dec.fax.setLpm(this.value); };
+  $('fxLine').onclick = function(){ var F = DX.dec.fax; if(F && !F.lineUp()) $('fxState').textContent = 'no border found to line up by: use SHIFT'; };
   $('fxNew').onclick = function(){ if(DX.dec.fax){ DX.dec.fax.reset(); fxClear(); } };
   function nudge(dOff, dSl){ var F = DX.dec.fax; if(!F) return; F.offset = ((F.offset + dOff) % F.W + F.W) % F.W; F.slant += dSl; fxDraw(true); decPaint(); }
   $('fxL').onclick = function(){ nudge(Math.round(904/40), 0); };
