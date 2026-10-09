@@ -293,6 +293,7 @@ function fax(sr, opts){
     if(!phasing && F.slantFrom === 'measured' && !F.lined && lines >= 80){ F.lined = true; if(F.lineUp()) F.status = 'lined up by the chart\u2019s border (a best guess: SHIFT if it is off)'; }
   }
   function startImage(){
+    if(F.onnew) F.onnew(F);                      // before the reset: the chart so far can still be kept
     F.base = F.n; F.offset = 0; F.slant = 0; F.slantFrom = ''; F.phEnd = null; F.prop = null; F.images++; F.status = 'start tone: a new chart';
     if(F.lpmFrom !== 'set') F.lpmFrom = '';
     phasing = {from:null};                       // phasing lines follow once the tone stops
@@ -1003,7 +1004,27 @@ function bandOf(khz){
   return BANDS.filter(function(b){ return khz >= b[0] && khz <= b[1]; }).map(function(b){ return b[2]; }).join(', ');
 }
 
-var API = {Decim:Decim, FM:FM, fftPow:fftPow, rtty:rtty, fax:fax, sstv:sstv, identify:identify, SSTV_MODES:SSTV_MODES,
+/* A clean-up for weak charts, for display: each dot becomes the median of
+   three dots in whichever direction (across, down or either diagonal) agrees
+   with it best. An isolated speck of noise disagrees in every direction and
+   goes; a one-dot line along any of them stays. up, line and down are three
+   neighbouring lines of W dots; the result goes into out. */
+function faxClean(up, line, down, out){
+  var W = line.length;
+  function m3(a, b, c){ return a > b ? (b > c ? b : a > c ? c : a) : (a > c ? a : b > c ? c : b); }
+  for(var x = 0; x < W; x++){
+    var l = x > 0 ? x - 1 : 0, r = x < W - 1 ? x + 1 : W - 1, v = line[x];
+    var c1 = m3(line[l], v, line[r]), c2 = m3(up[x], v, down[x]), c3 = m3(up[l], v, down[r]), c4 = m3(up[r], v, down[l]);
+    var best = c1, bd = Math.abs(c1 - v);
+    if(Math.abs(c2 - v) < bd){ best = c2; bd = Math.abs(c2 - v); }
+    if(Math.abs(c3 - v) < bd){ best = c3; bd = Math.abs(c3 - v); }
+    if(Math.abs(c4 - v) < bd){ best = c4; }
+    out[x] = best;
+  }
+  return out;
+}
+
+var API = {faxClean:faxClean, Decim:Decim, FM:FM, fftPow:fftPow, rtty:rtty, fax:fax, sstv:sstv, identify:identify, SSTV_MODES:SSTV_MODES,
            KNOWN:KNOWN, BANDS:BANDS, bandOf:bandOf, ITA2_L:ITA2_L, ITA2_F:ITA2_F};
 if(typeof module !== 'undefined' && module.exports) module.exports = API;
 else root.DECODERS = API;

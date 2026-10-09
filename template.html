@@ -456,6 +456,8 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 .tu-pgrp{margin:6px 0}.tu-pgrp > .sig-small{letter-spacing:.06em;margin-bottom:3px}
 .tu-p span{font-family:var(--mono);opacity:.7;font-size:.85em;margin-left:3px}
 .tu-p.on{border-color:var(--cyan);color:#fff;background:rgba(34,211,238,.14)}
+.tu-p.g0::before,.tu-p.g1::before,.tu-p.g2::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.tu-p.g2::before{background:#34d399}.tu-p.g1::before{background:#fbbf24}.tu-p.g0::before{background:#64748b}
 .tu-note{min-height:1.2em;margin:6px 0 2px}
 .tu-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:8px;font-size:.85em;color:var(--ink-dim)}
 .tu-row input[type=number]{width:7.5em;font-family:var(--mono);font-size:1.05em;background:#0b1328;color:#fff;border:1px solid var(--line2);border-radius:6px;padding:4px 6px}
@@ -474,6 +476,14 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
   padding:8px 10px;font-family:var(--mono);font-size:.82em;color:#e2e8f0;min-height:60px;margin:6px 0}
 .dec-pic{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:8px;background:#000;margin:6px 0}
 .dec-pic canvas{display:block;width:100%;height:auto;image-rendering:auto}
+.gal-box{margin:8px 0 12px}.gal-box summary{cursor:pointer}
+.gal-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:6px}
+.gal-list figure{margin:0;cursor:pointer;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#000}
+.gal-list img{display:block;width:100%;height:90px;object-fit:cover;object-position:top}
+.gal-list figcaption{font-size:.72em;color:var(--ink-dim);padding:3px 5px;background:var(--bg,#0b1020)}
+.gal-view{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:16px}
+.gal-view.open{display:flex}.gal-in{max-width:100%;max-height:100%;overflow:auto;text-align:center}
+.gal-in img{max-width:100%;height:auto;border:1px solid var(--line);background:#000}
 .dec-gal{display:flex;gap:6px;flex-wrap:wrap}.dec-gal img{height:72px;border:1px solid var(--line);border-radius:4px;cursor:pointer}
 .id-c{border:1px solid var(--line2);border-radius:9px;padding:7px 10px;margin:6px 0;background:rgba(15,23,48,.55);font-size:.86em;color:var(--ink-dim)}
 .id-c b{color:#fff}.id-c .w{font-family:var(--mono);font-size:.78em;letter-spacing:.06em;color:var(--cyan);margin-left:6px}
@@ -1095,7 +1105,9 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
             it may show other listeners a rough location worked out from it, next to the name &ldquo;Trident Brief listener&rdquo;. Nothing is recorded by this site.
             Choosing a region contacts no one: the list of the world&rsquo;s receivers is this site&rsquo;s own file. A receiver link from it opens that receiver&rsquo;s own
             page (often plain HTTP) only if you tap it; its owner then sees you as an ordinary visitor.</li>
-          <li><b>Identify and decode</b> (Morse, RTTY, weather fax, SSTV, WHAT IS THIS?): run on your device, on the audio you are already hearing, and contact no one. A Signal Identification Wiki link opens sigidwiki.com only if you tap it.</li>
+          <li><b>Identify and decode</b> (Morse, RTTY, weather fax, SSTV, WHAT IS THIS?): run on your device, on the audio you are already hearing, and contact no one.
+            Received charts and pictures are kept in this browser only (SAVED PICTURES, the newest 30); ERASE below removes them.
+            The &ldquo;try now&rdquo; marks on the presets are worked out on your device from the brief&rsquo;s own space-weather data. A Signal Identification Wiki link opens sigidwiki.com only if you tap it.</li>
           <li><b>Transcribe:</b> the speech model is downloaded once from jsDelivr and Hugging Face. The audio is transcribed on your device and never sent anywhere.</li>
           <li><b>Terrain, imagery and site weather:</b> public AWS open-data buckets (Sentinel-2, USGS elevation, terrain tiles) and Open-Meteo, for the place you picked.</li>
           <li><b>ZIP lookup:</b> zippopotam.us.</li>
@@ -1419,6 +1431,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <button class="ev-f" type="button" data-tab="rtty">RTTY</button>
           <button class="ev-f" type="button" data-tab="fax">WEATHER FAX</button>
           <button class="ev-f" type="button" data-tab="sstv">SSTV PICTURE</button>
+          <label class="sig-chk" title="two soft notes when a weather chart or SSTV picture starts"><input type="checkbox" id="decChime" checked> chime</label>
         </div>
         <div class="sig-small dec-src" id="decSrc">Works on what you are hearing: the tuner, a shared tab, the microphone, or a recording you open below.</div>
 
@@ -1465,6 +1478,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
             <span class="tu-steps"><button class="ev-f" id="fxL" type="button" title="move the chart left">&#9664; SHIFT</button><button class="ev-f" id="fxR" type="button" title="move the chart right">SHIFT &#9654;</button></span>
             <span class="tu-steps"><button class="ev-f" id="fxS1" type="button" title="straighten: lean the other way">&#10226;</button><button class="ev-f" id="fxS2" type="button" title="straighten: lean the other way">&#10227;</button></span>
             <button class="ev-f" id="fxSave" type="button">&#11015; PNG</button>
+            <label class="sig-chk" title="for line charts: removes noise specks and sharpens black and white; turn off for satellite pictures"><input type="checkbox" id="fxClean" checked> clean up</label>
           </div>
           <div class="sig-small" id="fxState">off</div>
           <div class="dec-pic"><canvas id="fxCv" width="904" height="300"></canvas></div>
@@ -1486,6 +1500,11 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         </div>
       </div>
     </div>
+    <details class="gal-box"><summary class="sig-h">SAVED PICTURES (<span id="galCount">0</span>): charts and SSTV, on this device only</summary>
+      <div class="gal-list" id="galList"></div>
+    </details>
+    <div class="gal-view" id="galView"><div class="gal-in"><img alt="saved picture"><div class="gal-cap sig-small"></div>
+      <div class="tu-row"><button class="ev-f" type="button" data-a="save">&#11015; SAVE</button><button class="ev-f" type="button" data-a="del">DELETE</button><button class="ev-f" type="button" data-a="close">CLOSE</button></div></div></div>
     <h4 class="sig-h">REPORTED BY RADIO MONITORS <span class="sig-small" id="sigReportsAt"></span></h4>
     <div class="sig-events" id="sigReports"><div class="sig-empty">Loading&hellip;</div></div>
 
@@ -8053,11 +8072,12 @@ function agoShort(ms){
   };
   document.getElementById('privErase').onclick = async function(){
     if(!confirm('Erase everything this site saved on this device? Settings, saved Morse logs, offline maps, ' +
-                'the offline copy, the speech model and any remembered key or token will be gone.')) return;
+                'the offline copy, saved radio pictures, the speech model and any remembered key or token will be gone.')) return;
     var mine = /^(trident_|sig_|bm_|ap_)/;
     [window.localStorage, window.sessionStorage].forEach(function(st){
       try{ Object.keys(st).forEach(function(k){ if(mine.test(k)) st.removeItem(k); }); }catch(_){}
     });
+    try{ if(window.indexedDB) indexedDB.deleteDatabase('sig_gallery'); }catch(_){}
     try{ if(window.caches){ var ks = await caches.keys();
       await Promise.all(ks.filter(function(k){ return /^tb-|^transformers-cache/.test(k); }).map(function(k){ return caches.delete(k); })); } }catch(_){}
     try{ if(navigator.serviceWorker){ var here = location.href.replace(/[^\/]*([?#].*)?$/, '');
