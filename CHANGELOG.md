@@ -4,6 +4,23 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.36.0 — 2026-10-09
+
+### Added: SSTV presets find the picture
+- **SNAP.** Amateurs seldom sit exactly on 14230 kHz; they spread over a
+  few kHz, and a picture 1.5 kHz off fell outside the tight filter. While
+  an SSTV preset waits for a picture, it reads the receiver's waterfall
+  within about 3.5 kHz for a steady block 0.5–1.4 kHz wide (a picture;
+  speech is wider and comes and goes). It then tunes so the picture lands
+  in the filter. It never moves during a picture, and each move is logged.
+  SNAP TO SIGNAL does it by hand.
+- **Picture presets zoom the waterfall** to about 15 kHz across, centred
+  where the picture sits, so the channel and its neighbours are easy to
+  see.
+- Tested on a synthetic waterfall: a steady picture 1.4 kHz off was found
+  and tuned to exactly, while a voice signal and an on-off signal were left
+  alone.
+
 ## 1.35.0 — 2026-10-09
 
 ### Changed: picture presets that just work

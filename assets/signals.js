@@ -1613,7 +1613,10 @@ function wireTuner(){
   if(pp) pp.innerHTML = '<span class="sig-small">PICTURES &amp; TEXT</span>' + PRESETS.filter(function(p){ return p.dec; }).map(btn).join('');
   BAND.querySelectorAll('.tu-p').forEach(function(b){
     b.onclick = function(){
-      var p = presetOf(b.dataset.p); retune(p.khz, p.mode, p.id); if(!T.ws) listen();
+      var p = presetOf(b.dataset.p);
+      if(p.dec === 'sstv' || p.dec === 'fax') WF.zoom = 11;   // about 15 kHz across: the channel and its neighbours
+      retune(p.khz, p.mode, p.id); if(!T.ws) listen();
+      if(p.dec === 'sstv' || p.dec === 'fax'){ if(WF.ws) wfView(p.khz + (p.mode === 'lsb' ? -1.9 : 1.9), 11); }
       if(p.dec){                                  // and the decoder that reads it, alone
         ['rtty', 'fax', 'sstv'].forEach(function(k){ if(k !== p.dec && DX.on[k]) decStart(k, false); });
         decTab(p.dec); if(!DX.on[p.dec]) decStart(p.dec, true);
@@ -1781,6 +1784,49 @@ function decFile(kind){
   return true;
 }
 
+
+/* SNAP: amateurs seldom sit exactly on 14230; they spread over a few kHz,
+   and a picture 1.5 kHz off falls outside the tight filter. Read the
+   receiver's waterfall within about 3.5 kHz of where a picture should sit for
+   a steady block 0.5-1.4 kHz wide (a picture; speech is wider and comes and
+   goes), and tune so its middle lands on 1900 Hz. Automatic while an SSTV
+   preset waits for a picture; never during one. */
+function snapFind(){
+  var rows = WF.rows.slice(-16); if(rows.length < 10 || WF.start == null) return null;
+  var kpb = WF.span/1024, side = T.mode === 'lsb' ? -1 : 1, exp = T.khz + side*1.9;
+  var avg = wfAvg(16), srt = Array.prototype.slice.call(avg, 8, 1016).sort(function(a, b){ return a - b; }), noise = srt[srt.length >> 1];
+  var win = Math.max(3, Math.round(0.8/kpb)), i0 = Math.max(0, Math.floor((exp - 3.5 - WF.start)/kpb)), i1 = Math.min(1023 - win, Math.ceil((exp + 3.5 - WF.start)/kpb));
+  var best = null;
+  for(var i = i0; i <= i1; i++){
+    var ex = 0; for(var k = i; k < i + win; k++) ex += avg[k] - noise; ex /= win;
+    if(!best || ex > best.ex) best = {i:i, ex:ex};
+  }
+  if(!best || best.ex < 6) return null;
+  /* steady: present in most of the rows */
+  var steady = rows.filter(function(r){ var e = 0; for(var k = best.i; k < best.i + win; k++) e += r[k] - noise; return e/win > 4; }).length;
+  if(steady < rows.length*0.75) return null;
+  /* shaped like a picture: the strong part 0.5-1.4 kHz wide */
+  var a = best.i, b = best.i + win - 1;
+  while(a > 0 && avg[a - 1] - noise > 6) a--;
+  while(b < 1023 && avg[b + 1] - noise > 6) b++;
+  var width = (b - a + 1)*kpb;
+  if(width < 0.5 || width > 1.4) return null;
+  var centre = WF.start + (a + b + 1)/2*kpb;
+  return {dial:Math.round((centre - side*1.9)*100)/100, shift:centre - exp, width:width, db:Math.round(best.ex)};
+}
+function snap(byHand){
+  var f = snapFind();
+  if(!f){ if(byHand) $('svState').textContent = 'SNAP: no steady picture-shaped signal within 3.5 kHz on the waterfall'; return false; }
+  if(Math.abs(f.shift) < 0.15){ if(byHand) $('svState').textContent = 'SNAP: already on it'; return false; }
+  logEvent(Date.now(), 'mark', 'SNAP: moved ' + (f.shift > 0 ? '+' : '') + f.shift.toFixed(2) + ' kHz to a picture-like signal (' + f.db + ' dB, ' + f.width.toFixed(1) + ' kHz wide)');
+  retune(f.dial, T.mode, byHand ? T.preset : T.preset);
+  return true;
+}
+setInterval(function(){
+  var p = presetOf(T.preset), V = DX.dec.sstv;
+  if(DX.on.sstv && T.live && p && p.dec === 'sstv' && V && !V.mode && !V.manual) snap(false);
+}, 8000);
+
 /* -- what is this? */
 function idRun(){
   var D = D_(), x, sr, khz = null, mode = null, out = $('idOut');
@@ -1905,6 +1951,7 @@ function wireDecoders(){
   $('svMode').value = '44';
   $('svNow').onclick = function(){ if(!DX.on.sstv) decStart('sstv', true); var V = DX.dec.sstv; if(V) V.start(+$('svMode').value); else setTimeout(function(){ if(DX.dec.sstv) DX.dec.sstv.start(+$('svMode').value); }, 300); };
   $('svSave').onclick = function(){ savePng($('svCv').toDataURL('image/png'), 'sstv'); };
+  $('svSnap').onclick = function(){ if(!T.live){ $('svState').textContent = 'SNAP works on the live tuner: press LISTEN first'; return; } snap(true); };
   $('sigTall').onclick = function(){
     var c = $('sigCanvas'), on = !c.classList.contains('tall');
     c.classList.toggle('tall', on); this.classList.toggle('on', on);
@@ -1914,5 +1961,5 @@ function wireDecoders(){
   setInterval(function(){ if(!BAND.classList.contains('folded')) decPaint(); }, 500);
   decPaint();
 }
-window.SIGNALS = {state:S, tuner:T, wf:WF, cw:CW, cwDecoder:cwDecoder, fftDb:fftDb, logEvent:logEvent, dx:DX, decFeed:decFeed, idRun:idRun};
+window.SIGNALS = {state:S, tuner:T, wf:WF, cw:CW, cwDecoder:cwDecoder, fftDb:fftDb, logEvent:logEvent, dx:DX, decFeed:decFeed, idRun:idRun, snapFind:snapFind};
 })();
