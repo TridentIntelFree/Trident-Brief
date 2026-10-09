@@ -3,9 +3,13 @@ name: Generate Intelligence Brief
 on:
   workflow_dispatch:
   schedule:
-    # Twice daily: 11:04 UTC (~06:04 EST) and 23:04 UTC (~18:04 EST), a few
-    # minutes off the hour, when most scheduled jobs pile in.
-    # Each run reports the delta since the previous brief.
+    # Twice daily: 11:04 and 23:04 UTC (7:04 am and pm EDT, 6:04 EST), a few
+    # minutes off the hour, when most scheduled jobs pile in. GitHub has been
+    # starting these hours late (the morning one around noon to 2 pm Eastern),
+    # so the morning brief is started at 6:55 am Eastern by a daily Claude
+    # routine on the owner's account (workflow_dispatch), and these stay as
+    # the backup: the gate below skips a scheduled run if a brief was made in
+    # the last 8 hours. Each run reports the delta since the previous brief.
     - cron: '4 11,23 * * *'
 
 # Serialised against the feed-refresh job so two runs never deploy at once.
@@ -19,7 +23,34 @@ permissions:
   id-token: write
 
 jobs:
+  # A late scheduled run right after the 7 am brief would only cost a second
+  # model call for the same news: skip it. A run started by hand always goes.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.age.outputs.run }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: latest-brief.json
+        sparse-checkout-cone-mode: false
+    - id: age
+      run: |
+        if [ "${{ github.event_name }}" != "schedule" ]; then echo "run=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+        python3 - <<'PY' >> "$GITHUB_OUTPUT"
+        import json, datetime
+        try:
+            t = datetime.datetime.fromisoformat(json.load(open('latest-brief.json'))['generated_at'])
+            hours = (datetime.datetime.now(datetime.timezone.utc) - t).total_seconds()/3600
+        except Exception:
+            hours = 99
+        print('run=' + ('false' if hours < 8 else 'true'))
+        PY
+        cat "$GITHUB_OUTPUT"
+
   build:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
