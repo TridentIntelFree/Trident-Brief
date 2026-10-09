@@ -4,6 +4,40 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.37.0 — 2026-10-09
+
+### Added: fax and RTTY presets find the clearest receiver
+- Nearest is not best on shortwave. A receiver too close can sit in the
+  skip zone, and antennas and local noise differ a lot.
+- With the receiver on "best for the channel", tapping a fax or RTTY preset
+  tries up to four likely receivers, one at a time, for about eight seconds
+  each.
+  - Each one's reading is the station's tones measured against the noise
+    just beside them, in dB.
+  - The tuner keeps the clearest, and the chart starts clean from that
+    receiver.
+  - The readings show under the tuner as it goes.
+- If none gives a reading (the station may be between charts), it says so
+  and carries on as before.
+- Touching the tuning, the steps or the receiver choice stops it. It runs
+  only from your tap, one receiver at a time, never in the background.
+
+### Added: worldwide picture and text presets, in a collapsible list
+- 40 presets in one list that opens and closes (it remembers which), grouped:
+  - **Weather fax, North America (16):** US Coast Guard Boston, New
+    Orleans, Point Reyes and Kodiak; Canadian Forces Halifax; NWS Honolulu.
+  - **Weather fax, Europe (6):** the German Weather Service and the UK Met
+    Office at Northwood.
+  - **Weather fax, Asia and Pacific (8):** Japan's JMA, Australia's Bureau
+    of Meteorology (Charleville and Wiluna), and MetService New Zealand.
+  - **SSTV (7):** 14230, 14233, 21340 and 28680 kHz; 7171 and 3845 kHz LSB
+    in the Americas; 3733 kHz LSB in Europe.
+  - **RTTY (3):** German Weather Service weather reports, including long wave.
+- Fax buttons show the listed frequency. The tuner sits 1.9 kHz below it, as
+  fax needs, with the passband and decoder set.
+- No new sites are contacted: the same KiwiSDR receivers as before. No model
+  calls, no cost.
+
 ## 1.36.2 — 2026-10-09
 
 ### Added: the fax status says whether the signal is good enough
