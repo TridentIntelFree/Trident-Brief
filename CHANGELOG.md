@@ -4,6 +4,42 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.39.0 — 2026-10-09
+
+### Added: presets for Korea, China, Russia, Africa and the Middle East
+- **Weather fax: Korea, China and Taiwan (15):**
+  - Korea Meteorological Administration, Seoul (HLL2);
+  - Beijing (BAF);
+  - Shanghai (XSG);
+  - Taipei (BMF).
+  Seoul 13570 and Shanghai 12382 kHz were heard as far as Brazil in Oct 2025.
+- **Weather fax: Russia (3):** Murmansk and Vanino, at their published USB
+  dial frequencies.
+- **Weather fax: Africa and the Middle East (5):**
+  - Cape Naval Radio, South Africa (ZSJ);
+  - Dakar, Senegal;
+  - Northwood's Persian Gulf charts.
+  The notes say plainly that recent reception reports are scarce, and that
+  the Persian Gulf service was reported off air in 2019.
+- **Broadcast radio (sound only), by region:**
+  - Africa: Radio Fana (Ethiopia) and Radio Mali, both logged in 2026;
+  - Middle East: Radio Kuwait;
+  - Korea and China: Voice of Korea and China National Radio.
+- Each note says what was heard recently and what is only listed.
+- When the nearest receiver this page can use is far from the station
+  (more than 4,000 km), the note says how far, and which region to choose for
+  receivers nearer it.
+- The list is now "WORLDWIDE: weather fax, SSTV, RTTY and broadcasts" (71),
+  with the sound-only groups last. SCAN still visits only the eight listening
+  presets.
+
+### Fixed: the weekly receiver check's source list
+- kiwisdr.com/public now answers scripts with a "press play" check page, so
+  the check got no list. This is left alone, not worked around.
+- The check now tries the rx.linkfanel.net mirror of the same list first,
+  over HTTPS. Until a run gets a list, the previous tuner list (17
+  receivers) stays in place, and the region links have nothing to show.
+
 ## 1.38.0 — 2026-10-09
 
 ### Fixed: the receiver picker no longer breaks up fax pictures

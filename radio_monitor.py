@@ -94,7 +94,10 @@ def _from_js(text):
 def receivers():
     """Public KiwiSDRs, from either of the two published lists."""
     tried = []
-    for url, parse in (('http://kiwisdr.com/public/', _from_html), ('http://rx.linkfanel.net/kiwisdr_com.js', _from_js)):
+    # kiwisdr.com/public now answers scripts with a "press play" check page (Oct 2026),
+    # which is left alone; the linkfanel mirror of the same list is tried first
+    for url, parse in (('https://rx.linkfanel.net/kiwisdr_com.js', _from_js), ('http://rx.linkfanel.net/kiwisdr_com.js', _from_js),
+                       ('https://kiwisdr.com/public/', _from_html), ('http://kiwisdr.com/public/', _from_html)):
         try:
             r = requests.get(url, timeout=30, headers={'User-Agent': UA})
             r.encoding = 'utf-8'
