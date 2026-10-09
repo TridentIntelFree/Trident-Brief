@@ -280,7 +280,7 @@ def build_prompt(now, brief, collected, snap, mov, record, sc, desk, due_windows
               if mov['baseline_days'] >= mov['needed'] else
               f"- baseline still building ({mov['baseline_days']} of {mov['needed']} days logged); no rising list yet")
     eng = '\n'.join(f"- [{WINDOW_NAME[f['horizon']]}] {f['event']}: {f['probability']}% (base rate {f['base_rate']}%)" for f in engine) or '- none'
-    mk = '\n'.join(f"- id {m['id']} [{WINDOW_NAME[m['window']]}, settles {m['end'][:10]}]: {m['question']}"
+    mk = '\n'.join(f"- id {m['id']} [{'Kalshi' if m.get('venue') == 'kalshi' else 'Polymarket'}, {WINDOW_NAME[m['window']]}, settles {m['end'][:16]} UTC]: {m['question']}"
                    + (f" Rules: {m['rules'][:300]}" if m.get('rules') else '') for m in markets) or '- none today'
     asks = '; '.join(f"{quota[w]} for {WINDOW_NAME[w]} (horizon \"{w}\")" for w in due_windows if quota.get(w))
     return f"""CRYSTAL BALL -- projected forecast. It is {now:%A %d %B %Y, %H:%M} UTC.
@@ -413,8 +413,24 @@ def due_windows(forecasts, now):
     return out
 
 
+def steady_record(forecasts):
+    """How the steady picks have done: settled Kalshi questions where the market and the Oracle both said
+    90% or more on the same side. The side both favoured came in, or did not."""
+    n = hit = 0
+    for f in forecasts:
+        m = f.get('market') or {}
+        if m.get('venue') != 'kalshi' or f.get('outcome') not in ('happened', 'did_not_happen'):
+            continue
+        p, q = f['probability'], m.get('p_market', 50)
+        side = 'yes' if p >= 90 and q >= 88 else 'no' if p <= 10 and q <= 12 else None
+        if side:
+            n += 1
+            hit += (f['outcome'] == 'happened') == (side == 'yes')
+    return {'n': n, 'hit': hit}
+
+
 def settle(forecasts, series, now, stamp):
-    """Settle what can be settled for free: the engine from the records, markets from Polymarket."""
+    """Settle what can be settled for free: the engine from the records, markets from Polymarket and Kalshi."""
     n = 0
     for f in forecasts:
         if f.get('outcome') or f['deadline'] > stamp:
@@ -479,10 +495,13 @@ def main():
     engine = [f for w in windows for f in fe.engine_forecasts(series, now, w)]
     markets = []
     for w in windows:
-        for m in fe.fetch_markets(now, w):
-            if not any((f.get('market') or {}).get('id') == m['id'] and not f.get('outcome') for f in forecasts):
+        for m in fe.fetch_markets(now, w) + fe.fetch_kalshi(now, w):
+            if not any((f.get('market') or {}).get('id') == m['id'] and not f.get('outcome') for f in forecasts) \
+               and not any(x['id'] == m['id'] for x in markets):
                 markets.append(dict(m, window=w))
-    quota = {w: max(2, QUOTA[w] - sum(1 for f in engine if f['horizon'] == w) - sum(1 for m in markets if m['window'] == w))
+    # the Kalshi steady-pick candidates come on top of the Oracle's own questions, not instead of them
+    quota = {w: max(2, QUOTA[w] - sum(1 for f in engine if f['horizon'] == w)
+                    - sum(1 for m in markets if m['window'] == w and m.get('venue') != 'kalshi'))
              for w in windows}
     sc = fe.scoreboard(forecasts)
     clock = doomsday(prev.get('clock'))
@@ -519,10 +538,12 @@ def main():
         except Exception:
             continue
         n += 1
+        kal = m.get('venue') == 'kalshi'
         new.append({'id': f'{run}-{n}', 'source': 'oracle', 'made': stamp, 'horizon': m['window'], 'deadline': m['end'],
-                    'region': 'Market', 'event': m['question'], 'criterion': 'as Polymarket settles it', 'probability': p,
-                    'term': wep_for(p), 'basis': [str(x.get('basis', ''))[:200]],
-                    'market': {'id': m['id'], 'p_market': m['p_market'], 'url': m['url']}})
+                    'region': 'Market', 'event': m['question'], 'criterion': 'as ' + ('Kalshi' if kal else 'Polymarket') + ' settles it',
+                    'probability': p, 'term': wep_for(p), 'basis': [str(x.get('basis', ''))[:200]],
+                    'fly': fe.fly_on_warnings(m['question'], items),
+                    'market': dict({'id': m['id'], 'p_market': m['p_market'], 'url': m['url']}, **({'venue': 'kalshi'} if kal else {}))})
     for f in engine:
         n += 1
         new.append(dict(f, id=f'{run}-{n}', made=stamp, term=wep_for(f['probability']),
@@ -555,6 +576,7 @@ def main():
                                       key=lambda f: f.get('resolved', ''), reverse=True)[:12]],
            'open': [{k: f[k] for k in ('event', 'probability', 'deadline', 'horizon')}
                     for f in forecasts if not f.get('outcome') and f['made'] < min(x['made'] for x in new)][:12],
+           'steady': steady_record(forecasts),
            'spend': spend, 'grade_spend': grade_spend, 'cost_usd': total}
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(out, f, separators=(',', ':'))
