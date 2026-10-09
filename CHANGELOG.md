@@ -4,6 +4,40 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.38.0 — 2026-10-09
+
+### Fixed: the receiver picker no longer breaks up fax pictures
+- 1.37.0's picker hopped through four receivers on every fax or RTTY
+  preset. Each hop dropped a second of sound and started the chart again.
+- Now it first checks the receiver already playing. If that one hears the
+  station well (15 dB for fax, 18 dB for RTTY), it stays and nothing is
+  interrupted.
+- Only a weak reading makes it try up to three others. It stops at the
+  first that hears the station well, and moves only for a clear gain
+  (3 dB). The chart restarts once, on the receiver it keeps.
+- A STAY HERE button stops the search on the receiver playing.
+
+### Added: choose a region for the receiver, anywhere on the globe
+- A region choice in the tuner: North America, South America, Europe,
+  Africa, Middle East, Asia, Oceania and Pacific, Antarctica. It is
+  remembered.
+  - Receivers there are tried first: by the preset, the picker and the
+    automatic choice.
+  - The receiver list is grouped by region, with the chosen one first.
+- Most of the world's public KiwiSDRs serve plain HTTP, which this HTTPS
+  page is not allowed to stream from. For the chosen region they are
+  listed as links that open the receiver's own page in a new tab, tuned
+  to the same frequency and mode.
+  - They are listed quietest first, by each receiver's own noise figure.
+  - That covers regions with no receiver the tuner can use, such as most
+    of Africa and Asia.
+- The weekly receiver check now also saves the whole public list
+  (data/tuner/world.json), from the download it already makes.
+  - No new sites for the jobs.
+  - The page reads its own file and contacts no one until you tap a link.
+  - The PRIVACY panel says so.
+- No model calls, no cost.
+
 ## 1.37.0 — 2026-10-09
 
 ### Added: fax and RTTY presets find the clearest receiver
