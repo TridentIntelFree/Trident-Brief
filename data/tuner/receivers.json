@@ -1,5 +1,5 @@
 {
- "checked": "2026-10-07T02:12:40Z",
+ "checked": "2026-10-09T03:39:24Z",
  "receivers": [
   {
    "host": "iz6byy.k1fm.us",
@@ -128,6 +128,15 @@
    "slots": 8
   },
   {
+   "host": "sdr1.ikara.vk1hf.com",
+   "name": "@@ IKARA SDR @@ | Spring Range, New South Wales, Australia",
+   "loc": "Spring Range, New South Wales, Australia",
+   "lat": -35.1,
+   "lon": 149.06,
+   "antenna": "Various",
+   "slots": 8
+  },
+  {
    "host": "sdrccp.bloap.cl",
    "name": "KiwiSDR Curacautín, Chile",
    "loc": "Curacautín, Araucanía, Chile",
@@ -140,7 +149,7 @@
    "host": "swl-lippi-2.stbach.de",
    "name": "Lippis-KiWi-SDR-2 | FREITAL, GERMANY",
    "loc": "FREITAL, GERMANY",
-   "lat": 51.28,
+   "lat": 51.29,
    "lon": 14.93,
    "antenna": "LZ1AQ West/East",
    "slots": 8
