@@ -4,6 +4,19 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.39.3 — 2026-10-09
+
+### Fixed: the morning brief at 7 am Eastern
+- GitHub has been starting the scheduled 7 am brief 5 to 6½ hours late, and
+  the evening one 2 to 4 hours late.
+- A daily Claude routine on the owner's account now starts the brief at
+  6:55 am Eastern, following daylight saving.
+  - It presses the workflow's run button, nothing else.
+  - No xAI cost beyond the brief itself, and no new secret.
+- GitHub's two schedules stay as the backup. A gate skips a scheduled run
+  if a brief was made in the last 8 hours, so the late morning run does not
+  buy a second brief for the same news. A run started by hand always goes.
+
 ## 1.39.2 — 2026-10-09
 
 ### Fixed: weak fax charts came out slanted and speckled
