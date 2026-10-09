@@ -2921,8 +2921,22 @@ function draw(){
 }
 
 var last=0;
+/* The globe draws only while it can be seen: on screen, its section open, and
+   the app in front. Off screen it used to keep the phone busy all the time,
+   which on an iPhone ends with the page's drawing freezing. */
+var GLOBE_AWAKE = true, ASLEEP = false;
+function setGlobeAwake(on){
+  if(on === GLOBE_AWAKE) return;
+  GLOBE_AWAKE = on;
+  if(on){
+    if(satsWanted()) stepSats(true);
+    if(ASLEEP && !G.stopped){ ASLEEP = false; last = 0; requestAnimationFrame(loop); }
+    if(window.GLOBE3D && GLOBE3D.wake) GLOBE3D.wake();
+  }
+}
 function loop(t){
   if(G.stopped) return;               // WebGL renderer took over
+  if(!GLOBE_AWAKE){ ASLEEP = true; return; }
   var dt = last ? (t - last) : 16;
   if(G.spin && !G.drag && !G.hover){ G.rot[0] -= dt*0.006; }
   // Measure the real frame interval, not just how long draw() takes: the
@@ -3688,9 +3702,16 @@ function loadSats(){
   });
 }
 
-function stepSats(){
+function satsWanted(){
+  var L = G.layers || {};
+  return L.sats || L.rocket || L.debris || (G.sel && /^sat/.test(String(G.sel.id || '')));
+}
+function stepSats(force){
   var S = G.satsRaw;
   if(!S || !S.length) return;
+  /* about 32,000 objects: worked out only while the globe is on screen and
+     showing them (a phone otherwise spends a large share of its time on it) */
+  if(!force && (!GLOBE_AWAKE || !satsWanted())) return;
   var t = Date.now()/1000, g = gmst(t);
   for(var i=0;i<S.length;i++){
     var q = satPos(S[i], t, g);
@@ -4200,8 +4221,15 @@ addEventListener('resize', function(){ sizeGlobe(); });
 paintBaked();
 loadSats(); setInterval(stepSats, 2000);
 snapshotAir().then(function(){ feedAir(true); }); feedIss();
-setInterval(function(){ feedAir(false); feedIss(); }, 90000);
-setInterval(function(){ feedAir(true); }, 600000);
+setInterval(function(){ if(!document.hidden){ feedAir(false); feedIss(); } }, 90000);
+setInterval(function(){ if(!document.hidden) feedAir(true); }, 600000);
+(function(){
+  var band = document.getElementById('godseye'), seen = true;
+  function check(){ setGlobeAwake(seen && !document.hidden && !(band && band.classList.contains('folded'))); }
+  if(band && 'IntersectionObserver' in window) new IntersectionObserver(function(es){ seen = es[0].isIntersecting; check(); }, {rootMargin:'200px'}).observe(band);
+  if(band && 'MutationObserver' in window) new MutationObserver(check).observe(band, {attributes:true, attributeFilter:['class']});
+  document.addEventListener('visibilitychange', check);
+})();
 requestAnimationFrame(loop);
 
 /* --- re-target onto a ZIP --- */
@@ -4239,6 +4267,7 @@ function useWebglGlobe(){
   document.getElementById('globe').style.display = 'none';
   document.getElementById('globe3d').style.display = 'block';
   var btn = document.getElementById('rendBtn'); if(btn) btn.textContent = '3D';
+  if(GLOBE3D.wake) GLOBE3D.wake();
 }
 function prefersCanvas(){
   try{ return localStorage.getItem('trident_renderer') === '2d'; }catch(_){ return false; }
@@ -4262,6 +4291,8 @@ window.TB = {
   setZoomLabel: function(z){ var e=document.getElementById('zoomLabel'); if(e) e.textContent = z.toFixed(1)+'\u00d7'; },
   setSpin: function(on){ setSpin(on); },
   stopCanvasGlobe: function(){ G.stopped = true; },
+  awake: function(){ return GLOBE_AWAKE; },
+  restartCanvas: function(){ G.stopped = false; ASLEEP = false; last = 0; sizeGlobe(); requestAnimationFrame(loop); },
   clearThinning: function(){ var el = document.getElementById('thinNote'); if(el) el.style.display = 'none'; },
   boxPointer: function(el, fn){ return boxPointer(el, fn); },
   boxReport:  function(h, km){ return boxReport(h, km); },
@@ -8273,6 +8304,20 @@ async function boot(){
   const THREE = await import('./assets/three.module.js');
   const cv = document.getElementById('globe3d');
   const renderer = new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true});
+  /* A phone short of memory may take the 3D drawing surface away. The globe
+     then switches to its 2D renderer (for this visit only) rather than
+     freezing; reopening the app brings 3D back. */
+  cv.addEventListener('webglcontextlost', function(e){
+    e.preventDefault();
+    window.TB.G.stopped = false;
+    try{
+      document.getElementById('globe3d').style.display = 'none';
+      document.getElementById('globe').style.display = '';
+      var note = document.getElementById('thinNote');
+      if(note){ note.style.display = ''; note.textContent = 'The phone paused the 3D globe to save memory, so this is the 2D one. Reopen the app for 3D.'; }
+      window.TB.restartCanvas && window.TB.restartCanvas();
+    }catch(_){}
+  }, false);
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 
   const scene = new THREE.Scene();
@@ -8932,7 +8977,9 @@ async function boot(){
     if(_sq.z > 1) return null;
     return {x:(_sq.x*0.5+0.5)*cv.clientWidth, y:(-_sq.y*0.5+0.5)*cv.clientHeight};
   }
+  let sleeping = false;
   function frame(t){
+    if(!window.TB.awake() || cv.style.display === 'none'){ sleeping = true; return; }
     if(fly){
       const k = Math.min(1, (performance.now() - fly.t0) / 700), e = 1 - Math.pow(1 - k, 3);
       rotX = fly.x0 + fly.dx*e; rotY = fly.y0 + fly.dy*e; dist = fly.d0 + fly.dd*e;
@@ -8960,6 +9007,8 @@ async function boot(){
   }
   requestAnimationFrame(frame);
   window.GLOBE3D = {rebuild, renderer, scene, camera, focus,
+                    wake(){ if(sleeping){ sleeping = false; lastRebuild = 0; requestAnimationFrame(frame); } },
+                    get asleep(){ return sleeping; },
                     get count(){ return cg.drawRange.count; },
                     get dist(){ return dist; }, setDist(d){ dist = d; }};
   window.TB.onWebglReady();
