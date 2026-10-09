@@ -4,6 +4,48 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.35.0 — 2026-10-09
+
+### Changed: picture presets that just work
+Tap a FAX or SSTV preset and wait: nothing needs setting by hand.
+- **Each picture and text preset now sets the receiver for the job:**
+  - the frequency (fax 1.9 kHz below the listed one, as the stations
+    expect) and sideband;
+  - the exact filter edges: fax 1.1–2.7 kHz, SSTV 0.9–2.7 kHz, RTTY
+    0.9–2.1 kHz, enough for the signal and a tuning error, and no more,
+    so less noise;
+  - noise reduction off, because it smears pictures.
+
+  Moving the width slider by hand takes over again.
+- **Weather fax sets itself up:**
+  - **Line rate:** "auto" by default. It is read from the phasing lines,
+    or measured from how the chart repeats (60, 90, 120 or 240 a minute).
+    Changing it redraws the chart without losing any of it.
+  - **Tuning:** a receiver a little off frequency used to make the whole
+    chart too dark or washed out. The black and white tones are now found
+    in the sound's spectrum and the error, up to 300 Hz, is taken out. The
+    status says how far off it was.
+  - **Straight charts even when joined part way:** without phasing lines,
+    the slant is measured from how the picture repeats eight lines apart.
+  - **LINE UP** (also run once by itself for a chart joined part way) finds
+    the chart's border and moves it to the edge. It is a best guess, and
+    SHIFT is still there.
+  - The sound is kept at a fixed rate, so nothing already received is lost
+    when any of these change.
+- **SSTV forgives a sender off frequency** by up to 250 Hz, common among
+  amateurs. The start tone is measured and the whole picture read relative
+  to it.
+- Tested on synthesized charts with noise:
+  - a chart joined part way, 150 Hz off and with a 0.08% clock error, came
+    out straight and lined up by its border, with the tuning measured as
+    150 Hz;
+  - a 60-lines-a-minute chart, 120 Hz off: the line rate was found from its
+    phasing lines and the tuning measured as 110 Hz;
+  - four SSTV formats sent 120–180 Hz off frequency decoded as cleanly as
+    tuned ones.
+
+  Real fading and interference still streak a chart.
+
 ## 1.34.0 — 2026-10-09
 
 ### Added: identify and decode, in the radio section

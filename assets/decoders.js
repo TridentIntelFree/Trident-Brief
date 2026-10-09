@@ -210,18 +210,33 @@ function rtty(sr, opts){
 /* ----------------------------------------------------------- weather fax */
 /* HF fax: brightness as frequency, 1500 Hz black to 2300 Hz white, usually
    120 lines a minute at 576 "IOC" (about 1810 dots a line; drawn here at
-   half that). A 300 Hz start tone, then phasing lines with a white pulse at
-   the left edge, then the chart, then a 450 Hz stop tone. The start tone
-   begins a new picture; the phasing lines set where each line starts and
-   correct any slant; you can also nudge both by hand. */
+   half that). A 300 Hz start tone, then about 30 s of phasing lines (dark,
+   with a short white pulse where each line begins), then the chart, then a
+   450 Hz stop tone.
+
+   It sets itself up, so a preset needs nothing set by hand:
+   - tuning: a receiver a little off frequency makes the whole chart too dark
+     or washed out. The white and black tones are found in the sound's
+     spectrum (from the start tone and phasing lines, or from a chart's white
+     background) and the error, up to 300 Hz, is taken out;
+   - line rate: found from the phasing lines, or from how the picture
+     repeats (60, 90, 120 or 240 lines a minute). The sound is kept at a
+     fixed rate, so a change of line rate redraws the chart and loses nothing;
+   - where lines start, and slant: from the phasing lines; or, for a chart
+     joined part way, the slant from how the picture repeats eight lines
+     apart (SHIFT moves the start by hand). */
 function fax(sr, opts){
   opts = opts || {};
-  var lpm = opts.lpm || 120, W = opts.width || 904, pxRate = W*lpm/60;
-  var F = {W:W, lpm:lpm, data:new Uint8Array(1 << 20), n:0, base:0, offset:0, slant:0, status:'listening',
-           images:0, auto:false, onstart:null, onstop:null, onlines:null, level:0};
-  var fm = FM(sr, 1900, 650, 31), spp = sr/pxRate, acc = 0, cnt = 0, pos = 0;
-  var tone = {n:0, s3:[0, 0], s4:[0, 0], e:0}, toneN = 0, toneHit = {start:0, stop:0}, phasing = null;
-  var g3 = 2*Math.cos(TAU*300/pxRate), g4 = 2*Math.cos(TAU*450/pxRate);
+  var W = opts.width || 904, RATE = W*2;          // dots kept a second: 120 lines a minute's worth
+  var autoLpm = !opts.lpm || opts.lpm === 'auto';
+  var F = {W:W, lpm:autoLpm ? 120 : +opts.lpm, autoLpm:autoLpm, Ld:0, data:new Uint8Array(1 << 20), n:0, base:0, offset:0, slant:0,
+           status:'listening', images:0, onstart:null, onstop:null, onlines:null, level:0,
+           off:0, offSeen:false, slantFrom:'', lpmFrom:''};
+  F.Ld = W*120/F.lpm;                            // dots per line at this line rate
+  var spp = sr/RATE, acc = 0, cnt = 0, pos = 0, demC = 1900, fm = FM(sr, demC, 800, 31);
+  var N = 4096, ab = new Float32Array(N), an = 0, psd = null, hz = sr/N;
+  var g3 = 2*Math.cos(TAU*300/RATE), g4 = 2*Math.cos(TAU*450/RATE);
+  var tone = {n:0, s3:[0, 0], s4:[0, 0], e:0}, toneHit = {start:0, stop:0}, phasing = null, ticks = 0;
   function put(v){
     if(F.n >= F.data.length){ var d = new Uint8Array(F.data.length*2); d.set(F.data); F.data = d; }
     F.data[F.n++] = v;
@@ -230,79 +245,191 @@ function fax(sr, opts){
     var s = x + g3*tone.s3[0] - tone.s3[1]; tone.s3[1] = tone.s3[0]; tone.s3[0] = s;
     s = x + g4*tone.s4[0] - tone.s4[1]; tone.s4[1] = tone.s4[0]; tone.s4[0] = s;
     tone.e += x*x;
-    if(++tone.n >= W){                           // every half second at 120 lpm
-      var p3 = tone.s3[0]*tone.s3[0] + tone.s3[1]*tone.s3[1] - g3*tone.s3[0]*tone.s3[1];
-      var p4 = tone.s4[0]*tone.s4[0] + tone.s4[1]*tone.s4[1] - g4*tone.s4[0]*tone.s4[1];
-      var r3 = p3/(tone.e*W/2 + 1e-9), r4 = p4/(tone.e*W/2 + 1e-9);
-      toneHit.start = r3 > 0.4 && tone.e/W > 1500 ? toneHit.start + 1 : 0;
-      toneHit.stop = r4 > 0.4 && tone.e/W > 1500 ? toneHit.stop + 1 : 0;
-      if(toneHit.start === 3) startImage();          // 1.5 s of it (stations send 5 s)
-      if(toneHit.stop === 3) stopImage();
-      tone = {n:0, s3:[0, 0], s4:[0, 0], e:0};
-      if(phasing && phasing.from == null && !toneHit.start){ phasing.from = F.n; F.base = F.n; }   // the start tone has ended
-      if(phasing && phasing.from != null) checkPhasing();
+    if(++tone.n >= W) tick();                    // every half second
+  }
+  function tick(){
+    var p3 = tone.s3[0]*tone.s3[0] + tone.s3[1]*tone.s3[1] - g3*tone.s3[0]*tone.s3[1];
+    var p4 = tone.s4[0]*tone.s4[0] + tone.s4[1]*tone.s4[1] - g4*tone.s4[0]*tone.s4[1];
+    var r3 = p3/(tone.e*W/2 + 1e-9), r4 = p4/(tone.e*W/2 + 1e-9);
+    toneHit.start = r3 > 0.4 && tone.e/W > 1500 ? toneHit.start + 1 : 0;
+    toneHit.stop = r4 > 0.4 && tone.e/W > 1500 ? toneHit.stop + 1 : 0;
+    tone = {n:0, s3:[0, 0], s4:[0, 0], e:0};
+    if(toneHit.start === 3) startImage();        // 1.5 s of it (stations send 5 s)
+    if(toneHit.stop === 3) stopImage();
+    if(phasing && phasing.from == null && !toneHit.start){ phasing.from = F.n; F.base = F.n; }   // the start tone has ended
+    if(phasing && phasing.from != null){
+      var el = (F.n - phasing.from)/RATE, m = 0;
+      for(var i = F.n - W; i < F.n; i++) m += F.data[i];
+      if(el > 3 && m/W > 110) finishPhasing(F.n - W);   // the chart has begun
+      else if(el >= 32) finishPhasing(F.n);
     }
+    tuning();
+    ticks++;
+    var lines = (F.n - F.base)/F.Ld;
+    if(!phasing && F.autoLpm && F.lpmFrom !== 'phasing' && lines >= 24 && ticks % 40 === 0) checkLpm();
+    if(!phasing && F.slantFrom !== 'phasing' && lines >= 40 && ticks % 30 === 0) checkSlant();
+    /* joined part way, with no phasing lines: once straight, find the border */
+    if(!phasing && F.slantFrom === 'measured' && !F.lined && lines >= 80){ F.lined = true; if(F.lineUp()) F.status = 'lined up by the chart\u2019s border (a best guess: SHIFT if it is off)'; }
   }
   function startImage(){
-    F.base = F.n; F.offset = 0; F.slant = 0; F.images++; F.status = 'start tone: a new chart';
-    phasing = {from:null, pts:[]};               // phasing lines follow once the tone stops
+    F.base = F.n; F.offset = 0; F.slant = 0; F.slantFrom = ''; F.images++; F.status = 'start tone: a new chart';
+    if(F.lpmFrom !== 'set') F.lpmFrom = '';
+    phasing = {from:null};                       // phasing lines follow once the tone stops
     if(F.onstart) F.onstart(F);
   }
   function stopImage(){
     if(F.status.indexOf('stop') >= 0) return;
+    if(phasing) finishPhasing(F.n);
     F.status = 'stop tone: the chart is complete'; phasing = null;
     if(F.onstop) F.onstop(F);
   }
+  function setLpm(l, from){ F.lpm = l; F.Ld = W*120/l; F.lpmFrom = from; }
   /* phasing lines are dark with a short white pulse where each line begins */
-  function checkPhasing(){
-    var L = Math.floor((F.n - phasing.from)/W);
-    for(var li = phasing.pts.length; li < L; li++){
-      var s = phasing.from + li*W, sum = 0, run = 0, best = 0, bestEnd = 0;
-      for(var x = 0; x < W; x++) sum += F.data[s + x];
-      if(sum/W > 110 && li > 3){ finishPhasing(); return; }   // the chart has begun
-      for(x = 0; x < W*2; x++){                  // twice round, so a pulse across the edge is whole
-        if(F.data[s + (x % W)] > 170){ run++; if(run > best){ best = run; bestEnd = x; } } else run = 0;
-      }
-      phasing.pts.push(best > W*0.02 && best < W*0.12 ? (bestEnd - best + 1) % W : -1);
+  function finishPhasing(end){
+    var from = phasing.from; phasing = null;
+    if(F.autoLpm && end - from > W*8){
+      var best = bestLpm(from, end - from);
+      if(best) setLpm(best, 'phasing');
     }
-    if(L > 70) finishPhasing();
-  }
-  function finishPhasing(){
-    var pts = phasing.pts.map(function(p, i){ return [i, p]; }).filter(function(q){ return q[1] >= 0; });
-    phasing = null;
+    var Ld = F.Ld, pts = [];
+    for(var li = 0; from + (li + 1)*Ld <= end; li++){
+      var s = Math.round(from + li*Ld), run = 0, top = 0, topEnd = 0, L = Math.round(Ld);
+      for(var x = 0; x < L*2; x++){              // twice round, so a pulse across the edge is whole
+        if(F.data[s + (x % L)] > 170){ run++; if(run > top){ top = run; topEnd = x; } } else run = 0;
+      }
+      if(top > L*0.02 && top < L*0.12) pts.push([li, (topEnd - top + 1) % L]);
+    }
     if(pts.length < 6){ F.status = 'chart started (no phasing lines found: use SHIFT to line it up)'; return; }
-    /* unwrap round the edge, then fit position = a + b*line */
-    for(var i = 1; i < pts.length; i++){
-      while(pts[i][1] - pts[i-1][1] > W/2) pts[i][1] -= W;
-      while(pts[i][1] - pts[i-1][1] < -W/2) pts[i][1] += W;
+    for(var i = 1; i < pts.length; i++){         // unwrap round the edge, then fit position = a + b*line
+      while(pts[i][1] - pts[i-1][1] > Ld/2) pts[i][1] -= Ld;
+      while(pts[i][1] - pts[i-1][1] < -Ld/2) pts[i][1] += Ld;
     }
     var n = pts.length, sx = 0, sy = 0, sxx = 0, sxy = 0;
     pts.forEach(function(q){ sx += q[0]; sy += q[1]; sxx += q[0]*q[0]; sxy += q[0]*q[1]; });
     var b = (n*sxy - sx*sy)/(n*sxx - sx*sx || 1), a = (sy - b*sx)/n;
-    F.slant = b/W;                               // each line really runs W + b dots
-    F.offset = ((a % W) + W) % W;
+    F.slant = b/Ld; F.slantFrom = 'phasing';
+    F.base = from; F.offset = ((a % Ld) + Ld) % Ld;
     F.status = 'chart started · lined up from ' + n + ' phasing lines';
+    if(F.onstart) F.onstart(F);                  // redraw in place
+  }
+  /* tuning, from the spectrum: the white tone (most of a weather chart) and,
+     during the start tone and phasing, the black one too */
+  function tuning(){
+    if(!psd) return;
+    function peak(lo, hi){
+      var b0 = Math.ceil(lo/hz), b1 = Math.floor(hi/hz), bi = b0;
+      for(var k = b0; k <= b1; k++) if(psd[k] > psd[bi]) bi = k;
+      var y0 = psd[bi - 1], y1 = psd[bi], y2 = psd[bi + 1], d = y0 - 2*y1 + y2;
+      return {f:(bi + (d < 0 ? 0.5*(y0 - y2)/d : 0))*hz, p:y1};
+    }
+    var med = median(psd.subarray(Math.ceil(400/hz), Math.floor(3400/hz))) || 1e-20;
+    var w = peak(1650, 2750), bk = peak(1150, 1850), est = null;
+    if(w.p > 8*med && bk.p > 8*med && Math.abs(w.f - bk.f - 800) < 60) est = (w.f + bk.f)/2 - 1900;
+    else if(phasing && bk.p > 15*med) est = bk.f - 1500;
+    else if(!phasing && !toneHit.start && w.p > 15*med) est = w.f - 2300;
+    if(est == null || Math.abs(est) > 300) return;
+    if(!F.offSeen){ F.off = est; F.offSeen = true; } else F.off += (est - F.off)*0.3;
+    if(Math.abs(1900 + F.off - demC) > 40){ demC = 1900 + F.off; fm = FM(sr, demC, 800, 31); }   // re-centre the demodulator
+  }
+  function corr(lag, from, len){                 // normalised correlation of the dot stream with itself
+    var sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, n = 0, d = F.data, li = Math.floor(lag), fr = lag - li;
+    for(var i = from; i < from + len; i += 2){
+      var x = d[i], y = d[i + li]*(1 - fr) + d[i + li + 1]*fr;
+      sx += x; sy += y; sxx += x*x; syy += y*y; sxy += x*y; n++;
+    }
+    var cv = sxy/n - sx*sy/(n*n), vx = sxx/n - sx*sx/(n*n), vy = syy/n - sy*sy/(n*n);
+    return vx > 1 && vy > 1 ? cv/Math.sqrt(vx*vy) : 0;
+  }
+  /* the line rate that the stretch repeats at: a picture also repeats over two
+     lines, so the shortest line that does nearly as well as the best wins */
+  function bestLpm(from, len){
+    var cands = [60, 90, 120, 240].map(function(l){ var lag = W*120/l; return {l:l, c:len > lag*3 ? corr(lag, from, len - lag - 2) : -1}; });
+    var best = Math.max.apply(null, cands.map(function(c){ return c.c; }));
+    if(best < 0.3) return null;
+    return cands.filter(function(c){ return c.c >= 0.85*best; }).sort(function(a, b){ return b.l - a.l; })[0].l;
+  }
+  function checkLpm(){
+    var len = Math.round(RATE*12), from = F.n - len;
+    if(from < F.base) return;
+    var l = bestLpm(from, len);
+    if(!l) return;
+    if(l !== F.lpm){
+      setLpm(l, 'measured'); F.slant = 0; F.slantFrom = '';
+      F.status = 'line rate measured: ' + l + ' lines a minute';
+      if(F.onstart) F.onstart(F);                // redrawn at the new rate: nothing is lost
+    } else if(!F.lpmFrom) F.lpmFrom = 'confirmed';
+  }
+  function checkSlant(){
+    /* how many dots a line really takes, from the repeat eight lines apart */
+    var K = 8, L0 = F.Ld*(1 + F.slant), len = Math.round(RATE*6), from = F.n - len - Math.round(K*L0*1.01) - 4;
+    if(from < F.base) return;
+    var c0 = Math.round(K*L0), span = Math.ceil(K*F.Ld*0.004), best = -2, bl = c0, cs = {};
+    for(var g = c0 - span; g <= c0 + span; g++){ cs[g] = corr(g, from, len); if(cs[g] > best){ best = cs[g]; bl = g; } }
+    if(best < 0.25 || cs[bl - 1] == null || cs[bl + 1] == null) return;
+    var dd = cs[bl - 1] - 2*best + cs[bl + 1], off = dd < 0 ? 0.5*(cs[bl - 1] - cs[bl + 1])/dd : 0;
+    var s2 = (bl + off)/K/F.Ld - 1;
+    if(Math.abs(s2) > 0.003) return;
+    /* the lines already drawn keep their place: line k still begins where it did */
+    var k = Math.max(0, Math.floor((F.n - F.base - F.offset)/(F.Ld*(1 + F.slant))));
+    F.offset += k*F.Ld*(F.slant - s2);
+    F.slant = s2; F.slantFrom = 'measured';
   }
   F.push = function(x){
     for(var i = 0; i < x.length; i++){
+      ab[an] = x[i]; an = (an + 1) % N;
       var f = fm(x[i]);
       acc += f; cnt++; pos++;
       F.level += (x[i]*x[i] - F.level)*0.0005;
       if(pos >= spp){
         pos -= spp;
-        var v = (acc/cnt - 1500)/800*255; acc = 0; cnt = 0;
+        var v = (acc/cnt - F.off - 1500)/800*255; acc = 0; cnt = 0;
         put(v < 0 ? 0 : v > 255 ? 255 : v | 0);
+        if(tone.n === 0 && F.level > 1e-7){       // with each half-second tick: the spectrum, for tuning
+          var buf = new Float32Array(N); for(var j = 0; j < N; j++) buf[j] = ab[(an + j) % N];
+          var p = fftPow(buf);
+          if(!psd) psd = p; else for(j = 0; j < p.length; j++) psd[j] = psd[j]*0.7 + p[j]*0.3;
+        }
       }
     }
     if(F.onlines) F.onlines(F);
   };
-  F.lines = function(){ return Math.max(0, Math.floor((F.n - F.base - F.offset)/(W*(1 + F.slant)))); };
+  F.lines = function(){ return Math.max(0, Math.floor((F.n - F.base - F.offset)/(F.Ld*(1 + F.slant)))); };
   F.line = function(k, out){                     // line k of the current chart, W dots
-    var L = W*(1 + F.slant), s = F.base + F.offset + k*L;
+    var L = F.Ld*(1 + F.slant), s = F.base + F.offset + k*L;
     for(var x = 0; x < W; x++){ var i = Math.floor(s + x*L/W); out[x] = i >= 0 && i < F.n ? F.data[i] : 0; }
     return out;
   };
-  F.reset = function(){ F.base = F.n; F.offset = 0; F.slant = 0; F.status = 'listening'; phasing = null; };
+  /* Line up a chart joined part way: weather charts have a border or margin,
+     a band of columns that stays solid black or white down every line. The
+     middle of the strongest such band is moved to the edge. */
+  F.lineUp = function(){
+    var n = F.lines(), from = Math.max(0, n - 70), rows = n - from;
+    if(rows < 30) return false;
+    var sum = new Float64Array(W), sq = new Float64Array(W), ln = new Uint8Array(W);
+    for(var k = from; k < n; k++){ F.line(k, ln); for(var x = 0; x < W; x++){ sum[x] += ln[x]; sq[x] += ln[x]*ln[x]; } }
+    var mean = [], vr = [];
+    for(x = 0; x < W; x++){ mean[x] = sum[x]/rows; vr[x] = sq[x]/rows - mean[x]*mean[x]; }
+    var mv = median(vr) || 1, best = null;
+    for(var pass = 0; pass < 2 && !best; pass++){  // a dark border first; a white margin only if very steady
+      var run = 0, dark = pass === 0;
+      for(x = 0; x < W*2; x++){                  // twice round, so a band across the edge is whole
+        var c = x % W, ok = dark ? mean[c] < 60 && vr[c] < 0.6*mv : mean[c] > 230 && vr[c] < 0.15*mv;
+        run = ok ? run + 1 : 0;
+        if(run >= W*0.01 && run <= W*0.25 && (!best || run > best.w)) best = {w:run, mid:(x - run/2 + W) % W};
+      }
+    }
+    if(!best) return false;
+    F.offset += best.mid*F.Ld*(1 + F.slant)/W;
+    if(F.onstart) F.onstart(F);
+    return true;
+  };
+  F.tuning = function(){
+    if(!F.offSeen) return '';
+    var o = Math.round(F.off/10)*10;
+    return Math.abs(o) < 40 ? 'tuned right' : 'receiver ' + Math.abs(o) + ' Hz ' + (o > 0 ? 'high' : 'low') + ', corrected';
+  };
+  F.setLpm = function(l){ if(l === 'auto'){ F.autoLpm = true; F.lpmFrom = ''; } else { F.autoLpm = false; setLpm(+l, 'set'); } if(F.onstart) F.onstart(F); };
+  F.reset = function(){ F.base = F.n; F.offset = 0; F.slant = 0; F.slantFrom = ''; F.status = 'listening'; phasing = null; };
   return F;
 }
 
@@ -339,7 +466,7 @@ function yuv(Y, U, V, out, o){                   // studio-swing YCbCr, as MMSST
 }
 function sstv(sr, opts){
   opts = opts || {};
-  var S = {mode:null, status:'waiting for a picture (its VIS code)…', onstart:null, onrows:null, ondone:null, rows:0, level:0, manual:null};
+  var S = {mode:null, status:'waiting for a picture (its VIS code)…', onstart:null, onrows:null, ondone:null, rows:0, level:0, manual:null, off:0};
   var fm = FM(sr, 1750, 1000, 27);
   var f = new Float32Array(sr*4), n = 0, base = 0;     // the frequency stream (index = n + base)
   var msLen = sr/1000, msAcc = 0, msCnt = 0, ms = [], msBase = 0, tot = 0;
@@ -362,19 +489,25 @@ function sstv(sr, opts){
      parity bit (1100 Hz = 1, 1300 Hz = 0, 30 ms each, low bit first) and a
      1200 Hz stop bit */
   function msMean(a, b){ var s = 0, c = 0; for(var i = a; i < b; i++){ var v = ms[i - msBase]; if(v != null){ s += v; c++; } } return c ? s/c : 0; }
+  /* the sender may be off frequency (amateurs often are, by 100-200 Hz): the
+     1900 Hz leader is measured and everything after it is read relative to
+     it, up to 250 Hz either way */
   function checkVis(){
     var m = msBase + ms.length - 1, ts = m - 300;
     if(ts - 250 < msBase) return;
-    if(!(ms[ts - 1 - msBase] > 1600 && ms[ts + 2 - msBase] < 1450)) return;
-    if(Math.abs(msMean(ts - 250, ts - 10) - 1900) > 90) return;
-    if(Math.abs(msMean(ts + 6, ts + 24) - 1200) > 80) return;
-    if(Math.abs(msMean(ts + 276, ts + 294) - 1200) > 90) return;
+    var lead = msMean(ts - 250, ts - 10), off = lead - 1900;
+    if(Math.abs(off) > 250) return;
+    if(!(ms[ts - 1 - msBase] > 1600 + off && ms[ts + 2 - msBase] < 1450 + off)) return;
+    for(var q = ts - 250; q < ts - 10; q += 25) if(Math.abs(msMean(q, q + 25) - lead) > 60) return;   // a steady tone, not a sweep
+    if(Math.abs(msMean(ts + 6, ts + 24) - 1200 - off) > 80) return;
+    if(Math.abs(msMean(ts + 276, ts + 294) - 1200 - off) > 90) return;
     var code = 0, par = 0;
     for(var k = 0; k < 8; k++){
-      var v = msMean(ts + 30*(k + 1) + 6, ts + 30*(k + 1) + 24);
+      var v = msMean(ts + 30*(k + 1) + 6, ts + 30*(k + 1) + 24) - off;
       if(Math.abs(v - 1100) < 70){ if(k < 7) code |= 1 << k; par ^= 1; }
       else if(Math.abs(v - 1300) >= 70) return;
     }
+    S.off = off;
     if(par) return;                              // even parity
     var mode = SSTV_MODES[code];
     if(!mode){ S.status = 'a VIS code ' + code + ' was heard, for a format this decoder does not read'; return; }
@@ -383,7 +516,7 @@ function sstv(sr, opts){
   function begin(mode, t0){
     S.mode = mode; S.rows = 0; S.manual = null;
     img = {t0:t0, T:mode.lineMs*msLen, syncs:[], next:0, pend:null};
-    S.status = mode.name + ' · ' + mode.w + '×' + mode.h + ' · receiving';
+    S.status = mode.name + ' · ' + mode.w + '×' + mode.h + ' · receiving' + (Math.abs(S.off) >= 30 ? ' · sender ' + Math.abs(Math.round(S.off/10)*10) + ' Hz ' + (S.off > 0 ? 'high' : 'low') + ', corrected' : '');
     if(S.onstart) S.onstart(S);
   }
   /* the sync pulse nearest where line k should start, by a running sum of
@@ -395,8 +528,8 @@ function sstv(sr, opts){
     var len = Math.round(S.mode.syncMs*msLen), edge = Math.round(1.5*msLen), best = -1e9, bt = expect, inside = 0;
     for(var t = Math.round(expect - win); t <= expect + win; t++){
       var s = 0, a = 0;
-      for(var i = 0; i < len; i += 2) s += at(t + i) < 1350 ? 1 : -1;
-      for(i = 0; i < edge; i++) a += at(t + len + i) > 1350 ? 1 : -1;
+      for(var i = 0; i < len; i += 2) s += at(t + i) < 1350 + S.off ? 1 : -1;
+      for(i = 0; i < edge; i++) a += at(t + len + i) > 1350 + S.off ? 1 : -1;
       if(s + a*len/(2*edge) > best){ best = s + a*len/(2*edge); bt = t; inside = s; }
     }
     return inside >= 0.5*len/2 && best >= 0.6*len ? bt : null;
@@ -438,7 +571,7 @@ function sstv(sr, opts){
   function chan(st, s, w, out){                  // w pixels of one colour from segment s
     var a = st + s.at*msLen, d = s.ms*msLen/w;
     for(var x = 0; x < w; x++){
-      var v = (mean(a + x*d, a + (x + 1)*d) - 1500)/800*255;
+      var v = (mean(a + x*d, a + (x + 1)*d) - S.off - 1500)/800*255;
       out[x] = v < 0 ? 0 : v > 255 ? 255 : v;
     }
     return out;
@@ -466,7 +599,7 @@ function sstv(sr, opts){
       Y = chan(st, segOf('Y'), w, new Float32Array(w));
       var cs = segOf('C'), C = chan(st, cs, w/2, new Float32Array(w/2));
       var sep = mean(st + segOf('sep').at*msLen, st + (segOf('sep').at + segOf('sep').ms)*msLen);
-      var isV = sep < 1900;                       // the separator says which colour this line carries
+      var isV = sep - S.off < 1900;               // the separator says which colour this line carries
       if(isV){ img.pend = {k:k, Y:Y, V:C}; return; }
       var pv = img.pend && img.pend.k === k - 1 ? img.pend : null;
       var Vc = pv ? pv.V : new Float32Array(w/2).fill(128);
@@ -510,7 +643,7 @@ function sstv(sr, opts){
       }
     }
   }
-  S.start = function(vis){ S.manual = SSTV_MODES[vis]; img = null; S.status = 'waiting for the next ' + S.manual.name + ' sync pulse…'; };
+  S.start = function(vis){ S.manual = SSTV_MODES[vis]; img = null; S.off = 0; S.status = 'waiting for the next ' + S.manual.name + ' sync pulse…'; };
   S.stop = function(){ img = null; S.mode = null; S.manual = null; S.status = 'waiting for a picture (its VIS code)…'; };
   S.modes = SSTV_MODES;
   return S;

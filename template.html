@@ -1453,15 +1453,16 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <div class="dec-p" data-p="fax">
           <div class="tu-row">
             <button class="ap-btn" id="fxGo" type="button">&#9654; START</button>
-            <label>lines/min <select id="fxLpm"><option value="120" selected>120</option><option value="60">60</option><option value="90">90</option><option value="240">240</option></select></label>
+            <label>lines/min <select id="fxLpm"><option value="auto" selected>auto</option><option value="120">120</option><option value="60">60</option><option value="90">90</option><option value="240">240</option></select></label>
             <button class="ev-f" id="fxNew" type="button">NEW CHART</button>
+            <button class="ev-f" id="fxLine" type="button" title="find the chart's border and move it to the edge">LINE UP</button>
             <span class="tu-steps"><button class="ev-f" id="fxL" type="button" title="move the chart left">&#9664; SHIFT</button><button class="ev-f" id="fxR" type="button" title="move the chart right">SHIFT &#9654;</button></span>
             <span class="tu-steps"><button class="ev-f" id="fxS1" type="button" title="straighten: lean the other way">&#10226;</button><button class="ev-f" id="fxS2" type="button" title="straighten: lean the other way">&#10227;</button></span>
             <button class="ev-f" id="fxSave" type="button">&#11015; PNG</button>
           </div>
           <div class="sig-small" id="fxState">off</div>
           <div class="dec-pic"><canvas id="fxCv" width="904" height="300"></canvas></div>
-          <div class="sig-small tu-tx-note">Weather maps sent as sound. Tune USB 1.9 kHz below the listed frequency (US Coast Guard Boston: 4235, 6340.5, 9110, 12750 kHz, so dial 4233.1 and so on). A new chart starts by itself on the start tone and lines itself up; if a chart is joined part way, use SHIFT to bring its edge to the left and the two lean buttons if it slants.</div>
+          <div class="sig-small tu-tx-note">Weather maps sent as sound. The FAX presets set everything (frequency 1.9 kHz below the listed one, upper sideband, the filter at 1.1&ndash;2.7 kHz, noise reduction off), so just tap one and wait: stations send a chart most hours, with quiet gaps between. It sets itself up: it measures the line rate, straightens the chart, corrects a receiver that is a little off frequency, and starts a new chart on the start tone, lined up from its phasing lines. A chart joined part way is lined up by its border; if the edge is still in the middle, use SHIFT. Fading shows as grey streaks; a weak or busy night gives a speckled chart. Night: 4235 and 6340.5 kHz. Day: 9110 and 12750 kHz.</div>
         </div>
 
         <div class="dec-p" data-p="sstv">
@@ -1474,7 +1475,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <div class="sig-small" id="svState">off</div>
           <div class="dec-pic"><canvas id="svCv" width="320" height="256"></canvas></div>
           <div class="dec-gal" id="svGal"></div>
-          <div class="sig-small tu-tx-note">Pictures sent as sound by amateurs, and sometimes from the space station. Each picture names its own format at the start, and the decoder starts by itself. Common calling frequencies: 14230 and 14233 kHz (USB), 7171 and 3845 kHz (LSB). Pictures you receive stay on this page until you leave it.</div>
+          <div class="sig-small tu-tx-note">Pictures sent as sound by amateurs, and sometimes from the space station. The SSTV presets set the frequency, sideband and filter, and turn noise reduction off: tap one and wait. Each picture names its own format at the start and the decoder starts by itself, even if the sender is up to 250 Hz off frequency (it says so). Busiest on 14230 kHz in daylight and at weekends; 7171 and 3845 kHz in the evening. If you hear a picture already going, pick its format and press START A PICTURE NOW. Pictures you receive stay on this page until you leave it.</div>
         </div>
       </div>
     </div>
