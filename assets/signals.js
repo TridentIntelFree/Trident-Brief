@@ -685,22 +685,63 @@ var PRESETS = [
   {id:'wwv', name:'WWV 10 MHz', khz:10000, mode:'am', near:[40.7, -105.0], note:'US time signal: a tick every second, a voice every minute. Another reception check.'},
   /* pictures and text: each tunes where the decoder wants it and starts that
      decoder. Fax is tuned USB 1.9 kHz below the listed frequency, so the
-     picture tones sit at 1500-2300 Hz; RTTY so its tones sit near 1500 Hz. */
-  {id:'fxb4', dec:'fax', pb:[1100, 2700], name:'Fax Boston', khz:4233.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) weather charts on 4235 kHz: best at night. Charts go out most hours; a new one starts on its own.'},
-  {id:'fxb6', dec:'fax', pb:[1100, 2700], name:'Fax Boston', khz:6338.6, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 6340.5 kHz: evening and night.'},
-  {id:'fxb9', dec:'fax', pb:[1100, 2700], name:'Fax Boston', khz:9108.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 9110 kHz: day and evening.'},
-  {id:'fxb12', dec:'fax', pb:[1100, 2700], name:'Fax Boston', khz:12748.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 12750 kHz: daytime.'},
-  {id:'fxno', dec:'fax', pb:[1100, 2700], name:'Fax New Orleans', khz:8502.0, mode:'usb', near:[29.9, -90.1], note:'US Coast Guard New Orleans (NMG) on 8503.9 kHz: Gulf and Atlantic weather charts.'},
-  {id:'fxpr', dec:'fax', pb:[1100, 2700], name:'Fax Pt Reyes', khz:8680.1, mode:'usb', near:[38.0, -122.9], note:'US Coast Guard Point Reyes (NMC) on 8682 kHz: Pacific weather charts.'},
-  {id:'fxdwd', dec:'fax', pb:[1100, 2700], name:'Fax Germany', khz:7878.1, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK3) on 7880 kHz: European and Atlantic charts.'},
-  {id:'sv14a', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:14230, mode:'usb', near:[38, -81], note:'The busiest SSTV calling frequency (20 m): amateurs swap pictures, mostly in daylight and at weekends.'},
-  {id:'sv14b', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:14233, mode:'usb', near:[38, -81], note:'The second 20 m SSTV frequency, for when 14230 is busy.'},
-  {id:'sv7', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:7171, mode:'lsb', near:[38, -81], note:'40 m SSTV, lower sideband: late afternoon and evening.'},
-  {id:'sv3', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:3845, mode:'lsb', near:[38, -81], note:'80 m SSTV, lower sideband: evenings and night, nearer stations.'},
-  {id:'sv28', dec:'sstv', pb:[900, 2700], name:'SSTV', khz:28680, mode:'usb', near:[38, -81], note:'10 m SSTV: only when the band is open, around midday in good sun years.'},
-  {id:'rtdwd', dec:'rtty', pb:[900, 2100], name:'RTTY weather', khz:10099.3, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK9) on 10100.8 kHz: weather reports by teleprinter round the clock, 50 baud. A good first test of the RTTY decoder.'},
-  {id:'rtdwd4', dec:'rtty', pb:[900, 2100], name:'RTTY weather', khz:4581.5, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK2) on 4583 kHz: the night frequency.'}
-];
+     picture tones sit at 1500-2300 Hz; RTTY so its tones sit near 1500 Hz.
+     Frequencies are the stations' published ones; schedules change, so a
+     silent one may simply be between broadcasts. */
+].concat((function(){
+  var out = [];
+  function fax(grp, id, name, listed, near, note){
+    out.push({id:id, grp:grp, dec:'fax', pb:[1100, 2700], name:name + ' ' + listed, khz:Math.round((listed - 1.9)*10)/10, mode:'usb', near:near, note:note});
+  }
+  function sstv(grp, id, khz, mode, near, note){ out.push({id:id, grp:grp, dec:'sstv', pb:[900, 2700], name:'SSTV ' + khz, khz:khz, mode:mode, near:near, note:note}); }
+  function rtty(grp, id, name, listed, near, note){ out.push({id:id, grp:grp, dec:'rtty', pb:[900, 2100], name:name + ' ' + listed, khz:Math.round((listed - 1.5)*10)/10, mode:'usb', near:near, note:note}); }
+  var NA = 'Weather fax: North America', EU = 'Weather fax: Europe', AP = 'Weather fax: Asia and Pacific', SV = 'SSTV: amateur pictures', RT = 'RTTY: weather by teleprinter';
+  var BOS = [41.7, -70.5], NOR = [29.9, -90.1], PTR = [38.0, -122.9], KOD = [57.8, -152.4], HAL = [44.7, -63.6], HON = [21.4, -158.0];
+  fax(NA, 'fxb4', 'Boston', 4235, BOS, 'US Coast Guard Boston (NMF), North Atlantic charts: best at night.');
+  fax(NA, 'fxb6', 'Boston', 6340.5, BOS, 'US Coast Guard Boston (NMF): evening and night.');
+  fax(NA, 'fxb9', 'Boston', 9110, BOS, 'US Coast Guard Boston (NMF): day and evening.');
+  fax(NA, 'fxb12', 'Boston', 12750, BOS, 'US Coast Guard Boston (NMF): daytime.');
+  fax(NA, 'fxno4', 'New Orleans', 4317.9, NOR, 'US Coast Guard New Orleans (NMG), Gulf and Atlantic charts: night.');
+  fax(NA, 'fxno', 'New Orleans', 8503.9, NOR, 'US Coast Guard New Orleans (NMG): day and night.');
+  fax(NA, 'fxno12', 'New Orleans', 12789.9, NOR, 'US Coast Guard New Orleans (NMG): daytime.');
+  fax(NA, 'fxpr4', 'Pt Reyes', 4346, PTR, 'US Coast Guard Point Reyes (NMC), Pacific charts: night.');
+  fax(NA, 'fxpr', 'Pt Reyes', 8682, PTR, 'US Coast Guard Point Reyes (NMC): day and night.');
+  fax(NA, 'fxpr12', 'Pt Reyes', 12786, PTR, 'US Coast Guard Point Reyes (NMC): daytime.');
+  fax(NA, 'fxkod4', 'Kodiak', 4298, KOD, 'US Coast Guard Kodiak, Alaska (NOJ): North Pacific and Alaska charts.');
+  fax(NA, 'fxkod8', 'Kodiak', 8459, KOD, 'US Coast Guard Kodiak, Alaska (NOJ).');
+  fax(NA, 'fxhal4', 'Halifax', 4271, HAL, 'Canadian Forces Halifax (CFH), North Atlantic charts: night.');
+  fax(NA, 'fxhal10', 'Halifax', 10536, HAL, 'Canadian Forces Halifax (CFH): daytime.');
+  fax(NA, 'fxhon9', 'Honolulu', 9982.5, HON, 'US National Weather Service Honolulu (KVM70), Pacific charts.');
+  fax(NA, 'fxhon11', 'Honolulu', 11090, HON, 'US National Weather Service Honolulu (KVM70).');
+  var DWD = [53.67, 9.8], GYA = [51.63, -0.42];
+  fax(EU, 'fxdwd3', 'Germany', 3855, DWD, 'German Weather Service (DDH3), Pinneberg: European and Atlantic charts, night.');
+  fax(EU, 'fxdwd', 'Germany', 7880, DWD, 'German Weather Service (DDK3): day and night, very reliable.');
+  fax(EU, 'fxdwd13', 'Germany', 13882.5, DWD, 'German Weather Service (DDK6): daytime.');
+  fax(EU, 'fxgya4', 'UK Met Office', 4610, GYA, 'Royal Navy / Met Office Northwood (GYA): North Atlantic and European charts, night.');
+  fax(EU, 'fxgya8', 'UK Met Office', 8040, GYA, 'Northwood (GYA): day and night.');
+  fax(EU, 'fxgya11', 'UK Met Office', 11086.5, GYA, 'Northwood (GYA): daytime.');
+  var JMH = [35.9, 139.6], VMC = [-26.4, 146.2], VMW = [-26.6, 120.2], ZKLF = [-41.3, 174.8];
+  fax(AP, 'fxjmh3', 'Tokyo', 3622.5, JMH, 'Japan Meteorological Agency (JMH): Pacific and Asian charts, night there.');
+  fax(AP, 'fxjmh7', 'Tokyo', 7795, JMH, 'Japan Meteorological Agency (JMH).');
+  fax(AP, 'fxjmh13', 'Tokyo', 13988.5, JMH, 'Japan Meteorological Agency (JMH): daytime there.');
+  fax(AP, 'fxvmc11', 'Australia E', 11030, VMC, 'Bureau of Meteorology, Charleville (VMC): Australian charts.');
+  fax(AP, 'fxvmc13', 'Australia E', 13920, VMC, 'Bureau of Meteorology, Charleville (VMC).');
+  fax(AP, 'fxvmw10', 'Australia W', 10555, VMW, 'Bureau of Meteorology, Wiluna (VMW): Indian Ocean and Australian charts.');
+  fax(AP, 'fxzk9', 'New Zealand', 9459, ZKLF, 'MetService Wellington (ZKLF): South Pacific charts.');
+  fax(AP, 'fxzk13', 'New Zealand', 13550.5, ZKLF, 'MetService Wellington (ZKLF).');
+  var USA = [38, -81], EUR = [51, 8], WORLD = [38, -81];
+  sstv(SV, 'sv14a', 14230, 'usb', WORLD, 'The busiest SSTV calling frequency, worldwide (20 m): mostly daylight and weekends. SNAP tunes onto pictures sent a few kHz off.');
+  sstv(SV, 'sv14b', 14233, 'usb', WORLD, 'The second 20 m SSTV frequency, for when 14230 is busy.');
+  sstv(SV, 'sv21', 21340, 'usb', WORLD, '15 m SSTV: daytime, when the band is open.');
+  sstv(SV, 'sv28', 28680, 'usb', WORLD, '10 m SSTV: only when the band is open, around midday in good sun years.');
+  sstv(SV, 'sv7', 7171, 'lsb', USA, '40 m SSTV in the Americas, lower sideband: late afternoon and evening.');
+  sstv(SV, 'sv3', 3845, 'lsb', USA, '80 m SSTV in North America, lower sideband: evenings and night.');
+  sstv(SV, 'sv3eu', 3733, 'lsb', EUR, '80 m SSTV in Europe, lower sideband, around 3730-3735 kHz: European evenings (late afternoon in the US).');
+  rtty(RT, 'rtdwd', 'Germany', 10100.8, DWD, 'German Weather Service (DDK9): weather reports round the clock, 50 baud, 450 Hz shift. A good first test of the RTTY decoder.');
+  rtty(RT, 'rtdwd4', 'Germany', 4583, DWD, 'German Weather Service (DDK2): the night frequency.');
+  rtty(RT, 'rtdwd147', 'Germany', 147.3, DWD, 'German Weather Service (DDH47) on long wave: Europe only, day and night.');
+  return out;
+})());
 var SCAN = PRESETS.filter(function(p){ return !p.dec; });       // SCAN visits the listening presets only
 var PASS = {usb:[300, 2700], lsb:[-2700, -300], am:[-4900, 4900], cw:[300, 800]};
 var STEP = [7,8,9,10,11,12,13,14,16,17,19,21,23,25,28,31,34,37,41,45,50,55,60,66,73,80,88,97,107,118,130,143,
@@ -759,12 +800,14 @@ function tunerNow(extra){
     (T.live ? 'live from ' : 'connecting to ') + esc(T.rx.loc || T.rx.host) +
     (T.rx.antenna ? ' <span class="sig-small">(' + esc(T.rx.antenna) + ')</span>' : '') +
     '<div class="tu-meter"><i style="width:' + pct.toFixed(0) + '%"></i><span>' + (r == null ? 'signal —' : 'signal ' + r.toFixed(0) + ' dBm') + '</span></div>' +
-    (extra ? '<div class="sig-small">' + extra + '</div>' : '');
+    (extra ? '<div class="sig-small">' + extra + '</div>' : '') +
+    (T.probeMsg ? '<div class="sig-small tu-probe">' + T.probeMsg + '</div>' : '');
 }
 function tunerClose(){
   if(T.kaTimer){ clearInterval(T.kaTimer); T.kaTimer = null; }
   if(T.idle){ clearInterval(T.idle); T.idle = null; }
   if(T.scan){ clearTimeout(T.scan.timer); T.scan = null; $('tuScan').textContent = '⟳ SCAN PRESETS'; }
+  if(T.probe){ if(T.probe.timer) clearTimeout(T.probe.timer); T.probe = null; T.probeMsg = ''; }
   var ws = T.ws; T.ws = null; T.live = false;
   if(ws){ try{ ws.close(); }catch(_){} }
   wfClose();
@@ -865,6 +908,10 @@ function connect(rx){
   };
 }
 function refused(rx, why){
+  if(T.probe){                                          // finding the clearest receiver: only the candidate being tried moves it on
+    if(T.probe.list[T.probe.i] === rx){ wfClose(); T.tried.push(rx.host); probeNext(rx, null, why); }
+    return;
+  }
   wfClose();
   T.tried.push(rx.host);
   status('The receiver in ' + esc(rx.loc || rx.host) + ': ' + esc(why) + '. Trying the next one…');
@@ -1610,13 +1657,25 @@ function wireTuner(){
   function btn(p){ return '<button class="ev-f tu-p" data-p="' + p.id + '" type="button">' + esc(p.name) + ' <span>' + p.khz + '</span></button>'; }
   $('tuPresets').innerHTML = SCAN.map(btn).join('');
   var pp = $('tuPresetsPic');
-  if(pp) pp.innerHTML = '<span class="sig-small">PICTURES &amp; TEXT</span>' + PRESETS.filter(function(p){ return p.dec; }).map(btn).join('');
+  if(pp){
+    var pics = PRESETS.filter(function(p){ return p.dec; }), groups = [];
+    pics.forEach(function(p){ if(groups.indexOf(p.grp) < 0) groups.push(p.grp); });
+    pp.innerHTML = '<details id="tuPicList"><summary class="sig-h">PICTURES &amp; TEXT, WORLDWIDE: weather fax, SSTV, RTTY (' + pics.length + ')</summary>' +
+      groups.map(function(g){ return '<div class="tu-pgrp"><div class="sig-small">' + esc(g.toUpperCase()) + '</div><div class="tu-presets">' +
+        pics.filter(function(p){ return p.grp === g; }).map(btn).join('') + '</div></div>'; }).join('') +
+      '<div class="sig-small">Fax buttons show the station\u2019s listed frequency; the tuner sits 1.9 kHz below it, as fax needs. Schedules change: a silent one may be between broadcasts.</div></details>';
+    var dl = $('tuPicList');
+    try{ dl.open = localStorage.getItem('sig_piclist') === '1'; }catch(_){}
+    dl.addEventListener('toggle', function(){ try{ localStorage.setItem('sig_piclist', dl.open ? '1' : '0'); }catch(_){} });
+  }
   BAND.querySelectorAll('.tu-p').forEach(function(b){
     b.onclick = function(){
       var p = presetOf(b.dataset.p);
       if(p.dec === 'sstv' || p.dec === 'fax') WF.zoom = 11;   // about 15 kHz across: the channel and its neighbours
       retune(p.khz, p.mode, p.id); if(!T.ws) listen();
       if(p.dec === 'sstv' || p.dec === 'fax'){ if(WF.ws) wfView(p.khz + (p.mode === 'lsb' ? -1.9 : 1.9), 11); }
+      if((p.dec === 'fax' || p.dec === 'rtty') && $('tuRx').value === 'auto') setTimeout(function(){ if(T.preset === p.id) probeStart(p); }, 600);
+      else probeStop();
       if(p.dec){                                  // and the decoder that reads it, alone
         ['rtty', 'fax', 'sstv'].forEach(function(k){ if(k !== p.dec && DX.on[k]) decStart(k, false); });
         decTab(p.dec); if(!DX.on[p.dec]) decStart(p.dec, true);
@@ -1624,15 +1683,15 @@ function wireTuner(){
     };
   });
   BAND.querySelectorAll('.tu-steps button').forEach(function(b){
-    b.onclick = function(){ retune(Math.round((T.khz + (+b.dataset.s))*100)/100, null, null); };
+    b.onclick = function(){ probeStop(); retune(Math.round((T.khz + (+b.dataset.s))*100)/100, null, null); };
   });
-  $('tuKhz').onchange = function(){ retune(+this.value, null, null); };
+  $('tuKhz').onchange = function(){ probeStop(); retune(+this.value, null, null); };
   $('tuMode').onchange = function(){ retune(T.khz, this.value, T.preset); };
   $('tuGo').onclick = function(){ T.ws && T.live ? retune(+$('tuKhz').value, $('tuMode').value, T.preset) : listen(); };
   $('tuStop').onclick = function(){ stopAll(); status('Stopped; the receiver is free again.'); };
   $('tuVol').oninput = function(){ touch(); if(T.out) T.out.gain.value = +this.value; set('vol', +this.value); };
   $('tuVol').value = get('vol', 0.9);
-  $('tuRx').onchange = function(){ touch(); if(T.ws){ T.tried = []; connect(pick()); } };
+  $('tuRx').onchange = function(){ touch(); probeStop(); if(T.ws){ T.tried = []; connect(pick()); } };
   $('tuScan').onclick = scanToggle;
   wireWaterfall();
   wireTranscribe();
@@ -1826,6 +1885,92 @@ setInterval(function(){
   var p = presetOf(T.preset), V = DX.dec.sstv;
   if(DX.on.sstv && T.live && p && p.dec === 'sstv' && V && !V.mode && !V.manual) snap(false);
 }, 8000);
+
+
+/* The clearest receiver for a station. Nearest is not best on shortwave: a
+   receiver too close can sit in the skip zone, and antennas and local noise
+   differ a lot. For the fax and RTTY presets (stations that send almost
+   without a break), with the receiver on "best for the channel", up to four
+   likely receivers are tried one at a time for about eight seconds each, the
+   station's tones measured against the noise beside them, and the clearest
+   kept. One receiver at a time, started by your tap; touching the tuning or
+   choosing a receiver stops it. */
+var PROBE_SEC = 8;
+function probeStart(p){
+  probeStop();
+  T.tried = [];                                          // earlier refusals don't rule a candidate out: each gets its own try
+  var cands = ranked(p.near).slice(0, 4);
+  if(cands.length < 2) return;
+  T.probe = {p:p, list:cands, i:0, res:[]};
+  probeGo();
+}
+function probeStop(msg){
+  if(T.probe && T.probe.timer) clearTimeout(T.probe.timer);
+  T.probe = null; T.probeMsg = msg || '';
+  tunerNow();
+}
+function probeGo(){
+  var P = T.probe; if(!P) return;
+  if(P.i >= P.list.length) return probeDone();
+  var rx = P.list[P.i];
+  T.probeMsg = 'Finding the clearest receiver for this station: ' + (P.i + 1) + ' of ' + P.list.length + ', ' + esc(rx.loc || rx.host) + '…' + probeSoFar();
+  T.tried = []; connect(rx);
+  P.timer = setTimeout(function(){
+    if(T.probe !== P) return;
+    probeNext(rx, T.live && T.rx === rx ? probeMeasure(P.p.dec) : null);
+  }, PROBE_SEC*1000 + 2500);                      // connecting takes a second or two
+}
+function probeNext(rx, q, why){
+  var P = T.probe; if(!P) return;
+  if(P.timer) clearTimeout(P.timer);
+  P.res.push({rx:rx, q:q, why:why});
+  P.i++;
+  probeGo();
+}
+function probeSoFar(){
+  var P = T.probe; if(!P || !P.res.length) return '';
+  return '<br>' + P.res.map(function(r){ return esc(r.rx.loc || r.rx.host) + ': ' + (r.q == null ? (r.why ? esc(r.why) : 'no reading') : r.q + ' dB'); }).join(' · ');
+}
+function probeDone(){
+  var P = T.probe, got = P.res.filter(function(r){ return r.q != null; }).sort(function(a, b){ return b.q - a.q; }), best = got[0];
+  var list = probeSoFar();
+  T.probe = null;
+  if(!best){
+    T.probeMsg = 'No receiver gave a clear reading of this station just now (it may be between charts).' + list;
+    if(!T.live){                                         // the last one tried refused: carry on down the list as usual
+      T.tried = P.res.filter(function(r){ return r.why; }).map(function(r){ return r.rx.host; });
+      connect(pick());
+    }
+    tunerNow(); return;
+  }
+  T.probeMsg = 'Clearest: ' + esc(best.rx.loc || best.rx.host) + ' (' + best.q + ' dB over the noise beside it).' + list;
+  logEvent(Date.now(), 'mark', 'clearest receiver for ' + T.khz + ' kHz: ' + (best.rx.loc || best.rx.host) + ', ' + best.q + ' dB');
+  if(T.rx !== best.rx){ T.tried = []; connect(best.rx); }
+  if(DX.dec.fax){ DX.dec.fax.reset(); fxClear(); }         // a clean chart from the receiver it stays on
+  if(DX.dec.rtty){ DX.dec.rtty.machines.forEach(function(m){ m.text = ''; }); }
+  tunerNow();
+}
+/* the station's tones against the noise beside them, from the last few
+   seconds of sound: fax 1500-2300 Hz against 1150-1400 and 2420-2650 Hz;
+   RTTY the strongest pair of tones against the median */
+function probeMeasure(kind){
+  var D = D_(); if(!D || !DX.ring || DX.rfill < DX.decim.sr*4) return null;
+  var x = ringOut(), sr = DX.decim.sr, N = 4096, hz = sr/N, acc = null, n = 0;
+  x = x.subarray(Math.max(0, x.length - Math.round(sr*(PROBE_SEC - 2))));
+  for(var i = 0; i + N <= x.length; i += N/2){
+    var p = D.fftPow(x.subarray(i, i + N)); n++;
+    if(!acc) acc = Float64Array.from(p); else for(var k = 0; k < p.length; k++) acc[k] += p[k];
+  }
+  if(!acc) return null;
+  function band(lo, hi){ var a = 0, m = 0; for(var k = Math.ceil(lo/hz); k <= Math.floor(hi/hz); k++){ a += acc[k]; m++; } return m ? a/m : 0; }
+  var q;
+  if(kind === 'fax') q = band(1500, 2300)/((band(1150, 1400) + band(2420, 2650))/2 || 1e-30);
+  else {
+    var srt = Array.prototype.slice.call(acc, Math.ceil(900/hz), Math.floor(2100/hz)).sort(function(a, b){ return a - b; });
+    q = srt[srt.length - 1]/(srt[srt.length >> 1] || 1e-30);
+  }
+  return Math.round(10*Math.log10(q));
+}
 
 /* -- what is this? */
 function idRun(){
