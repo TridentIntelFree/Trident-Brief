@@ -1470,12 +1470,13 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
             <button class="ap-btn" id="svGo" type="button">&#9654; START</button>
             <label>missed the start? <select id="svMode"></select></label>
             <button class="ev-f" id="svNow" type="button">START A PICTURE NOW</button>
+            <button class="ev-f" id="svSnap" type="button" title="tune onto a picture-shaped signal near the channel">SNAP TO SIGNAL</button>
             <button class="ev-f" id="svSave" type="button">&#11015; PNG</button>
           </div>
           <div class="sig-small" id="svState">off</div>
           <div class="dec-pic"><canvas id="svCv" width="320" height="256"></canvas></div>
           <div class="dec-gal" id="svGal"></div>
-          <div class="sig-small tu-tx-note">Pictures sent as sound by amateurs, and sometimes from the space station. The SSTV presets set the frequency, sideband and filter, and turn noise reduction off: tap one and wait. Each picture names its own format at the start and the decoder starts by itself, even if the sender is up to 250 Hz off frequency (it says so). Busiest on 14230 kHz in daylight and at weekends; 7171 and 3845 kHz in the evening. If you hear a picture already going, pick its format and press START A PICTURE NOW. Pictures you receive stay on this page until you leave it.</div>
+          <div class="sig-small tu-tx-note">Pictures sent as sound by amateurs, and sometimes from the space station. The SSTV presets set the frequency, sideband and filter, and turn noise reduction off: tap one and wait. Senders spread over a few kHz around the calling frequency, so while it waits for a picture it watches the waterfall and SNAPs onto any steady picture-shaped signal within 3.5 kHz (never during a picture; the move is logged). SNAP TO SIGNAL does it by hand. Each picture names its own format at the start and the decoder starts by itself, even if the sender is up to 250 Hz off frequency (it says so). Busiest on 14230 kHz in daylight and at weekends; 7171 and 3845 kHz in the evening. If you hear a picture already going, pick its format and press START A PICTURE NOW. Pictures you receive stay on this page until you leave it.</div>
         </div>
       </div>
     </div>
