@@ -1915,6 +1915,7 @@ function decPaint(){
   $('fxState').textContent = !DX.on.fax ? 'off' : F ? F.status + ' · ' + F.lines() + ' lines' +
     ' · ' + F.lpm + ' lines/min' + (F.lpmFrom === 'phasing' ? ' (from the phasing lines)' : F.lpmFrom === 'measured' ? ' (measured)' : '') +
     (F.slant ? ' · straightened ' + Math.round(Math.abs(F.slant)*1e6) + ' ppm' : '') + (F.tuning() ? ' · ' + F.tuning() : '') +
+    (F.quality() ? ' · ' + F.quality() : '') +
     (F.level < 1e-7 ? ' · no sound' : '') + idle : 'starting' + idle;
   if(F) fxDraw(false);
   var V = DX.dec.sstv;
