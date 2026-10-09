@@ -828,7 +828,8 @@ function regionOf(lat, lon){
   if(lat < -60) return 'an';
   if(lon >= 150 || (lon <= -140 && lat < 45) || (lat < -11 && lon >= 100)) return 'oc';
   if(lon < -30) return lat > 7 ? 'na' : 'sa';
-  if(lat >= 35 && lon < 45) return 'eu';
+  if(lat >= 35 && ((lat < 37.4 && lon >= -2 && lon < 11.5) || (lat < 35.92 && lon >= -6.3 && lon < -2))) return 'af';   // the Maghreb coast
+  if((lat >= 35 && lon < 45) || (lat >= 34.4 && lat < 35.8 && lon >= 32 && lon < 34.7)) return 'eu';   // with Cyprus
   if(lat >= 12 && lat < 42 && lon >= 34 && lon < 63) return 'me';
   if(lat < 35 && (lon < 52 || (lat < 12 && lon < 64))) return 'af';     // with the Indian Ocean islands
   return 'as';
