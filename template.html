@@ -4408,6 +4408,15 @@ async function tzFetch(){
   return got.filter(function(d){ return d && d.brief; }).sort(function(a, b){ return a.at < b.at ? 1 : -1; })[0] || null;
 }
 var TZ = {brief:null};
+/* Space weather for Tazewell (aurora, HF, GPS, grid) lives with the rest of the
+   Tazewell report, behind the same gesture and code, not in the public section. */
+function tzSpace(){
+  var sw = (typeof FEEDS !== 'undefined' && FEEDS && FEEDS.space) || null;
+  if(!sw || !(sw.local || []).length) return '';
+  return '<h2>SPACE WEATHER FOR TAZEWELL</h2><ul>' + sw.local.map(function(l){ return '<li>' + esc(l) + '</li>'; }).join('') +
+    '</ul><p class="sig-small">A rough guide for about 37&deg;N, from NOAA&rsquo;s readings at ' +
+    esc(String(sw.fetched_at || '').replace('T', ' ').slice(0, 16)) + 'Z. The full picture is under SPACE WX.</p>';
+}
 async function tzShow(){
   var band = document.getElementById('tzBand');
   band.hidden = false; openBand(band);
@@ -4416,6 +4425,7 @@ async function tzShow(){
   var j = await tzFetch();
   if(!j){
     tzMsg('No area brief yet. One is written every morning at 6:47 a.m. Eastern.', true);
+    document.getElementById('tzBody').innerHTML = tzSpace();
     return;
   }
   TZ.brief = j;
@@ -4427,6 +4437,7 @@ async function tzShow(){
     (age > 30 ? ' · ' + Math.round(age) + ' hours old' : '');
   var body = document.getElementById('tzBody');
   try{ body.innerHTML = renderMD(j.brief); }catch(e){ body.innerHTML = '<pre class="raw">' + esc(j.brief) + '</pre>'; }
+  body.insertAdjacentHTML('beforeend', tzSpace());
   tzMsg('');
 }
 (function(){
@@ -4997,9 +5008,6 @@ async function cbShow(){
       return '<i' + (x[2] ? ' class="fc"' : '') + ' style="height:' + Math.max(3, x[1]/9*100).toFixed(0) + '%" title="' + esc(x[0]) + 'Z Kp ' + x[1] + (x[2] ? ' (forecast)' : '') + '"></i>'; }).join('') + '</div>';
   }
   var cards = [], sc = SW.scales, kp = SW.kp, wd = SW.wind, xr = SW.xray, cm = SW.cmes, al = SW.alerts;
-  if(SW.local && SW.local.length)
-    cards.push('<div class="ind-c"><h4>FOR TAZEWELL</h4>' + SW.local.map(function(l){ return '<div class="ind-row sw-txt"><span>' + esc(l) + '</span></div>'; }).join('') +
-               '<div class="sig-small">a rough guide for about 37&deg;N</div></div>');
   if(sc){
     var h = '<div class="ind-c"><h4>NOAA SCALES &mdash; NOW</h4>' + chips(sc.now || {});
     var p = sc.past24 || {};

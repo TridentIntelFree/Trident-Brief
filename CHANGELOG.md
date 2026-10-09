@@ -4,6 +4,15 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.33.3 — 2026-10-09
+
+### Changed: Tazewell's space-weather guide is hidden with the Tazewell report
+- The "For Tazewell" guide (aurora chance, HF radio, GPS, power grid) has
+  left the public SPACE WX section. It now closes the hidden Tazewell report,
+  behind "Appalachian Intel" ×3 and the code 0330, and is read aloud with it.
+- SPACE WX keeps the general picture: scales, Kp, solar wind, flares, CMEs,
+  the forecasters' discussion and alerts.
+
 ## 1.33.2 — 2026-10-08
 
 ### Added: NOAA forecasters' discussion in space weather
