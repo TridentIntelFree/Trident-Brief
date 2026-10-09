@@ -4,6 +4,21 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.39.1 — 2026-10-09
+
+### Fixed: receiver regions near the Mediterranean
+- Cyprus counts as Europe, and the coasts of Algeria, Tunisia and northern
+  Morocco as Africa.
+- The first worldwide receiver list has arrived: 859 public KiwiSDRs.
+  - North America 288, Europe 414, Asia 54, Oceania and Pacific 77, South
+    America 16, Middle East 4, Africa 5.
+  - Africa: Kenya ×2, South Africa ×2, Canary Islands.
+  - Middle East: Riyadh, Baghdad, Kuwait City, Doha.
+  - None are listed in Russia or mainland China. The nearest are in
+    Finland, Hong Kong, Taiwan and Korea.
+- The weekly check's new list source worked. The tuner itself can now use
+  18 receivers, including one in Australia.
+
 ## 1.39.0 — 2026-10-09
 
 ### Added: presets for Korea, China, Russia, Africa and the Middle East
