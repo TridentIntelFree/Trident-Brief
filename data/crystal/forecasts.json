@@ -53,7 +53,11 @@
    "threats of retaliation after losses"
   ],
   "watch_for": "Houthi statement or video on X or Telegram",
-  "wrong_if": "no verified Houthi claim or strike evidence by 08 Oct 2026 2359 UTC"
+  "wrong_if": "no verified Houthi claim or strike evidence by 08 Oct 2026 2359 UTC",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-09T18:31:28Z",
+  "evidence": "No reports of Houthi claim or evidence of strike on Saudi-backed positions near Dhubab/Bab el-Mandeb during Oct 6-9 window; prior claims were in September.",
+  "url": "https://www.jpost.com/middle-east/article-908510"
  },
  {
   "id": "2026-10-06T0153-4",
@@ -69,7 +73,11 @@
    "risk of wider Horn spillover"
   ],
   "watch_for": "Asmara foreign ministry or state media release",
-  "wrong_if": "no Eritrean accusation by 08 Oct 2026 2359 UTC"
+  "wrong_if": "no Eritrean accusation by 08 Oct 2026 2359 UTC",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-09T18:31:28Z",
+  "evidence": "Eritrea responded to Ethiopian accusations of invasion into Tigray but issued no statement accusing Ethiopia of border violations or airstrikes.",
+  "url": "https://www.bbc.co.uk/news/articles/c65ynvw250y1o"
  },
  {
   "id": "2026-10-06T0153-5",
@@ -84,7 +92,11 @@
    "four prior consecutive days confirmed"
   ],
   "watch_for": "Kyiv Independent or local X reports of new drone activity",
-  "wrong_if": "no strike reported on 06 or 07 Oct 2026"
+  "wrong_if": "no strike reported on 06 or 07 Oct 2026",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-09T18:31:28Z",
+  "evidence": "Russian strikes hit Kyiv Northern Bridge on Oct 3-4 but no reports of fifth consecutive day during Oct 6-9 window.",
+  "url": "https://telegraph.com/russia-kyiv-bridges-ukraine-infrastructure-bombardment/"
  },
  {
   "id": "2026-10-06T0153-6",
@@ -313,7 +325,11 @@
    "multiple maritime advisories active"
   ],
   "watch_for": "new UKMTO alert or vessel AIS anomaly",
-  "wrong_if": "No new Hormuz incident reported by 08 Oct 19:00 UTC"
+  "wrong_if": "No new Hormuz incident reported by 08 Oct 19:00 UTC",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-09T18:31:28Z",
+  "evidence": "UKMTO reports of tanker strikes in Strait of Hormuz were from early October (e.g., Oct 2-3), not new reports in Oct 7-8 window.",
+  "url": "https://regulasshipping.com/blog/ukmto-logs-two-friday-tanker-attacks-after-warnings-148-26-and-149-26/"
  },
  {
   "id": "2026-10-07T1904-3",
@@ -425,7 +441,11 @@
    "Bulgarian search termination"
   ],
   "watch_for": "first UKMTO or Bulgarian maritime authority notice",
-  "wrong_if": "no new vessel incident reported by 08 Oct 23:59 UTC"
+  "wrong_if": "no new vessel incident reported by 08 Oct 23:59 UTC",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-09T18:31:28Z",
+  "evidence": "No UKMTO or gCaptain reports of additional unknown-projectile strikes on commercial vessels in Black Sea EEZ during Oct 7-8 window.",
+  "url": ""
  },
  {
   "id": "2026-10-07-2",
@@ -441,7 +461,11 @@
    "recent strikes on Abha and Riyadh area"
   ],
   "watch_for": "Saudi MoD or Houthi statement claiming impact",
-  "wrong_if": "all incoming projectiles intercepted with no confirmed damage"
+  "wrong_if": "all incoming projectiles intercepted with no confirmed damage",
+  "outcome": "happened",
+  "resolved": "2026-10-09T18:31:28Z",
+  "evidence": "Houthis struck Riyadh airport on Oct 8 with confirmed hits killing three Saudis.",
+  "url": "https://www.reuters.com/world/middle-east/houthi-strikes-riyadh-airport-killed-three-saudis-war-escalates-2026-10-09/"
  },
  {
   "id": "2026-10-07-3",
@@ -1638,5 +1662,269 @@
   "made": "2026-10-08T19:01:12Z",
   "term": "roughly even chance",
   "deadline": "2026-10-10T23:59:59Z"
+ },
+ {
+  "id": "2026-10-09T1831-1",
+  "source": "oracle",
+  "made": "2026-10-09T18:31:28Z",
+  "horizon": "48h",
+  "deadline": "2026-10-11T18:31:28Z",
+  "region": "short",
+  "event": "Saudi-led coalition reports at least one additional Houthi ballistic missile or drone fired toward Riyadh or Abha/Khamis Mushait",
+  "criterion": "Saudi Press Agency or coalition statement confirms launch or interception before 11 Oct 2026 18:00 UTC",
+  "probability": 45,
+  "term": "unlikely",
+  "base_rate": 25,
+  "basis": [
+   "Houthi attacks occurred on 8-9 Oct with video evidence and official claims of further intent",
+   "recent pattern of repeated salvos when Saudi targets are hit"
+  ],
+  "watch_for": "Houthi media or Yemeni Telegram channels claiming new launches",
+  "wrong_if": "No coalition or Saudi MoD statement references any new launches by deadline",
+  "fly": {
+   "p": 75,
+   "n": 6,
+   "hits": 5,
+   "like": [
+    "Additional Houthi ballistic missile successfully hits major Saudi oil facility or airport with confirmed damage",
+    "Additional confirmed tanker strike or Houthi ballistic hit on Saudi targets within 48 h"
+   ]
+  }
+ },
+ {
+  "id": "2026-10-09T1831-2",
+  "source": "oracle",
+  "made": "2026-10-09T18:31:28Z",
+  "horizon": "48h",
+  "deadline": "2026-10-11T18:31:28Z",
+  "region": "short",
+  "event": "ACLED or BBC reports Eritrean forces advancing beyond current positions or Ethiopian ground forces crossing into Eritrea",
+  "criterion": "ACLED dataset or BBC article dated 10-11 Oct records confirmed cross-border ground movement by either side before 11 Oct 2026 18:00 UTC",
+  "probability": 35,
+  "term": "unlikely",
+  "base_rate": 20,
+  "basis": [
+   "Eritrean advance of up to 60 km already reported with mutual invasion accusations",
+   "both sides have mobilized and accused each other in the last 24 h"
+  ],
+  "watch_for": "Ethiopian or Eritrean state media claiming new territorial gains or defensive actions",
+  "wrong_if": "No verified reports of new ground incursions by either side by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-10-09T1831-3",
+  "source": "oracle",
+  "made": "2026-10-09T18:31:28Z",
+  "horizon": "48h",
+  "deadline": "2026-10-11T18:31:28Z",
+  "region": "short",
+  "event": "Ukraine MoD or Air Force reports at least 150 Shahed-type drones launched by Russia in a single overnight period",
+  "criterion": "Official Ukrainian Air Force Telegram or MoD release states 150+ drones used in one attack wave before 11 Oct 2026 18:00 UTC",
+  "probability": 50,
+  "term": "roughly even chance",
+  "base_rate": 35,
+  "basis": [
+   "142 drones reported in the most recent overnight wave",
+   "consistent tempo of deep strikes on energy and civilian targets"
+  ],
+  "watch_for": "Ukrainian Air Force Telegram posting updated drone count",
+  "wrong_if": "Highest single-wave drone count in Ukrainian reporting stays below 150 by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-10-09T1831-4",
+  "source": "oracle",
+  "made": "2026-10-09T18:31:28Z",
+  "horizon": "48h",
+  "deadline": "2026-10-11T16:00:00Z",
+  "region": "Market",
+  "event": "Movistar KOI F\u00e9nix wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 55,
+  "term": "roughly even chance",
+  "basis": [
+   "Movistar KOI F\u00e9nix favored on recent EMEA form against TLN Pirates"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXLOLGAME-26OCT091200KOIATLN-KOIA",
+   "p_market": 88,
+   "url": "https://kalshi.com/markets/kxlolgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-10-09T1831-5",
+  "source": "oracle",
+  "made": "2026-10-09T18:31:28Z",
+  "horizon": "48h",
+  "deadline": "2026-10-11T17:00:00Z",
+  "region": "Market",
+  "event": "Scotland wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 40,
+  "term": "unlikely",
+  "basis": [
+   "Scotland away form in qualifiers historically yields under 45% win rate"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXFIFAWGAME-26OCT09CZESCO-SCO",
+   "p_market": 93,
+   "url": "https://kalshi.com/markets/kxfifawgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-10-09T1831-6",
+  "source": "oracle",
+  "made": "2026-10-09T18:31:28Z",
+  "horizon": "48h",
+  "deadline": "2026-10-11T18:00:00Z",
+  "region": "Market",
+  "event": "Diriyah Club wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 25,
+  "term": "unlikely",
+  "basis": [
+   "Diriyah Club heavy underdog versus Al Nassr in Saudi Pro League"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXSAUDIPLGAME-26OCT09ALNDIR-DIR",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxsaudiplgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 295 air-raid alarms on 10 Oct 2026 and 11 Oct 2026, a faster pace than the past 30 days",
+  "probability": 56,
+  "base_rate": 50,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 34 were followed by this",
+   "base rate 50% over the whole record",
+   "closest: 14 Sep 2026, 15 Sep 2026, 13 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-10-10",
+   "end": "2026-10-11",
+   "op": ">",
+   "threshold": 295,
+   "unit_days": false
+  },
+  "criterion": "More than 295 air-raid alarms on 10 Oct 2026 and 11 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-09T1831-7",
+  "made": "2026-10-09T18:31:28Z",
+  "term": "likely",
+  "deadline": "2026-10-11T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,188 Russian personnel losses claimed by Ukraine's MoD on 10 Oct 2026 and 11 Oct 2026, a faster pace than the past 30 days",
+  "probability": 65,
+  "base_rate": 54,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 40 were followed by this",
+   "base rate 54% over the whole record",
+   "closest: 16 Jun 2026, 1 Nov 2024, 13 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-10-10",
+   "end": "2026-10-11",
+   "op": ">",
+   "threshold": 3188,
+   "unit_days": false
+  },
+  "criterion": "More than 3,188 Russian personnel losses claimed by Ukraine's MoD on 10 Oct 2026 and 11 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-09T1831-8",
+  "made": "2026-10-09T18:31:28Z",
+  "term": "likely",
+  "deadline": "2026-10-11T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,249 Russian drones claimed destroyed by Ukraine's MoD on 10 Oct 2026 and 11 Oct 2026, a faster pace than the past 30 days",
+  "probability": 62,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 38 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 17 Aug 2026, 18 Aug 2026, 7 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-10-10",
+   "end": "2026-10-11",
+   "op": ">",
+   "threshold": 3249,
+   "unit_days": false
+  },
+  "criterion": "More than 3,249 Russian drones claimed destroyed by Ukraine's MoD on 10 Oct 2026 and 11 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-09T1831-9",
+  "made": "2026-10-09T18:31:28Z",
+  "term": "likely",
+  "deadline": "2026-10-11T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 10 Oct 2026 and 11 Oct 2026 (Home Front Command)",
+  "probability": 17,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 9 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 28 Sep 2015, 2 Oct 2019, 25 Sep 2021"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-10-10",
+   "end": "2026-10-11",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 10 Oct 2026 and 11 Oct 2026 (Home Front Command)",
+  "id": "2026-10-09T1831-10",
+  "made": "2026-10-09T18:31:28Z",
+  "term": "very unlikely",
+  "deadline": "2026-10-11T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 10 Oct 2026 and 11 Oct 2026 (USGS)",
+  "probability": 46,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 27 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 19 Sep 2019, 11 Jul 2022, 30 Oct 2024"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-10-10",
+   "end": "2026-10-11",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 10 Oct 2026 and 11 Oct 2026 (USGS)",
+  "id": "2026-10-09T1831-11",
+  "made": "2026-10-09T18:31:28Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-11T23:59:59Z"
  }
 ]
