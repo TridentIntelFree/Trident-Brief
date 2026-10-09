@@ -47,6 +47,7 @@ UA = 'TridentBrief/1.0 (+https://github.com/TridentIntelFree/Trident-Brief)'
 USGS = ('https://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&minmagnitude=6&orderby=time-asc'
         '&starttime={}&endtime={}')
 GAMMA = 'https://gamma-api.polymarket.com'
+KALSHI = 'https://api.elections.kalshi.com/trade-api/v2'      # Kalshi's public market data (all markets, no key)
 WINDOWS = {'48h': 2, '7d': 7, '30d': 30, '1y': 365}
 WINDOW_OF = {'24h': '48h', '72h': '48h', '48h': '48h', '7d': '7d', '30d': '30d', '1y': '1y'}   # older horizons, for scoring
 
@@ -414,8 +415,95 @@ def fetch_markets(now, window, n=4):
     return out[:n]
 
 
+def _num(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def _kalshi_price(m):
+    """A Kalshi market's YES price in cents: the middle of the bid and ask, else the last trade.
+    The API has given prices both in cents (yes_bid) and in dollars (yes_bid_dollars); both are read."""
+    def cents(k):
+        v = _num(m.get(k + '_dollars'))
+        if v is not None:
+            return v * 100
+        v = _num(m.get(k))
+        return v
+    bid, ask, last = cents('yes_bid'), cents('yes_ask'), cents('last_price')
+    if bid and ask and 0 < bid <= ask < 100:
+        return (bid + ask) / 2
+    return last if last and 0 < last < 100 else None
+
+
+KALSHI_SEEN = []                         # one raw market per run, printed, so a change of field names shows in the log
+
+
+def fetch_kalshi(now, window, n=3):
+    """Open Kalshi questions, on any topic, that settle inside this window and that the market already
+    prices at 88-97 cents on one side: the candidates for steady picks. The busiest first, one per event,
+    combination (parlay) markets left out. Only the two short windows: a steady pick settles within a week."""
+    if window not in ('48h', '7d'):
+        return []
+    lo = now + timedelta(hours=6)
+    hi = now + timedelta(days=WINDOWS[window])
+    pool, cursor = [], ''
+    for _ in range(4):
+        url = (f'{KALSHI}/markets?status=open&limit=1000&mve_filter=exclude'
+               f'&min_close_ts={int(lo.timestamp())}&max_close_ts={int(hi.timestamp())}' + (f'&cursor={cursor}' if cursor else ''))
+        try:
+            data = _get(url, timeout=40).json()
+        except Exception as e:
+            print(f'  kalshi: {str(e)[:80]}')
+            break
+        ms = data.get('markets') or []
+        if ms and not KALSHI_SEEN:
+            KALSHI_SEEN.append(1)
+            print('  kalshi sample: ' + json.dumps({k: ms[0].get(k) for k in sorted(ms[0])})[:900])
+        for m in ms:
+            t = str(m.get('ticker') or '')
+            if not t or t.startswith('KXMVE') or (m.get('market_type') or 'binary') != 'binary':
+                continue
+            p = _kalshi_price(m)
+            try:
+                end = datetime.fromisoformat(str(m.get('close_time')).replace('Z', '+00:00'))
+            except Exception:
+                continue
+            if p is None or not (lo <= end <= hi) or not (88 <= p <= 97 or 3 <= p <= 12):
+                continue
+            vol = _num(m.get('volume_24h_fp')) or _num(m.get('volume_24h')) or _num(m.get('volume_fp')) or _num(m.get('volume')) or 0
+            title = re.sub(r'\s+', ' ', str(m.get('title') or '')).strip()
+            sub = re.sub(r'\s+', ' ', str(m.get('yes_sub_title') or m.get('subtitle') or '')).strip()
+            if sub and sub.lower() not in title.lower():
+                title = f'{title} ({sub})'
+            ev = str(m.get('event_ticker') or t)
+            pool.append({'id': t, 'event': ev, 'question': title[:300], 'end': end.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                         'p_market': round(p), 'volume': vol, 'venue': 'kalshi',
+                         'rules': re.sub(r'\s+', ' ', str(m.get('rules_primary') or ''))[:600],
+                         'url': 'https://kalshi.com/markets/' + ev.split('-')[0].lower()})
+        cursor = data.get('cursor') or ''
+        if not cursor:
+            break
+    seen, out = set(), []
+    for m in sorted(pool, key=lambda m: -m['volume']):
+        if m['event'] not in seen and m['volume'] > 0:
+            seen.add(m['event'])
+            out.append(m)
+    return out[:n]
+
+
 def resolve_market(f):
-    """A market question settles when Polymarket closes it at 1 or 0."""
+    """A market question settles when Polymarket closes it at 1 or 0, or Kalshi gives its result."""
+    if (f.get('market') or {}).get('venue') == 'kalshi':
+        try:
+            m = _get(f"{KALSHI}/markets/{f['market']['id']}", timeout=40).json().get('market') or {}
+        except Exception:
+            return None
+        res = str(m.get('result') or '').lower()
+        if res not in ('yes', 'no'):
+            return None
+        return ('happened' if res == 'yes' else 'did_not_happen'), 'settled on Kalshi'
     try:
         m = _get(f"{GAMMA}/markets/{f['market']['id']}", timeout=40).json()
         prices = [float(x) for x in json.loads(m.get('outcomePrices') or '[]')]

@@ -84,7 +84,8 @@ blocked from these sandboxes, so use `intel.py`, not the page.
   - the records (alarms, alerts, claimed losses, quakes);
   - the statistical engine (fly-brain analog days);
   - the fly's matches against past warnings;
-  - blind Polymarket benchmark questions;
+  - blind Polymarket benchmark questions, and Kalshi steady-pick candidates
+    (88-97 cents, settling within a week) for the "hello" panel;
   - automatic settling and the scoreboard.
 
   Event questions are settled by a separate small web-search grading call. `astro_lore.py` runs after the Crystal Ball: the

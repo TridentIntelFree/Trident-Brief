@@ -1107,7 +1107,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           <li><b>Text my location</b> asks four times, then opens your own Messages app with your coordinates written in; nothing goes anywhere
             unless you pick someone and press Send. The page itself sends nothing.</li>
           <li><b>Local Intel with your own xAI key:</b> your ZIP and the request go to xAI under your key, and xAI's terms apply.</li>
-          <li>Other map layers you pick (OpenStreetMap, OpenTopoMap, Esri, Waymarked Trails), and links (X, Polymarket, the sources), which load nothing until clicked.</li>
+          <li>Other map layers you pick (OpenStreetMap, OpenTopoMap, Esri, Waymarked Trails), and links (X, Polymarket, Kalshi, the sources), which load nothing until clicked.</li>
         </ul>
         <p>The Crystal Ball's fonts are served from this site, not Google Fonts.</p>
 
@@ -1116,12 +1116,12 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
           it asks for a code, which keeps it out of casual reach but locks nothing: the brief is a plain file in the public repository), the Analyst Desk, the Crystal Ball
           (forecasts, and an astrology reading for fun), the &ldquo;hello&rdquo; box with prediction-market picks, and the owner's panel.
           Hidden is not secret, and they follow the same rules. They read their data from GitHub only. The &ldquo;hello&rdquo; box links to
-          Polymarket but contacts it only if a link is clicked. The owner's panel talks to GitHub's API with the owner's own token.</p>
+          Polymarket and Kalshi but contacts them only if a link is clicked. The owner's panel talks to GitHub's API with the owner's own token.</p>
 
         <h4>What the server does</h4>
         <p>The brief is put together by scheduled jobs on GitHub Actions, not in your browser. They read about 70 public sources: news feeds,
           government warning and alert services, earthquake, aircraft and ship feeds, sanctions lists, GDELT, internet-outage data, space weather
-          (NOAA&rsquo;s Space Weather Prediction Center, and NASA&rsquo;s DONKI at CCMC or, if that fails, api.nasa.gov with NASA&rsquo;s public demo key), and Polymarket prices to check the forecasts against. They translate foreign-language items with Google's and Microsoft's free
+          (NOAA&rsquo;s Space Weather Prediction Center, and NASA&rsquo;s DONKI at CCMC or, if that fails, api.nasa.gov with NASA&rsquo;s public demo key), and Polymarket and Kalshi prices (their public market data) to check the forecasts against. They translate foreign-language items with Google's and Microsoft's free
           translation services, ask xAI's Grok (with Groq as a fallback) to search X and the web and to write, and check weekly which
           KiwiSDR receivers the tuner can reach (from kiwisdr.com&rsquo;s public list, which also gives the region links their worldwide list). Nothing about visitors goes into any of it. The full list is in the
           <a href="https://github.com/TridentIntelFree/Trident-Brief" target="_blank" rel="noopener">source code</a>.</p>
@@ -7970,8 +7970,10 @@ function agoShort(ms){
 })();
 
 /* "hello": the prediction-market picks, from the Crystal Ball's blind forecasts of
-   open Polymarket questions. The biggest disagreements with the market price come
-   first, with the record against the market once questions settle. */
+   open Polymarket and Kalshi questions. Steady picks first (Kalshi questions
+   settling within a week that the market and our blind forecast both put at 90%
+   or more), then the biggest disagreements with the market price, with the
+   record against the market once questions settle. */
 (function(){
   var btn = document.getElementById('helloBtn'); if(!btn) return;
   btn.onclick = async function(){
@@ -7992,17 +7994,38 @@ function agoShort(ms){
       return '<div class="hello-pick"><div class="q">' + esc(f.event) + '</div><div class="row">' +
         (Math.abs(d) >= 10 ? '<span class="hello-side ' + side + '">' + side.toUpperCase() + '</span>' : '<span>agrees</span>') +
         '<span>ours ' + f.probability + '%</span><span>market ' + f.market.p_market + '%</span><span>' + (d > 0 ? '+' : '') + d + ' pts</span>' +
-        '<span>settles in ' + (WIN[f.horizon] || f.horizon) + '</span><a href="' + esc(f.market.url) + '" target="_blank" rel="noopener">open</a></div>' +
+        '<span>settles in ' + (WIN[f.horizon] || f.horizon) + '</span><a href="' + esc(f.market.url) + '" target="_blank" rel="noopener">' + (f.market.venue === 'kalshi' ? 'Kalshi' : 'Polymarket') + '</a></div>' +
         ((f.basis || [])[0] ? '<div class="hello-fine" style="margin-top:4px">' + esc(f.basis[0]) + '</div>' : '') + '</div>';
     };
     var top = picks.filter(function(f){ return Math.abs(f._gap) >= 10; }).slice(0, 5);
-    body.innerHTML = '<h4>Top picks</h4>' + (top.length ? top.map(card).join('') : '<p>No disagreement of ten points or more today.</p>') +
+    /* steady picks: both say 90% or more on the same side, settling soon */
+    var nowIso = new Date().toISOString();
+    var steady = mk.filter(function(f){ var q = f.market.p_market; return f.market.venue === 'kalshi' && f.deadline > nowIso &&
+      ((f.probability >= 90 && q >= 88) || (f.probability <= 10 && q <= 12)); })
+      .sort(function(a, c){ return Math.abs(c.probability - 50) + Math.abs(c.market.p_market - 50) - Math.abs(a.probability - 50) - Math.abs(a.market.p_market - 50); });
+    var sCard = function(f){
+      var yes = f.probability >= 50, price = yes ? f.market.p_market : 100 - f.market.p_market, ours = yes ? f.probability : 100 - f.probability;
+      var hrs = Math.max(1, Math.round((new Date(f.deadline) - Date.now())/36e5)), per = Math.floor(2500/Math.max(1, price + 1));
+      return '<div class="hello-pick"><div class="q">' + esc(f.event) + '</div><div class="row">' +
+        '<span class="hello-side ' + (yes ? 'yes' : 'no') + '">' + (yes ? 'YES' : 'NO') + ' at ' + price + '\u00a2</span>' +
+        '<span>ours ' + ours + '%</span><span>settles in ' + (hrs < 48 ? hrs + ' h' : Math.round(hrs/24) + ' days') + '</span>' +
+        '<a href="' + esc(f.market.url) + '" target="_blank" rel="noopener">Kalshi</a></div>' +
+        '<div class="hello-fine" style="margin-top:4px">Pays $1 a contract if right: $25 buys about ' + per + ', back about $' + per + '; wrong, it is all lost. ' +
+        ((f.basis || [])[0] ? esc(f.basis[0]) : '') +
+        (f.fly && f.fly.p != null ? ' Fly brain on past warnings: ' + f.fly.p + '%.' : '') + '</div></div>';
+    };
+    var sr = b.steady || {n:0, hit:0};
+    var steadyHtml = '<h4>Steady picks (Kalshi)</h4>' + (steady.length ? steady.slice(0, 4).map(sCard).join('')
+        : '<p>None today: no Kalshi question settling within a week that the market and our forecast both put at 90% or more.</p>') +
+      '<p class="hello-fine">Likely, never certain: at 95\u00a2 one in twenty goes the other way, and then the whole stake is lost. ' +
+      (sr.n ? 'Steady picks so far: ' + sr.hit + ' of ' + sr.n + ' came in.' : 'None has settled yet, so there is no record.') + '</p>';
+    body.innerHTML = steadyHtml + '<h4>Top picks</h4>' + (top.length ? top.map(card).join('') : '<p>No disagreement of ten points or more today.</p>') +
       '<p class="hello-fine">YES means our forecast is higher than the market price, NO that it is lower. Ours is made blind, without seeing the price, from everything the app gathers. ' +
       (row ? 'Record so far on ' + row.n + ' settled questions: ours ' + (row.o/row.n).toFixed(3) + ', market ' + (row.c/row.n).toFixed(3) + ' (Brier; lower is better).'
            : 'No question has settled yet, so there is no record against the market: these are disagreements, not proven edges.') +
       ' Markets are hard to beat. Not financial advice.</p>' +
       '<h4>Every market question</h4><table><tr><th>question</th><th>ours</th><th>market</th></tr>' + picks.map(function(f){
-        return '<tr><td>' + esc(f.event) + '</td><td>' + f.probability + '%</td><td>' + f.market.p_market + '%</td></tr>'; }).join('') + '</table>';
+        return '<tr><td>' + esc(f.event) + (f.market.venue === 'kalshi' ? ' <span class="hello-fine">(Kalshi)</span>' : '') + '</td><td>' + f.probability + '%</td><td>' + f.market.p_market + '%</td></tr>'; }).join('') + '</table>';
   };
 })();
 

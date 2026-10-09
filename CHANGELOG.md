@@ -4,6 +4,35 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.40.0 — 2026-10-09
+
+### Added: Kalshi steady picks in the "hello" panel
+- Each morning the Crystal Ball also looks at Kalshi's open markets, on any
+  topic, that settle within two days (and, on its weekly run, within a week)
+  and that the market already prices at 88-97 cents on one side.
+  - The busiest come first, one per event; combination (parlay) markets are
+    left out.
+  - Up to three are forecast blind, without the price, in the same Grok
+    call the Crystal Ball already makes. The fly brain gives its view on
+    them (and on the Polymarket questions) from past warnings, free.
+- **Steady picks:** the questions where the market and our blind forecast
+  both say 90% or more on the same side. Each shows:
+  - the side and its price;
+  - our probability;
+  - when it settles;
+  - what $25 would buy and pay back;
+  - our one-line reason and the fly brain's view.
+  The panel says plainly that likely is never certain.
+- They settle themselves from Kalshi's own result, and the panel shows the
+  steady picks' record once any have settled. Kalshi questions also join the
+  disagreement list and the full table, marked "Kalshi".
+- **Cost:** a few more questions in an existing call, well under a cent a
+  day. The Crystal Ball job now reads Kalshi's public market data
+  (api.elections.kalshi.com, no account or key). The page links to
+  kalshi.com only when tapped. The PRIVACY panel says both.
+- Kalshi's field names have been changing (cents vs dollars). Both are read,
+  and the first market seen each run is printed in the job log.
+
 ## 1.39.3 — 2026-10-09
 
 ### Fixed: the morning brief at 7 am Eastern
