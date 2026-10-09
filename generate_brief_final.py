@@ -3053,6 +3053,18 @@ def _sw_scales(now):
     return {'past24': one('-1'), 'now': one('0'), 'days': [one(str(i)) for i in (1, 2, 3) if str(i) in d]}
 
 
+def _sw_flux(now):
+    """The 10.7 cm solar radio flux, the usual measure of how much the Sun ionises the upper atmosphere:
+    the higher it is, the higher the shortwave frequencies that come back. The page's radio tuner uses it
+    for its rough 'try now' guide."""
+    d = _sw_first([SWPC + 'products/summary/10cm-flux.json', SWPC + 'json/f107_cm_flux.json'])
+    if isinstance(d, dict):
+        return {'f107': _num(d.get('Flux') or d.get('flux')), 'at': d.get('TimeStamp') or d.get('time_tag')}
+    rows = [r for r in _sw_rows(d) if _num(r.get('flux')) is not None]
+    rows.sort(key=lambda r: str(r.get('time_tag')))
+    return {'f107': _num(rows[-1]['flux']), 'at': rows[-1].get('time_tag')} if rows else {}
+
+
 def _sw_kp(now):
     rows = _sw_rows(_sw_get(SWPC + 'products/noaa-planetary-k-index.json'))
     obs = [(str(r.get('time_tag'))[:16], _num(r.get('Kp', r.get('kp_index', r.get('kp'))))) for r in rows]
@@ -3221,7 +3233,7 @@ def _sw_local(sw):
 def fetch_space_weather():
     now = datetime.now(timezone.utc)
     out, notes = {}, {}
-    for key, fn in (('scales', _sw_scales), ('kp', _sw_kp), ('wind', _sw_wind), ('xray', _sw_xray),
+    for key, fn in (('scales', _sw_scales), ('kp', _sw_kp), ('flux', _sw_flux), ('wind', _sw_wind), ('xray', _sw_xray),
                     ('alerts', _sw_alerts), ('cmes', _sw_cmes), ('discussion', _sw_discussion)):
         try:
             out[key] = fn(now)

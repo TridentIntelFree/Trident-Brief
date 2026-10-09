@@ -4,6 +4,51 @@ Versions are MAJOR.MINOR.PATCH, kept in the `VERSION` file and shown in the
 page header and footer. Bump PATCH for fixes, MINOR for a new feature or layer,
 MAJOR for a change to what the brief is.
 
+## 1.41.0 — 2026-10-09
+
+### Added: four radio helpers
+- **"Try now" marks on the presets.**
+  - A green, amber or grey dot on each preset says whether its path is
+    likely open now, through the best receiver the tuner can use. Holding a
+    finger on (or hovering over) a preset gives the reason, and the preset's
+    note gives it once tapped.
+  - The model runs on the device and is simple:
+    - the Sun's height along the path;
+    - today's solar flux;
+    - Kp (a storm hurts high-latitude paths);
+    - the flare level.
+  - From those it estimates the highest frequency the ionosphere returns
+    on that path and the lowest the daytime lower layer lets through. It is
+    a rough guide, not a measurement.
+  - It agrees with what listeners know:
+    - German fax on 7880 kHz skips over a nearby receiver at night, but
+      3855 kHz works;
+    - Boston's 12750 kHz reaches the UK only while the Atlantic is in
+      daylight, and passes over a receiver in Connecticut.
+  - The receiver picker and the automatic receiver choice now try receivers
+    with an open path first.
+  - The space-weather feed now includes the 10.7 cm solar flux, from NOAA
+    SWPC, which the app already reads.
+- **Chime.** Two soft notes when a weather chart's start tone or an SSTV
+  picture begins. They go straight to the speaker, never into a recording or
+  the decoders. Switch: "chime", next to the decoder tabs.
+- **Saved pictures.**
+  - Each weather chart (when its stop tone ends it, a new one starts, or
+    NEW CHART or STOP is pressed, once it has 60 lines or more) and each
+    SSTV picture is kept in this browser.
+  - It holds the newest 30. Tap one to view it, save it as a file, or
+    delete it.
+  - Nothing is sent anywhere. ERASE in the PRIVACY panel removes them, and
+    the panel says so.
+- **Clean-up for weak charts** (on by default; switch "clean up").
+  - Each dot becomes the median of three in whichever direction (across,
+    down or a diagonal) agrees with it best: specks go, one-dot lines stay.
+  - Then each dot is pushed toward black or white.
+  - On the fax bench, a 3 dB chart scores 0.91 instead of 0.83, as good as
+    a raw 5 dB one; 5 dB scores 0.95 instead of 0.90.
+  - Turn it off for satellite pictures, which have greys.
+- All on the device, no model calls, no cost.
+
 ## 1.40.0 — 2026-10-09
 
 ### Added: Kalshi steady picks in the "hello" panel

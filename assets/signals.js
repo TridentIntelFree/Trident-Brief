@@ -846,6 +846,91 @@ function ranked(near){
     return (a.lat == null ? 1e9 : km(near, [a.lat, a.lon])) - (b.lat == null ? 1e9 : km(near, [b.lat, b.lon]));
   });
 }
+/* -- "Try now": a rough guide to whether a station's path is open.
+   Shortwave comes back off the ionosphere, which the Sun builds by day and
+   which thins at night. A frequency gets through when it is below what the
+   ionosphere returns on that path (the MUF: higher by day, higher when the
+   Sun is busy, higher on longer hops) and above what the daytime lower layer
+   soaks up (low frequencies fade by day, more so on long sunlit paths and
+   after a flare). This is a simple model, worked out on this device from the
+   Sun's position along the path, today's solar flux, Kp and flare level
+   (NOAA, already in the brief): a guide to where to look, not a measurement. */
+function sunElev(lat, lon, t){
+  var r = Math.PI/180, d = t/864e5 - 10957.5;                     // days from J2000
+  var g = (357.529 + 0.98560028*d)*r, q = 280.459 + 0.98564736*d;
+  var L = (q + 1.915*Math.sin(g) + 0.020*Math.sin(2*g))*r, e = (23.439 - 0.00000036*d)*r;
+  var ra = Math.atan2(Math.cos(e)*Math.sin(L), Math.cos(L)), dec = Math.asin(Math.sin(e)*Math.sin(L));
+  var gmst = (18.697374558 + 24.06570982441908*d) % 24, ha = ((gmst*15 + lon)*r - ra);
+  return Math.asin(Math.sin(lat*r)*Math.sin(dec) + Math.cos(lat*r)*Math.cos(dec)*Math.cos(ha))/r;
+}
+function gcPoint(a, b, f){                                        // a fraction f of the way along the great circle
+  var r = Math.PI/180, la1 = a[0]*r, lo1 = a[1]*r, la2 = b[0]*r, lo2 = b[1]*r;
+  var dd = 2*Math.asin(Math.sqrt(Math.pow(Math.sin((la2 - la1)/2), 2) + Math.cos(la1)*Math.cos(la2)*Math.pow(Math.sin((lo2 - lo1)/2), 2)));
+  if(dd < 1e-6) return a;
+  var A = Math.sin((1 - f)*dd)/Math.sin(dd), B = Math.sin(f*dd)/Math.sin(dd);
+  var x = A*Math.cos(la1)*Math.cos(lo1) + B*Math.cos(la2)*Math.cos(lo2), y = A*Math.cos(la1)*Math.sin(lo1) + B*Math.cos(la2)*Math.sin(lo2), z = A*Math.sin(la1) + B*Math.sin(la2);
+  return [Math.atan2(z, Math.sqrt(x*x + y*y))/r, Math.atan2(y, x)/r];
+}
+function spaceNow(){
+  var sw = (typeof FEEDS !== 'undefined' && FEEDS && FEEDS.space) || {};
+  return {f107:((sw.flux || {}).f107) || 130, kp:((sw.kp || {}).now) || 2, R:parseInt(((sw.scales || {}).now || {}).R, 10) || 0,
+          known:!!(sw.flux && sw.flux.f107)};
+}
+function pathGuide(p, rx, t){
+  if(!p.near || rx.lat == null) return null;
+  var f = (p.dec === 'fax' ? p.khz + 1.9 : p.khz)/1000, b = [rx.lat, rx.lon], d = km(p.near, b);
+  var sp = spaceNow(), hops = Math.max(1, Math.ceil(d/3500)), dh = d/hops, M = 1 + 2.3*Math.min(1, dh/3500);
+  var day = 5 + 0.04*(sp.f107 - 70), night = 2.8 + 0.015*(sp.f107 - 70), muf = 1e9, abs = 0, lit = 0, polar = false;
+  for(var h = 0; h < hops; h++){
+    var pt = gcPoint(p.near, b, (2*h + 1)/(2*hops)), e = sunElev(pt[0], pt[1], t), w = Math.max(0, Math.min(1, (e + 6)/16));
+    muf = Math.min(muf, (night + (day - night)*w)*M);
+    abs += Math.max(0, Math.sin(e*Math.PI/180)); lit += w;
+  }
+  [0.15, 0.5, 0.85].forEach(function(q){ if(Math.abs(gcPoint(p.near, b, q)[0]) > 55) polar = true; });
+  abs /= hops; lit /= hops;
+  var luf = 2 + (1.5 + 3*Math.min(1, dh/3000))*abs*Math.sqrt(hops) + 2*sp.R*abs;
+  if(polar && sp.kp >= 5){ muf *= sp.kp >= 7 ? 0.6 : 0.8; luf += sp.kp >= 7 ? 2 : 0.5; }
+  var lvl = f > muf*1.05 || f < luf ? 0 : (f > muf*0.9 || f < luf*1.3 || d > 12000) ? 1 : 2;
+  var sky = lit > 0.7 ? 'in daylight' : lit < 0.3 ? 'in darkness' : 'across day and night';
+  var why = f > muf*1.05 ? (p.khz/1000).toFixed(1) + ' MHz is above what the ionosphere returns on this path now (about ' + muf.toFixed(0) + ' MHz): it passes overhead'
+          : f < luf ? 'the path is ' + sky + ' and ' + (p.khz/1000).toFixed(1) + ' MHz is soaked up by the daytime lower layer' + (sp.R ? ' (a flare makes it worse)' : '')
+          : 'the path is ' + sky + '; ' + (p.khz/1000).toFixed(1) + ' MHz is between what is absorbed (about ' + luf.toFixed(0) + ' MHz) and what passes overhead (about ' + muf.toFixed(0) + ' MHz)';
+  if(polar && sp.kp >= 5) why += '; a geomagnetic storm (Kp ' + sp.kp + ') hurts this high-latitude path';
+  return {lvl:lvl, why:why, km:d, rx:rx};
+}
+/* the best receiver's guide for a preset, with the receiver it is through */
+function presetGuide(p, t){
+  if(!p.near || p.dec === 'sstv' || !T.list.length) return null;
+  var best = null;
+  T.list.forEach(function(r){ var g = pathGuide(p, r, t); if(g && (!best || g.lvl > best.lvl || (g.lvl === best.lvl && g.km < best.km))) best = g; });
+  return best;
+}
+var GUIDE_WORD = ['unlikely now', 'maybe now', 'try now'];
+function guidePaint(){
+  var t = Date.now();
+  BAND.querySelectorAll('.tu-p').forEach(function(b){
+    var p = presetOf(b.dataset.p), g = p && presetGuide(p, t);
+    b.classList.remove('g0', 'g1', 'g2');
+    if(!g) return;
+    b.classList.add('g' + g.lvl);
+    b.title = GUIDE_WORD[g.lvl] + ': ' + g.why + ' (via ' + (g.rx.loc || g.rx.host) + ')';
+  });
+}
+/* receivers for a preset: the ones with an open path first, then the usual order */
+function rankedFor(p){
+  var list = ranked(p.near), t = Date.now();
+  if(p.dec === 'sstv') return list;
+  var lv = {}; list.forEach(function(r){ var g = pathGuide(p, r, t); lv[r.host] = g ? g.lvl : 1; });
+  return list.map(function(r, i){ return [r, i]; }).sort(function(a, c){
+    var fa = T.tried.indexOf(a[0].host) > -1, fc = T.tried.indexOf(c[0].host) > -1;
+    if(fa !== fc) return fa ? 1 : -1;
+    return (lv[c[0].host] - lv[a[0].host]) || (a[1] - c[1]); }).map(function(x){ return x[0]; });
+}
+function guideNote(p){
+  var g = presetGuide(p, Date.now());
+  if(!g) return '';
+  return ' Now: ' + GUIDE_WORD[g.lvl] + ' via ' + (g.rx.loc || g.rx.host) + ' (' + g.why + '; a rough guide' + (spaceNow().known ? '' : ', without today’s solar flux') + ').';
+}
 /* the tuner reaches only HTTPS receivers (mostly Europe and the Americas):
    say so when the nearest is far from the station */
 function farNote(p){
@@ -912,8 +997,8 @@ function pick(){
     var r = T.list.filter(function(x){ return x.host === sel; })[0];
     if(r && T.tried.indexOf(r.host) < 0) return r;
   }
-  var near = p && p.khz === T.khz ? p.near : [50, 10];
-  return ranked(near).filter(function(x){ return T.tried.indexOf(x.host) < 0; })[0] || null;
+  var list = p && p.khz === T.khz ? rankedFor(p) : ranked([50, 10]);
+  return list.filter(function(x){ return T.tried.indexOf(x.host) < 0; })[0] || null;
 }
 function connect(rx){
   if(!rx){ status('Every receiver on the list refused or is full right now. Try again in a few minutes.', true); tunerClose(); return; }
@@ -1016,12 +1101,12 @@ function retune(khz, mode, presetId){
   $('tuKhz').value = +T.khz.toFixed(3); $('tuMode').value = T.mode;
   BAND.querySelectorAll('.tu-p').forEach(function(b){ b.classList.toggle('on', b.dataset.p === T.preset); });
   var p = presetOf(T.preset);
-  $('tuNote').textContent = p ? p.note + farNote(p) : '';
+  $('tuNote').textContent = p ? p.note + guideNote(p) + farNote(p) : '';
   if(!T.ws || !T.live){ return; }
   /* a preset's best receiver may be another one: on "best for the channel",
      move when the current one is far from the transmitter */
   if(p && $('tuRx').value === 'auto' && !T.scan){
-    var best = ranked(p.near)[0];
+    var best = rankedFor(p)[0];
     if(best && best.host !== T.rx.host && T.rx.lat != null && best.lat != null &&
        (km(p.near, [T.rx.lat, T.rx.lon]) > km(p.near, [best.lat, best.lon]) + 1500 ||
         (T.region && regionOf(T.rx.lat, T.rx.lon) !== T.region && regionOf(best.lat, best.lon) === T.region))){
@@ -1788,11 +1873,12 @@ function wireTuner(){
   wireMorse();
   wireDecoders();
   retune(4625, 'usb', 'uvb76');
+  setInterval(function(){ if(!document.hidden) guidePaint(); }, 5*60*1000);   // the Sun moves on
   var base = (typeof window.DATA_BASE === 'string' ? window.DATA_BASE : '');
   fetch(base + 'data/tuner/receivers.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
     .catch(function(){ return null; }).then(function(d){
       T.list = (d && d.receivers) || [];
-      rxOptions(); worldShow();
+      rxOptions(); worldShow(); guidePaint();
       tunerNow(T.list.length ? T.list.length + ' receivers reachable from this page' + (d.checked ? ' (checked ' + esc(d.checked.slice(0, 10)) + ')' : '') +
                                '. Press LISTEN or a preset.' : 'The receiver list did not load.');
     });
@@ -1908,10 +1994,12 @@ function makeDec(k, sr){
   else if(k === 'fax'){
     d = D.fax(sr, {lpm:$('fxLpm').value});
     d.onstart = function(){ fxClear(); };
+    d.onnew = function(){ galKeepFax(); chime(); logEvent(Date.now(), 'mark', 'weather fax: a new chart is starting'); };
+    d.onstop = function(){ galKeepFax(); };
     fxClear();
   } else {
     d = D.sstv(sr);
-    d.onstart = function(s){ var cv = $('svCv'); cv.width = s.mode.w; cv.height = s.mode.h; var g = cv.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height);
+    d.onstart = function(s){ var cv = $('svCv'); cv.width = s.mode.w; cv.height = s.mode.h; var g = cv.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height); chime();
                              logEvent(Date.now(), 'mark', 'SSTV picture starting: ' + s.mode.name); };
     d.onrows = function(s, rows){ var g = $('svCv').getContext('2d');
       rows.forEach(function(r){ if(r.y < s.mode.h) g.putImageData(new ImageData(r.px, s.mode.w, 1), 0, r.y); }); };
@@ -2005,7 +2093,7 @@ var PROBE_SEC = 8, PROBE_GOOD = {fax:15, rtty:18}, PROBE_GAIN = 3;
 function probeStart(p){
   probeStop();
   T.tried = [];                                          // earlier refusals don't rule a candidate out: each gets its own try
-  var cands = ranked(p.near).slice(0, 4);
+  var cands = rankedFor(p).slice(0, 4);
   if(cands.length < 2) return;
   if(T.rx && cands.indexOf(T.rx) > 0){ cands.splice(cands.indexOf(T.rx), 1); cands.unshift(T.rx); }   // the one already playing first
   else if(T.rx && cands.indexOf(T.rx) < 0){ cands.pop(); cands.unshift(T.rx); }
@@ -2188,6 +2276,7 @@ function decTab(k){
 function decStart(k, on){
   if(k === 'cw'){ $('tuCw').checked = on; CW.on = on; if(on) cwStart(); if(on && S.mode === 'file') decFile('cw'); paintCw(); return; }
   DX.on[k] = on;
+  if(!on && k === 'fax') galKeepFax();
   if(!on){ delete DX.dec[k]; }
   else if(S.mode === 'file' && S.file){ delete DX.dec[k]; decFile(k); }
   decPaint();
@@ -2197,25 +2286,125 @@ function decStart(k, on){
 function fxClear(){ var cv = $('fxCv'); cv.height = 300; var g = cv.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height); DX.fxDrawn = 0; }
 function fxDraw(all){
   var F = DX.dec.fax; if(!F) return;
-  var cv = $('fxCv'), g = cv.getContext('2d'), n = Math.min(F.lines(), 2400);
+  var cv = $('fxCv'), g = cv.getContext('2d'), n = Math.min(F.lines(), 2400), clean = $('fxClean') && $('fxClean').checked;
   if(all){ DX.fxDrawn = 0; }
   if(n > cv.height){                               // grow the canvas, keeping what is drawn
     var keep = document.createElement('canvas'); keep.width = cv.width; keep.height = cv.height; keep.getContext('2d').drawImage(cv, 0, 0);
     cv.height = Math.min(2400, n + 200); g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(keep, 0, 0);
   }
-  var line = new Uint8Array(F.W), img = g.createImageData(F.W, 1);
+  var W = F.W, img = g.createImageData(W, 1), line = new Uint8Array(W), up = new Uint8Array(W), dn = new Uint8Array(W), out = new Uint8Array(W);
+  /* clean-up: the line-keeping median, then each dot pushed toward black or
+     white (charts are line drawings; a satellite picture wants it off) */
+  if(clean && !DX.fxLut){ DX.fxLut = new Uint8Array(256); for(var v = 0; v < 256; v++) DX.fxLut[v] = Math.round(255/(1 + Math.exp(-(v - 128)/20))); }
   for(var k = DX.fxDrawn; k < n; k++){
     F.line(k, line);
-    for(var x = 0; x < F.W; x++){ var o = x*4; img.data[o] = img.data[o+1] = img.data[o+2] = line[x]; img.data[o+3] = 255; }
+    var px = line;
+    if(clean){
+      F.line(Math.max(0, k - 1), up); F.line(Math.min(n - 1, k + 1), dn);
+      D_().faxClean(up, line, dn, out);
+      for(var x = 0; x < W; x++) out[x] = DX.fxLut[out[x]];
+      px = out;
+    }
+    for(x = 0; x < W; x++){ var o = x*4; img.data[o] = img.data[o+1] = img.data[o+2] = px[x]; img.data[o+3] = 255; }
     g.putImageData(img, 0, k);
   }
-  DX.fxDrawn = n;
+  DX.fxDrawn = clean && n > 0 ? n - 1 : n;           // the last line is redrawn once the next one is in
 }
 function svKeep(){
   var cv = $('svCv'), url; try{ url = cv.toDataURL('image/png'); }catch(_){ return; }
   DX.pics.unshift(url); if(DX.pics.length > 8) DX.pics.length = 8;
+  galAdd('sstv', url, (DX.dec.sstv && DX.dec.sstv.mode ? DX.dec.sstv.mode.name : 'SSTV') + ' · ' + T.khz + ' kHz');
   $('svGal').innerHTML = DX.pics.map(function(u, i){ return '<img src="' + u + '" alt="received picture ' + (i + 1) + '" data-i="' + i + '">'; }).join('');
   $('svGal').querySelectorAll('img').forEach(function(im){ im.onclick = function(){ savePng(DX.pics[+im.dataset.i], 'sstv'); }; });
+}
+/* Saved pictures: the charts and pictures received, kept in this browser
+   only (IndexedDB), the newest 30. Nothing is sent anywhere; ERASE in the
+   PRIVACY panel removes them with everything else. */
+var GAL;                                         // set on first use: the page wires up before this line runs
+function galDb(cb){
+  GAL = GAL || {db:null};
+  if(GAL.db) return cb(GAL.db);
+  try{
+    var rq = indexedDB.open('sig_gallery', 1);
+    rq.onupgradeneeded = function(){ rq.result.createObjectStore('pics', {keyPath:'id'}); };
+    rq.onsuccess = function(){ GAL.db = rq.result; cb(GAL.db); };
+    rq.onerror = function(){ cb(null); };
+  }catch(_){ cb(null); }
+}
+function galAll(cb){
+  galDb(function(db){
+    if(!db) return cb([]);
+    try{
+      var out = [], rq = db.transaction('pics').objectStore('pics').openCursor();
+      rq.onsuccess = function(){ var c = rq.result; if(c){ out.push(c.value); c.continue(); } else cb(out.sort(function(a, b){ return a.at < b.at ? 1 : -1; })); };
+      rq.onerror = function(){ cb([]); };
+    }catch(_){ cb([]); }
+  });
+}
+function galAdd(kind, url, info){
+  var id = String(Date.now()) + Math.random().toString(36).slice(2, 6);
+  galDb(function(db){
+    if(!db) return;
+    try{
+      var tx = db.transaction('pics', 'readwrite');
+      tx.objectStore('pics').put({id:id, kind:kind, at:new Date().toISOString(), url:url, info:info || ''});
+      tx.oncomplete = function(){ galAll(function(all){
+        if(all.length <= 30) return galShow();
+        var t2 = db.transaction('pics', 'readwrite'); all.slice(30).forEach(function(x){ t2.objectStore('pics').delete(x.id); }); t2.oncomplete = galShow;
+      }); };
+    }catch(_){}
+  });
+  return id;
+}
+function galDel(id){ galDb(function(db){ if(!db) return; var tx = db.transaction('pics', 'readwrite'); tx.objectStore('pics').delete(id); tx.oncomplete = galShow; }); }
+function galShow(){
+  if(!$('galList')) return;
+  galAll(function(all){
+    $('galCount').textContent = all.length;
+    $('galList').innerHTML = all.length ? all.map(function(it){
+      return '<figure data-id="' + esc(it.id) + '"><img src="' + it.url + '" alt="' + esc(it.kind) + ' received ' + esc(it.at) + '"><figcaption>' +
+        esc(it.kind === 'fax' ? 'weather fax' : 'SSTV') + ' · ' + esc(new Date(it.at).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})) +
+        (it.info ? '<br>' + esc(it.info) : '') + '</figcaption></figure>'; }).join('')
+      : '<div class="sig-small">Nothing yet. Each weather chart (when it ends, or a new one starts) and each SSTV picture is kept here, on this device only.</div>';
+    $('galList').querySelectorAll('figure').forEach(function(fg){
+      fg.onclick = function(){ var it = all.filter(function(x){ return x.id === fg.dataset.id; })[0]; if(it) galView(it); };
+    });
+  });
+}
+function galView(it){
+  var v = $('galView'); if(!v) return;
+  v.querySelector('img').src = it.url;
+  v.querySelector('.gal-cap').textContent = (it.kind === 'fax' ? 'Weather fax' : 'SSTV') + ' · ' + new Date(it.at).toLocaleString() + (it.info ? ' · ' + it.info : '');
+  v.querySelector('[data-a="save"]').onclick = function(){ savePng(it.url, it.kind === 'fax' ? 'weatherfax' : 'sstv'); };
+  v.querySelector('[data-a="del"]').onclick = function(){ if(confirm('Delete this picture from this device?')){ galDel(it.id); v.classList.remove('open'); } };
+  v.classList.add('open');
+}
+/* the fax chart on screen, kept once it has 60 lines or more */
+function galKeepFax(){
+  var F = DX.dec.fax, n = F ? Math.min(F.lines(), DX.fxDrawn + 1) : 0;
+  if(!F || n < 60) return;
+  var key = F.base + ':' + F.images;
+  if(DX.fxKept && DX.fxKept.key === key && n - DX.fxKept.n < 40) return;    // already kept, and not much more since
+  var src = $('fxCv'), c = document.createElement('canvas'); c.width = src.width; c.height = Math.min(n, src.height);
+  c.getContext('2d').drawImage(src, 0, 0);
+  var url; try{ url = c.toDataURL('image/jpeg', 0.85); }catch(_){ return; }
+  if(DX.fxKept && DX.fxKept.key === key && DX.fxKept.id) galDel(DX.fxKept.id);     // replace the shorter copy
+  var p = presetOf(T.preset), info = (p && p.dec === 'fax' ? p.name + ' · ' : (T.khz ? T.khz + ' kHz · ' : '')) + n + ' lines · ' + F.lpm + ' lpm';
+  DX.fxKept = {key:key, n:n, id:galAdd('fax', url, info)};
+}
+/* two soft notes when a chart or picture starts, straight to the speaker
+   (never into a recording or the decoders) */
+function chime(){
+  if(!($('decChime') && $('decChime').checked)) return;
+  try{
+    var ctx = (T.out && T.out.context) || DX.chimeCtx || (DX.chimeCtx = new (window.AudioContext || window.webkitAudioContext)()), t = ctx.currentTime + 0.02;
+    [[880, 0], [1320, 0.18]].forEach(function(nt){
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = nt[0]; g.gain.setValueAtTime(0.0001, t + nt[1]);
+      g.gain.exponentialRampToValueAtTime(0.12, t + nt[1] + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + nt[1] + 0.4);
+      o.connect(g); g.connect(ctx.destination); o.start(t + nt[1]); o.stop(t + nt[1] + 0.45);
+    });
+  }catch(_){}
 }
 function savePng(url, what){
   var a = document.createElement('a'), d = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
@@ -2259,7 +2448,13 @@ function wireDecoders(){
   };
   $('fxLpm').onchange = function(){ if(DX.dec.fax) DX.dec.fax.setLpm(this.value); };
   $('fxLine').onclick = function(){ var F = DX.dec.fax; if(F && !F.lineUp()) $('fxState').textContent = 'no border found to line up by: use SHIFT'; };
-  $('fxNew').onclick = function(){ if(DX.dec.fax){ DX.dec.fax.reset(); fxClear(); } };
+  $('fxNew').onclick = function(){ if(DX.dec.fax){ galKeepFax(); DX.dec.fax.reset(); fxClear(); } };
+  $('fxClean').checked = get('fxClean', true);
+  $('fxClean').onchange = function(){ set('fxClean', this.checked); fxDraw(true); };
+  $('decChime').checked = get('chime', true);
+  $('decChime').onchange = function(){ set('chime', this.checked); if(this.checked) chime(); };
+  $('galView').onclick = function(e){ if(e.target === this || e.target.dataset.a === 'close') this.classList.remove('open'); };
+  galShow();
   function nudge(dOff, dSl){ var F = DX.dec.fax; if(!F) return; F.offset = ((F.offset + dOff) % F.W + F.W) % F.W; F.slant += dSl; fxDraw(true); decPaint(); }
   $('fxL').onclick = function(){ nudge(Math.round(904/40), 0); };
   $('fxR').onclick = function(){ nudge(-Math.round(904/40), 0); };
