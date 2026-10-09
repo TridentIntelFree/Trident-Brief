@@ -441,7 +441,7 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 .sig-chk{font-family:var(--mono);font-size:.72em;color:var(--ink-dim);display:inline-flex;gap:5px;align-items:center}
 .sig-status{font-family:var(--mono);font-size:.74em;color:var(--ink-dim);margin:4px 0 6px;min-height:1.2em}
 .sig-status.bad{color:#fca5a5}
-.sig-canvas{display:block;width:100%;height:380px;border:1px solid var(--line);border-radius:8px;background:#05070f;touch-action:none;cursor:crosshair}
+.sig-canvas{display:block;width:100%;height:380px;border:1px solid var(--line);border-radius:8px;background:#05070f;touch-action:pan-y;cursor:crosshair}
 .sig-read{font-family:var(--mono);font-size:.76em;color:var(--ink-dim);margin:6px 0;min-height:1.2em}
 .sig-read .ok{color:#34d399}
 .sig-read .hot{color:#facc15}
@@ -452,6 +452,7 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 .sig-live{margin-bottom:14px}
 .tu{border:1px solid var(--line2);border-radius:10px;padding:10px 12px;margin:4px 0 14px;background:rgba(15,23,48,.55)}
 .tu-presets{display:flex;flex-wrap:wrap;gap:5px}
+.tu-presets-pic{margin-top:5px;align-items:center}.tu-presets-pic .sig-small{margin-right:4px;letter-spacing:.06em}
 .tu-p span{font-family:var(--mono);opacity:.7;font-size:.85em;margin-left:3px}
 .tu-p.on{border-color:var(--cyan);color:#fff;background:rgba(34,211,238,.14)}
 .tu-note{min-height:1.2em;margin:6px 0 2px}
@@ -464,6 +465,19 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 .tu-tx{display:grid;gap:5px;margin-top:6px}
 .tu-tx-item{font-size:.82em;color:var(--ink-dim);border-left:3px solid var(--cyan);padding:3px 9px;line-height:1.45}
 .tu-tx-item b{color:#fff;font-family:var(--mono)}
+.tu-tx-del{float:right;padding:1px 7px;margin-left:6px}
+.dec{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.dec-tabs .ev-f.on{background:rgba(34,211,238,.18);border-color:var(--cyan);color:#fff}
+.dec-p{display:none;margin-top:6px}.dec-p.on{display:block}
+.dec-text{max-height:280px;overflow:auto;white-space:pre-wrap;word-break:break-word;background:#05070f;border:1px solid var(--line);border-radius:8px;
+  padding:8px 10px;font-family:var(--mono);font-size:.82em;color:#e2e8f0;min-height:60px;margin:6px 0}
+.dec-pic{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:8px;background:#000;margin:6px 0}
+.dec-pic canvas{display:block;width:100%;height:auto;image-rendering:auto}
+.dec-gal{display:flex;gap:6px;flex-wrap:wrap}.dec-gal img{height:72px;border:1px solid var(--line);border-radius:4px;cursor:pointer}
+.id-c{border:1px solid var(--line2);border-radius:9px;padding:7px 10px;margin:6px 0;background:rgba(15,23,48,.55);font-size:.86em;color:var(--ink-dim)}
+.id-c b{color:#fff}.id-c .w{font-family:var(--mono);font-size:.78em;letter-spacing:.06em;color:var(--cyan);margin-left:6px}
+.id-m{font-family:var(--mono);font-size:.76em;color:var(--ink-dim);margin:4px 0}
+.sig-canvas.tall{height:min(900px,85vh)!important}
 .tu-tx-orig{color:#e2e8f0;margin-top:2px}
 .tu-tx-en{color:#fff;margin-top:2px}
 .tu-tx-en span{font-family:var(--mono);font-size:.78em;color:var(--cyan);border:1px solid var(--cyan);border-radius:4px;padding:0 3px;margin-right:3px}
@@ -475,7 +489,7 @@ html.ap-pocketed,html.ap-pocketed body{overflow:hidden}
 .tu-cw-item{font-size:.82em;color:var(--ink-dim);border-left:3px solid #facc15;padding:3px 9px;line-height:1.45}
 .tu-cw-item b{color:#fff;font-family:var(--mono)}
 .tu-cw-item div{font-family:var(--mono);color:#e2e8f0;word-break:break-word}
-.tu-wf{display:block;width:100%;height:206px;margin-top:8px;border:1px solid var(--line2);border-radius:8px;background:#070d1f;touch-action:none;cursor:crosshair;outline:none}
+.tu-wf{display:block;width:100%;height:206px;margin-top:8px;border:1px solid var(--line2);border-radius:8px;background:#070d1f;touch-action:pan-y;cursor:crosshair;outline:none}
 .tu-wf:focus-visible{border-color:var(--cyan)}
 .tu-bwv{font-family:var(--mono);color:#fff;display:inline-block;min-width:4.6em}
 .tu-now{margin-top:9px;font-size:.86em;color:var(--ink-dim);line-height:1.45}
@@ -1077,6 +1091,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <ul>
           <li><b>Radio tuner:</b> your browser connects straight to a volunteer's KiwiSDR. Its operator sees your IP address, and like every KiwiSDR
             it may show other listeners a rough location worked out from it, next to the name &ldquo;Trident Brief listener&rdquo;. Nothing is recorded by this site.</li>
+          <li><b>Identify and decode</b> (Morse, RTTY, weather fax, SSTV, WHAT IS THIS?): run on your device, on the audio you are already hearing, and contact no one. A Signal Identification Wiki link opens sigidwiki.com only if you tap it.</li>
           <li><b>Transcribe:</b> the speech model is downloaded once from jsDelivr and Hugging Face. The audio is transcribed on your device and never sent anywhere.</li>
           <li><b>Terrain, imagery and site weather:</b> public AWS open-data buckets (Sentinel-2, USGS elevation, terrain tiles) and Open-Meteo, for the place you picked.</li>
           <li><b>ZIP lookup:</b> zippopotam.us.</li>
@@ -1351,6 +1366,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
     </div>
     <div class="tu" id="sigTuner">
       <div class="tu-presets" id="tuPresets"></div>
+      <div class="tu-presets tu-presets-pic" id="tuPresetsPic"></div>
       <div class="tu-note sig-small" id="tuNote"></div>
       <div class="tu-row">
         <label>kHz <input id="tuKhz" type="number" inputmode="decimal" step="0.01" min="10" max="30000" value="4625"></label>
@@ -1364,7 +1380,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <select id="tuBand_ham" aria-label="ham bands"></select>
         <select id="tuBand_utility" aria-label="aviation and utility bands"></select>
       </div>
-      <canvas class="tu-wf" id="tuWf" tabindex="0" aria-label="waterfall: tap to tune, drag to move, wheel to tune, ctrl+wheel to zoom"></canvas>
+      <canvas class="tu-wf" id="tuWf" tabindex="0" aria-label="waterfall: tap to tune, drag sideways to move along the band; click into it, then the wheel tunes; ctrl+wheel zooms"></canvas>
       <div class="tu-row">
         <span class="tu-steps"><button class="ev-f" id="tuSeekDn" type="button" title="seek down">&#9664; SEEK</button><button class="ev-f" id="tuSeekUp" type="button" title="seek up">SEEK &#9654;</button></span>
         <span class="tu-steps"><button class="ev-f" id="tuZout" type="button" title="zoom out">&minus;</button><button class="ev-f" id="tuZin" type="button" title="zoom in">+</button></span>
@@ -1389,16 +1405,78 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       </div>
       <div class="sig-small tu-tx-note">Whisper runs on this device. Its first use downloads the model from Hugging Face once, and the audio never leaves your device. On weak shortwave it guesses, and over static it can invent words, so a transcript is a lead, not a finding.</div>
       <div class="tu-tx" id="tuTxOut"></div>
-      <div class="tu-row tu-cw-row">
-        <label class="sig-chk"><input type="checkbox" id="tuCw"> <b>MORSE &rarr; TEXT</b></label>
-        <span class="sig-small" id="tuCwState">off</span>
-        <button class="ev-f" id="tuCwSave" type="button">&#11015; SAVE TEXT</button>
-        <button class="ev-f" id="tuCwCopy" type="button">COPY</button>
-        <button class="ev-f" id="tuCwClear" type="button">CLEAR</button>
+      <div class="dec" id="decBox">
+        <div class="tu-row dec-tabs" id="decTabs">
+          <b class="sig-h">IDENTIFY &amp; DECODE</b>
+          <button class="ev-f" type="button" data-tab="id">&#10067; WHAT IS THIS?</button>
+          <button class="ev-f" type="button" data-tab="cw">MORSE</button>
+          <button class="ev-f" type="button" data-tab="rtty">RTTY</button>
+          <button class="ev-f" type="button" data-tab="fax">WEATHER FAX</button>
+          <button class="ev-f" type="button" data-tab="sstv">SSTV PICTURE</button>
+        </div>
+        <div class="sig-small dec-src" id="decSrc">Works on what you are hearing: the tuner, a shared tab, the microphone, or a recording you open below.</div>
+
+        <div class="dec-p" data-p="id">
+          <div class="tu-row"><button class="ap-btn" id="idGo" type="button">&#10067; WHAT IS THIS? (last 8 s)</button>
+            <span class="sig-small">Measures what you are hearing and weighs it with the frequency. Likely matches, never a certainty.</span></div>
+          <div id="idOut"></div>
+        </div>
+
+        <div class="dec-p" data-p="cw">
+        <div class="tu-row tu-cw-row">
+          <label class="sig-chk"><input type="checkbox" id="tuCw"> <b>MORSE &rarr; TEXT</b></label>
+          <span class="sig-small" id="tuCwState">off</span>
+          <button class="ev-f" id="tuCwSave" type="button">&#11015; SAVE TEXT</button>
+          <button class="ev-f" id="tuCwCopy" type="button">COPY</button>
+          <button class="ev-f" id="tuCwClear" type="button">CLEAR</button>
+        </div>
+        <div class="tu-cw-line" id="tuCwLine"> </div>
+        <div class="sig-small tu-tx-note">Reads the strongest steady tone in what you hear and learns the sender&rsquo;s speed as it goes. Tune CW mode with a narrow width, or USB a little below the signal. Only the text is kept: a log in this browser, saved as a .txt file. Weak, fading or hand-sent signals come out with errors (&lowast; marks a pattern that is not Morse).</div>
+        <div class="tu-tx" id="tuCwOut"></div>
+        </div>
+
+        <div class="dec-p" data-p="rtty">
+          <div class="tu-row">
+            <button class="ap-btn" id="rtGo" type="button">&#9654; START</button>
+            <span class="sig-small" id="rtState">off</span>
+          </div>
+          <div class="tu-row">
+            <label class="sig-chk" title="most amateur senders expect it; weather services often do not"><input type="checkbox" id="rtUsos" checked> unshift on space</label>
+            <button class="ev-f" id="rtSave" type="button">&#11015; SAVE TEXT</button>
+            <button class="ev-f" id="rtCopy" type="button">COPY</button>
+            <button class="ev-f" id="rtClear" type="button">CLEAR</button>
+          </div>
+          <pre class="dec-text" id="rtOut"></pre>
+          <div class="sig-small tu-tx-note">Radioteletype: two tones, a letter every 150 ms or so. Tune USB so both tones sit in the audio (the German Weather Service on 10100.8 kHz is a good test). The decoder finds the tones itself and tries every common speed and both tone orders, keeping the one that reads as text. If numbers come out as letters (12345 YUIOP), untick &ldquo;unshift on space&rdquo;.</div>
+        </div>
+
+        <div class="dec-p" data-p="fax">
+          <div class="tu-row">
+            <button class="ap-btn" id="fxGo" type="button">&#9654; START</button>
+            <label>lines/min <select id="fxLpm"><option value="120" selected>120</option><option value="60">60</option><option value="90">90</option><option value="240">240</option></select></label>
+            <button class="ev-f" id="fxNew" type="button">NEW CHART</button>
+            <span class="tu-steps"><button class="ev-f" id="fxL" type="button" title="move the chart left">&#9664; SHIFT</button><button class="ev-f" id="fxR" type="button" title="move the chart right">SHIFT &#9654;</button></span>
+            <span class="tu-steps"><button class="ev-f" id="fxS1" type="button" title="straighten: lean the other way">&#10226;</button><button class="ev-f" id="fxS2" type="button" title="straighten: lean the other way">&#10227;</button></span>
+            <button class="ev-f" id="fxSave" type="button">&#11015; PNG</button>
+          </div>
+          <div class="sig-small" id="fxState">off</div>
+          <div class="dec-pic"><canvas id="fxCv" width="904" height="300"></canvas></div>
+          <div class="sig-small tu-tx-note">Weather maps sent as sound. Tune USB 1.9 kHz below the listed frequency (US Coast Guard Boston: 4235, 6340.5, 9110, 12750 kHz, so dial 4233.1 and so on). A new chart starts by itself on the start tone and lines itself up; if a chart is joined part way, use SHIFT to bring its edge to the left and the two lean buttons if it slants.</div>
+        </div>
+
+        <div class="dec-p" data-p="sstv">
+          <div class="tu-row">
+            <button class="ap-btn" id="svGo" type="button">&#9654; START</button>
+            <label>missed the start? <select id="svMode"></select></label>
+            <button class="ev-f" id="svNow" type="button">START A PICTURE NOW</button>
+            <button class="ev-f" id="svSave" type="button">&#11015; PNG</button>
+          </div>
+          <div class="sig-small" id="svState">off</div>
+          <div class="dec-pic"><canvas id="svCv" width="320" height="256"></canvas></div>
+          <div class="dec-gal" id="svGal"></div>
+          <div class="sig-small tu-tx-note">Pictures sent as sound by amateurs, and sometimes from the space station. Each picture names its own format at the start, and the decoder starts by itself. Common calling frequencies: 14230 and 14233 kHz (USB), 7171 and 3845 kHz (LSB). Pictures you receive stay on this page until you leave it.</div>
+        </div>
       </div>
-      <div class="tu-cw-line" id="tuCwLine"> </div>
-      <div class="sig-small tu-tx-note">Reads the strongest steady tone in what you hear and learns the sender&rsquo;s speed as it goes. Tune CW mode with a narrow width, or USB a little below the signal. Only the text is kept: a log in this browser, saved as a .txt file. Weak, fading or hand-sent signals come out with errors (&lowast; marks a pattern that is not Morse).</div>
-      <div class="tu-tx" id="tuCwOut"></div>
     </div>
     <h4 class="sig-h">REPORTED BY RADIO MONITORS <span class="sig-small" id="sigReportsAt"></span></h4>
     <div class="sig-events" id="sigReports"><div class="sig-empty">Loading&hellip;</div></div>
@@ -1433,6 +1511,7 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
       <label>floor <input type="range" id="sigLo" min="-160" max="-20" step="1"></label>
       <label>ceiling <input type="range" id="sigHi" min="-120" max="0" step="1"></label>
       <button class="ap-btn" id="sigAuto" type="button" title="set floor and ceiling from what is on screen">AUTO LEVEL</button>
+      <button class="ap-btn" id="sigTall" type="button" title="a slow, tall picture, for images drawn into the spectrum">&#128444; PICTURE VIEW</button>
       <button class="ap-btn" id="sigShot" type="button">&#128247; PNG</button>
       <button class="ap-btn" id="sigCsv" type="button">EVENTS CSV</button>
     </div>
@@ -1442,6 +1521,17 @@ body.bm-on #tzBody h2,body.bm-on #tzBody p,body.bm-on #tzBody li{cursor:pointer}
         <div class="sig-events" id="sigEvents"></div>
       </div>
     </div>
+    <details class="sig-arch sig-guide"><summary class="sig-h">NEW TO RADIO? WHAT AM I LOOKING AT?</summary>
+      <ul class="ap-ul">
+        <li><b>The waterfall</b> (the tuner&rsquo;s scrolling picture) is the radio band seen from above: left to right is frequency, and new moments arrive at the top. A bright line is a signal; its shape tells you what kind.</li>
+        <li><b>Shapes to know:</b> a thin steady line is a carrier or beacon; a dotted line is Morse; two parallel lines are RTTY; several close lines are multi-tone data; a diagonal streak is a sweep (a chirp sounder, an ocean radar); a wide fuzzy block is a data modem or radar; a smudge that fills a few kHz and moves with speech is voice.</li>
+        <li><b>The analyzer</b> (below the tuner) shows the <i>audio</i> you hear, 0 to 3.5 kHz, the same way. PICTURE VIEW slows it and makes it tall: some people draw pictures or words straight into a signal, and they show up there.</li>
+        <li><b>USB and LSB</b> (upper and lower sideband) are how most voice and data on shortwave is sent; AM is broadcast radio; CW is for Morse. If a voice sounds like a duck, try the other sideband or nudge the frequency a little.</li>
+        <li><b>kHz:</b> 4625 kHz is 4.625 MHz. Lower frequencies carry further at night, higher ones in the day.</li>
+        <li><b>Decoding</b> here means turning tones back into the letters or picture they stand for, the way a teleprinter or fax machine did. Only modes sent in the clear can be read; encrypted traffic cannot, and nothing here tries. Listening and decoding clear signals is legal; passing on private messages you overhear is not.</li>
+        <li><b>Not sure what it is?</b> Press WHAT IS THIS?, or look it up by sound in the Signal Identification Wiki (sigidwiki.com), which has a recording of almost everything.</li>
+      </ul>
+    </details>
     <details class="sig-arch"><summary class="sig-h">ARCHIVE &mdash; THE OLD RECORDER</summary>
       <div class="sig-live" id="sigLive"><div class="sig-empty">Loading&hellip;</div></div>
     </details>
@@ -8116,6 +8206,9 @@ document.getElementById('navChips') && document.getElementById('navChips').addEv
   var bm = document.createElement('script');
   bm.src = 'assets/briefing.js'; bm.defer = true;
   document.body.appendChild(bm);
+  var dc = document.createElement('script');
+  dc.src = 'assets/decoders.js'; dc.defer = true;
+  document.body.appendChild(dc);
   var sg = document.createElement('script');
   sg.src = 'assets/signals.js'; sg.defer = true;
   document.body.appendChild(sg);

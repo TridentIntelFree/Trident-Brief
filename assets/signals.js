@@ -118,6 +118,9 @@ var S = {
   rowTimes:[], env:[], sp:[], events:[], voiceOn:null, peak:null,
   file:null
 };
+/* identify & decode state (the code is further down) */
+var DX = {tab:'id', on:{rtty:false, fax:false, sstv:false}, dec:{}, decim:null, ring:null, rpos:0, rfill:0, cw:null, busy:false,
+          fxDrawn:0, pics:[]};
 function set(k, v){ try{ localStorage.setItem('sig_' + k, JSON.stringify(v)); }catch(_){} }
 function get(k, d){ try{ var v = localStorage.getItem('sig_' + k); return v == null ? d : JSON.parse(v); }catch(_){ return d; } }
 S.maxHz = get('maxHz', 3500); S.fft = get('fft', 4096); S.map = get('map', 'thermal');
@@ -128,7 +131,8 @@ var cv = $('sigCanvas'), g2 = cv.getContext('2d');
 var SPEC_H = 70, AXIS_H = 18;                  // css px: spectrum strip, frequency axis
 var wf = document.createElement('canvas'), wg = wf.getContext('2d');
 function size(){
-  var dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth || 600, h = cv.clientHeight || 380;
+  if(!cv.clientWidth) return;                    // hidden or folded: measure again when it shows
+  var dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight || 380;
   cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr);
   g2.setTransform(dpr, 0, 0, dpr, 0, 0);
   var ww = Math.max(1, Math.round(w)), wh = Math.max(1, Math.round(h - SPEC_H - AXIS_H));
@@ -206,6 +210,7 @@ function attach(kind, ctx, src, stream, label, hear){
     n += x.length;
     var now = t0 + n/sr*1000;
     detect(fftDb(re, im), sr, now);
+    if(S.mode !== 'tuner') decFeed(x, sr);       // the tuner feeds the decoders its own 12 kHz audio
     if(now >= nextRow){ nextRow = Math.max(nextRow + 1000/S.rowsPerSec, now - 1000); liveRow(now); }
   };
   loop();
@@ -255,7 +260,15 @@ function pushRow(db, sr, when){
   if(!S.peak || S.peak.length !== db.length) S.peak = Float32Array.from(db);
   for(var i = 0; i < db.length; i++) S.peak[i] = Math.max(db[i], S.peak[i] - 0.25);
 }
-function loop(){ frame(); S.raf = requestAnimationFrame(loop); }
+function loop(){ if(ONSCREEN) frame(); S.raf = requestAnimationFrame(loop); }
+/* The pictures are only drawn while the radio is on screen: the sound, the
+   detectors and the decoders carry on regardless. Coming back, both are
+   measured afresh and redrawn. */
+var ONSCREEN = true;
+if('IntersectionObserver' in window) new IntersectionObserver(function(es){
+  var was = ONSCREEN; ONSCREEN = es[0].isIntersecting;
+  if(ONSCREEN && !was && !BAND.classList.contains('folded')){ size(); if(typeof wfDraw === 'function') wfDraw(); }
+}).observe(BAND);
 
 /* ---------------------------------------------------------- drawing */
 var cursor = null;
@@ -669,8 +682,26 @@ var PRESETS = [
   {id:'hf4724', name:'HFGCS 4724', khz:4724, mode:'usb', near:[38.9, -77.0], note:'The same network’s night frequency.'},
   {id:'volmet', name:'Shannon VOLMET', khz:5505, mode:'usb', near:[52.7, -8.9],
    note:'North Atlantic aviation weather read round the clock: a quick check that a receiver is hearing well.'},
-  {id:'wwv', name:'WWV 10 MHz', khz:10000, mode:'am', near:[40.7, -105.0], note:'US time signal: a tick every second, a voice every minute. Another reception check.'}
+  {id:'wwv', name:'WWV 10 MHz', khz:10000, mode:'am', near:[40.7, -105.0], note:'US time signal: a tick every second, a voice every minute. Another reception check.'},
+  /* pictures and text: each tunes where the decoder wants it and starts that
+     decoder. Fax is tuned USB 1.9 kHz below the listed frequency, so the
+     picture tones sit at 1500-2300 Hz; RTTY so its tones sit near 1500 Hz. */
+  {id:'fxb4', dec:'fax', name:'Fax Boston', khz:4233.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) weather charts on 4235 kHz: best at night. Charts go out most hours; a new one starts on its own.'},
+  {id:'fxb6', dec:'fax', name:'Fax Boston', khz:6338.6, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 6340.5 kHz: evening and night.'},
+  {id:'fxb9', dec:'fax', name:'Fax Boston', khz:9108.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 9110 kHz: day and evening.'},
+  {id:'fxb12', dec:'fax', name:'Fax Boston', khz:12748.1, mode:'usb', near:[41.7, -70.5], note:'US Coast Guard Boston (NMF) on 12750 kHz: daytime.'},
+  {id:'fxno', dec:'fax', name:'Fax New Orleans', khz:8502.0, mode:'usb', near:[29.9, -90.1], note:'US Coast Guard New Orleans (NMG) on 8503.9 kHz: Gulf and Atlantic weather charts.'},
+  {id:'fxpr', dec:'fax', name:'Fax Pt Reyes', khz:8680.1, mode:'usb', near:[38.0, -122.9], note:'US Coast Guard Point Reyes (NMC) on 8682 kHz: Pacific weather charts.'},
+  {id:'fxdwd', dec:'fax', name:'Fax Germany', khz:7878.1, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK3) on 7880 kHz: European and Atlantic charts.'},
+  {id:'sv14a', dec:'sstv', name:'SSTV', khz:14230, mode:'usb', near:[38, -81], note:'The busiest SSTV calling frequency (20 m): amateurs swap pictures, mostly in daylight and at weekends.'},
+  {id:'sv14b', dec:'sstv', name:'SSTV', khz:14233, mode:'usb', near:[38, -81], note:'The second 20 m SSTV frequency, for when 14230 is busy.'},
+  {id:'sv7', dec:'sstv', name:'SSTV', khz:7171, mode:'lsb', near:[38, -81], note:'40 m SSTV, lower sideband: late afternoon and evening.'},
+  {id:'sv3', dec:'sstv', name:'SSTV', khz:3845, mode:'lsb', near:[38, -81], note:'80 m SSTV, lower sideband: evenings and night, nearer stations.'},
+  {id:'sv28', dec:'sstv', name:'SSTV', khz:28680, mode:'usb', near:[38, -81], note:'10 m SSTV: only when the band is open, around midday in good sun years.'},
+  {id:'rtdwd', dec:'rtty', name:'RTTY weather', khz:10099.3, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK9) on 10100.8 kHz: weather reports by teleprinter round the clock, 50 baud. A good first test of the RTTY decoder.'},
+  {id:'rtdwd4', dec:'rtty', name:'RTTY weather', khz:4581.5, mode:'usb', near:[53.6, 10.0], note:'German Weather Service (DDK2) on 4583 kHz: the night frequency.'}
 ];
+var SCAN = PRESETS.filter(function(p){ return !p.dec; });       // SCAN visits the listening presets only
 var PASS = {usb:[300, 2700], lsb:[-2700, -300], am:[-4900, 4900], cw:[300, 800]};
 var STEP = [7,8,9,10,11,12,13,14,16,17,19,21,23,25,28,31,34,37,41,45,50,55,60,66,73,80,88,97,107,118,130,143,
   157,173,190,209,230,253,279,307,337,371,408,449,494,544,598,658,724,796,876,963,1060,1166,1282,1411,1552,
@@ -847,6 +878,7 @@ function tunerPlay(f){
   var ctx = S.ctx; if(!ctx || !T.inp) return;
   ringPush(f);
   if(CW.on && CW.dec) CW.dec.push(f);
+  decFeed(f, T.sr);
   var b = ctx.createBuffer(1, f.length, T.sr);
   if(b.copyToChannel) b.copyToChannel(f, 0); else b.getChannelData(0).set(f);
   var now = ctx.currentTime;
@@ -892,8 +924,8 @@ function scanToggle(){
 }
 function scanStep(){
   var sc = T.scan; if(!sc) return;
-  if(sc.i >= PRESETS.length){ T.scan = null; $('tuScan').textContent = '⟳ SCAN PRESETS'; status('Scan complete.'); return; }
-  var p = PRESETS[sc.i], ev0 = S.events.length;
+  if(sc.i >= SCAN.length){ T.scan = null; $('tuScan').textContent = '⟳ SCAN PRESETS'; status('Scan complete.'); return; }
+  var p = SCAN[sc.i], ev0 = S.events.length;
   retune(p.khz, p.mode, p.id);
   sc.timer = setTimeout(function(){
     if(T.scan !== sc) return;
@@ -1034,7 +1066,7 @@ function wfAvg(n){
   return a;
 }
 function wfDraw(){
-  var cv = $('tuWf'); if(!cv) return;
+  var cv = $('tuWf'); if(!cv || !ONSCREEN || !cv.clientWidth) return;
   var dpr = window.devicePixelRatio || 1, w = cv.clientWidth || 300, SP = 46, AX = 16, h = SP + WF_H*0.8 + AX;
   if(cv.width !== Math.round(w*dpr) || cv.height !== Math.round(h*dpr)){ cv.width = Math.round(w*dpr); cv.height = Math.round(h*dpr); cv.style.height = h + 'px'; }
   var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1166,12 +1198,31 @@ function to16k(x, sr){                          // Whisper hears 16 kHz
 /* phrases Whisper is known to invent over static and silence, from the
    subtitles it was trained on */
 var TX_GHOSTS = /thank(s| you) for watching|subscribe|subtitles? by|amara\.org|продолжение следует|субтитр|спасибо за (просмотр|внимание)|ご視聴|字幕|^\W*(you|music|\[music\]|\(music\))\W*$/i;
+/* Whisper's best-known failure: it gets stuck and writes one phrase over and
+   over, worst on the small models and on noisy or music-like audio. A phrase
+   of 1-12 words repeated three or more times in a row is folded to one copy
+   marked with how often it came. */
+function txLoops(text){
+  var w = String(text || '').trim().split(/\s+/).filter(Boolean), out = [], worst = 1;
+  for(var i = 0; i < w.length;){
+    var best = null;
+    for(var n = 1; n <= 12 && i + 3*n <= w.length; n++){
+      var reps = 1, key = w.slice(i, i + n).join(' ').toLowerCase();
+      while(i + (reps + 1)*n <= w.length && w.slice(i + reps*n, i + (reps + 1)*n).join(' ').toLowerCase() === key) reps++;
+      if(reps >= 3 && (!best || reps*n > best.reps*best.n)) best = {n:n, reps:reps};
+    }
+    if(best){ out.push(w.slice(i, i + best.n).join(' ') + ' [×' + best.reps + ']'); i += best.n*best.reps; worst = Math.max(worst, best.reps); }
+    else out.push(w[i++]);
+  }
+  return {text:out.join(' '), loops:worst};
+}
 function txDoubt(text){
   var t = (text || '').trim();
   if(!t) return 'no speech found';
   if(TX_GHOSTS.test(t)) return 'probably not speech: Whisper writes phrases like this over static';
-  var w = t.toLowerCase().split(/\s+/), run = 1;
-  for(var i = 1; i < w.length; i++){ run = w[i] === w[i - 1] ? run + 1 : 1; if(run >= 5) return 'repeats itself, a sign of noise rather than speech'; }
+  var lp = txLoops(t);
+  if(lp.loops >= 3) return 'Whisper got stuck repeating a phrase (' + lp.loops + ' times in a row), a known failure of the model; the repeats are folded to one. ' +
+                           'The real speech was probably shorter. Try the "better" or "best" model, or set the language';
   return '';
 }
 function txWorker(){
@@ -1179,8 +1230,10 @@ function txWorker(){
   var src = "import { pipeline, env } from '" + TX_LIB + "';\n" +
     "env.allowLocalModels = false;\n" +
     "let asr = null, which = null;\n" +
+    "const loops = " + txLoops.toString() + ";\n" +
     "self.onmessage = async (e) => {\n" +
     "  const { id, model, audio, language } = e.data;\n" +
+    "  const budget = Math.max(48, Math.min(440, Math.round(audio.length / 16000 * 9)));\n" +
     "  try {\n" +
     "    if (!asr || which !== model) {\n" +
     "      const seen = {};\n" +
@@ -1191,12 +1244,24 @@ function txWorker(){
     "      which = model;\n" +
     "    }\n" +
     "    self.postMessage({ id, working: 'transcribe' });\n" +
-    "    const opt = { chunk_length_s: 30, stride_length_s: 5, language: language || null };\n" +
-    "    const orig = await asr(audio, Object.assign({ task: 'transcribe' }, opt));\n" +
+    "    let opt = { chunk_length_s: 30, stride_length_s: 5, language: language || null, max_new_tokens: budget };\n" +
+    "    let orig;\n" +
+    "    try { orig = await asr(audio, Object.assign({ task: 'transcribe' }, opt)); }\n" +
+    "    catch (x) { opt = { chunk_length_s: 30, stride_length_s: 5, language: language || null };   // settings refused: plain run\n" +
+    "                orig = await asr(audio, Object.assign({ task: 'transcribe' }, opt)); }\n" +
+    "    let retried = false;\n" +
+    "    if (loops(orig.text).loops >= 3) {\n" +
+    "      self.postMessage({ id, working: 'retry' });\n" +
+    "      opt = Object.assign({}, opt, { return_timestamps: true, repetition_penalty: 1.2 });\n" +
+    "      let again = orig;\n" +
+    "      try { again = await asr(audio, Object.assign({ task: 'transcribe' }, opt)); } catch (x) {}\n" +
+    "      if (loops(again.text).loops < loops(orig.text).loops) orig = again;\n" +
+    "      retried = true;\n" +
+    "    }\n" +
     "    let en = null;\n" +
     "    if (language !== 'english' && orig.text.trim()) { self.postMessage({ id, working: 'translate', orig: orig.text });\n" +
     "      en = (await asr(audio, Object.assign({ task: 'translate' }, opt))).text; }\n" +
-    "    self.postMessage({ id, done: true, orig: orig.text, en });\n" +
+    "    self.postMessage({ id, done: true, orig: orig.text, en, retried });\n" +
     "  } catch (err) { asr = null; which = null; self.postMessage({ id, error: String((err && err.message) || err) }); }\n" +
     "};\n";
   try{ TX.worker = new Worker(URL.createObjectURL(new Blob([src], {type:'text/javascript'})), {type:'module'}); }
@@ -1224,10 +1289,12 @@ function transcribe(){
 function txUpdate(d){
   var it = TX.items.filter(function(x){ return x.id === d.id; })[0]; if(!it) return;
   if(d.loading != null) it.state = 'downloading the model, once: ' + Math.round(d.loading*100) + '% of ' + Math.round(d.mb) + ' MB';
-  if(d.working) it.state = d.working === 'transcribe' ? 'listening through the clip…' : 'putting it into English…';
+  if(d.working) it.state = d.working === 'transcribe' ? 'listening through the clip…' : d.working === 'retry' ? 'it got stuck repeating itself; trying again another way…' : 'putting it into English…';
   if(d.orig != null) it.orig = d.orig.trim();
   if(d.done){
-    it.state = ''; it.en = d.en ? d.en.trim() : null; it.doubt = txDoubt(it.orig) || (it.en ? txDoubt(it.en) : '');
+    it.state = ''; it.en = d.en ? d.en.trim() : null; it.retried = !!d.retried;
+    it.doubt = txDoubt(it.orig) || (it.en ? txDoubt(it.en) : '');
+    it.orig = txLoops(it.orig).text; if(it.en) it.en = txLoops(it.en).text;      // folded, never hundreds of copies
     if(it.en && it.orig && it.en.toLowerCase() === it.orig.toLowerCase()) it.en = null;
     logEvent(it.t, 'mark', 'transcript ' + it.khz + ' kHz: ' + (it.doubt ? '(' + it.doubt + ')' : (it.en || it.orig).slice(0, 80)));
   }
@@ -1246,8 +1313,20 @@ function paintTx(){
       (it.doubt ? '<div class="tu-tx-doubt">' + esc(it.doubt) + '</div>' : '') +
       (it.orig ? '<div class="tu-tx-orig' + (it.doubt ? ' dim' : '') + '">' + esc(it.orig) + '</div>' : '') +
       (it.en ? '<div class="tu-tx-en' + (it.doubt ? ' dim' : '') + '"><span>EN</span> ' + esc(it.en) + '</div>' : '');
-    return '<div class="tu-tx-item">' + head + body + '</div>';
-  }).join('');
+    return '<div class="tu-tx-item">' + head + (it.state ? '' : ' <button class="ev-f tu-tx-del" type="button" data-del="' + it.id + '" title="delete this transcript">✕</button>') + body + '</div>';
+  }).join('') + (TX.items.length && !TX.busy ? '<button class="ev-f" type="button" id="tuTxClear">CLEAR ALL TRANSCRIPTS</button>' : '');
+  el.querySelectorAll('[data-del]').forEach(function(b){ b.onclick = function(){ txDelete(+b.dataset.del); }; });
+  var ca = $('tuTxClear'); if(ca) ca.onclick = function(){ if(confirm('Delete every transcript on this page?')) txDelete(null); };
+}
+/* Transcripts live only in this page's memory. Deleting one also takes its
+   line out of the analyzer's detections. */
+function txDelete(id){
+  var gone = TX.items.filter(function(it){ return id == null || it.id === id; });
+  TX.items = TX.items.filter(function(it){ return gone.indexOf(it) < 0; });
+  S.events = S.events.filter(function(ev){
+    return !(ev.kind === 'mark' && /^transcript /.test(ev.text) && gone.some(function(it){ return it.t === ev.t; }));
+  });
+  paintEvents(); paintTx();
 }
 function wireTranscribe(){
   if(!$('tuTx')) return;
@@ -1430,7 +1509,7 @@ function cwText(){
 }
 function paintCw(){
   var el = $('tuCwOut'); if(!el) return;
-  var d = CW.dec, st = !CW.on ? 'off' : !T.live ? 'waiting for the tuner' : !d || !d.tone ? 'listening for a tone…' :
+  var d = S.mode === 'tuner' ? CW.dec : DX.cw, st = !CW.on ? 'off' : !S.running && !DX.busy ? 'waiting for something to listen to' : !d || !d.tone ? 'listening for a tone…' :
     'tone ' + d.tone + ' Hz · ' + d.wpm() + ' wpm · ' + Math.round(d.snr) + ' dB over the band';
   $('tuCwState').textContent = st;
   var ln = $('tuCwLine'), fit = Math.max(12, Math.floor((ln.clientWidth - 18)/10));   // the newest text, as much as fits
@@ -1467,21 +1546,31 @@ function wireWaterfall(){
     sel.onchange = function(){ if(this.value !== ''){ bandPick(kind, +this.value); this.value = ''; if(!T.ws) listen(); } };
   });
   var down = null;
-  cv.addEventListener('pointerdown', function(e){ down = {x:e.clientX, cf:WF.cf, moved:false}; cv.setPointerCapture(e.pointerId); });
+  /* A finger scrolling past the radio must scroll the page, not retune it:
+     the page keeps vertical panning (touch-action: pan-y), a mostly-vertical
+     movement cancels, only a sideways drag moves the band, and only a short,
+     still tap tunes. */
+  cv.addEventListener('pointerdown', function(e){ down = {x:e.clientX, y:e.clientY, t:Date.now(), cf:WF.cf, moved:false}; });
+  cv.addEventListener('pointercancel', function(){ down = null; cv.style.transform = ''; });
   cv.addEventListener('pointermove', function(e){
     if(!down || WF.start == null) return;
-    var dx = e.clientX - down.x;
-    if(Math.abs(dx) > 6){ down.moved = true; cv.style.transform = 'translateX(' + dx + 'px)'; }
+    var dx = e.clientX - down.x, dy = e.clientY - down.y;
+    if(!down.moved && Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)){ down = null; cv.style.transform = ''; return; }   // a scroll
+    if(Math.abs(dx) > 6){ if(!down.moved){ try{ cv.setPointerCapture(e.pointerId); }catch(_){} } down.moved = true; cv.style.transform = 'translateX(' + dx + 'px)'; }
   });
   cv.addEventListener('pointerup', function(e){
     if(!down) return;
     var r = cv.getBoundingClientRect(), d = down; down = null; cv.style.transform = '';
     if(WF.start == null) return;
     if(d.moved){ touch(); wfView(d.cf - (e.clientX - d.x)/r.width*WF.span); return; }
+    if(Math.abs(e.clientY - d.y) > 8 || Date.now() - d.t > 700) return;          // not a tap
     var f = WF.start + (e.clientX - r.left)/r.width*WF.span, step = +$('tuStep').value || 0.1;
     retune(Math.round(f/step)*step, null, null);
   });
+  /* the wheel scrolls the page, unless the waterfall has been clicked into
+     (it then has focus) or Shift is held */
   cv.addEventListener('wheel', function(e){
+    if(document.activeElement !== cv && !e.shiftKey && !e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     if(e.ctrlKey || e.metaKey){ wfView(T.khz, WF.zoom + (e.deltaY < 0 ? 1 : -1)); return; }
     var step = +$('tuStep').value || 0.1;
@@ -1509,11 +1598,18 @@ function wireWaterfall(){
 
 function wireTuner(){
   if(!$('sigTuner')) return;
-  $('tuPresets').innerHTML = PRESETS.map(function(p){
-    return '<button class="ev-f tu-p" data-p="' + p.id + '" type="button">' + esc(p.name) + ' <span>' + p.khz + '</span></button>';
-  }).join('');
+  function btn(p){ return '<button class="ev-f tu-p" data-p="' + p.id + '" type="button">' + esc(p.name) + ' <span>' + p.khz + '</span></button>'; }
+  $('tuPresets').innerHTML = SCAN.map(btn).join('');
+  var pp = $('tuPresetsPic');
+  if(pp) pp.innerHTML = '<span class="sig-small">PICTURES &amp; TEXT</span>' + PRESETS.filter(function(p){ return p.dec; }).map(btn).join('');
   BAND.querySelectorAll('.tu-p').forEach(function(b){
-    b.onclick = function(){ var p = presetOf(b.dataset.p); retune(p.khz, p.mode, p.id); if(!T.ws) listen(); };
+    b.onclick = function(){
+      var p = presetOf(b.dataset.p); retune(p.khz, p.mode, p.id); if(!T.ws) listen();
+      if(p.dec){                                  // and the decoder that reads it, alone
+        ['rtty', 'fax', 'sstv'].forEach(function(k){ if(k !== p.dec && DX.on[k]) decStart(k, false); });
+        decTab(p.dec); if(!DX.on[p.dec]) decStart(p.dec, true);
+      }
+    };
   });
   BAND.querySelectorAll('.tu-steps button').forEach(function(b){
     b.onclick = function(){ retune(Math.round((T.khz + (+b.dataset.s))*100)/100, null, null); };
@@ -1529,6 +1625,7 @@ function wireTuner(){
   wireWaterfall();
   wireTranscribe();
   wireMorse();
+  wireDecoders();
   retune(4625, 'usb', 'uvb76');
   var base = (typeof window.DATA_BASE === 'string' ? window.DATA_BASE : '');
   fetch(base + 'data/tuner/receivers.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; })
@@ -1601,5 +1698,208 @@ wire();
 wireTuner();
 size();
 loadRadio();
-window.SIGNALS = {state:S, tuner:T, wf:WF, cw:CW, cwDecoder:cwDecoder, fftDb:fftDb, logEvent:logEvent};
+
+/* ------------------------------------------------- identify & decode */
+/* The decoders themselves are in decoders.js. Here they are fed whatever is
+   playing (the tuner's own 12 kHz audio, or a shared tab, the microphone or
+   an opened recording, brought down to about 12 kHz), and their text and
+   pictures are drawn. All of it on this device. */
+function D_(){ return window.DECODERS || null; }
+function decFeed(f, sr){
+  var D = D_(); if(!D) return;
+  if(!DX.decim || DX.decim.srIn !== sr){ resetDecoders(sr); }
+  var y = DX.decim.push(f), r = DX.ring;
+  for(var i = 0; i < y.length; i++){ r[DX.rpos] = y[i]; DX.rpos = (DX.rpos + 1) % r.length; }
+  DX.rfill = Math.min(r.length, DX.rfill + y.length);
+  ['rtty', 'fax', 'sstv'].forEach(function(k){
+    if(!DX.on[k]) return;
+    if(!DX.dec[k]) DX.dec[k] = makeDec(k, DX.decim.sr);
+    DX.dec[k].push(y);
+  });
+  if(CW.on && S.mode !== 'tuner'){
+    if(!DX.cw) DX.cw = cwDecoder(DX.decim.sr, cwOut);
+    DX.cw.push(y);
+  }
+}
+function resetDecoders(sr){
+  var D = D_();
+  DX.decim = D.Decim(sr); DX.decim.srIn = sr;
+  DX.ring = new Float32Array(Math.round(DX.decim.sr*8)); DX.rpos = 0; DX.rfill = 0;
+  DX.dec = {}; DX.cw = null;
+}
+function makeDec(k, sr){
+  var D = D_(), d;
+  if(k === 'rtty'){ d = D.rtty(sr, {usos:$('rtUsos').checked}); }
+  else if(k === 'fax'){
+    d = D.fax(sr, {lpm:+$('fxLpm').value});
+    d.onstart = function(){ fxClear(); };
+    fxClear();
+  } else {
+    d = D.sstv(sr);
+    d.onstart = function(s){ var cv = $('svCv'); cv.width = s.mode.w; cv.height = s.mode.h; var g = cv.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height);
+                             logEvent(Date.now(), 'mark', 'SSTV picture starting: ' + s.mode.name); };
+    d.onrows = function(s, rows){ var g = $('svCv').getContext('2d');
+      rows.forEach(function(r){ if(r.y < s.mode.h) g.putImageData(new ImageData(r.px, s.mode.w, 1), 0, r.y); }); };
+    d.ondone = function(){ svKeep(); };
+  }
+  return d;
+}
+function ringOut(){
+  var r = DX.ring, n = DX.rfill, o = new Float32Array(n), st = (DX.rpos - n + r.length) % r.length;
+  for(var i = 0; i < n; i++) o[i] = r[(st + i) % r.length];
+  return o;
+}
+/* a recording: run it through the chosen decoder from the start, a few
+   seconds of sound at a time, so the page stays responsive */
+function decFile(kind){
+  var F = S.file; if(!F) return false;
+  var ch = F.buf.getChannelData(0), sr = F.buf.sampleRate, i = 0, step = Math.round(sr*0.25);
+  resetDecoders(sr); DX.busy = true;
+  if(kind === 'cw'){ DX.cw = cwDecoder(DX.decim.sr, cwOut); }
+  (function chunk(){
+    var t0 = performance.now();
+    while(i < ch.length && performance.now() - t0 < 40){
+      var y = DX.decim.push(ch.subarray(i, i + step)); i += step;
+      if(kind === 'cw'){ DX.cw.push(y); continue; }
+      if(!DX.dec[kind]) DX.dec[kind] = makeDec(kind, DX.decim.sr);
+      DX.dec[kind].push(y);
+    }
+    status('Decoding ' + esc(F.name) + ' · ' + Math.round(i/ch.length*100) + '%');
+    decPaint();
+    if(i < ch.length) setTimeout(chunk, 0);
+    else { DX.busy = false; status('Decoded ' + esc(F.name) + '.'); decPaint(); }
+  })();
+  return true;
+}
+
+/* -- what is this? */
+function idRun(){
+  var D = D_(), x, sr, khz = null, mode = null, out = $('idOut');
+  if(!D){ out.innerHTML = '<div class="sig-small">The decoders have not loaded yet.</div>'; return; }
+  if(S.mode === 'file' && S.file){
+    var b = S.file.buf, sr0 = b.sampleRate, ch = b.getChannelData(0), c = playPos(), a = Math.max(0, Math.floor((c - 4)*sr0));
+    var dm = D.Decim(sr0); x = dm.push(ch.subarray(a, Math.min(ch.length, a + 8*sr0))); sr = dm.sr;
+  } else if(DX.ring && DX.rfill > DX.decim.sr*3){
+    x = ringOut(); sr = DX.decim.sr;
+    if(S.mode === 'tuner'){ khz = T.khz; mode = T.mode; }
+  } else { out.innerHTML = '<div class="sig-small">Listen for a few seconds first: press LISTEN, share a tab, use the microphone or open a recording.</div>'; return; }
+  var res = D.identify(x, sr, {khz:khz, voice:S.voiceNow});
+  if(res.error){ out.innerHTML = '<div class="sig-small">' + esc(res.error) + '</div>'; return; }
+  var m = res.meas, bits = [];
+  if(m.width) bits.push('about ' + m.width + ' Hz wide (' + m.lo + '–' + m.hi + ' Hz in the audio)');
+  var pic = res.cands[0] && /sstv|fax/.test(res.cands[0].decode || '');   // a picture's sliding tone is not a set of tones
+  if(!pic && m.tones && m.tones.length > 1 && m.tones.length < 12) bits.push(m.tones.length + ' tones' + (m.spacing ? ' ' + m.spacing + ' Hz apart' : ''));
+  if(m.baud && !pic) bits.push('about ' + m.baud + ' changes a second');
+  if(m.wpm) bits.push('keyed on and off, about ' + m.wpm + ' wpm');
+  if(m.period) bits.push('repeats every ' + m.period + ' s');
+  if(m.sweeps) bits.push(m.sweeps + ' sweep' + (m.sweeps === 1 ? '' : 's'));
+  bits.push(m.snr + ' dB over the background');
+  var html = '<div class="id-m">' + esc(bits.join(' · ')) + (khz ? ' · ' + esc(khz + ' kHz ' + mode.toUpperCase()) + (m.band ? ' (' + esc(m.band) + ')' : '') : '') + '</div>';
+  html += res.cands.length ? res.cands.map(function(c){
+    return '<div class="id-c"><b>' + esc(c.name) + '</b><span class="w">' + esc(c.word.toUpperCase()) + '</span><div>' + esc(c.why) + '</div>' +
+      '<div class="tu-row">' + (c.decode ? '<button class="ev-f" type="button" data-dec="' + c.decode + '">DECODE IT</button>' : '') +
+      '<a class="ev-f" href="https://www.sigidwiki.com/index.php?search=' + encodeURIComponent(c.term) + '" target="_blank" rel="noopener noreferrer">HEAR SAMPLES (sigidwiki)</a></div></div>';
+  }).join('') : '<div class="sig-small">No clear match. Note the frequency and UTC time, and compare by ear on sigidwiki.com.</div>';
+  html += '<div class="sig-small">Rules of thumb from about ' + m.seconds + ' s of sound. Fading, a second station on top, or a very weak signal will fool it; confirm by ear.</div>';
+  out.innerHTML = html;
+  out.querySelectorAll('[data-dec]').forEach(function(b){ b.onclick = function(){ decTab(b.dataset.dec); decStart(b.dataset.dec, true); }; });
+}
+
+/* -- tabs, start/stop */
+function decTab(k){
+  DX.tab = k; set('dectab', k);
+  document.querySelectorAll('#decTabs [data-tab]').forEach(function(b){ b.classList.toggle('on', b.dataset.tab === k); });
+  document.querySelectorAll('#decBox .dec-p').forEach(function(p){ p.classList.toggle('on', p.dataset.p === k); });
+}
+function decStart(k, on){
+  if(k === 'cw'){ $('tuCw').checked = on; CW.on = on; if(on) cwStart(); if(on && S.mode === 'file') decFile('cw'); paintCw(); return; }
+  DX.on[k] = on;
+  if(!on){ delete DX.dec[k]; }
+  else if(S.mode === 'file' && S.file){ delete DX.dec[k]; decFile(k); }
+  decPaint();
+}
+
+/* -- painting */
+function fxClear(){ var cv = $('fxCv'); cv.height = 300; var g = cv.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height); DX.fxDrawn = 0; }
+function fxDraw(all){
+  var F = DX.dec.fax; if(!F) return;
+  var cv = $('fxCv'), g = cv.getContext('2d'), n = Math.min(F.lines(), 2400);
+  if(all){ DX.fxDrawn = 0; }
+  if(n > cv.height){                               // grow the canvas, keeping what is drawn
+    var keep = document.createElement('canvas'); keep.width = cv.width; keep.height = cv.height; keep.getContext('2d').drawImage(cv, 0, 0);
+    cv.height = Math.min(2400, n + 200); g.fillStyle = '#000'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(keep, 0, 0);
+  }
+  var line = new Uint8Array(F.W), img = g.createImageData(F.W, 1);
+  for(var k = DX.fxDrawn; k < n; k++){
+    F.line(k, line);
+    for(var x = 0; x < F.W; x++){ var o = x*4; img.data[o] = img.data[o+1] = img.data[o+2] = line[x]; img.data[o+3] = 255; }
+    g.putImageData(img, 0, k);
+  }
+  DX.fxDrawn = n;
+}
+function svKeep(){
+  var cv = $('svCv'), url; try{ url = cv.toDataURL('image/png'); }catch(_){ return; }
+  DX.pics.unshift(url); if(DX.pics.length > 8) DX.pics.length = 8;
+  $('svGal').innerHTML = DX.pics.map(function(u, i){ return '<img src="' + u + '" alt="received picture ' + (i + 1) + '" data-i="' + i + '">'; }).join('');
+  $('svGal').querySelectorAll('img').forEach(function(im){ im.onclick = function(){ savePng(DX.pics[+im.dataset.i], 'sstv'); }; });
+}
+function savePng(url, what){
+  var a = document.createElement('a'), d = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+  a.href = url; a.download = what + '-' + d + 'Z.png'; document.body.appendChild(a); a.click(); a.remove();
+}
+function decPaint(){
+  ['rtty', 'fax', 'sstv'].forEach(function(k){
+    var b = $({rtty:'rtGo', fax:'fxGo', sstv:'svGo'}[k]); if(!b) return;
+    b.textContent = DX.on[k] ? '■ STOP' : '▶ START'; b.classList.toggle('warn', DX.on[k]);
+  });
+  var idle = !S.mode && !DX.busy ? ' · waiting for something to listen to' : '';
+  var R = DX.dec.rtty;
+  $('rtState').textContent = !DX.on.rtty ? 'off' : R ? R.state() + idle : 'starting' + idle;
+  if(R){ var o = $('rtOut'), atEnd = o.scrollTop + o.clientHeight >= o.scrollHeight - 20; o.textContent = R.text(); if(atEnd) o.scrollTop = o.scrollHeight; }
+  var F = DX.dec.fax;
+  $('fxState').textContent = !DX.on.fax ? 'off' : F ? F.status + ' · ' + F.lines() + ' lines' + (F.slant ? ' · straightened ' + Math.round(F.slant*1e6) + ' ppm' : '') + idle : 'starting' + idle;
+  if(F) fxDraw(false);
+  var V = DX.dec.sstv;
+  $('svState').textContent = !DX.on.sstv ? 'off' : V ? V.status + (V.mode ? ' · line ' + V.rows + ' of ' + V.mode.h : '') + idle : 'starting' + idle;
+}
+function wireDecoders(){
+  if(!$('decBox')) return;
+  document.querySelectorAll('#decTabs [data-tab]').forEach(function(b){ b.onclick = function(){ decTab(b.dataset.tab); }; });
+  decTab(get('dectab', 'id'));
+  $('idGo').onclick = idRun;
+  $('rtGo').onclick = function(){ decStart('rtty', !DX.on.rtty); };
+  $('fxGo').onclick = function(){ decStart('fax', !DX.on.fax); };
+  $('svGo').onclick = function(){ decStart('sstv', !DX.on.sstv); };
+  $('rtUsos').onchange = function(){ if(DX.dec.rtty) DX.dec.rtty.usos = this.checked; };
+  $('rtClear').onclick = function(){ if(DX.dec.rtty) DX.dec.rtty.machines.forEach(function(m){ m.text = ''; }); decPaint(); };
+  $('rtCopy').onclick = function(){ var t = $('rtOut').textContent, b = this; if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){ b.textContent = 'COPIED'; setTimeout(function(){ b.textContent = 'COPY'; }, 1500); }); };
+  $('rtSave').onclick = function(){
+    var a = document.createElement('a'), d = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+    a.href = URL.createObjectURL(new Blob(['RTTY decoded by The Trident Brief (Appalachian Intel), machine-read and unverified\n' +
+      (S.mode === 'tuner' ? T.khz + ' kHz\n\n' : '\n') + $('rtOut').textContent], {type:'text/plain'}));
+    a.download = 'rtty-' + d + 'Z.txt'; document.body.appendChild(a); a.click(); a.remove();
+  };
+  $('fxLpm').onchange = function(){ if(DX.on.fax){ delete DX.dec.fax; fxClear(); } };
+  $('fxNew').onclick = function(){ if(DX.dec.fax){ DX.dec.fax.reset(); fxClear(); } };
+  function nudge(dOff, dSl){ var F = DX.dec.fax; if(!F) return; F.offset = ((F.offset + dOff) % F.W + F.W) % F.W; F.slant += dSl; fxDraw(true); decPaint(); }
+  $('fxL').onclick = function(){ nudge(Math.round(904/40), 0); };
+  $('fxR').onclick = function(){ nudge(-Math.round(904/40), 0); };
+  $('fxS1').onclick = function(){ nudge(0, -50e-6); };
+  $('fxS2').onclick = function(){ nudge(0, 50e-6); };
+  $('fxSave').onclick = function(){ savePng($('fxCv').toDataURL('image/png'), 'weatherfax'); };
+  var modes = (window.DECODERS && DECODERS.SSTV_MODES) || {};
+  $('svMode').innerHTML = Object.keys(modes).map(function(v){ return '<option value="' + v + '">' + esc(modes[v].name) + '</option>'; }).join('');
+  $('svMode').value = '44';
+  $('svNow').onclick = function(){ if(!DX.on.sstv) decStart('sstv', true); var V = DX.dec.sstv; if(V) V.start(+$('svMode').value); else setTimeout(function(){ if(DX.dec.sstv) DX.dec.sstv.start(+$('svMode').value); }, 300); };
+  $('svSave').onclick = function(){ savePng($('svCv').toDataURL('image/png'), 'sstv'); };
+  $('sigTall').onclick = function(){
+    var c = $('sigCanvas'), on = !c.classList.contains('tall');
+    c.classList.toggle('tall', on); this.classList.toggle('on', on);
+    if(on){ DX.rps = S.rowsPerSec; S.rowsPerSec = 6; } else if(DX.rps){ S.rowsPerSec = DX.rps; }
+    $('sigSpeed').value = String(S.rowsPerSec); size();
+  };
+  setInterval(function(){ if(!BAND.classList.contains('folded')) decPaint(); }, 500);
+  decPaint();
+}
+window.SIGNALS = {state:S, tuner:T, wf:WF, cw:CW, cwDecoder:cwDecoder, fftDb:fftDb, logEvent:logEvent, dx:DX, decFeed:decFeed, idRun:idRun};
 })();
