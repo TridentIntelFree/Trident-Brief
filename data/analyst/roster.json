@@ -57,6 +57,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: credited on Syria-Saudi meeting"
   },
+  "NHC_Atlantic": {
+   "days": [
+    "2026-10-09"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on Isaias upgrade"
+  },
   "SeanParnellASW": {
    "days": [
     "2026-10-06"
@@ -77,6 +84,13 @@
    ],
    "url": "https://x.com/SitDeck/status/2107275938442457404",
    "why": "Global intelligence dashboard account analyzing Ukrainian Sky Sentinel drone defense systems in Kharkiv with combat testing details."
+  },
+  "StateDept": {
+   "days": [
+    "2026-10-09"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on ICC sanctions"
   },
   "UK_MTO": {
    "days": [
@@ -138,67 +152,67 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "AuroraIntel": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "CalibreObscura": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "CovertShores": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "ELINTNews": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "Faytuks": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "IntelCrab": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "JominiW": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "KofmanMichael": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "Osinttechnical": {
-   "checked": "2026-10-08",
-   "posted": "2026-10-08"
+   "checked": "2026-10-09",
+   "posted": "2026-10-09"
   },
   "RALee85": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "Tendar": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "detresfa_": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "noelreports": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   },
   "sentdefender": {
-   "checked": "2026-10-08",
-   "posted": "2026-10-08"
+   "checked": "2026-10-09",
+   "posted": "2026-10-09"
   },
   "wartranslated": {
-   "checked": "2026-10-08"
+   "checked": "2026-10-09"
   }
  },
- "updated": "2026-10-08T18:51:15Z"
+ "updated": "2026-10-09T18:21:37Z"
 }
