@@ -22,6 +22,13 @@
   "CovertShores"
  ],
  "found": {
+  "BarakRavid": {
+   "days": [
+    "2026-10-11"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: Zelensky quote"
+  },
   "DonaldPMitchell": {
    "days": [
     "2026-10-06"
@@ -63,6 +70,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Isaias upgrade"
+  },
+  "Nizibizizbig": {
+   "days": [
+    "2026-10-11"
+   ],
+   "url": "https://x.com/Nizibizizbig/status/2108781550242246797",
+   "why": "Independent analyst with graded open-source assessment citing UKMTO, IRGC and Saudi reports on Gulf of Oman/Hormuz and Riyadh attacks."
   },
   "SeanParnellASW": {
    "days": [
@@ -120,6 +134,13 @@
    "url": "https://x.com/WarWired/status/2107266236459724920",
    "why": "Neutral conflict brief account citing official Ukrainian sources on Russian strikes in Kharkiv residential areas."
   },
+  "alex_kokcharov": {
+   "days": [
+    "2026-10-11"
+   ],
+   "url": "https://x.com/alex_kokcharov/status/2109336281557905451",
+   "why": "Geopolitical analyst citing local officials on Russian strike on Kharkiv power plant after energy ceasefire announcement."
+  },
   "havoc_aviation": {
    "days": [
     "2026-10-06"
@@ -127,12 +148,47 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on B-1B withdrawal"
   },
+  "husker_eth": {
+   "days": [
+    "2026-10-11"
+   ],
+   "url": "https://x.com/husker_eth/status/2109040858536575119",
+   "why": "Posts sourced OSINT briefings covering Riyadh airport strikes, Strait of Hormuz incidents and Poland security alerts with citations."
+  },
+  "ksagaca": {
+   "days": [
+    "2026-10-11"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: Saudi aviation statement"
+  },
+  "mhmck": {
+   "days": [
+    "2026-10-11"
+   ],
+   "url": "https://x.com/mhmck/status/2109335919014596894",
+   "why": "War chronicler with sourced reporting on Russian drone and bomb strike on Kharkiv CHP plant post-ceasefire claim."
+  },
+  "newsguyusa": {
+   "days": [
+    "2026-10-11"
+   ],
+   "url": "https://x.com/newsguyusa/status/2109335890036244782",
+   "why": "Journalist linking to official and media sources on Russian missile strike on Kharkiv plant hours after Trump ceasefire announcement."
+  },
   "osint42": {
    "days": [
     "2026-10-06"
    ],
    "url": "https://x.com/osint42/status/2106707264249712715",
    "why": "OSINT account citing Finnish presidential statements on Russian military intelligence improvements and capabilities."
+  },
+  "ralexdc": {
+   "days": [
+    "2026-10-11"
+   ],
+   "url": "https://x.com/ralexdc/status/2109334765644259408",
+   "why": "Washington correspondent with fresh sourced update on Russian attack on Kharkiv thermal power plant following energy ceasefire."
   }
  },
  "starter": [
@@ -159,67 +215,67 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "AuroraIntel": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "CalibreObscura": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "CovertShores": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "ELINTNews": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "Faytuks": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "IntelCrab": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "JominiW": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "KofmanMichael": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "Osinttechnical": {
-   "checked": "2026-10-10",
-   "posted": "2026-10-10"
+   "checked": "2026-10-11",
+   "posted": "2026-10-11"
   },
   "RALee85": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "Tendar": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "detresfa_": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "noelreports": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   },
   "sentdefender": {
-   "checked": "2026-10-10",
-   "posted": "2026-10-10"
+   "checked": "2026-10-11",
+   "posted": "2026-10-11"
   },
   "wartranslated": {
-   "checked": "2026-10-10"
+   "checked": "2026-10-11"
   }
  },
- "updated": "2026-10-10T17:21:03Z"
+ "updated": "2026-10-11T17:41:28Z"
 }
