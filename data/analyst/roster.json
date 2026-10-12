@@ -19,7 +19,8 @@
   "TheStudyofWar",
   "JominiW",
   "Archer83Able",
-  "CovertShores"
+  "CovertShores",
+  "UK_MTO"
  ],
  "found": {
   "BarakRavid": {
@@ -92,6 +93,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Hasan execution order"
   },
+  "SenatorCollins": {
+   "days": [
+    "2026-10-12"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: Bath Iron Works certification quote"
+  },
   "SitDeck": {
    "days": [
     "2026-10-06"
@@ -108,10 +116,11 @@
   },
   "UK_MTO": {
    "days": [
-    "2026-10-08"
+    "2026-10-08",
+    "2026-10-12"
    ],
    "url": "",
-   "why": "quoted or credited by followed accounts: quoted in Hormuz advisory"
+   "why": "quoted or credited by followed accounts: UKMTO warnings on Hormuz incidents"
   },
   "UK_REPT": {
    "days": [
@@ -215,67 +224,67 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "AuroraIntel": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "CalibreObscura": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "CovertShores": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "ELINTNews": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "Faytuks": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "IntelCrab": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "JominiW": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "KofmanMichael": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "Osinttechnical": {
-   "checked": "2026-10-11",
-   "posted": "2026-10-11"
+   "checked": "2026-10-12",
+   "posted": "2026-10-12"
   },
   "RALee85": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "Tendar": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "detresfa_": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "noelreports": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   },
   "sentdefender": {
-   "checked": "2026-10-11",
-   "posted": "2026-10-11"
+   "checked": "2026-10-12",
+   "posted": "2026-10-12"
   },
   "wartranslated": {
-   "checked": "2026-10-11"
+   "checked": "2026-10-12"
   }
  },
- "updated": "2026-10-11T17:41:28Z"
+ "updated": "2026-10-12T21:16:36Z"
 }
