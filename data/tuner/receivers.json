@@ -1,5 +1,5 @@
 {
- "checked": "2026-10-09T03:39:24Z",
+ "checked": "2026-10-12T12:15:27Z",
  "receivers": [
   {
    "host": "iz6byy.k1fm.us",
@@ -14,7 +14,7 @@
    "host": "kiwi-dg0jbd.stbach.de",
    "name": "DG0JBD Marienberg Germany",
    "loc": "Marienberg, Germany",
-   "lat": 50.68,
+   "lat": 50.67,
    "lon": 13.26,
    "antenna": "Magnetische Loop",
    "slots": 8
@@ -26,6 +26,15 @@
    "lat": 51.38,
    "lon": 7.22,
    "antenna": "PA0RDT MiniWhip (Sorry, high QRM on Low Bands!)",
+   "slots": 8
+  },
+  {
+   "host": "kiwi.apps.exdsl.nl",
+   "name": "0-30 MHz SDR | Korschenbroich, Germany",
+   "loc": "Korschenbroich, Germany",
+   "lat": 51.2,
+   "lon": 6.51,
+   "antenna": "LZ1AQ Antenna, \\\"Lazy Loop\\\"",
    "slots": 8
   },
   {
@@ -128,15 +137,6 @@
    "slots": 8
   },
   {
-   "host": "sdr1.ikara.vk1hf.com",
-   "name": "@@ IKARA SDR @@ | Spring Range, New South Wales, Australia",
-   "loc": "Spring Range, New South Wales, Australia",
-   "lat": -35.1,
-   "lon": 149.06,
-   "antenna": "Various",
-   "slots": 8
-  },
-  {
    "host": "sdrccp.bloap.cl",
    "name": "KiwiSDR Curacautín, Chile",
    "loc": "Curacautín, Araucanía, Chile",
@@ -149,9 +149,9 @@
    "host": "swl-lippi-2.stbach.de",
    "name": "Lippis-KiWi-SDR-2 | FREITAL, GERMANY",
    "loc": "FREITAL, GERMANY",
-   "lat": 51.29,
-   "lon": 14.93,
-   "antenna": "LZ1AQ West/East",
+   "lat": 51.0,
+   "lon": 13.65,
+   "antenna": "LZ1AQ West/East/Loop",
    "slots": 8
   },
   {
