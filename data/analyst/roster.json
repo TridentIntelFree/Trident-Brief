@@ -37,6 +37,13 @@
    "url": "",
    "why": "quoted or credited 1x by followed accounts"
   },
+  "EtatMajorFR": {
+   "days": [
+    "2026-10-13"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted by Osinttechnical on French naval op"
+  },
   "FactCheckerMoIB": {
    "days": [
     "2026-10-08"
@@ -150,6 +157,13 @@
    "url": "https://x.com/alex_kokcharov/status/2109336281557905451",
    "why": "Geopolitical analyst citing local officials on Russian strike on Kharkiv power plant after energy ceasefire announcement."
   },
+  "ariel_oseran": {
+   "days": [
+    "2026-10-13"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted by sentdefender on Houthi warnings"
+  },
   "havoc_aviation": {
    "days": [
     "2026-10-06"
@@ -163,6 +177,13 @@
    ],
    "url": "https://x.com/husker_eth/status/2109040858536575119",
    "why": "Posts sourced OSINT briefings covering Riyadh airport strikes, Strait of Hormuz incidents and Poland security alerts with citations."
+  },
+  "kimguilfoyle": {
+   "days": [
+    "2026-10-13"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted by sentdefender on ambassador resignation"
   },
   "ksagaca": {
    "days": [
@@ -224,67 +245,71 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "AuroraIntel": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "CalibreObscura": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "CovertShores": {
    "checked": "2026-10-12"
   },
   "ELINTNews": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "Faytuks": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "IntelCrab": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "JominiW": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "KofmanMichael": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "Osinttechnical": {
-   "checked": "2026-10-12",
-   "posted": "2026-10-12"
+   "checked": "2026-10-13",
+   "posted": "2026-10-13"
   },
   "RALee85": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "Tendar": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
+  },
+  "UK_MTO": {
+   "checked": "2026-10-13",
+   "posted": "2026-10-13"
   },
   "detresfa_": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "noelreports": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   },
   "sentdefender": {
-   "checked": "2026-10-12",
-   "posted": "2026-10-12"
+   "checked": "2026-10-13",
+   "posted": "2026-10-13"
   },
   "wartranslated": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-13"
   }
  },
- "updated": "2026-10-12T21:16:36Z"
+ "updated": "2026-10-13T19:18:21Z"
 }
