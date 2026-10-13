@@ -112,7 +112,11 @@
    "multiple strikes in short window"
   ],
   "watch_for": "Lloyd's or broker advisory on rate changes",
-  "wrong_if": "no premium spike reported by 13 Oct 2026"
+  "wrong_if": "no premium spike reported by 13 Oct 2026",
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "UKMTO reported six vessels including multiple tankers struck by projectiles on 11 Oct; war-risk premiums reached 30x normal.",
+  "url": "https://windward.ai/knowledge-base/strait-of-hormuz-live-report/"
  },
  {
   "id": "2026-10-06T0153-7",
@@ -127,7 +131,11 @@
    "active Warlock actor targeting of water/telecom"
   ],
   "watch_for": "CISA KEV update or utility outage report",
-  "wrong_if": "no new confirmed victim by 13 Oct 2026"
+  "wrong_if": "no new confirmed victim by 13 Oct 2026",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "CISA added CVE-2026-65660 to KEV on 25 Sep with exploitation evidence but no new critical infrastructure victim reported in window.",
+  "url": "https://cipherssecurity.com/cve/CVE-2026-65660/"
  },
  {
   "id": "2026-10-06T0153-8",
@@ -143,7 +151,11 @@
    "limited independent verification"
   ],
   "watch_for": "TPLF statement or Reuters confirmation",
-  "wrong_if": "no TPLF claim or counter-attack by 13 Oct 2026"
+  "wrong_if": "no TPLF claim or counter-attack by 13 Oct 2026",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "TPLF announced withdrawal from Mekelle on 4 Oct with earlier statements on operating elsewhere; no new public claim of control outside Mekelle or counter-attack in window.",
+  "url": "https://www.bbc.co.uk/news/articles/cqm249v07j4xo"
  },
  {
   "id": "2026-10-06T0153-9",
@@ -159,7 +171,11 @@
    "no surge signal yet"
   ],
   "watch_for": "Taiwan MND daily report",
-  "wrong_if": "no day exceeds 8 crossings by 13 Oct 2026"
+  "wrong_if": "no day exceeds 8 crossings by 13 Oct 2026",
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "Taiwan MND reported 21 PLA aircraft sorties on 10 Oct with 13 crossing the median line.",
+  "url": "https://x.com/MoNDefense/status/2108725206525383026"
  },
  {
   "id": "2026-10-06-1",
@@ -234,7 +250,11 @@
    "escalating hybrid maritime attacks noted"
   ],
   "watch_for": "new maritime incident reports or crew-missing alerts",
-  "wrong_if": "zero new Black Sea commercial-vessel strikes by 13 Oct 18:00 UTC"
+  "wrong_if": "zero new Black Sea commercial-vessel strikes by 13 Oct 18:00 UTC",
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "Drones struck two commercial vessels off Bulgaria on 12-13 Oct, sinking one and damaging the other.",
+  "url": "https://apnews.com/article/bulgaria-black-sea-drones-ships-7dfef251fb7d47a717f0d600873dbf5b"
  },
  {
   "id": "2026-10-06-5",
@@ -250,7 +270,11 @@
    "renewed northern clashes already occurring"
   ],
   "watch_for": "first Eritrean or Ethiopian federal statement naming Asmara forces",
-  "wrong_if": "no Eritrean involvement confirmed by 13 Oct 18:00 UTC"
+  "wrong_if": "no Eritrean involvement confirmed by 13 Oct 18:00 UTC",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "Reuters and others reported Eritrean troop sightings and Ethiopian accusations but Asmara denied involvement with no confirming statements from Reuters/Addis/Asmara.",
+  "url": "https://www.reuters.com/world/africa/ethiopian-troops-enter-town-border-with-eritrea-stoking-war-fears-2026-10-13/"
  },
  {
   "id": "2026-10-06-6",
@@ -305,7 +329,11 @@
    "eastern-flank reinforcement pattern"
   ],
   "watch_for": "Polish MOD readiness statement",
-  "wrong_if": "no operational-status announcement by 13 Oct 18:00 UTC"
+  "wrong_if": "no operational-status announcement by 13 Oct 18:00 UTC",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "Polish MOD announced decision and plans to deploy Patriot battery in Lublin but no announcement of operational status.",
+  "url": "https://ukrmedia.news/en/world/poland-patriot-lublin-new-forces/"
  },
  {
   "id": "2026-10-07T1904-1",
@@ -844,7 +872,10 @@
    "id": "5234660",
    "p_market": 92,
    "url": "https://polymarket.com/market/us-x-iran-ceasefire-continues-through-october-12"
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "settled on Polymarket"
  },
  {
   "id": "2026-10-08T0035-12",
@@ -2242,7 +2273,10 @@
   "id": "2026-10-10T1728-7",
   "made": "2026-10-10T17:28:30Z",
   "term": "roughly even chance",
-  "deadline": "2026-10-12T23:59:59Z"
+  "deadline": "2026-10-12T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "measured 351 against > 300"
  },
  {
   "source": "engine",
@@ -2268,7 +2302,10 @@
   "id": "2026-10-10T1728-8",
   "made": "2026-10-10T17:28:30Z",
   "term": "likely",
-  "deadline": "2026-10-12T23:59:59Z"
+  "deadline": "2026-10-12T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "measured 3,400 against > 3,235"
  },
  {
   "source": "engine",
@@ -2294,7 +2331,10 @@
   "id": "2026-10-10T1728-9",
   "made": "2026-10-10T17:28:30Z",
   "term": "likely",
-  "deadline": "2026-10-12T23:59:59Z"
+  "deadline": "2026-10-12T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "measured 2,947 against > 3,248"
  },
  {
   "source": "engine",
@@ -2346,7 +2386,10 @@
   "id": "2026-10-10T1728-11",
   "made": "2026-10-10T17:28:30Z",
   "term": "likely",
-  "deadline": "2026-10-12T23:59:59Z"
+  "deadline": "2026-10-12T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "measured 2 against >= 1"
  },
  {
   "id": "2026-10-11T1747-1",
@@ -2365,7 +2408,11 @@
   ],
   "watch_for": "New UKMTO alert or IRGC-affiliated social post claiming another vessel",
   "wrong_if": "No new maritime incident reported by deadline and insurance rates remain flat",
-  "fly": null
+  "fly": null,
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "UKMTO warnings documented at least three distinct tanker strikes by projectiles in Strait of Hormuz on 11 Oct.",
+  "url": "https://shipandbunker.com/news/emea/490909-ukmto-reports-four-vessel-attacks-in-strait-of-hormuz"
  },
  {
   "id": "2026-10-11T1747-2",
@@ -2392,7 +2439,11 @@
     ">20 PLA aircraft crossing Taiwan median line in 48h",
     ">20 PLA aircraft crossing Taiwan median line in 48h"
    ]
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "Taiwan MND report for 12 Oct recorded only 4 PLA aircraft sorties around Taiwan.",
+  "url": "https://www.taiwannews.com.tw/en/news/6456812"
  },
  {
   "id": "2026-10-11T1747-3",
@@ -2411,7 +2462,11 @@
   ],
   "watch_for": "TASS or MoD Telegram post dismissing the proposal",
   "wrong_if": "Russian channel issues statement accepting or detailing compliance steps by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "Kremlin spokesman Peskov and officials publicly rejected energy ceasefire and 60-day truce proposals.",
+  "url": "https://english.nv.ua/nation/kremlin-seeks-maximalist-victory-refusing-any-energy-pause-50649527.html"
  },
  {
   "id": "2026-10-11T1747-4",
@@ -2433,7 +2488,10 @@
    "p_market": 12,
    "url": "https://kalshi.com/markets/kxnflspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-11T1747-5",
@@ -2455,7 +2513,10 @@
    "p_market": 10,
    "url": "https://kalshi.com/markets/kxnflspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-11T1747-6",
@@ -2477,7 +2538,10 @@
    "p_market": 10,
    "url": "https://kalshi.com/markets/kxnfltd",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-10-13T19:32:43Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "source": "engine",
@@ -2891,5 +2955,277 @@
   "made": "2026-10-12T21:24:43Z",
   "term": "roughly even chance",
   "deadline": "2026-10-14T23:59:59Z"
+ },
+ {
+  "id": "2026-10-13T1932-1",
+  "source": "oracle",
+  "made": "2026-10-13T19:32:43Z",
+  "horizon": "48h",
+  "deadline": "2026-10-15T19:32:43Z",
+  "region": "middle_east",
+  "event": "UKMTO or Saudi GACA reports at least one new projectile strike on a commercial tanker in or near the Strait of Hormuz before 15 Oct 2026 19:32 UTC",
+  "criterion": "UKMTO or Saudi GACA advisory or statement confirming a new strike with fire or damage on an outbound tanker, by 15 Oct 2026 19:32 UTC",
+  "probability": 41,
+  "term": "unlikely",
+  "base_rate": 22,
+  "basis": [
+   "Ongoing IRGC footage and UKMTO reports of multiple incidents since early October",
+   "Recent strike tempo described as picking up"
+  ],
+  "watch_for": "New UKMTO warning or IRGC-released imagery of a burning vessel",
+  "wrong_if": "No new UKMTO or GACA confirmation of a strike by deadline",
+  "fly": {
+   "p": 50,
+   "n": 4,
+   "hits": 2,
+   "like": [
+    "UKMTO or gCaptain reports at least one additional unknown-projectile strike on a tanker in the Strait of Hormuz",
+    "UKMTO or gCaptain reports at least one additional unknown-projectile strike on a commercial vessel in the Black Sea EEZ"
+   ]
+  }
+ },
+ {
+  "id": "2026-10-13T1932-2",
+  "source": "oracle",
+  "made": "2026-10-13T19:32:43Z",
+  "horizon": "48h",
+  "deadline": "2026-10-15T19:32:43Z",
+  "region": "indopac",
+  "event": "Taiwan MND daily report shows 6 or more PLA aircraft crossing the median line before 15 Oct 2026 19:32 UTC",
+  "criterion": "Taiwan MND official daily tally (via @mna_roc or @MoNDefense) records 6+ median-line crossings in any single report issued by 15 Oct 2026 19:32 UTC",
+  "probability": 33,
+  "term": "unlikely",
+  "base_rate": 28,
+  "basis": [
+   "Recent daily counts of 4-5 crossings",
+   "Routine but slightly elevated activity pattern"
+  ],
+  "watch_for": "Taiwan MND post showing 6+ crossings",
+  "wrong_if": "All MND reports through deadline show 5 or fewer crossings",
+  "fly": {
+   "p": 10,
+   "n": 8,
+   "hits": 0,
+   "like": [
+    "PLA aircraft crossing Taiwan median line or surge in vessels",
+    ">10 additional PLA aircraft crossing Taiwan median line in next 24h"
+   ]
+  }
+ },
+ {
+  "id": "2026-10-13T1932-3",
+  "source": "oracle",
+  "made": "2026-10-13T19:32:43Z",
+  "horizon": "48h",
+  "deadline": "2026-10-15T19:32:43Z",
+  "region": "europe",
+  "event": "Ukrainian MoD or presidential statement claims at least one new successful drone strike on a Russian data center or energy facility before 15 Oct 2026 19:32 UTC",
+  "criterion": "Official Ukrainian statement or MoD claim of a new confirmed strike on a Yandex-style data center or refinery, reported by 15 Oct 2026 19:32 UTC",
+  "probability": 48,
+  "term": "roughly even chance",
+  "base_rate": 35,
+  "basis": [
+   "Third Yandex data center already hit in current window",
+   "Pattern of Ukrainian deep strikes continuing despite Russian Kyiv attacks"
+  ],
+  "watch_for": "Ukrainian Telegram or presidential post claiming new Russian target hit",
+  "wrong_if": "No new Ukrainian claims of successful deep strikes by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-10-13T1932-4",
+  "source": "oracle",
+  "made": "2026-10-13T19:32:43Z",
+  "horizon": "48h",
+  "deadline": "2026-10-15T19:00:00Z",
+  "region": "Market",
+  "event": "Manchester United wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 42,
+  "term": "unlikely",
+  "basis": [
+   "Atletico home advantage and recent form edge out Manchester United in a low-scoring match"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUCLGAME-26OCT13ATMMUN-MUN",
+   "p_market": 10,
+   "url": "https://kalshi.com/markets/kxuclgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-10-13T1932-5",
+  "source": "oracle",
+  "made": "2026-10-13T19:32:43Z",
+  "horizon": "48h",
+  "deadline": "2026-10-15T19:00:00Z",
+  "region": "Market",
+  "event": "Lille wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 23,
+  "term": "unlikely",
+  "basis": [
+   "Arsenal's stronger squad depth and away record make a Lille win unlikely"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUCLGAME-26OCT13ARSLIL-LIL",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxuclgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-10-13T1932-6",
+  "source": "oracle",
+  "made": "2026-10-13T19:32:43Z",
+  "horizon": "48h",
+  "deadline": "2026-10-15T19:00:00Z",
+  "region": "Market",
+  "event": "Napoli wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 52,
+  "term": "roughly even chance",
+  "basis": [
+   "Napoli's attacking quality gives them a slight edge over Villarreal at home"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUCLGAME-26OCT13VILNAP-NAP",
+   "p_market": 10,
+   "url": "https://kalshi.com/markets/kxuclgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 311 air-raid alarms on 14 Oct 2026 and 15 Oct 2026, a faster pace than the past 30 days",
+  "probability": 54,
+  "base_rate": 50,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 33 were followed by this",
+   "base rate 50% over the whole record",
+   "closest: 22 Sep 2026, 24 Jun 2026, 23 Sep 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-10-14",
+   "end": "2026-10-15",
+   "op": ">",
+   "threshold": 311,
+   "unit_days": false
+  },
+  "criterion": "More than 311 air-raid alarms on 14 Oct 2026 and 15 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-13T1932-7",
+  "made": "2026-10-13T19:32:43Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,262 Russian personnel losses claimed by Ukraine's MoD on 14 Oct 2026 and 15 Oct 2026, a faster pace than the past 30 days",
+  "probability": 55,
+  "base_rate": 54,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 33 were followed by this",
+   "base rate 54% over the whole record",
+   "closest: 3 Nov 2024, 22 Jun 2026, 2 Nov 2024"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-10-14",
+   "end": "2026-10-15",
+   "op": ">",
+   "threshold": 3262,
+   "unit_days": false
+  },
+  "criterion": "More than 3,262 Russian personnel losses claimed by Ukraine's MoD on 14 Oct 2026 and 15 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-13T1932-8",
+  "made": "2026-10-13T19:32:43Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,180 Russian drones claimed destroyed by Ukraine's MoD on 14 Oct 2026 and 15 Oct 2026, a faster pace than the past 30 days",
+  "probability": 58,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 35 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 10 May 2026, 9 Aug 2026, 10 Aug 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-10-14",
+   "end": "2026-10-15",
+   "op": ">",
+   "threshold": 3180,
+   "unit_days": false
+  },
+  "criterion": "More than 3,180 Russian drones claimed destroyed by Ukraine's MoD on 14 Oct 2026 and 15 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-13T1932-9",
+  "made": "2026-10-13T19:32:43Z",
+  "term": "likely",
+  "deadline": "2026-10-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 14 Oct 2026 and 15 Oct 2026 (Home Front Command)",
+  "probability": 20,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 11 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 18 Oct 2015, 16 Oct 2016, 17 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-10-14",
+   "end": "2026-10-15",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 14 Oct 2026 and 15 Oct 2026 (Home Front Command)",
+  "id": "2026-10-13T1932-10",
+  "made": "2026-10-13T19:32:43Z",
+  "term": "very unlikely",
+  "deadline": "2026-10-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 14 Oct 2026 and 15 Oct 2026 (USGS)",
+  "probability": 49,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 29 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 23 Jan 2024, 2 Feb 2013, 27 Sep 2019"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-10-14",
+   "end": "2026-10-15",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 14 Oct 2026 and 15 Oct 2026 (USGS)",
+  "id": "2026-10-13T1932-11",
+  "made": "2026-10-13T19:32:43Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-15T23:59:59Z"
  }
 ]
