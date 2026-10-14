@@ -150,6 +150,13 @@
    "url": "https://x.com/WarWired/status/2107266236459724920",
    "why": "Neutral conflict brief account citing official Ukrainian sources on Russian strikes in Kharkiv residential areas."
   },
+  "_MartinKelly_": {
+   "days": [
+    "2026-10-14"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on ship targets"
+  },
   "alex_kokcharov": {
    "days": [
     "2026-10-11"
@@ -206,6 +213,13 @@
    "url": "https://x.com/newsguyusa/status/2109335890036244782",
    "why": "Journalist linking to official and media sources on Russian missile strike on Kharkiv plant hours after Trump ceasefire announcement."
   },
+  "no_itsmyturn": {
+   "days": [
+    "2026-10-14"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on ship sinkings"
+  },
   "osint42": {
    "days": [
     "2026-10-06"
@@ -248,68 +262,68 @@
    "checked": "2026-10-13"
   },
   "AuroraIntel": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "CalibreObscura": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "CovertShores": {
-   "checked": "2026-10-12"
+   "checked": "2026-10-14"
   },
   "ELINTNews": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "Faytuks": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "IntelCrab": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "JominiW": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "KofmanMichael": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "Osinttechnical": {
-   "checked": "2026-10-13",
-   "posted": "2026-10-13"
+   "checked": "2026-10-14",
+   "posted": "2026-10-14"
   },
   "RALee85": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "Tendar": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "UK_MTO": {
-   "checked": "2026-10-13",
-   "posted": "2026-10-13"
+   "checked": "2026-10-14",
+   "posted": "2026-10-14"
   },
   "detresfa_": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "noelreports": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   },
   "sentdefender": {
-   "checked": "2026-10-13",
-   "posted": "2026-10-13"
+   "checked": "2026-10-14",
+   "posted": "2026-10-14"
   },
   "wartranslated": {
-   "checked": "2026-10-13"
+   "checked": "2026-10-14"
   }
  },
- "updated": "2026-10-13T19:18:21Z"
+ "updated": "2026-10-14T17:11:47Z"
 }
