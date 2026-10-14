@@ -1,19 +1,19 @@
 {
- "at": "2026-10-07T23:58:08Z",
+ "at": "2026-10-14T17:38:05Z",
  "results": [
   {
    "claim": "Mars afflicted brings war",
    "metric": "Ukraine air-raid alarms a day",
    "condition": "mars_afflicted",
-   "days": 1656,
-   "days_on": 495,
+   "days": 1663,
+   "days_on": 497,
    "from": "2022-03-12",
-   "to": "2026-09-22",
+   "to": "2026-09-29",
    "ratio": 0.99,
-   "p": 0.582,
+   "p": 0.539,
    "direction_as_claimed": false,
    "p_adjusted": 1.0,
-   "verdict": "no better than chance (-1%, p = 0.58, 1.00 corrected)"
+   "verdict": "no better than chance (-1%, p = 0.54, 1.00 corrected)"
   },
   {
    "claim": "Mars afflicted brings war",
@@ -33,43 +33,43 @@
    "claim": "Mars afflicted brings war",
    "metric": "Russian personnel losses a day (Ukraine MoD's claim)",
    "condition": "mars_afflicted",
-   "days": 1654,
-   "days_on": 495,
+   "days": 1662,
+   "days_on": 497,
    "from": "2022-03-13",
-   "to": "2026-09-21",
-   "ratio": 0.995,
-   "p": 0.723,
+   "to": "2026-09-29",
+   "ratio": 0.996,
+   "p": 0.742,
    "direction_as_claimed": false,
    "p_adjusted": 1.0,
-   "verdict": "no better than chance (-1%, p = 0.72, 1.00 corrected)"
+   "verdict": "no better than chance (+0%, p = 0.74, 1.00 corrected)"
   },
   {
    "claim": "Mars retrograde stalls offensives",
    "metric": "Russian personnel losses a day (Ukraine MoD's claim)",
    "condition": "mars_retro",
-   "days": 1654,
+   "days": 1662,
    "days_on": 154,
    "from": "2022-03-13",
-   "to": "2026-09-21",
+   "to": "2026-09-29",
    "ratio": 1.009,
-   "p": 0.29,
+   "p": 0.263,
    "direction_as_claimed": false,
    "p_adjusted": 1.0,
-   "verdict": "no better than chance (+1%, p = 0.29, 1.00 corrected)"
+   "verdict": "no better than chance (+1%, p = 0.26, 1.00 corrected)"
   },
   {
    "claim": "The full moon brings trouble",
    "metric": "Ukraine air-raid alarms a day",
    "condition": "full_moon",
-   "days": 1656,
-   "days_on": 106,
+   "days": 1663,
+   "days_on": 108,
    "from": "2022-03-12",
-   "to": "2026-09-22",
-   "ratio": 1.065,
-   "p": 0.094,
+   "to": "2026-09-29",
+   "ratio": 1.061,
+   "p": 0.128,
    "direction_as_claimed": true,
-   "p_adjusted": 0.564,
-   "verdict": "no better than chance (+6%, p = 0.09, 0.56 corrected)"
+   "p_adjusted": 1.0,
+   "verdict": "no better than chance (+6%, p = 0.13, 1.00 corrected)"
   },
   {
    "claim": "The full moon brings trouble",
@@ -84,9 +84,35 @@
    "direction_as_claimed": true,
    "p_adjusted": 1.0,
    "verdict": "no better than chance (+35%, p = 0.24, 1.00 corrected)"
+  },
+  {
+   "claim": "Eclipses bring earthquakes",
+   "metric": "magnitude 6+ earthquakes a day, worldwide",
+   "condition": "eclipse_week",
+   "days": 9750,
+   "days_on": 1691,
+   "from": "2000-01-16",
+   "to": "2026-09-28",
+   "ratio": 1.015,
+   "p": 0.615,
+   "direction_as_claimed": true,
+   "p_adjusted": 1.0,
+   "verdict": "no better than chance (+1%, p = 0.61, 1.00 corrected)"
+  },
+  {
+   "claim": "New and full moons bring earthquakes",
+   "metric": "magnitude 6+ earthquakes a day, worldwide",
+   "condition": "new_or_full",
+   "days": 9750,
+   "days_on": 1285,
+   "from": "2000-01-16",
+   "to": "2026-09-28",
+   "ratio": 0.946,
+   "p": 0.217,
+   "direction_as_claimed": false,
+   "p_adjusted": 1.0,
+   "verdict": "no better than chance (-5%, p = 0.22, 1.00 corrected)"
   }
  ],
- "notes": [
-  "quakes: HTTPSConnectionPool(host='earthquake.usgs.gov', port=443): Max retries exceeded  (kept 0 cached days)"
- ]
+ "notes": []
 }

@@ -1,15 +1,15 @@
 {
  "v": 1,
- "at": "2026-10-13T19:33:52Z",
+ "at": "2026-10-14T17:38:05Z",
  "sky": {
   "bodies": [
    {
     "name": "Sun",
     "glyph": "☉",
-    "lon": 200.483,
+    "lon": 201.394,
     "sign": "Libra",
-    "deg": 20.48,
-    "speed": 0.9904,
+    "deg": 21.39,
+    "speed": 0.9909,
     "retro": false,
     "dignity": "fall",
     "element": "air",
@@ -20,114 +20,114 @@
    {
     "name": "Moon",
     "glyph": "☽",
-    "lon": 237.233,
-    "sign": "Scorpio",
-    "deg": 27.23,
-    "speed": 12.2677,
+    "lon": 248.427,
+    "sign": "Sagittarius",
+    "deg": 8.43,
+    "speed": 12.0861,
     "retro": false,
-    "dignity": "fall",
-    "element": "water",
-    "mode": "fixed",
+    "dignity": "",
+    "element": "fire",
+    "mode": "mutable",
     "oob": true,
-    "dec": -24.41
+    "dec": -26.6
    },
    {
     "name": "Mercury",
     "glyph": "☿",
-    "lon": 225.429,
+    "lon": 226.248,
     "sign": "Scorpio",
-    "deg": 15.43,
-    "speed": 0.9142,
+    "deg": 16.25,
+    "speed": 0.8648,
     "retro": false,
     "dignity": "",
     "element": "water",
     "mode": "fixed",
     "oob": false,
-    "dec": -19.21
+    "dec": -19.5
    },
    {
     "name": "Venus",
     "glyph": "♀",
-    "lon": 216.316,
+    "lon": 215.928,
     "sign": "Scorpio",
-    "deg": 6.32,
-    "speed": -0.406,
+    "deg": 5.93,
+    "speed": -0.4369,
     "retro": true,
     "dignity": "detriment",
     "element": "water",
     "mode": "fixed",
     "oob": false,
-    "dec": -20.6
+    "dec": -20.44
    },
    {
     "name": "Mars",
     "glyph": "♂",
-    "lon": 128.982,
+    "lon": 129.491,
     "sign": "Leo",
-    "deg": 8.98,
-    "speed": 0.5544,
+    "deg": 9.49,
+    "speed": 0.5521,
     "retro": false,
     "dignity": "",
     "element": "fire",
     "mode": "fixed",
     "oob": false,
-    "dec": 19.31
+    "dec": 19.19
    },
    {
     "name": "Jupiter",
     "glyph": "♃",
-    "lon": 141.76,
+    "lon": 141.906,
     "sign": "Leo",
-    "deg": 21.76,
-    "speed": 0.1587,
+    "deg": 21.91,
+    "speed": 0.157,
     "retro": false,
     "dignity": "",
     "element": "fire",
     "mode": "fixed",
     "oob": false,
-    "dec": 14.97
+    "dec": 14.93
    },
    {
     "name": "Saturn",
     "glyph": "♄",
-    "lon": 10.573,
+    "lon": 10.503,
     "sign": "Aries",
-    "deg": 10.57,
-    "speed": -0.0768,
+    "deg": 10.5,
+    "speed": -0.0764,
     "retro": true,
     "dignity": "fall",
     "element": "fire",
     "mode": "cardinal",
     "oob": false,
-    "dec": 1.54
+    "dec": 1.52
    },
    {
     "name": "Uranus",
     "glyph": "♅",
-    "lon": 65.25,
+    "lon": 65.226,
     "sign": "Gemini",
-    "deg": 5.25,
-    "speed": -0.0261,
+    "deg": 5.23,
+    "speed": -0.0267,
     "retro": true,
     "dignity": "",
     "element": "air",
     "mode": "mutable",
     "oob": false,
-    "dec": 20.96
+    "dec": 20.95
    },
    {
     "name": "Neptune",
     "glyph": "♆",
-    "lon": 2.519,
+    "lon": 2.496,
     "sign": "Aries",
-    "deg": 2.52,
-    "speed": -0.0261,
+    "deg": 2.5,
+    "speed": -0.0259,
     "retro": true,
     "dignity": "",
     "element": "fire",
     "mode": "cardinal",
     "oob": false,
-    "dec": -0.45
+    "dec": -0.46
    },
    {
     "name": "Pluto",
@@ -135,7 +135,7 @@
     "lon": 303.069,
     "sign": "Aquarius",
     "deg": 3.07,
-    "speed": -0.0011,
+    "speed": -0.0007,
     "retro": true,
     "dignity": "fall",
     "element": "air",
@@ -146,50 +146,58 @@
    }
   ],
   "node": {
-   "lon": 327.03,
+   "lon": 326.99,
    "sign": "Aquarius",
-   "deg": 27.03
+   "deg": 26.99
   },
   "aspects": [
-   {
-    "a": "Neptune",
-    "b": "Pluto",
-    "type": "sextile",
-    "orb": 0.55,
-    "hard": false,
-    "lore": "slow shifts in what whole societies believe"
-   },
    {
     "a": "Sun",
     "b": "Jupiter",
     "type": "sextile",
-    "orb": 1.28,
+    "orb": 0.51,
     "hard": false,
     "lore": ""
+   },
+   {
+    "a": "Neptune",
+    "b": "Pluto",
+    "type": "sextile",
+    "orb": 0.57,
+    "hard": false,
+    "lore": "slow shifts in what whole societies believe"
    },
    {
     "a": "Mars",
     "b": "Saturn",
     "type": "trine",
-    "orb": 1.59,
+    "orb": 1.01,
     "hard": false,
     "lore": "attrition, frustrated offensives, blockades and hard losses"
+   },
+   {
+    "a": "Moon",
+    "b": "Mars",
+    "type": "trine",
+    "orb": 1.06,
+    "hard": false,
+    "lore": ""
+   },
+   {
+    "a": "Moon",
+    "b": "Saturn",
+    "type": "trine",
+    "orb": 2.08,
+    "hard": false,
+    "lore": ""
    },
    {
     "a": "Uranus",
     "b": "Pluto",
     "type": "trine",
-    "orb": 2.18,
+    "orb": 2.16,
     "hard": false,
     "lore": "revolution and upheaval"
-   },
-   {
-    "a": "Venus",
-    "b": "Mars",
-    "type": "square",
-    "orb": 2.67,
-    "hard": true,
-    "lore": "alliances strained by force; money for weapons"
    },
    {
     "a": "Uranus",
@@ -203,55 +211,55 @@
     "a": "Venus",
     "b": "Pluto",
     "type": "square",
-    "orb": 3.25,
+    "orb": 2.86,
     "hard": true,
     "lore": ""
    },
    {
-    "a": "Mars",
+    "a": "Moon",
     "b": "Uranus",
-    "type": "sextile",
-    "orb": 3.73,
-    "hard": false,
-    "lore": "sudden attacks, explosions, accidents and technical warfare"
+    "type": "opposition",
+    "orb": 3.2,
+    "hard": true,
+    "lore": ""
+   },
+   {
+    "a": "Venus",
+    "b": "Mars",
+    "type": "square",
+    "orb": 3.56,
+    "hard": true,
+    "lore": "alliances strained by force; money for weapons"
+   },
+   {
+    "a": "Mercury",
+    "b": "Jupiter",
+    "type": "square",
+    "orb": 5.66,
+    "hard": true,
+    "lore": ""
    },
    {
     "a": "Moon",
     "b": "Neptune",
     "type": "trine",
-    "orb": 5.29,
+    "orb": 5.93,
     "hard": false,
-    "lore": ""
-   },
-   {
-    "a": "Moon",
-    "b": "Jupiter",
-    "type": "square",
-    "orb": 5.47,
-    "hard": true,
     "lore": ""
    },
    {
     "a": "Mars",
     "b": "Pluto",
     "type": "opposition",
-    "orb": 5.91,
+    "orb": 6.42,
     "hard": true,
     "lore": "ruthless force, terror and the threat of mass destruction"
    },
    {
     "a": "Mercury",
-    "b": "Jupiter",
-    "type": "square",
-    "orb": 6.33,
-    "hard": true,
-    "lore": ""
-   },
-   {
-    "a": "Mercury",
     "b": "Mars",
     "type": "square",
-    "orb": 6.45,
+    "orb": 6.76,
     "hard": true,
     "lore": "heated words, ultimatums and information war"
    },
@@ -259,16 +267,16 @@
     "a": "Mars",
     "b": "Neptune",
     "type": "trine",
-    "orb": 6.46,
+    "orb": 7.0,
     "hard": false,
     "lore": "covert operations, sabotage, deception in war and trouble at sea"
    }
   ],
-  "moon_phase": 36.7,
+  "moon_phase": 47.0,
   "void_moon": {
-   "void": true,
-   "until": "2026-10-14T01:00Z",
-   "next_sign": "Sagittarius"
+   "void": false,
+   "next_aspect": "Moon trine Mars",
+   "at": "2026-10-14T20:00Z"
   }
  },
  "nations": [
@@ -278,20 +286,20 @@
    "timed": true,
    "hits": [
     {
-     "transit": "Saturn",
-     "natal": "ASC",
-     "type": "trine",
-     "orb": 1.64,
-     "hard": false,
+     "transit": "Neptune",
+     "natal": "MC",
+     "type": "opposition",
+     "orb": 1.63,
+     "hard": true,
      "weight": 6,
      "lore": ""
     },
     {
-     "transit": "Neptune",
-     "natal": "MC",
-     "type": "opposition",
-     "orb": 1.65,
-     "hard": true,
+     "transit": "Saturn",
+     "natal": "ASC",
+     "type": "trine",
+     "orb": 1.71,
+     "hard": false,
      "weight": 6,
      "lore": ""
     },
@@ -299,34 +307,34 @@
      "transit": "Neptune",
      "natal": "Venus",
      "type": "square",
-     "orb": 0.59,
+     "orb": 0.61,
      "hard": true,
      "weight": 4,
      "lore": ""
     },
     {
-     "transit": "Mars",
-     "natal": "Uranus",
-     "type": "sextile",
-     "orb": 0.06,
-     "hard": false,
-     "weight": 3,
-     "lore": "sudden attacks, explosions, accidents and technical warfare"
-    },
-    {
      "transit": "Jupiter",
      "natal": "Mars",
      "type": "sextile",
-     "orb": 0.38,
+     "orb": 0.53,
      "hard": false,
      "weight": 3,
      "lore": "expansionist campaigns and overreach"
     },
     {
+     "transit": "Mars",
+     "natal": "Uranus",
+     "type": "sextile",
+     "orb": 0.57,
+     "hard": false,
+     "weight": 3,
+     "lore": "sudden attacks, explosions, accidents and technical warfare"
+    },
+    {
      "transit": "Sun",
      "natal": "Mars",
      "type": "trine",
-     "orb": 0.89,
+     "orb": 0.02,
      "hard": false,
      "weight": 1,
      "lore": "leaders spoiling for a fight"
@@ -343,7 +351,7 @@
      "transit": "Neptune",
      "natal": "Sun",
      "type": "square",
-     "orb": 0.86,
+     "orb": 0.88,
      "hard": true,
      "weight": 6,
      "lore": ""
@@ -352,7 +360,7 @@
      "transit": "Jupiter",
      "natal": "MC",
      "type": "trine",
-     "orb": 0.86,
+     "orb": 1.0,
      "hard": false,
      "weight": 5,
      "lore": ""
@@ -361,7 +369,7 @@
      "transit": "Uranus",
      "natal": "Saturn",
      "type": "trine",
-     "orb": 0.09,
+     "orb": 0.06,
      "hard": false,
      "weight": 4,
      "lore": "old order against new: reform against reaction"
@@ -370,7 +378,7 @@
      "transit": "Saturn",
      "natal": "Mercury",
      "type": "trine",
-     "orb": 0.84,
+     "orb": 0.91,
      "hard": false,
      "weight": 4,
      "lore": ""
@@ -379,7 +387,7 @@
      "transit": "Jupiter",
      "natal": "Pluto",
      "type": "square",
-     "orb": 0.13,
+     "orb": 0.01,
      "hard": true,
      "weight": 3,
      "lore": ""
@@ -388,7 +396,7 @@
      "transit": "Sun",
      "natal": "MC",
      "type": "opposition",
-     "orb": 0.42,
+     "orb": 0.49,
      "hard": true,
      "weight": 3,
      "lore": ""
@@ -414,7 +422,7 @@
      "transit": "Saturn",
      "natal": "Uranus",
      "type": "square",
-     "orb": 0.47,
+     "orb": 0.4,
      "hard": true,
      "weight": 4,
      "lore": "old order against new: reform against reaction"
@@ -423,7 +431,7 @@
      "transit": "Neptune",
      "natal": "Saturn",
      "type": "sextile",
-     "orb": 1.0,
+     "orb": 0.97,
      "hard": false,
      "weight": 4,
      "lore": "eroding institutions, crises of belief and shortages"
@@ -449,7 +457,7 @@
      "transit": "Uranus",
      "natal": "Moon",
      "type": "sextile",
-     "orb": 0.9,
+     "orb": 0.87,
      "hard": false,
      "weight": 6,
      "lore": ""
@@ -458,7 +466,7 @@
      "transit": "Saturn",
      "natal": "Neptune",
      "type": "opposition",
-     "orb": 0.0,
+     "orb": 0.07,
      "hard": true,
      "weight": 4,
      "lore": "eroding institutions, crises of belief and shortages"
@@ -467,13 +475,31 @@
      "transit": "Saturn",
      "natal": "Mercury",
      "type": "sextile",
-     "orb": 0.21,
+     "orb": 0.14,
      "hard": false,
      "weight": 4,
      "lore": ""
+    },
+    {
+     "transit": "Mars",
+     "natal": "Mercury",
+     "type": "sextile",
+     "orb": 0.87,
+     "hard": false,
+     "weight": 3,
+     "lore": "heated words, ultimatums and information war"
+    },
+    {
+     "transit": "Sun",
+     "natal": "ASC",
+     "type": "conjunction",
+     "orb": 1.65,
+     "hard": true,
+     "weight": 3,
+     "lore": ""
     }
    ],
-   "pressure": 11
+   "pressure": 14
   },
   {
    "nation": "Iran",
@@ -484,16 +510,25 @@
      "transit": "Saturn",
      "natal": "Sun",
      "type": "conjunction",
-     "orb": 0.57,
+     "orb": 0.64,
      "hard": true,
      "weight": 6,
      "lore": "leaders under pressure and losing authority"
     },
     {
+     "transit": "Mars",
+     "natal": "Sun",
+     "type": "trine",
+     "orb": 1.66,
+     "hard": false,
+     "weight": 5,
+     "lore": "leaders spoiling for a fight"
+    },
+    {
      "transit": "Uranus",
      "natal": "Venus",
      "type": "square",
-     "orb": 1.26,
+     "orb": 1.24,
      "hard": true,
      "weight": 4,
      "lore": ""
@@ -502,7 +537,7 @@
      "transit": "Jupiter",
      "natal": "Neptune",
      "type": "trine",
-     "orb": 1.29,
+     "orb": 1.44,
      "hard": false,
      "weight": 3,
      "lore": ""
@@ -511,7 +546,7 @@
      "transit": "Jupiter",
      "natal": "Uranus",
      "type": "square",
-     "orb": 1.31,
+     "orb": 1.46,
      "hard": true,
      "weight": 3,
      "lore": ""
@@ -520,7 +555,7 @@
      "transit": "Sun",
      "natal": "Neptune",
      "type": "sextile",
-     "orb": 0.01,
+     "orb": 0.92,
      "hard": false,
      "weight": 1,
      "lore": ""
@@ -555,7 +590,7 @@
      "transit": "Neptune",
      "natal": "Moon",
      "type": "sextile",
-     "orb": 0.54,
+     "orb": 0.56,
      "hard": false,
      "weight": 6,
      "lore": ""
@@ -564,13 +599,22 @@
      "transit": "Neptune",
      "natal": "ASC",
      "type": "sextile",
-     "orb": 0.97,
+     "orb": 0.94,
      "hard": false,
      "weight": 6,
      "lore": ""
+    },
+    {
+     "transit": "Sun",
+     "natal": "Jupiter",
+     "type": "square",
+     "orb": 1.19,
+     "hard": true,
+     "weight": 1,
+     "lore": ""
     }
    ],
-   "pressure": 14
+   "pressure": 15
   },
   {
    "nation": "Taiwan",
@@ -581,7 +625,7 @@
      "transit": "Saturn",
      "natal": "Sun",
      "type": "square",
-     "orb": 1.18,
+     "orb": 1.11,
      "hard": true,
      "weight": 6,
      "lore": "leaders under pressure and losing authority"
@@ -590,13 +634,22 @@
      "transit": "Uranus",
      "natal": "Jupiter",
      "type": "opposition",
-     "orb": 0.68,
+     "orb": 0.66,
      "hard": true,
      "weight": 4,
      "lore": ""
+    },
+    {
+     "transit": "Sun",
+     "natal": "Neptune",
+     "type": "square",
+     "orb": 1.37,
+     "hard": true,
+     "weight": 1,
+     "lore": ""
     }
    ],
-   "pressure": 10
+   "pressure": 11
   },
   {
    "nation": "North Korea",
@@ -616,28 +669,10 @@
      "transit": "Saturn",
      "natal": "Neptune",
      "type": "opposition",
-     "orb": 1.18,
+     "orb": 1.25,
      "hard": true,
      "weight": 4,
      "lore": "eroding institutions, crises of belief and shortages"
-    },
-    {
-     "transit": "Mars",
-     "natal": "Mercury",
-     "type": "sextile",
-     "orb": 0.82,
-     "hard": false,
-     "weight": 3,
-     "lore": "heated words, ultimatums and information war"
-    },
-    {
-     "transit": "Sun",
-     "natal": "Jupiter",
-     "type": "sextile",
-     "orb": 0.5,
-     "hard": false,
-     "weight": 1,
-     "lore": ""
     }
    ],
    "pressure": 9
@@ -655,7 +690,7 @@
    "kind": "ingress"
   },
   {
-   "at": "2026-10-23",
+   "at": "2026-10-24",
    "what": "Mercury stations retrograde",
    "kind": "station"
   },
@@ -773,52 +808,52 @@
  },
  "lore_vs_intel": [
   {
-   "label": "Neptune sextile Pluto",
-   "lore": "slow shifts in what whole societies believe",
-   "nation": null,
-   "matches": [
-    {
-     "src": "Breaking Defense",
-     "text": "Army to take a (cautious) step toward employing AI agents to defend networks: Official",
-     "overlap": 0.242,
-     "z": 5.7
-    },
-    {
-     "src": "brief",
-     "text": "Accounts tracking the Korean Peninsula reported North Korea’s multiple ballistic missile launches from the Pyongyang area toward the East Sea (~09:20 local 12 Oct), the fourth test this month, with one missile exceeding ",
-     "overlap": 0.149,
-     "z": 3.1
-    },
-    {
-     "src": "Breaking Defense",
-     "text": "Continuing resolution could ‘complicate’ Army’s HADES spy plane production: Official",
-     "overlap": 0.149,
-     "z": 3.1
-    }
-   ]
-  },
-  {
    "label": "Sun sextile Jupiter",
    "lore": "Sun meets Jupiter",
    "nation": null,
    "matches": [
     {
-     "src": "brief",
-     "text": "Africanews and local reports noted Ethiopian forces re-entering/retaking Adigrat and other Tigray sites after Eritrean incursions (up to ~37–60 km per Ethiopian claims); conflicting reports of destroyed Ethiopian radars ",
-     "overlap": 0.13,
-     "z": 4.1
+     "src": "Al Jazeera",
+     "text": "Pope Leo recovering well after cancer surgery, Vatican says",
+     "overlap": 0.149,
+     "z": 4.6
     },
     {
-     "src": "France 24",
-     "text": "Digital distrust and polarisation: 'We need to get back to engaging with one another as a society'",
-     "overlap": 0.117,
-     "z": 3.6
-    },
-    {
-     "src": "brief",
-     "text": "Headlines noted Trump announcement on Russian diesel supplies amid criticism; Hormuz/Red Sea pressure continues to support oil prices.",
+     "src": "Defense News",
+     "text": "‘Nobody’s losing pay’: Army Cyber Command head says new tech mastery program won’t affect troop wages",
      "overlap": 0.111,
-     "z": 3.3
+     "z": 3.1
+    },
+    {
+     "src": "Jerusalem Post",
+     "text": "UK Green Party gambling on anti-Israel politics, former deputy leader warns 'Post' - exclusive",
+     "overlap": 0.111,
+     "z": 3.1
+    }
+   ]
+  },
+  {
+   "label": "Neptune sextile Pluto",
+   "lore": "slow shifts in what whole societies believe",
+   "nation": null,
+   "matches": [
+    {
+     "src": "BBC",
+     "text": "What we know about the deadly Six Flags rollercoaster incident in Georgia",
+     "overlap": 0.17,
+     "z": 4.5
+    },
+    {
+     "src": "BleepingComputer",
+     "text": "The Blind Spots of Agentic Pentesting and How to Close Them",
+     "overlap": 0.13,
+     "z": 3.1
+    },
+    {
+     "src": "Africanews",
+     "text": "Pix of the Day, 14 October, 2026 - Across the world",
+     "overlap": 0.117,
+     "z": 2.7
     }
    ]
   },
@@ -831,19 +866,19 @@
      "src": "Crystal Ball",
      "text": "Middle East: US conducts air or missile strike on Iranian territory",
      "overlap": 0.163,
-     "z": 3.4
+     "z": 3.6
     },
     {
-     "src": "France 24",
-     "text": "France: Student anger rages as tear gas and fires hit Paris",
-     "overlap": 0.156,
+     "src": "Defense News",
+     "text": "US Army expands drone marketplace to 33 nations",
+     "overlap": 0.149,
      "z": 3.2
     },
     {
-     "src": "NPR US",
-     "text": "Federal agents search Rep. Ilhan Omar's DC home",
+     "src": "brief",
+     "text": "2. TRIGGERED - 9–13 PLA aircraft sorties with 11 median-line crossings reported by Taiwan MND.",
      "overlap": 0.136,
-     "z": 2.6
+     "z": 2.8
     }
    ]
   },
@@ -853,47 +888,22 @@
    "nation": null,
    "matches": [
     {
-     "src": "Breaking Defense",
-     "text": "From requirement-driven to market-ready: Rethinking how defense technology reaches the warfighter",
-     "overlap": 0.282,
-     "z": 6.4
+     "src": "Al Jazeera",
+     "text": "Manchester City vs PSG Live: Champions League",
+     "overlap": 0.212,
+     "z": 5.0
     },
     {
-     "src": "brief",
-     "text": "Accounts tracking the Korean Peninsula reported North Korea’s multiple ballistic missile launches from the Pyongyang area toward the East Sea (~09:20 local 12 Oct), the fourth test this month, with one missile exceeding ",
-     "overlap": 0.163,
-     "z": 3.2
-    },
-    {
-     "src": "Guardian",
-     "text": "Florida carries out execution amid scrutiny over botched Tennessee attempt",
-     "overlap": 0.163,
-     "z": 3.2
-    }
-   ]
-  },
-  {
-   "label": "Venus square Mars",
-   "lore": "alliances strained by force; money for weapons",
-   "nation": null,
-   "matches": [
-    {
-     "src": "BBC",
-     "text": "Argentina lodges legal claim against UK's Falklands oil exploration",
-     "overlap": 0.183,
-     "z": 4.6
-    },
-    {
-     "src": "Africanews",
-     "text": "Formula One to return to Africa in 'early 2030s' in Rwanda",
+     "src": "Defense News",
+     "text": "US Army transfers 600 enlisted soldiers to Space Operations Branch",
      "overlap": 0.176,
-     "z": 4.4
+     "z": 4.0
     },
     {
-     "src": "Kyiv Independent",
-     "text": "Ukraine advances EU membership bid with 4 of 6 integration to-do lists unlocked",
+     "src": "Al Jazeera",
+     "text": "Law of the Sea comes to life in the hunt for sanctioned Russian oil",
      "overlap": 0.156,
-     "z": 3.8
+     "z": 3.4
     }
    ]
   },
@@ -903,22 +913,22 @@
    "nation": null,
    "matches": [
     {
-     "src": "Breaking Defense",
-     "text": "Army to take a (cautious) step toward employing AI agents to defend networks: Official",
-     "overlap": 0.183,
-     "z": 4.7
+     "src": "BBC",
+     "text": "What we know about the deadly Six Flags rollercoaster incident in Georgia",
+     "overlap": 0.19,
+     "z": 5.2
     },
     {
-     "src": "The Diplomat",
-     "text": "The United States Has an Industrial Problem in the Indo-Pacific",
-     "overlap": 0.183,
-     "z": 4.7
-    },
-    {
-     "src": "Breaking Defense",
-     "text": "From requirement-driven to market-ready: Rethinking how defense technology reaches the warfighter",
-     "overlap": 0.143,
+     "src": "Al Jazeera",
+     "text": "Manchester City vs PSG Live: Champions League",
+     "overlap": 0.136,
      "z": 3.4
+    },
+    {
+     "src": "Defense News",
+     "text": "US Army transfers 600 enlisted soldiers to Space Operations Branch",
+     "overlap": 0.13,
+     "z": 3.2
     }
    ]
   },
@@ -928,72 +938,47 @@
    "nation": null,
    "matches": [
     {
-     "src": "BBC",
-     "text": "Argentina lodges legal claim against UK's Falklands oil exploration",
-     "overlap": 0.198,
-     "z": 4.8
+     "src": "NPR",
+     "text": "These workers help train robots who could one day steal their jobs",
+     "overlap": 0.242,
+     "z": 6.5
     },
     {
-     "src": "Jerusalem Post",
-     "text": "IDF to protect Israel ‘from the river to the sea,’ Netanyahu vows in visit to West Bank seam line",
-     "overlap": 0.176,
-     "z": 4.1
+     "src": "The Diplomat",
+     "text": "The Uyghurs Who Fought in Syria’s Civil War",
+     "overlap": 0.17,
+     "z": 4.2
     },
     {
-     "src": "Breaking Defense",
-     "text": "Race cars and robots on drones: Sights from AUSA day 2",
-     "overlap": 0.149,
-     "z": 3.3
+     "src": "Ukrainska Pravda",
+     "text": "Bomb disposal experts recover 90-kg Russian drone warhead from premises of house in Kyiv – photo, video",
+     "overlap": 0.17,
+     "z": 4.2
     }
    ]
   },
   {
-   "label": "Mars sextile Uranus",
-   "lore": "sudden attacks, explosions, accidents and technical warfare",
+   "label": "Venus square Mars",
+   "lore": "alliances strained by force; money for weapons",
    "nation": null,
    "matches": [
     {
      "src": "brief",
-     "text": "Assessment:  Domestic incidents underscore ongoing US gun violence and law-enforcement risks but no strategic shift. Quiet beyond routine.",
-     "overlap": 0.163,
-     "z": 5.2
-    },
-    {
-     "src": "Crystal Ball",
-     "text": "Indo-Pacific: Taiwan MND reports single-day PLA aircraft sorties exceed 25",
-     "overlap": 0.143,
+     "text": "Strikes demonstrate continued Russian pressure on Ukrainian energy and command infrastructure despite diplomatic signals; Ukrainian deep-strike capability remains active. Russian territorial gains remain incremental.  Li",
+     "overlap": 0.183,
      "z": 4.4
     },
     {
-     "src": "brief",
-     "text": "Assessment:  Isolated domestic violence events; no broader infrastructure or security pattern identified in window. Quiet beyond routine.",
-     "overlap": 0.117,
+     "src": "Kyiv Independent",
+     "text": "Moscow says scope of Trump's energy truce unclear after launching new attack on Ukraine",
+     "overlap": 0.156,
+     "z": 3.6
+    },
+    {
+     "src": "Ukrainska Pravda",
+     "text": "Bomb disposal experts recover 90-kg Russian drone warhead from premises of house in Kyiv – photo, video",
+     "overlap": 0.149,
      "z": 3.4
-    }
-   ]
-  },
-  {
-   "label": "Saturn trine United States's ASC",
-   "lore": "Saturn on United States",
-   "nation": "United States",
-   "matches": [
-    {
-     "src": "NPR",
-     "text": "Trump's diesel deal with Putin angers Europe",
-     "overlap": 0.093,
-     "z": 2.2
-    },
-    {
-     "src": "Defense News",
-     "text": "The Lynx XM30 is making its case to be the US Army’s Bradley replacement",
-     "overlap": 0.081,
-     "z": 1.7
-    },
-    {
-     "src": "The Diplomat",
-     "text": "The United States Has an Industrial Problem in the Indo-Pacific",
-     "overlap": 0.064,
-     "z": 1.1
     }
    ]
   },
@@ -1003,22 +988,47 @@
    "nation": "United States",
    "matches": [
     {
-     "src": "The Diplomat",
-     "text": "The United States Has an Industrial Problem in the Indo-Pacific",
-     "overlap": 0.163,
-     "z": 3.0
+     "src": "Defense News",
+     "text": "How to earn the US Army’s Jungle tab in Panama — and lose 10lbs",
+     "overlap": 0.19,
+     "z": 4.3
+    },
+    {
+     "src": "NPR US",
+     "text": "In Kansas, a newly competitive Senate race tests limit of Trump's unpopular policies",
+     "overlap": 0.117,
+     "z": 2.2
     },
     {
      "src": "Defense News",
-     "text": "The Lynx XM30 is making its case to be the US Army’s Bradley replacement",
-     "overlap": 0.117,
-     "z": 1.8
+     "text": "US Army transfers 600 enlisted soldiers to Space Operations Branch",
+     "overlap": 0.099,
+     "z": 1.7
+    }
+   ]
+  },
+  {
+   "label": "Saturn trine United States's ASC",
+   "lore": "Saturn on United States",
+   "nation": "United States",
+   "matches": [
+    {
+     "src": "France 24",
+     "text": "Ukraine asking US, SpaceX and NATO to clarify Starlink limitations",
+     "overlap": 0.111,
+     "z": 3.1
     },
     {
-     "src": "Breaking Defense",
-     "text": "Polish defense minister calls for US industry to establish European facilities",
-     "overlap": 0.081,
-     "z": 0.9
+     "src": "Defense News",
+     "text": "How to earn the US Army’s Jungle tab in Panama — and lose 10lbs",
+     "overlap": 0.093,
+     "z": 2.4
+    },
+    {
+     "src": "NPR US",
+     "text": "In Kansas, a newly competitive Senate race tests limit of Trump's unpopular policies",
+     "overlap": 0.075,
+     "z": 1.7
     }
    ]
   },
@@ -1029,21 +1039,21 @@
    "matches": [
     {
      "src": "Ukrainska Pravda",
-     "text": "Trump says Putin and Zelenskyy both want to end war but don’t know how",
-     "overlap": 0.143,
-     "z": 4.0
+     "text": "Bomb disposal experts recover 90-kg Russian drone warhead from premises of house in Kyiv – photo, video",
+     "overlap": 0.07,
+     "z": 1.9
     },
     {
-     "src": "BBC",
-     "text": "Is Zelensky right to say data centre strikes have taken down Russian bots?",
-     "overlap": 0.099,
-     "z": 2.4
+     "src": "Breaking Defense",
+     "text": "How Poland’s air force is responding to Russian drones in the skies",
+     "overlap": 0.064,
+     "z": 1.7
     },
     {
-     "src": "brief",
-     "text": "Kyiv Independent and Ukrainska Pravda reported Russian ballistic missile and drone strikes on central Kyiv and energy facilities (evening 12 Oct into 13 Oct), with Zelenskyy stating Ukraine received no warning from partn",
-     "overlap": 0.093,
-     "z": 2.2
+     "src": "Guardian",
+     "text": "EU says ‘no indication’ intelligence sharing with Ukraine has stopped as Russian attacks leave 600,000 without power – as it happened",
+     "overlap": 0.053,
+     "z": 1.2
     }
    ]
   },
@@ -1054,21 +1064,21 @@
    "matches": [
     {
      "src": "Kyiv Independent",
-     "text": "How the Russian army is learning from Ukraine and NATO",
-     "overlap": 0.117,
-     "z": 2.7
+     "text": "Trump's diesel deal 'legitimizes Moscow' while it bombs Ukraine, Italy's Meloni says",
+     "overlap": 0.111,
+     "z": 2.4
     },
     {
-     "src": "brief",
-     "text": "Headlines noted Trump announcement on Russian diesel supplies amid criticism; Hormuz/Red Sea pressure continues to support oil prices.",
-     "overlap": 0.099,
-     "z": 2.1
+     "src": "The Record",
+     "text": "Russian travel booking platform suspends reservations after cyberattack",
+     "overlap": 0.093,
+     "z": 1.8
     },
     {
-     "src": "Guardian",
-     "text": "Allies did not warn Kyiv of Russian ballistic missile strikes, says Zelenskyy",
-     "overlap": 0.087,
-     "z": 1.7
+     "src": "Ukrainska Pravda",
+     "text": "Russians have struck Kyiv's two combined heat and power plants almost 50 times this year, mayor says",
+     "overlap": 0.081,
+     "z": 1.4
     }
    ]
   },
@@ -1079,20 +1089,20 @@
    "matches": [
     {
      "src": "Crystal Ball",
-     "text": "Ukraine: More than 311 air-raid alarms on 14 Oct 2026 and 15 Oct 2026, a faster pace than the past 30 days",
-     "overlap": 0.143,
-     "z": 2.4
-    },
-    {
-     "src": "Ukrainska Pravda",
-     "text": "Estonian defence minister: Russia will definitely attack another country after war in Ukraine ends",
-     "overlap": 0.13,
-     "z": 2.1
+     "text": "Ukraine: More than 314 air-raid alarms on 15 Oct 2026 and 16 Oct 2026, a faster pace than the past 30 days",
+     "overlap": 0.087,
+     "z": 1.5
     },
     {
      "src": "Crystal Ball",
-     "text": "Ukraine: More than 1,026 air-raid alarms from 9 Oct 2026 to 15 Oct 2026, a faster pace than the past 30 days",
-     "overlap": 0.105,
+     "text": "Ukraine: More than 1,099 air-raid alarms from 15 Oct 2026 to 21 Oct 2026, a faster pace than the past 30 days",
+     "overlap": 0.087,
+     "z": 1.5
+    },
+    {
+     "src": "Crystal Ball",
+     "text": "Ukraine: More than 37,808 air-raid alarms from 9 Oct 2026 to 8 Oct 2027, a faster pace than the past year",
+     "overlap": 0.087,
      "z": 1.5
     }
    ]
@@ -1104,21 +1114,21 @@
    "matches": [
     {
      "src": "Kyiv Independent",
-     "text": "Trump refuses to accuse Russia of breaking energy ceasefire, says Ukraine 'hit sites the day before'",
-     "overlap": 0.087,
-     "z": 2.3
+     "text": "Trump's diesel deal 'legitimizes Moscow' while it bombs Ukraine, Italy's Meloni says",
+     "overlap": 0.081,
+     "z": 2.0
     },
     {
      "src": "Kyiv Independent",
-     "text": "Ukraine advances EU membership bid with 4 of 6 integration to-do lists unlocked",
-     "overlap": 0.075,
-     "z": 1.8
+     "text": "Behind the scenes: Kyiv Independent's September digest",
+     "overlap": 0.064,
+     "z": 1.3
     },
     {
-     "src": "Crystal Ball",
-     "text": "Ukraine: More than 11,373 Russian drones claimed destroyed by Ukraine's MoD from 9 Oct 2026 to 15 Oct 2026, a faster pace than the past 30 days",
-     "overlap": 0.058,
-     "z": 1.1
+     "src": "Kyiv Independent",
+     "text": "Moscow says scope of Trump's energy truce unclear after launching new attack on Ukraine",
+     "overlap": 0.053,
+     "z": 0.8
     }
    ]
   },
@@ -1129,21 +1139,21 @@
    "matches": [
     {
      "src": "Jerusalem Post",
-     "text": "IDF to protect Israel ‘from the river to the sea,’ Netanyahu vows in visit to West Bank seam line",
-     "overlap": 0.117,
-     "z": 1.9
+     "text": "Israel Allies Foundation launches parliamentary caucuses in Greece, Cyprus to build trilateral ties",
+     "overlap": 0.124,
+     "z": 2.4
     },
     {
-     "src": "Jerusalem Post",
-     "text": "The world’s distorted view of Israel is built on persistent myths - opinion",
-     "overlap": 0.099,
+     "src": "Middle East Eye",
+     "text": "HSBC ‘sharia‑compliant’ fund spent over $100m on five Israeli military‑linked firms",
+     "overlap": 0.087,
      "z": 1.4
     },
     {
      "src": "Crystal Ball",
-     "text": "Israel: Israel has rocket or missile alerts on at least 1 day from 9 Oct 2026 to 15 Oct 2026, as often as in the past 30 days",
+     "text": "Israel: Israel has rocket or missile alerts on at least 1 day from 15 Oct 2026 to 21 Oct 2026, as often as in the past 30 days",
      "overlap": 0.064,
-     "z": 0.5
+     "z": 0.7
     }
    ]
   },
@@ -1153,22 +1163,22 @@
    "nation": "Israel",
    "matches": [
     {
+     "src": "Middle East Eye",
+     "text": "HSBC ‘sharia‑compliant’ fund spent over $100m on five Israeli military‑linked firms",
+     "overlap": 0.087,
+     "z": 1.6
+    },
+    {
      "src": "Jerusalem Post",
-     "text": "'Bennett II': Ben-Gvir refuses to sign vote surplus share agreement with Winter's People of Israel",
-     "overlap": 0.058,
-     "z": 0.9
+     "text": "Israel Allies Foundation launches parliamentary caucuses in Greece, Cyprus to build trilateral ties",
+     "overlap": 0.081,
+     "z": 1.5
     },
     {
-     "src": "Crystal Ball",
-     "text": "Market: Will Benjamin Netanyahu be the next Prime Minister of Israel?",
-     "overlap": 0.047,
-     "z": 0.5
-    },
-    {
-     "src": "Al Jazeera",
-     "text": "Jerusalem Daily: Israeli forces raid NGOs in Ramallah",
-     "overlap": 0.042,
-     "z": 0.3
+     "src": "Middle East Eye",
+     "text": "Colombia opens embassy in West Jerusalem as new president embraces Israel",
+     "overlap": 0.053,
+     "z": 0.6
     }
    ]
   },
@@ -1178,47 +1188,47 @@
    "nation": "Iran",
    "matches": [
     {
-     "src": "brief",
-     "text": "Additional confirmed Houthi or IRGC strike on major Saudi or Hormuz target with significant damage -  insurance spike and possible US/Saudi kinetic response -  first in UKMTO/Saudi GACA or shipping advisories -  likely.",
-     "overlap": 0.117,
-     "z": 3.2
+     "src": "pre-headline",
+     "text": "Iran claims of four commercial vessels sunk since conflict start",
+     "overlap": 0.087,
+     "z": 2.9
     },
     {
      "src": "Crystal Ball",
      "text": "Middle East: Lloyd's or maritime insurers announce 15%+ premium spike for Hormuz transits",
      "overlap": 0.081,
-     "z": 1.8
+     "z": 2.6
     },
     {
-     "src": "gCaptain",
-     "text": "Supertankers Turn From Gulf Oil Transfer Hub Amid Iran’s Attacks",
-     "overlap": 0.075,
-     "z": 1.5
+     "src": "brief",
+     "text": "Additional Houthi or IRGC strike on major Saudi energy target or Hormuz closure -  sharp insurance spike and possible US/Saudi response -  first in UKMTO/Saudi GACA advisories -  likely.",
+     "overlap": 0.07,
+     "z": 2.0
     }
    ]
   },
   {
-   "label": "Uranus square Iran's Venus",
-   "lore": "Uranus on Iran",
+   "label": "Mars trine Iran's Sun",
+   "lore": "leaders spoiling for a fight",
    "nation": "Iran",
    "matches": [
     {
-     "src": "pre-headline",
-     "text": "IRGC tempo on Hormuz tankers described as having picked up significantly",
-     "overlap": 0.093,
-     "z": 2.6
+     "src": "Crystal Ball",
+     "text": "Middle East: US conducts air or missile strike on Iranian territory",
+     "overlap": 0.087,
+     "z": 2.1
     },
     {
-     "src": "Crystal Ball",
-     "text": "Market: US announces end of Iranian blockade by October 31, 2026?",
-     "overlap": 0.042,
-     "z": 0.4
+     "src": "gCaptain",
+     "text": "Container Ship Sinks Near Hormuz After Being Hit by Projectile, Sources Say",
+     "overlap": 0.087,
+     "z": 2.1
     },
     {
-     "src": "Crystal Ball",
-     "text": "Market: Will the U.S. invade Iran before 2027?",
-     "overlap": 0.042,
-     "z": 0.4
+     "src": "brief",
+     "text": "searched: Kyiv strike OR drone; Houthi Riyadh OR Hormuz tanker; Taiwan median line PLA; Adigrat Ethiopia OR Eritrea Tigray; North Korea missile East Sea; FakeGit OR Ivanti CVE CISA; Bohai live fire OR Yellow Sea exercise",
+     "overlap": 0.081,
+     "z": 1.9
     }
    ]
   },
@@ -1228,22 +1238,22 @@
    "nation": "China",
    "matches": [
     {
-     "src": "Breaking Defense",
-     "text": "Continuing resolution could ‘complicate’ Army’s HADES spy plane production: Official",
-     "overlap": 0.176,
-     "z": 3.4
+     "src": "The Diplomat",
+     "text": "Can the China-US Detente Last?",
+     "overlap": 0.136,
+     "z": 2.8
+    },
+    {
+     "src": "Crystal Ball",
+     "text": "Taiwan: Taiwan MND reports 25 or more PLA aircraft sorties with at least 15 median-line crossings in a single day",
+     "overlap": 0.087,
+     "z": 1.4
     },
     {
      "src": "brief",
-     "text": "Taiwan’s official accounts (@mna roc, @MoNDefense) posted the daily tally of 5 PLA aircraft (4 crossing the median line into northern/central/southwestern ADIZ) and 6 PLAN vessels around Taiwan up to 06:00 local 13 Oct, ",
-     "overlap": 0.143,
-     "z": 2.5
-    },
-    {
-     "src": "Defense News",
-     "text": "The Lynx XM30 is making its case to be the US Army’s Bradley replacement",
-     "overlap": 0.124,
-     "z": 2.0
+     "text": "searched: Kyiv strike OR drone; Houthi Riyadh OR Hormuz tanker; Taiwan median line PLA; Adigrat Ethiopia OR Eritrea Tigray; North Korea missile East Sea; FakeGit OR Ivanti CVE CISA; Bohai live fire OR Yellow Sea exercise",
+     "overlap": 0.081,
+     "z": 1.2
     }
    ]
   },
@@ -1253,22 +1263,22 @@
    "nation": "China",
    "matches": [
     {
-     "src": "Breaking Defense",
-     "text": "Continuing resolution could ‘complicate’ Army’s HADES spy plane production: Official",
-     "overlap": 0.212,
-     "z": 3.9
+     "src": "The Record",
+     "text": "Russian travel booking platform suspends reservations after cyberattack",
+     "overlap": 0.111,
+     "z": 2.1
     },
     {
      "src": "brief",
-     "text": "Taiwan’s official accounts (@mna roc, @MoNDefense) posted the daily tally of 5 PLA aircraft (4 crossing the median line into northern/central/southwestern ADIZ) and 6 PLAN vessels around Taiwan up to 06:00 local 13 Oct, ",
-     "overlap": 0.163,
-     "z": 2.8
+     "text": "10 additional PLA aircraft crossing Taiwan median line in 24h -  elevated signaling -  first in Taiwan MND daily report -  roughly even chance.",
+     "overlap": 0.087,
+     "z": 1.4
     },
     {
-     "src": "Defense News",
-     "text": "The Lynx XM30 is making its case to be the US Army’s Bradley replacement",
-     "overlap": 0.117,
-     "z": 1.7
+     "src": "The Diplomat",
+     "text": "Can the China-US Detente Last?",
+     "overlap": 0.087,
+     "z": 1.4
     }
    ]
   },
@@ -1279,21 +1289,21 @@
    "matches": [
     {
      "src": "brief",
-     "text": "2. NOT TRIGGERED - Only 4–5 PLA aircraft reported crossing median line, below  5 threshold.",
-     "overlap": 0.075,
-     "z": 1.5
+     "text": "2. TRIGGERED - 9–13 PLA aircraft sorties with 11 median-line crossings reported by Taiwan MND.",
+     "overlap": 0.053,
+     "z": 1.2
     },
     {
-     "src": "Taipei Times",
-     "text": "DPP takes New Taipei City lead",
-     "overlap": 0.07,
-     "z": 1.3
+     "src": "Crystal Ball",
+     "text": "Taiwan: Taiwan MND reports 25 or more PLA aircraft sorties with at least 15 median-line crossings in a single day",
+     "overlap": 0.042,
+     "z": 0.6
     },
     {
      "src": "brief",
-     "text": "Taiwan MND reported 5 PLA aircraft (4 crossing median line) and 6 PLAN vessels around Taiwan overnight/early 13 Oct. ](https://x.com/mna roc/status/2109812135291445295)",
-     "overlap": 0.047,
-     "z": 0.4
+     "text": "Taiwan official and tracking accounts posted real-time MND updates on 9 then 13 PLA aircraft sorties (11 crossing the median line) conducting Joint Combat Readiness Patrols; October totals cited at ~81 aircraft and 147 s",
+     "overlap": 0.042,
+     "z": 0.6
     }
    ]
   },
@@ -1304,21 +1314,21 @@
    "matches": [
     {
      "src": "brief",
-     "text": "Taiwan’s official accounts (@mna roc, @MoNDefense) posted the daily tally of 5 PLA aircraft (4 crossing the median line into northern/central/southwestern ADIZ) and 6 PLAN vessels around Taiwan up to 06:00 local 13 Oct, ",
-     "overlap": 0.053,
-     "z": 0.8
+     "text": "Taiwan official and tracking accounts posted real-time MND updates on 9 then 13 PLA aircraft sorties (11 crossing the median line) conducting Joint Combat Readiness Patrols; October totals cited at ~81 aircraft and 147 s",
+     "overlap": 0.047,
+     "z": 0.5
     },
     {
      "src": "brief",
-     "text": "searched: Kyiv missile strike; Riyadh airport Houthi; Hormuz tanker strike; Taiwan median line PLA; Adigrat Ethiopia Eritrea; North Korea missile",
-     "overlap": 0.053,
-     "z": 0.8
+     "text": "searched: Kyiv strike OR drone; Houthi Riyadh OR Hormuz tanker; Taiwan median line PLA; Adigrat Ethiopia OR Eritrea Tigray; North Korea missile East Sea; FakeGit OR Ivanti CVE CISA; Bohai live fire OR Yellow Sea exercise",
+     "overlap": 0.042,
+     "z": 0.3
     },
     {
-     "src": "Taipei Times",
-     "text": "Taiwan’s GDP to reach 10.7%, IMF says",
-     "overlap": 0.053,
-     "z": 0.8
+     "src": "brief",
+     "text": "Routine coastal training with some overlap in timing; no direct Taiwan encirclement indicated.  Unlikely immediate operational shift. High confidence from official MSA texts.",
+     "overlap": 0.042,
+     "z": 0.3
     }
    ]
   },
@@ -1328,22 +1338,22 @@
    "nation": "North Korea",
    "matches": [
     {
-     "src": "brief",
-     "text": "searched: Kyiv missile strike; Riyadh airport Houthi; Hormuz tanker strike; Taiwan median line PLA; Adigrat Ethiopia Eritrea; North Korea missile",
-     "overlap": 0.081,
-     "z": 1.2
-    },
-    {
-     "src": "brief",
-     "text": "Accounts tracking the Korean Peninsula reported North Korea’s multiple ballistic missile launches from the Pyongyang area toward the East Sea (~09:20 local 12 Oct), the fourth test this month, with one missile exceeding ",
-     "overlap": 0.07,
-     "z": 0.9
-    },
-    {
      "src": "NK News",
-     "text": "North Korea eases entry controls for tourists who visited India, Bangladesh",
+     "text": "US announces sweeping crackdown on North Koreans working for American IT firms",
+     "overlap": 0.053,
+     "z": 0.5
+    },
+    {
+     "src": "brief",
+     "text": "Yonhap, Reuters and others confirmed North Korea fired multiple ballistic missiles (one  900 km) from Pyongyang area toward East Sea on 12 Oct, the fourth test this month. ](https://x.com/mna roc/status/21101743618147329",
      "overlap": 0.042,
      "z": 0.1
+    },
+    {
+     "src": "brief",
+     "text": "searched: Kyiv strike OR drone; Houthi Riyadh OR Hormuz tanker; Taiwan median line PLA; Adigrat Ethiopia OR Eritrea Tigray; North Korea missile East Sea; FakeGit OR Ivanti CVE CISA; Bohai live fire OR Yellow Sea exercise",
+     "overlap": 0.036,
+     "z": -0.0
     }
    ]
   },
@@ -1353,42 +1363,42 @@
    "nation": "North Korea",
    "matches": [
     {
-     "src": "NK News",
-     "text": "North Korean escapee takes lead of defector aid group in South Korea",
-     "overlap": 0.136,
-     "z": 3.0
+     "src": "brief",
+     "text": "leads worked: 4 of 12 nav warnings carried (Bohai/Yellow/SCS exercises); 3 GDELT hotspots searched and carried (Riyadh, Hormuz, Adigrat); 2 could not be independently substantiated (North Korea chatter nil)",
+     "overlap": 0.117,
+     "z": 2.4
+    },
+    {
+     "src": "brief",
+     "text": "Elevated PLA activity signals routine pressure but at higher sortie counts; North Korean testing cadence continues without immediate escalation signals.  Roughly even chance of further median-line crossings or tests in n",
+     "overlap": 0.058,
+     "z": 0.6
     },
     {
      "src": "NK News",
-     "text": "North Korea eases entry controls for tourists who visited India, Bangladesh",
-     "overlap": 0.042,
-     "z": 0.1
-    },
-    {
-     "src": "The Record",
-     "text": "North Korean hackers target Ukrainian experts for possible intelligence on Russia's war",
-     "overlap": 0.036,
-     "z": -0.1
+     "text": "UN special envoy calls for North Korea to declare moratorium on death penalty",
+     "overlap": 0.047,
+     "z": 0.2
     }
    ]
   }
  ],
  "test": {
-  "at": "2026-10-07T23:58:08Z",
+  "at": "2026-10-14T17:38:05Z",
   "results": [
    {
     "claim": "Mars afflicted brings war",
     "metric": "Ukraine air-raid alarms a day",
     "condition": "mars_afflicted",
-    "days": 1656,
-    "days_on": 495,
+    "days": 1663,
+    "days_on": 497,
     "from": "2022-03-12",
-    "to": "2026-09-22",
+    "to": "2026-09-29",
     "ratio": 0.99,
-    "p": 0.582,
+    "p": 0.539,
     "direction_as_claimed": false,
     "p_adjusted": 1.0,
-    "verdict": "no better than chance (-1%, p = 0.58, 1.00 corrected)"
+    "verdict": "no better than chance (-1%, p = 0.54, 1.00 corrected)"
    },
    {
     "claim": "Mars afflicted brings war",
@@ -1408,43 +1418,43 @@
     "claim": "Mars afflicted brings war",
     "metric": "Russian personnel losses a day (Ukraine MoD's claim)",
     "condition": "mars_afflicted",
-    "days": 1654,
-    "days_on": 495,
+    "days": 1662,
+    "days_on": 497,
     "from": "2022-03-13",
-    "to": "2026-09-21",
-    "ratio": 0.995,
-    "p": 0.723,
+    "to": "2026-09-29",
+    "ratio": 0.996,
+    "p": 0.742,
     "direction_as_claimed": false,
     "p_adjusted": 1.0,
-    "verdict": "no better than chance (-1%, p = 0.72, 1.00 corrected)"
+    "verdict": "no better than chance (+0%, p = 0.74, 1.00 corrected)"
    },
    {
     "claim": "Mars retrograde stalls offensives",
     "metric": "Russian personnel losses a day (Ukraine MoD's claim)",
     "condition": "mars_retro",
-    "days": 1654,
+    "days": 1662,
     "days_on": 154,
     "from": "2022-03-13",
-    "to": "2026-09-21",
+    "to": "2026-09-29",
     "ratio": 1.009,
-    "p": 0.29,
+    "p": 0.263,
     "direction_as_claimed": false,
     "p_adjusted": 1.0,
-    "verdict": "no better than chance (+1%, p = 0.29, 1.00 corrected)"
+    "verdict": "no better than chance (+1%, p = 0.26, 1.00 corrected)"
    },
    {
     "claim": "The full moon brings trouble",
     "metric": "Ukraine air-raid alarms a day",
     "condition": "full_moon",
-    "days": 1656,
-    "days_on": 106,
+    "days": 1663,
+    "days_on": 108,
     "from": "2022-03-12",
-    "to": "2026-09-22",
-    "ratio": 1.065,
-    "p": 0.094,
+    "to": "2026-09-29",
+    "ratio": 1.061,
+    "p": 0.128,
     "direction_as_claimed": true,
-    "p_adjusted": 0.564,
-    "verdict": "no better than chance (+6%, p = 0.09, 0.56 corrected)"
+    "p_adjusted": 1.0,
+    "verdict": "no better than chance (+6%, p = 0.13, 1.00 corrected)"
    },
    {
     "claim": "The full moon brings trouble",
@@ -1459,58 +1469,92 @@
     "direction_as_claimed": true,
     "p_adjusted": 1.0,
     "verdict": "no better than chance (+35%, p = 0.24, 1.00 corrected)"
+   },
+   {
+    "claim": "Eclipses bring earthquakes",
+    "metric": "magnitude 6+ earthquakes a day, worldwide",
+    "condition": "eclipse_week",
+    "days": 9750,
+    "days_on": 1691,
+    "from": "2000-01-16",
+    "to": "2026-09-28",
+    "ratio": 1.015,
+    "p": 0.615,
+    "direction_as_claimed": true,
+    "p_adjusted": 1.0,
+    "verdict": "no better than chance (+1%, p = 0.61, 1.00 corrected)"
+   },
+   {
+    "claim": "New and full moons bring earthquakes",
+    "metric": "magnitude 6+ earthquakes a day, worldwide",
+    "condition": "new_or_full",
+    "days": 9750,
+    "days_on": 1285,
+    "from": "2000-01-16",
+    "to": "2026-09-28",
+    "ratio": 0.946,
+    "p": 0.217,
+    "direction_as_claimed": false,
+    "p_adjusted": 1.0,
+    "verdict": "no better than chance (-5%, p = 0.22, 1.00 corrected)"
    }
   ],
-  "notes": [
-   "quakes: HTTPSConnectionPool(host='earthquake.usgs.gov', port=443): Max retries exceeded  (kept 0 cached days)"
-  ]
+  "notes": []
  },
  "reading": {
-  "title": "Pluto Direct in Aquarius",
+  "title": "Pluto Direct Under Libran Sun",
   "overview": [
-   "The Sun at 20° Libra in fall and the Moon at 27° Scorpio in fall and out of bounds set a tone of restrained authority and heightened emotional volatility. Mercury in Scorpio and Venus retrograde in detriment keep diplomatic and financial matters inward-focused, while Mars in Leo and Jupiter in Leo add assertive energy to leadership displays. Saturn retrograde in Aries fall and Neptune retrograde in Aries reinforce structural delays and uncertain long-range planning.",
-   "Neptune sextile Pluto at 0.55° and Uranus trine Pluto at 2.18° mark slow collective shifts in shared beliefs and power structures. Mars trine Saturn at 1.59° and Mars sextile Uranus at 3.73° point to measured attrition alongside sudden technical or explosive developments. The Moon remains void of course until 01:00Z on 14 October, limiting new initiatives until it enters Sagittarius.",
-   "The last New Moon at Libra 17° falls in the 11th house for the United States, the 6th for Russia, Ukraine, Israel and Iran, the 4th for China and Taiwan, and the 3rd for North Korea, coloring legislative alliances, armed forces and public health, land and opposition, or communications according to each chart."
+   "The Sun at 21° Libra in fall forms a tight sextile to Jupiter in Leo, while Neptune at 2° Aries retrograde sextiles Pluto at 3° Aquarius retrograde as the latter stations direct out of bounds. The Moon at 8° Sagittarius out of bounds moves toward a trine with Mars in Leo and Saturn in Aries retrograde, with Mars itself trining Saturn. These contacts occur against a backdrop of Venus in Scorpio retrograde squaring Pluto and Mars.",
+   "Mundane tradition associates a Sun-Jupiter sextile with measured diplomatic or institutional gestures and a Neptune-Pluto sextile with slow, collective shifts in belief or power structures. Mars trine Saturn points to protracted attrition and defensive consolidation rather than rapid gains, while Pluto's station directs attention to long-term structural changes that surface after periods of reversal.",
+   "The last new moon at Libra 17° falls in the 11th whole-sign house for the United States and the 6th for Russia, Ukraine, Israel and Iran, placing emphasis on alliances and legislative matters for Washington and on armed forces or public services for the others. No positions are invented; all statements rest on the listed placements and aspects."
   ],
   "nations": [
    {
     "nation": "United States",
-    "reading": "Transiting Saturn trines the Sibly ASC while Neptune opposes the MC and squares natal Venus; Mars sextiles natal Uranus and Jupiter sextiles natal Mars. These contacts coincide with reporting on defense technology procurement and industrial challenges in the Indo-Pacific, though the fair-test records show no reliable link between such transits and measurable outcomes."
+    "reading": "Transiting Neptune opposes the Sibly MC while Saturn trines the ASC and the Sun trines natal Mars. These contacts coincide with reporting on Army training programs and Starlink limitations in Ukraine support, though the records show no reliable link between such transits and operational outcomes beyond chance."
    },
    {
     "nation": "Russia",
-    "reading": "Transiting Neptune squares the natal Sun, Jupiter trines the MC and squares Pluto, while Uranus trines natal Saturn and Saturn trines natal Mercury. The New Moon in the 6th house places emphasis on armed forces and public health; current reporting on missile activity and defense technology does not exceed chance expectations under tested conditions."
+    "reading": "Neptune squares the 1991 Sun and Jupiter trines the MC while Uranus trines natal Saturn. Reporting on drone strikes and energy infrastructure pressure aligns with the Mars-Saturn trine theme of sustained pressure, yet the fair test finds Mars afflictions no better than chance for personnel-loss indicators."
+   },
+   {
+    "nation": "Ukraine",
+    "reading": "Pluto conjoins natal Saturn and Saturn squares natal Uranus. The lunation in the 6th house and Mars in the 4th echo themes of armed forces and homeland defense present in today's strike reports, without any demonstrated predictive edge over random expectation."
    },
    {
     "nation": "China",
-    "reading": "Transiting Pluto conjoins the natal Moon and ASC while Neptune sextiles both. The New Moon in the 4th house highlights land, agriculture and opposition; the provided transits align with no verified predictive edge over baseline records."
-   },
-   {
-    "nation": "Israel",
-    "reading": "Transiting Pluto opposes natal Moon, Uranus sextiles natal Moon, and Saturn opposes natal Neptune while sextiling natal Mercury. The New Moon in the 6th again stresses armed forces; tested correlations with alerts remain indistinguishable from chance."
+    "reading": "Pluto conjoins both the Moon and ASC while Neptune sextiles the Moon. The new moon in the 4th house places focus on land and internal matters, separate from the day's listed reporting on other regions."
    }
   ],
-  "lore_and_intel": "Neptune sextile Pluto, Uranus trine Pluto, Mars trine Saturn and Mars sextile Uranus overlap with reporting on AI network defense, ballistic missile launches, defense procurement shifts and regional legal or force-related claims at z values above 3.0; Venus square Mars and Venus square Pluto coincide with Falklands and West Bank items at similar z levels. No such overlaps appear for the US diesel-deal story or certain industrial-problem pieces, and the fair-test results establish that none of the cited aspect or transit categories outperform chance in historical records.",
+  "lore_and_intel": "Sun sextile Jupiter overlaps with Vatican health news and Army pay statements; Neptune sextile Pluto with incident reporting and cybersecurity analysis; Mars trine Saturn with Middle East strike speculation and drone marketplace expansion. Venus square Pluto meets labor-automation stories. These are noted overlaps only; the fair test records show Mars afflictions and lunar phases perform no better than chance against Ukraine air-raid, Israeli alert, Russian loss and global earthquake data.",
   "watch": [
    {
     "date": "2026-10-15",
-    "note": "Pluto stations direct; monitor any acceleration in power-structure or intelligence matters"
+    "note": "Pluto stations direct, out of bounds"
    },
    {
     "date": "2026-10-23",
-    "note": "Sun enters Scorpio and Mercury stations retrograde; note shifts in financial, intelligence and alliance communications"
+    "note": "Sun enters Scorpio"
+   },
+   {
+    "date": "2026-10-24",
+    "note": "Mercury stations retrograde"
    },
    {
     "date": "2026-10-26",
-    "note": "Full Moon at Taurus 3°; observe culmination of tensions already flagged by Mars-Saturn and Venus-Pluto contacts"
+    "note": "Full Moon in Taurus 3°"
+   },
+   {
+    "date": "2026-11-09",
+    "note": "New Moon in Scorpio 17°"
    }
   ],
-  "the_test": "Records covering 1654 to 3870 days show Mars afflictions, Mars retrograde and full moons produce no better than chance results for Ukraine air-raid alarms, Israel rocket alerts and Russian personnel-loss claims, with deviations between -1% and +35% and all corrected p-values at or above 0.56. The same data therefore supply no statistical support for expecting the current aspects or national transits to predict real-world events above baseline rates."
+  "the_test": "Mars afflicted brings war versus Ukraine air-raid alarms a day: no better than chance over 1663 days. Mars afflicted brings war versus Russian personnel losses a day: no better than chance over 1662 days. Eclipses and new or full moons bring earthquakes versus magnitude 6+ events worldwide: no better than chance over 9750 days."
  },
  "spend": {
-  "cost_usd": 0.0066,
-  "input_tokens": 2748,
-  "output_tokens": 1335,
-  "reasoning_tokens": 439
+  "cost_usd": 0.0064,
+  "input_tokens": 2798,
+  "output_tokens": 1216,
+  "reasoning_tokens": 379
  }
 }
