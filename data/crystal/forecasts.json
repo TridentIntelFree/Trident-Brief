@@ -449,7 +449,11 @@
    "recent Kyiv outages"
   ],
   "watch_for": "Ukrenergo or local oblast emergency declarations",
-  "wrong_if": "No expansion of reported outages by 14 Oct"
+  "wrong_if": "No expansion of reported outages by 14 Oct",
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "Russian attack on 14 Oct caused power outages in Kyiv and seven additional oblasts.",
+  "url": "https://kyiv.news/energy/hrafiky-vidkliuchen-kyiv-kyivshchyna-15-zhovtnia/"
  },
  {
   "id": "2026-10-07T1904-7",
@@ -465,7 +469,11 @@
    "National Day period ending"
   ],
   "watch_for": "Taiwan MND daily summary exceeding threshold",
-  "wrong_if": "No day reaches 25 sorties by 14 Oct"
+  "wrong_if": "No day reaches 25 sorties by 14 Oct",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "No MND report in window showed 25+ sorties or 15+ median-line crossings on a single day (e.g., max 19 sorties/13 crossings).",
+  "url": "https://x.com/MoNDefense/status/2110536140809719853"
  },
  {
   "id": "2026-10-07T1904-8",
@@ -481,7 +489,11 @@
    "escalating Houthi strikes"
   ],
   "watch_for": "official Ankara or Islamabad statement",
-  "wrong_if": "No deployment announcement by 14 Oct"
+  "wrong_if": "No deployment announcement by 14 Oct",
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "Pakistan and Turkey confirmed/activated troop and capability deployment to Saudi Arabia under Mecca pact in response to Houthis, with statements Oct 7-9.",
+  "url": "https://asia.nikkei.com/politics/defense/pakistan-turkey-to-deploy-forces-in-saudi-arabia-amid-houthi-attacks"
  },
  {
   "id": "2026-10-07-1",
@@ -618,7 +630,11 @@
    "ongoing barrages"
   ],
   "watch_for": "Ukrainska Pravda or Kyiv Independent cumulative toll",
-  "wrong_if": "weekly civilian toll remains below 80"
+  "wrong_if": "weekly civilian toll remains below 80",
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "Oct 6-7 Russian strikes alone caused at least 128-135 civilian casualties across multiple cities; additional strikes added more.",
+  "url": "https://understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-october-7-2026"
  },
  {
   "id": "2026-10-07-8",
@@ -634,7 +650,11 @@
    "dual chokepoint pressure"
   ],
   "watch_for": "first maritime insurer or gCaptain advisory",
-  "wrong_if": "no premium increase announced"
+  "wrong_if": "no premium increase announced",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "No report of insurance premiums for Hormuz/Bab el-Mandeb rising by at least 15% specifically in the window (rates already elevated earlier).",
+  "url": "https://straitofhormuz.report/strait-of-hormuz-war-risk-insurance-rate"
  },
  {
   "id": "2026-10-08T0035-1",
@@ -730,7 +750,11 @@
   ],
   "watch_for": "first Ethiopian or Eritrean government acknowledgment",
   "wrong_if": "no scale confirmation and reports dismissed as unverified by 15 Oct",
-  "fly": null
+  "fly": null,
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "Reuters-style reporting and official statements confirmed Eritrean divisions (~1,500 soldiers each) in Tigray/Adigrat area exceeding 1,000 personnel.",
+  "url": "https://www.reuters.com/world/africa/drones-target-eritrean-troops-inside-ethiopia-conflict-monitor-says-2026-10-08/"
  },
  {
   "id": "2026-10-08T0035-5",
@@ -749,7 +773,11 @@
   ],
   "watch_for": "new Houthi Yahya Saree statement claiming Aden targeting",
   "wrong_if": "no ballistic launches toward Aden logged by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "Houthi ballistic missile attack on Aden airport occurred on Oct 7 (outside window); Oct 15 strike targeted presidential palace, not airport.",
+  "url": "https://www.aljazeera.com/news/2026/10/7/yemens-houthis-attack-aden-airport-saudi-forces-down-missile-near-riyadh"
  },
  {
   "id": "2026-10-08T0035-6",
@@ -2712,7 +2740,11 @@
     "UKMTO or gCaptain reports at least one additional unknown-projectile strike on a tanker in the Strait of Hormuz",
     "UKMTO or gCaptain reports at least one new tanker strike or boarding attempt in Strait of Hormuz"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "UKMTO issued warnings for projectile strikes on outbound tankers in Strait of Hormuz on Oct 13-14.",
+  "url": "https://x.com/UK_MTO/status/2109043547991089651"
  },
  {
   "id": "2026-10-12T2124-2",
@@ -2741,7 +2773,11 @@
     "Further Kyiv bridge or power grid hits causing major outages or evacuation orders",
     ">10 additional Russian Shahed or guided-bomb impacts on Kyiv infrastructure in next 24h"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "Kyiv Independent reported Russian drone/missile strikes on Kyiv residential buildings killing civilians (e.g., 2 deaths on Oct 12; 3+ on Oct 13).",
+  "url": "https://kyivindependent.com/kyiv-residential-building-struck-by-russia-as-ukraine-says-intelligence-sharing-from-partners-interrupted/"
  },
  {
   "id": "2026-10-12T2124-3",
@@ -2770,7 +2806,11 @@
     "Taiwan MND reports 25 or more PLA aircraft sorties with 15+ median-line crossings in a single day",
     ">10 additional PLA aircraft crossing Taiwan median line in next 24h"
    ]
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "No Taiwan MND daily tally in window showed 10+ median-line crossings (e.g., 4-5 on Oct 12; higher on Oct 15 after window).",
+  "url": "https://taiwannews.com.tw/en/news/6458990"
  },
  {
   "id": "2026-10-12T2124-4",
@@ -2792,7 +2832,10 @@
    "p_market": 8,
    "url": "https://kalshi.com/markets/kxlolgame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-12T2124-5",
@@ -2814,7 +2857,10 @@
    "p_market": 4,
    "url": "https://kalshi.com/markets/kxapfddhgame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-12T2124-6",
@@ -2836,7 +2882,10 @@
    "p_market": 6,
    "url": "https://kalshi.com/markets/kxbolpdivgame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "source": "engine",
@@ -2862,7 +2911,10 @@
   "id": "2026-10-12T2124-7",
   "made": "2026-10-12T21:24:43Z",
   "term": "likely",
-  "deadline": "2026-10-14T23:59:59Z"
+  "deadline": "2026-10-14T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "measured 351 against > 309"
  },
  {
   "source": "engine",
@@ -2888,7 +2940,10 @@
   "id": "2026-10-12T2124-8",
   "made": "2026-10-12T21:24:43Z",
   "term": "likely",
-  "deadline": "2026-10-14T23:59:59Z"
+  "deadline": "2026-10-14T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "measured 3,040 against > 3,262"
  },
  {
   "source": "engine",
@@ -2914,7 +2969,10 @@
   "id": "2026-10-12T2124-9",
   "made": "2026-10-12T21:24:43Z",
   "term": "likely",
-  "deadline": "2026-10-14T23:59:59Z"
+  "deadline": "2026-10-14T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "measured 3,716 against > 3,180"
  },
  {
   "source": "engine",
@@ -2966,7 +3024,10 @@
   "id": "2026-10-12T2124-11",
   "made": "2026-10-12T21:24:43Z",
   "term": "roughly even chance",
-  "deadline": "2026-10-14T23:59:59Z"
+  "deadline": "2026-10-14T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "measured 3 against >= 1"
  },
  {
   "id": "2026-10-13T1932-1",
@@ -3399,7 +3460,10 @@
    "id": "5184017",
    "p_market": 44,
    "url": "https://polymarket.com/market/ucl-bog-bvb-2026-10-14-bvb"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-15T17:22:26Z",
+  "evidence": "settled on Polymarket"
  },
  {
   "id": "2026-10-14T1737-7",
@@ -3792,5 +3856,277 @@
   "made": "2026-10-14T17:37:09Z",
   "term": "unlikely",
   "deadline": "2026-10-21T23:59:59Z"
+ },
+ {
+  "id": "2026-10-15T1722-1",
+  "source": "oracle",
+  "made": "2026-10-15T17:22:26Z",
+  "horizon": "48h",
+  "deadline": "2026-10-17T17:22:26Z",
+  "region": "Europe",
+  "event": "Ukrainian strike on major Russian refinery or port facility",
+  "criterion": "Russian MoD or verified milblogger channels report visible damage from Ukrainian strike on a Russian oil refinery or Black Sea port before 17 Oct 2026 17:22 UTC",
+  "probability": 55,
+  "term": "roughly even chance",
+  "base_rate": 25,
+  "basis": [
+   "Zelenskyy ended strike pause and publicly committed to resuming refinery attacks",
+   "multiple Ukrainian outlets confirm intent and recent targeting patterns"
+  ],
+  "watch_for": "Ukrainian milblogger or General Staff claim of deep strike on energy infrastructure",
+  "wrong_if": "No Russian official or milblogger reporting of new refinery or port damage by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-10-15T1722-2",
+  "source": "oracle",
+  "made": "2026-10-15T17:22:26Z",
+  "horizon": "48h",
+  "deadline": "2026-10-17T17:22:26Z",
+  "region": "Indo-Pacific",
+  "event": "Elevated PLA aircraft activity around Taiwan",
+  "criterion": "Taiwan MND daily report shows 20 or more PLA aircraft crossing the median line in a single 24-hour period before 17 Oct 2026 17:22 UTC",
+  "probability": 40,
+  "term": "unlikely",
+  "base_rate": 35,
+  "basis": [
+   "15 Oct count was 13 crossings, above recent daily average but below threshold",
+   "fresh MSA live-fire warnings in surrounding seas but no Taiwan-specific surge"
+  ],
+  "watch_for": "Taiwan MND real-time update exceeding 15 crossings",
+  "wrong_if": "Taiwan MND reports fewer than 20 median-line crossings through deadline",
+  "fly": {
+   "p": 20,
+   "n": 8,
+   "hits": 1,
+   "like": [
+    ">20 PLA aircraft crossing Taiwan median line in 48h",
+    ">20 PLA aircraft crossing Taiwan median line in 48h"
+   ]
+  }
+ },
+ {
+  "id": "2026-10-15T1722-3",
+  "source": "oracle",
+  "made": "2026-10-15T17:22:26Z",
+  "horizon": "48h",
+  "deadline": "2026-10-17T17:22:26Z",
+  "region": "Middle East",
+  "event": "New Houthi missile or drone impact on Riyadh-area target",
+  "criterion": "Saudi-led coalition or Arab News reports at least one additional confirmed Houthi missile or drone strike on Riyadh airport or Aramco facility before 17 Oct 2026 17:22 UTC",
+  "probability": 60,
+  "term": "likely",
+  "base_rate": 30,
+  "basis": [
+   "recent attacks produced casualties and triggered Saudi air-defence probe",
+   "Houthi statements and coalition debris releases indicate sustained campaign"
+  ],
+  "watch_for": "Coalition video or statement confirming new debris or interception",
+  "wrong_if": "No new coalition-confirmed Houthi impact on Riyadh-area targets by deadline",
+  "fly": {
+   "p": 50,
+   "n": 4,
+   "hits": 2,
+   "like": [
+    "Houthi forces launch ballistic missile or drone at a Saudi airport with claimed impact",
+    "Houthi forces claim at least one ballistic-missile strike on a Saudi target with reported casualties"
+   ]
+  }
+ },
+ {
+  "id": "2026-10-15T1722-4",
+  "source": "oracle",
+  "made": "2026-10-15T17:22:26Z",
+  "horizon": "48h",
+  "deadline": "2026-10-17T16:45:00Z",
+  "region": "Market",
+  "event": "Leverkusen wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 72,
+  "term": "likely",
+  "basis": [
+   "Leverkusen is the stronger side with better recent form against mid-tier European opposition"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUELGAME-26OCT15LPOLEV-LEV",
+   "p_market": 94,
+   "url": "https://kalshi.com/markets/kxuelgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-10-15T1722-5",
+  "source": "oracle",
+  "made": "2026-10-15T17:22:26Z",
+  "horizon": "48h",
+  "deadline": "2026-10-17T16:45:00Z",
+  "region": "Market",
+  "event": "Milan wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 58,
+  "term": "likely",
+  "basis": [
+   "Milan holds slight edge in squad depth and European experience over Salzburg"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUELGAME-26OCT15RBSACM-ACM",
+   "p_market": 92,
+   "url": "https://kalshi.com/markets/kxuelgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-10-15T1722-6",
+  "source": "oracle",
+  "made": "2026-10-15T17:22:26Z",
+  "horizon": "48h",
+  "deadline": "2026-10-17T16:45:00Z",
+  "region": "Market",
+  "event": "Torreense wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 35,
+  "term": "unlikely",
+  "basis": [
+   "Sunderland favored on paper but away fixture and Europa League intensity raise upset risk for Torreense"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUELGAME-26OCT15TORSUN-TOR",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxuelgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 318 air-raid alarms on 16 Oct 2026 and 17 Oct 2026, a faster pace than the past 30 days",
+  "probability": 43,
+  "base_rate": 50,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 25 were followed by this",
+   "base rate 50% over the whole record",
+   "closest: 26 Sep 2026, 27 Sep 2026, 26 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-10-16",
+   "end": "2026-10-17",
+   "op": ">",
+   "threshold": 318,
+   "unit_days": false
+  },
+  "criterion": "More than 318 air-raid alarms on 16 Oct 2026 and 17 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-15T1722-7",
+  "made": "2026-10-15T17:22:26Z",
+  "term": "unlikely",
+  "deadline": "2026-10-17T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,282 Russian personnel losses claimed by Ukraine's MoD on 16 Oct 2026 and 17 Oct 2026, a faster pace than the past 30 days",
+  "probability": 42,
+  "base_rate": 53,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 24 were followed by this",
+   "base rate 53% over the whole record",
+   "closest: 5 Jul 2026, 3 Jul 2026, 22 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-10-16",
+   "end": "2026-10-17",
+   "op": ">",
+   "threshold": 3282,
+   "unit_days": false
+  },
+  "criterion": "More than 3,282 Russian personnel losses claimed by Ukraine's MoD on 16 Oct 2026 and 17 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-15T1722-8",
+  "made": "2026-10-15T17:22:26Z",
+  "term": "unlikely",
+  "deadline": "2026-10-17T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,108 Russian drones claimed destroyed by Ukraine's MoD on 16 Oct 2026 and 17 Oct 2026, a faster pace than the past 30 days",
+  "probability": 43,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 25 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 31 May 2026, 1 Jun 2026, 2 Sep 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-10-16",
+   "end": "2026-10-17",
+   "op": ">",
+   "threshold": 3108,
+   "unit_days": false
+  },
+  "criterion": "More than 3,108 Russian drones claimed destroyed by Ukraine's MoD on 16 Oct 2026 and 17 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-15T1722-9",
+  "made": "2026-10-15T17:22:26Z",
+  "term": "unlikely",
+  "deadline": "2026-10-17T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 16 Oct 2026 and 17 Oct 2026 (Home Front Command)",
+  "probability": 21,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 12 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 18 Oct 2015, 16 Oct 2016, 17 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-10-16",
+   "end": "2026-10-17",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 16 Oct 2026 and 17 Oct 2026 (Home Front Command)",
+  "id": "2026-10-15T1722-10",
+  "made": "2026-10-15T17:22:26Z",
+  "term": "unlikely",
+  "deadline": "2026-10-17T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 16 Oct 2026 and 17 Oct 2026 (USGS)",
+  "probability": 55,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 33 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 1 Oct 2003, 28 Dec 2003, 28 Sep 2003"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-10-16",
+   "end": "2026-10-17",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 16 Oct 2026 and 17 Oct 2026 (USGS)",
+  "id": "2026-10-15T1722-11",
+  "made": "2026-10-15T17:22:26Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-17T23:59:59Z"
  }
 ]
