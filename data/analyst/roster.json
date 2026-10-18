@@ -72,12 +72,47 @@
    "url": "https://x.com/GlobalOSINTHQ/status/2107240175713554855",
    "why": "Global OSINT account providing real-time geopolitical analysis and situation reports on UK B-1B bomber evacuations due to Iranian threats, with sourced details."
   },
+  "GlushkoDenys": {
+   "days": [
+    "2026-10-18"
+   ],
+   "url": "https://x.com/GlushkoDenys/status/2111791057784692779",
+   "why": "MoD-cited reporting with images on Romanian F-16 intercepts of Russian drones."
+  },
   "HibaNasr": {
    "days": [
     "2026-10-07"
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: credited on Syria-Saudi meeting"
+  },
+  "InsiderGeo": {
+   "days": [
+    "2026-10-18"
+   ],
+   "url": "https://x.com/InsiderGeo/status/2111816080255594682",
+   "why": "Sourced morning watch summary citing Reuters on St. Petersburg oil terminal strikes."
+  },
+  "JayinKyiv": {
+   "days": [
+    "2026-10-18"
+   ],
+   "url": "https://x.com/JayinKyiv/status/2111823881342161343",
+   "why": "Eyewitness video and local reaction reporting from Ukrainian drone barrage on St. Petersburg."
+  },
+  "LetsArmUKR": {
+   "days": [
+    "2026-10-18"
+   ],
+   "url": "https://x.com/LetsArmUKR/status/2111833972627947679",
+   "why": "Detailed sourced timeline and cockpit footage analysis of Romanian F-16 drone intercepts."
+  },
+  "Megatron_ron": {
+   "days": [
+    "2026-10-18"
+   ],
+   "url": "https://x.com/Megatron_ron/status/2111837780389114124",
+   "why": "Sourced analysis linking Ukrainian St. Petersburg drone strikes to recent Trump energy ceasefire."
   },
   "NHC_Atlantic": {
    "days": [
@@ -92,6 +127,13 @@
    ],
    "url": "https://x.com/Nizibizizbig/status/2108781550242246797",
    "why": "Independent analyst with graded open-source assessment citing UKMTO, IRGC and Saudi reports on Gulf of Oman/Hormuz and Riyadh attacks."
+  },
+  "PopularFront_": {
+   "days": [
+    "2026-10-18"
+   ],
+   "url": "https://x.com/PopularFront_/status/2111764989727961099",
+   "why": "Sourced reporting with MoD footage on Romanian F-16 Geran drone shootdowns."
   },
   "SeanParnellASW": {
    "days": [
@@ -177,6 +219,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted by sentdefender on Houthi warnings"
+  },
+  "bkbrey": {
+   "days": [
+    "2026-10-18"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: footage source for Wainwright fire"
   },
   "havoc_aviation": {
    "days": [
@@ -269,68 +318,68 @@
    "checked": "2026-10-17"
   },
   "AuroraIntel": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "CalibreObscura": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "CovertShores": {
-   "checked": "2026-10-16"
+   "checked": "2026-10-18"
   },
   "ELINTNews": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "Faytuks": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "IntelCrab": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "JominiW": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "KofmanMichael": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "Osinttechnical": {
-   "checked": "2026-10-17",
-   "posted": "2026-10-17"
+   "checked": "2026-10-18",
+   "posted": "2026-10-18"
   },
   "RALee85": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "Tendar": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "UK_MTO": {
-   "checked": "2026-10-17",
-   "posted": "2026-10-17"
+   "checked": "2026-10-18",
+   "posted": "2026-10-18"
   },
   "detresfa_": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "noelreports": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   },
   "sentdefender": {
-   "checked": "2026-10-17",
-   "posted": "2026-10-17"
+   "checked": "2026-10-18",
+   "posted": "2026-10-18"
   },
   "wartranslated": {
-   "checked": "2026-10-17"
+   "checked": "2026-10-18"
   }
  },
- "updated": "2026-10-17T15:35:46Z"
+ "updated": "2026-10-18T15:53:18Z"
 }
