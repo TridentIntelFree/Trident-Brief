@@ -1,5 +1,5 @@
 {
- "checked": "2026-10-12T12:15:27Z",
+ "checked": "2026-10-19T10:06:55Z",
  "receivers": [
   {
    "host": "iz6byy.k1fm.us",
@@ -144,6 +144,15 @@
    "lon": -71.88,
    "antenna": "YAESU YA-30",
    "slots": 3
+  },
+  {
+   "host": "swl-lippi-1.stbach.de",
+   "name": "Lippis-KiWi-SDR-1 | Freital, Germany",
+   "loc": "Freital, Germany",
+   "lat": 51.0,
+   "lon": 13.65,
+   "antenna": "4m(East/West) Loop+amplf.",
+   "slots": 8
   },
   {
    "host": "swl-lippi-2.stbach.de",
