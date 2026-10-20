@@ -100,12 +100,26 @@
    "url": "https://x.com/JayinKyiv/status/2111823881342161343",
    "why": "Eyewitness video and local reaction reporting from Ukrainian drone barrage on St. Petersburg."
   },
+  "JenGriffinFNC": {
+   "days": [
+    "2026-10-20"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on carrier deployment"
+  },
   "LetsArmUKR": {
    "days": [
     "2026-10-18"
    ],
    "url": "https://x.com/LetsArmUKR/status/2111833972627947679",
    "why": "Detailed sourced timeline and cockpit footage analysis of Romanian F-16 drone intercepts."
+  },
+  "Liz_Friden": {
+   "days": [
+    "2026-10-20"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: source for US officials on deployments"
   },
   "Megatron_ron": {
    "days": [
@@ -332,68 +346,68 @@
    "checked": "2026-10-19"
   },
   "AuroraIntel": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "CalibreObscura": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "CovertShores": {
-   "checked": "2026-10-18"
+   "checked": "2026-10-20"
   },
   "ELINTNews": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "Faytuks": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "IntelCrab": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "JominiW": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "KofmanMichael": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "Osinttechnical": {
-   "checked": "2026-10-19",
-   "posted": "2026-10-19"
+   "checked": "2026-10-20",
+   "posted": "2026-10-20"
   },
   "RALee85": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "Tendar": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "UK_MTO": {
-   "checked": "2026-10-19",
-   "posted": "2026-10-18"
+   "checked": "2026-10-20",
+   "posted": "2026-10-20"
   },
   "detresfa_": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "noelreports": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   },
   "sentdefender": {
-   "checked": "2026-10-19",
-   "posted": "2026-10-19"
+   "checked": "2026-10-20",
+   "posted": "2026-10-20"
   },
   "wartranslated": {
-   "checked": "2026-10-19"
+   "checked": "2026-10-20"
   }
  },
- "updated": "2026-10-19T18:43:44Z"
+ "updated": "2026-10-20T17:07:32Z"
 }
