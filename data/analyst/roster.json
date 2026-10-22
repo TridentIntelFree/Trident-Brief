@@ -30,6 +30,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: Zelensky quote"
   },
+  "CJFCSpox": {
+   "days": [
+    "2026-10-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: drone intercept statement"
+  },
   "ChristopherJM": {
    "days": [
     "2026-10-17"
@@ -79,6 +86,13 @@
    "url": "https://x.com/GlushkoDenys/status/2111791057784692779",
    "why": "MoD-cited reporting with images on Romanian F-16 intercepts of Russian drones."
   },
+  "Grimm_Intel": {
+   "days": [
+    "2026-10-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: geo imagery"
+  },
   "HibaNasr": {
    "days": [
     "2026-10-07"
@@ -120,6 +134,13 @@
    ],
    "url": "https://x.com/LetsArmUKR/status/2111833972627947679",
    "why": "Detailed sourced timeline and cockpit footage analysis of Romanian F-16 drone intercepts."
+  },
+  "LibbeyDean_": {
+   "days": [
+    "2026-10-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: Trump quote"
   },
   "Liz_Friden": {
    "days": [
@@ -325,6 +346,13 @@
    "url": "https://x.com/osint42/status/2106707264249712715",
    "why": "OSINT account citing Finnish presidential statements on Russian military intelligence improvements and capabilities."
   },
+  "ragipsoylu": {
+   "days": [
+    "2026-10-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: Mecca pact text"
+  },
   "ralexdc": {
    "days": [
     "2026-10-11"
@@ -360,68 +388,68 @@
    "checked": "2026-10-21"
   },
   "AuroraIntel": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "CalibreObscura": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "CovertShores": {
-   "checked": "2026-10-20"
+   "checked": "2026-10-22"
   },
   "ELINTNews": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "Faytuks": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "IntelCrab": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "JominiW": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "KofmanMichael": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "Osinttechnical": {
-   "checked": "2026-10-21",
-   "posted": "2026-10-21"
+   "checked": "2026-10-22",
+   "posted": "2026-10-22"
   },
   "RALee85": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "Tendar": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "UK_MTO": {
-   "checked": "2026-10-21",
+   "checked": "2026-10-22",
    "posted": "2026-10-21"
   },
   "detresfa_": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "noelreports": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   },
   "sentdefender": {
-   "checked": "2026-10-21",
-   "posted": "2026-10-21"
+   "checked": "2026-10-22",
+   "posted": "2026-10-22"
   },
   "wartranslated": {
-   "checked": "2026-10-21"
+   "checked": "2026-10-22"
   }
  },
- "updated": "2026-10-21T17:13:09Z"
+ "updated": "2026-10-22T17:11:12Z"
 }
