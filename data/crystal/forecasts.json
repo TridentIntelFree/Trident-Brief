@@ -5860,7 +5860,10 @@
   "id": "2026-10-20T1732-13",
   "made": "2026-10-20T17:32:05Z",
   "term": "roughly even chance",
-  "deadline": "2026-10-22T23:59:59Z"
+  "deadline": "2026-10-22T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-23T17:27:40Z",
+  "evidence": "measured 425 against > 337"
  },
  {
   "source": "engine",
@@ -5886,7 +5889,10 @@
   "id": "2026-10-20T1732-14",
   "made": "2026-10-20T17:32:05Z",
   "term": "very likely",
-  "deadline": "2026-10-22T23:59:59Z"
+  "deadline": "2026-10-22T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-23T17:27:40Z",
+  "evidence": "measured 4,070 against > 3,382"
  },
  {
   "source": "engine",
@@ -5912,7 +5918,10 @@
   "id": "2026-10-20T1732-15",
   "made": "2026-10-20T17:32:05Z",
   "term": "unlikely",
-  "deadline": "2026-10-22T23:59:59Z"
+  "deadline": "2026-10-22T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-23T17:27:40Z",
+  "evidence": "measured 3,570 against > 3,057"
  },
  {
   "source": "engine",
@@ -5964,7 +5973,10 @@
   "id": "2026-10-20T1732-17",
   "made": "2026-10-20T17:32:05Z",
   "term": "likely",
-  "deadline": "2026-10-22T23:59:59Z"
+  "deadline": "2026-10-22T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-10-23T17:27:40Z",
+  "evidence": "measured 1 against >= 1"
  },
  {
   "source": "engine",
@@ -6200,7 +6212,10 @@
    "p_market": 8,
    "url": "https://kalshi.com/markets/kxeuroleaguegame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-10-23T17:27:40Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-21T1740-5",
@@ -6222,7 +6237,10 @@
    "p_market": 10,
    "url": "https://kalshi.com/markets/kxucltotal",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-10-23T17:27:40Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-21T1740-6",
@@ -6244,7 +6262,10 @@
    "p_market": 12,
    "url": "https://kalshi.com/markets/kxuclspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-10-23T17:27:40Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "source": "engine",
@@ -6647,5 +6668,276 @@
   "made": "2026-10-22T17:38:29Z",
   "term": "unlikely",
   "deadline": "2026-10-24T23:59:59Z"
+ },
+ {
+  "id": "2026-10-23T1727-1",
+  "source": "oracle",
+  "made": "2026-10-23T17:27:40Z",
+  "horizon": "48h",
+  "deadline": "2026-10-25T17:27:40Z",
+  "region": "Indo-Pacific",
+  "event": "Taiwan MND reports 25 or more PLA aircraft sorties in any 24-hour period ending before 25 Oct 2026 17:27 UTC",
+  "criterion": "Taiwan MND official daily tally or @taiwanbrief summary shows >=25 sorties (including median-line crossings) by deadline",
+  "probability": 58,
+  "term": "likely",
+  "base_rate": 40,
+  "basis": [
+   "Current 24h tally already 14-29 with 8-23 crossings; MSA live-fire warnings active through 26 Oct; Typhoon Champi may briefly suppress but baseline elevated act"
+  ],
+  "watch_for": "Taiwan MND or MSA nav-warning update before 25 Oct",
+  "wrong_if": "All MND tallies remain below 25 sorties through deadline",
+  "fly": {
+   "p": 22,
+   "n": 7,
+   "hits": 1,
+   "like": [
+    "Taiwan MND reports single-day PLA total exceeding 25 aircraft sorties",
+    "Taiwan MND daily report shows 6 or more PLA aircraft crossing the median line before 15 Oct 2026 19:32 UTC"
+   ]
+  }
+ },
+ {
+  "id": "2026-10-23T1727-2",
+  "source": "oracle",
+  "made": "2026-10-23T17:27:40Z",
+  "horizon": "48h",
+  "deadline": "2026-10-25T17:27:40Z",
+  "region": "Middle East",
+  "event": "Additional verified Houthi ballistic or drone impact on Saudi oil facility, airport or Riyadh infrastructure reported before 25 Oct 2026 17:27 UTC",
+  "criterion": "Al Jazeera, BBC or UKMTO confirms new strike with casualties or damage by deadline",
+  "probability": 62,
+  "term": "likely",
+  "base_rate": 35,
+  "basis": [
+   "Multiple corroborated strikes already recorded in window; RAF Typhoon deployment and Indian casualties signal ongoing campaign; no de-escalation signals"
+  ],
+  "watch_for": "Saudi or UK statement citing new impact",
+  "wrong_if": "No new verified Houthi strike on Saudi targets by deadline",
+  "fly": {
+   "p": 80,
+   "n": 8,
+   "hits": 7,
+   "like": [
+    "Additional verified Houthi ballistic/drone impact on Saudi oil facility or Riyadh infrastructure within 48h",
+    "Additional verified Houthi ballistic/drone impact on Saudi oil facility or Riyadh infrastructure within 48h"
+   ]
+  }
+ },
+ {
+  "id": "2026-10-23T1727-3",
+  "source": "oracle",
+  "made": "2026-10-23T17:27:40Z",
+  "horizon": "48h",
+  "deadline": "2026-10-25T03:59:00Z",
+  "region": "Market",
+  "event": "US x Iran ceasefire continues through October 24?",
+  "criterion": "as Polymarket settles it",
+  "probability": 78,
+  "term": "likely",
+  "basis": [
+   "No US air or missile strike on Iran indicated in any theatre reporting; proxy activity remains calibrated below direct-confrontation threshold."
+  ],
+  "fly": null,
+  "market": {
+   "id": "5686977",
+   "p_market": 88,
+   "url": "https://polymarket.com/market/us-x-iran-ceasefire-continues-through-october-24"
+  }
+ },
+ {
+  "id": "2026-10-23T1727-4",
+  "source": "oracle",
+  "made": "2026-10-23T17:27:40Z",
+  "horizon": "48h",
+  "deadline": "2026-10-24T03:59:00Z",
+  "region": "Market",
+  "event": "Will average **gas prices** be above $4.2950? (Above 4.2950)",
+  "criterion": "as Kalshi settles it",
+  "probability": 52,
+  "term": "roughly even chance",
+  "basis": [
+   "Brent above $114 but US retail gasoline lags crude spikes by days to weeks; current trajectory only marginally favors crossing 4.2950 by 24 Oct."
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXAAAGASD-26OCT24-4.2950",
+   "p_market": 92,
+   "url": "https://kalshi.com/markets/kxaaagasd",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-10-23T1727-5",
+  "source": "oracle",
+  "made": "2026-10-23T17:27:40Z",
+  "horizon": "48h",
+  "deadline": "2026-10-25T16:00:00Z",
+  "region": "Market",
+  "event": "Zaglebie Lubin wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 38,
+  "term": "unlikely",
+  "basis": [
+   "No team-specific form or injury data in collection; away win in Ekstraklasa historically occurs ~33-40% of the time."
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXEKSTRAKLASAGAME-26OCT23MOTZAG-ZAG",
+   "p_market": 92,
+   "url": "https://kalshi.com/markets/kxekstraklasagame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-10-23T1727-6",
+  "source": "oracle",
+  "made": "2026-10-23T17:27:40Z",
+  "horizon": "48h",
+  "deadline": "2026-10-24T03:59:00Z",
+  "region": "Market",
+  "event": "Will average **gas prices** be above $4.3250? (Above 4.3250)",
+  "criterion": "as Kalshi settles it",
+  "probability": 47,
+  "term": "roughly even chance",
+  "basis": [
+   "Wisconsin prices track national average with slight regional discount; national probability near 52% implies Wisconsin slightly below 50% at higher threshold."
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXAAAGASDWI-26OCT24-4.3250",
+   "p_market": 97,
+   "url": "https://kalshi.com/markets/kxaaagasdwi",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 346 air-raid alarms on 24 Oct 2026 and 25 Oct 2026, a faster pace than the past 30 days",
+  "probability": 50,
+  "base_rate": 50,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 30 were followed by this",
+   "base rate 50% over the whole record",
+   "closest: 4 Sep 2026, 18 Oct 2026, 5 Sep 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-10-24",
+   "end": "2026-10-25",
+   "op": ">",
+   "threshold": 346,
+   "unit_days": false
+  },
+  "criterion": "More than 346 air-raid alarms on 24 Oct 2026 and 25 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-23T1727-7",
+  "made": "2026-10-23T17:27:40Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-25T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,461 Russian personnel losses claimed by Ukraine's MoD on 24 Oct 2026 and 25 Oct 2026, a faster pace than the past 30 days",
+  "probability": 72,
+  "base_rate": 54,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 45 were followed by this",
+   "base rate 54% over the whole record",
+   "closest: 1 Oct 2026, 25 Oct 2024, 28 Sep 2024"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-10-24",
+   "end": "2026-10-25",
+   "op": ">",
+   "threshold": 3461,
+   "unit_days": false
+  },
+  "criterion": "More than 3,461 Russian personnel losses claimed by Ukraine's MoD on 24 Oct 2026 and 25 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-23T1727-8",
+  "made": "2026-10-23T17:27:40Z",
+  "term": "likely",
+  "deadline": "2026-10-25T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,067 Russian drones claimed destroyed by Ukraine's MoD on 24 Oct 2026 and 25 Oct 2026, a faster pace than the past 30 days",
+  "probability": 49,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 29 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 31 May 2026, 1 Jun 2026, 16 May 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-10-24",
+   "end": "2026-10-25",
+   "op": ">",
+   "threshold": 3067,
+   "unit_days": false
+  },
+  "criterion": "More than 3,067 Russian drones claimed destroyed by Ukraine's MoD on 24 Oct 2026 and 25 Oct 2026, a faster pace than the past 30 days",
+  "id": "2026-10-23T1727-9",
+  "made": "2026-10-23T17:27:40Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-25T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 24 Oct 2026 and 25 Oct 2026 (Home Front Command)",
+  "probability": 12,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 6 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 5 Nov 2015, 20 Oct 2016, 21 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-10-24",
+   "end": "2026-10-25",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 24 Oct 2026 and 25 Oct 2026 (Home Front Command)",
+  "id": "2026-10-23T1727-10",
+  "made": "2026-10-23T17:27:40Z",
+  "term": "very unlikely",
+  "deadline": "2026-10-25T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 24 Oct 2026 and 25 Oct 2026 (USGS)",
+  "probability": 53,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 32 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 6 Jul 2001, 16 Jun 2000, 16 Sep 2004"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-10-24",
+   "end": "2026-10-25",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 24 Oct 2026 and 25 Oct 2026 (USGS)",
+  "id": "2026-10-23T1727-11",
+  "made": "2026-10-23T17:27:40Z",
+  "term": "roughly even chance",
+  "deadline": "2026-10-25T23:59:59Z"
  }
 ]
