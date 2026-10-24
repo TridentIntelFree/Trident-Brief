@@ -72,6 +72,13 @@
    "url": "https://x.com/ForwardlineSPOT/status/2107270190475907383",
    "why": "Ukraine-focused OSINT feed geolocating and citing Telegram sources for Russian UAV activity near Kharkiv."
   },
+  "GarbuzYe": {
+   "days": [
+    "2026-10-24"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: geolocation of Omsk strike"
+  },
   "GlobalOSINTHQ": {
    "days": [
     "2026-10-06"
@@ -197,6 +204,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Hasan execution order"
+  },
+  "SecRubio": {
+   "days": [
+    "2026-10-24"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: Cuba statement quoted"
   },
   "SenatorCollins": {
    "days": [
@@ -395,68 +409,68 @@
    "checked": "2026-10-23"
   },
   "AuroraIntel": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "CalibreObscura": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "CovertShores": {
-   "checked": "2026-10-22"
+   "checked": "2026-10-24"
   },
   "ELINTNews": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "Faytuks": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "IntelCrab": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "JominiW": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "KofmanMichael": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "Osinttechnical": {
-   "checked": "2026-10-23",
-   "posted": "2026-10-23"
+   "checked": "2026-10-24",
+   "posted": "2026-10-24"
   },
   "RALee85": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "Tendar": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "UK_MTO": {
-   "checked": "2026-10-23",
+   "checked": "2026-10-24",
    "posted": "2026-10-23"
   },
   "detresfa_": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "noelreports": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   },
   "sentdefender": {
-   "checked": "2026-10-23",
-   "posted": "2026-10-23"
+   "checked": "2026-10-24",
+   "posted": "2026-10-24"
   },
   "wartranslated": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-24"
   }
  },
- "updated": "2026-10-23T17:08:04Z"
+ "updated": "2026-10-24T15:57:26Z"
 }
