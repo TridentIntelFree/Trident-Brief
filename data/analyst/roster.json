@@ -20,7 +20,8 @@
   "JominiW",
   "Archer83Able",
   "CovertShores",
-  "UK_MTO"
+  "UK_MTO",
+  "hey_itsmyturn"
  ],
  "found": {
   "BarakRavid": {
@@ -44,6 +45,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Zelenskyy Starlink claims"
   },
+  "DefenceGeek": {
+   "days": [
+    "2026-10-25"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: KC-46 flight sighting"
+  },
   "DonaldPMitchell": {
    "days": [
     "2026-10-06"
@@ -57,6 +65,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted by Osinttechnical on French naval op"
+  },
+  "FT": {
+   "days": [
+    "2026-10-25"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: Starlink restrictions"
   },
   "FactCheckerMoIB": {
    "days": [
@@ -163,6 +178,13 @@
    "url": "https://x.com/Megatron_ron/status/2111837780389114124",
    "why": "Sourced analysis linking Ukrainian St. Petersburg drone strikes to recent Trump energy ceasefire."
   },
+  "MilitarySummary": {
+   "days": [
+    "2026-10-25"
+   ],
+   "url": "https://x.com/MilitarySummary/status/2114375287420912074",
+   "why": "Military OSINT channel with sourced analysis on Russian Geran-5 drone preparations for strikes on Ukrainian energy infrastructure."
+  },
   "NHC_Atlantic": {
    "days": [
     "2026-10-09"
@@ -176,6 +198,13 @@
    ],
    "url": "https://x.com/Nizibizizbig/status/2108781550242246797",
    "why": "Independent analyst with graded open-source assessment citing UKMTO, IRGC and Saudi reports on Gulf of Oman/Hormuz and Riyadh attacks."
+  },
+  "Osint613": {
+   "days": [
+    "2026-10-25"
+   ],
+   "url": "https://x.com/Osint613/status/2114358510930522273",
+   "why": "OSINT account with sourced reporting citing Joint Maritime Information Center on severe threat and low traffic in Strait of Hormuz."
   },
   "PenguinSix": {
    "days": [
@@ -313,10 +342,11 @@
   },
   "hey_itsmyturn": {
    "days": [
-    "2026-10-23"
+    "2026-10-23",
+    "2026-10-25"
    ],
    "url": "",
-   "why": "quoted or credited by followed accounts: oil price image quoted by sentdefender"
+   "why": "quoted or credited by followed accounts: missile launch report"
   },
   "husker_eth": {
    "days": [
@@ -324,6 +354,13 @@
    ],
    "url": "https://x.com/husker_eth/status/2109040858536575119",
    "why": "Posts sourced OSINT briefings covering Riyadh airport strikes, Strait of Hormuz incidents and Poland security alerts with citations."
+  },
+  "kakkamax": {
+   "days": [
+    "2026-10-25"
+   ],
+   "url": "https://x.com/kakkamax/status/2114348828124217586",
+   "why": "Analyst citing Radio Liberty, ASTRA and governor statements on Ukrainian Storm Shadow strike on Russian military plant in Yelets."
   },
   "kimguilfoyle": {
    "days": [
@@ -345,6 +382,13 @@
    ],
    "url": "https://x.com/mhmck/status/2109335919014596894",
    "why": "War chronicler with sourced reporting on Russian drone and bomb strike on Kharkiv CHP plant post-ceasefire claim."
+  },
+  "militaryhistori": {
+   "days": [
+    "2026-10-25"
+   ],
+   "url": "https://x.com/militaryhistori/status/2114380598122778808",
+   "why": "Defence journalist and analyst citing France 24 on US NATO commander warning Russia against attacks on allies."
   },
   "newsguyusa": {
    "days": [
@@ -406,71 +450,71 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-10-23"
+   "checked": "2026-10-25"
   },
   "AuroraIntel": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "CalibreObscura": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "CovertShores": {
    "checked": "2026-10-24"
   },
   "ELINTNews": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "Faytuks": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "IntelCrab": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "JominiW": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "KofmanMichael": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "Osinttechnical": {
-   "checked": "2026-10-24",
-   "posted": "2026-10-24"
+   "checked": "2026-10-25",
+   "posted": "2026-10-25"
   },
   "RALee85": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "Tendar": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "UK_MTO": {
-   "checked": "2026-10-24",
-   "posted": "2026-10-23"
+   "checked": "2026-10-25",
+   "posted": "2026-10-25"
   },
   "detresfa_": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "noelreports": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   },
   "sentdefender": {
-   "checked": "2026-10-24",
-   "posted": "2026-10-24"
+   "checked": "2026-10-25",
+   "posted": "2026-10-25"
   },
   "wartranslated": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-25"
   }
  },
- "updated": "2026-10-24T15:57:26Z"
+ "updated": "2026-10-25T16:20:50Z"
 }
