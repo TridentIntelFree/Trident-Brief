@@ -21,6 +21,7 @@
   "Archer83Able",
   "CovertShores",
   "UK_MTO",
+  "_MartinKelly_",
   "hey_itsmyturn"
  ],
  "found": {
@@ -307,10 +308,11 @@
   },
   "_MartinKelly_": {
    "days": [
-    "2026-10-14"
+    "2026-10-14",
+    "2026-10-26"
    ],
    "url": "",
-   "why": "quoted or credited by followed accounts: quoted on ship targets"
+   "why": "quoted or credited by followed accounts: quoted on Basra tanker fire"
   },
   "alex_kokcharov": {
    "days": [
@@ -453,68 +455,72 @@
    "checked": "2026-10-25"
   },
   "AuroraIntel": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "CalibreObscura": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "CovertShores": {
-   "checked": "2026-10-24"
+   "checked": "2026-10-26"
   },
   "ELINTNews": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "Faytuks": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "IntelCrab": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "JominiW": {
    "checked": "2026-10-25"
   },
   "KofmanMichael": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "Osinttechnical": {
-   "checked": "2026-10-25",
-   "posted": "2026-10-25"
+   "checked": "2026-10-26",
+   "posted": "2026-10-26"
   },
   "RALee85": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "Tendar": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "UK_MTO": {
-   "checked": "2026-10-25",
+   "checked": "2026-10-26",
    "posted": "2026-10-25"
   },
   "detresfa_": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
+  },
+  "hey_itsmyturn": {
+   "checked": "2026-10-26",
+   "posted": "2026-10-26"
   },
   "noelreports": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   },
   "sentdefender": {
-   "checked": "2026-10-25",
-   "posted": "2026-10-25"
+   "checked": "2026-10-26",
+   "posted": "2026-10-26"
   },
   "wartranslated": {
-   "checked": "2026-10-25"
+   "checked": "2026-10-26"
   }
  },
- "updated": "2026-10-25T16:20:50Z"
+ "updated": "2026-10-26T18:41:14Z"
 }
