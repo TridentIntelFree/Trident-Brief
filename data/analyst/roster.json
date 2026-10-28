@@ -55,13 +55,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: KC-46 flight sighting"
   },
-  "DonaldPMitchell": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "",
-   "why": "quoted or credited 1x by followed accounts"
-  },
   "EtatMajorFR": {
    "days": [
     "2026-10-13"
@@ -83,26 +76,12 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted in Pakistan denial"
   },
-  "ForwardlineSPOT": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "https://x.com/ForwardlineSPOT/status/2107270190475907383",
-   "why": "Ukraine-focused OSINT feed geolocating and citing Telegram sources for Russian UAV activity near Kharkiv."
-  },
   "GarbuzYe": {
    "days": [
     "2026-10-24"
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: geolocation of Omsk strike"
-  },
-  "GlobalOSINTHQ": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "https://x.com/GlobalOSINTHQ/status/2107240175713554855",
-   "why": "Global OSINT account providing real-time geopolitical analysis and situation reports on UK B-1B bomber evacuations due to Iranian threats, with sourced details."
   },
   "GlushkoDenys": {
    "days": [
@@ -230,13 +209,6 @@
    "url": "https://x.com/PopularFront_/status/2111764989727961099",
    "why": "Sourced reporting with MoD footage on Romanian F-16 Geran drone shootdowns."
   },
-  "SeanParnellASW": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted on Hasan execution"
-  },
   "SecArmy": {
    "days": [
     "2026-10-07"
@@ -258,13 +230,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: Bath Iron Works certification quote"
   },
-  "SitDeck": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "https://x.com/SitDeck/status/2107275938442457404",
-   "why": "Global intelligence dashboard account analyzing Ukrainian Sky Sentinel drone defense systems in Kharkiv with combat testing details."
-  },
   "StateDept": {
    "days": [
     "2026-10-09"
@@ -279,13 +244,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: UKMTO warnings on Hormuz incidents"
-  },
-  "UK_REPT": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "https://x.com/UK_REPT/status/2107230174345413118",
-   "why": "Mideast conflict and intelligence analyst posting sourced reporting on US B-1B bombers leaving UK bases amid Iranian drone threats."
   },
   "USAinKSA": {
    "days": [
@@ -307,13 +265,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: hybrid attacks and oil reporting"
-  },
-  "WarWired": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "https://x.com/WarWired/status/2107266236459724920",
-   "why": "Neutral conflict brief account citing official Ukrainian sources on Russian strikes in Kharkiv residential areas."
   },
   "ZelenskyyUa": {
    "days": [
@@ -350,13 +301,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: footage source for Wainwright fire"
-  },
-  "havoc_aviation": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted on B-1B withdrawal"
   },
   "hey_itsmyturn": {
    "days": [
@@ -429,13 +373,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on ship sinkings"
   },
-  "osint42": {
-   "days": [
-    "2026-10-06"
-   ],
-   "url": "https://x.com/osint42/status/2106707264249712715",
-   "why": "OSINT account citing Finnish presidential statements on Russian military intelligence improvements and capabilities."
-  },
   "ragipsoylu": {
    "days": [
     "2026-10-22"
@@ -478,75 +415,79 @@
    "checked": "2026-10-27"
   },
   "AuroraIntel": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
+  },
+  "BarakRavid": {
+   "checked": "2026-10-28",
+   "posted": "2026-10-28"
   },
   "CalibreObscura": {
    "checked": "2026-10-27"
   },
   "CovertShores": {
-   "checked": "2026-10-26"
+   "checked": "2026-10-28"
   },
   "ELINTNews": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "Faytuks": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "IntelCrab": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "JominiW": {
    "checked": "2026-10-27"
   },
   "KofmanMichael": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "Osinttechnical": {
-   "checked": "2026-10-27",
-   "posted": "2026-10-27"
+   "checked": "2026-10-28",
+   "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "Tendar": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-26"
+   "checked": "2026-10-28"
   },
   "UK_MTO": {
-   "checked": "2026-10-27",
+   "checked": "2026-10-28",
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
    "checked": "2026-10-27"
   },
   "detresfa_": {
-   "checked": "2026-10-26"
+   "checked": "2026-10-28"
   },
   "hey_itsmyturn": {
-   "checked": "2026-10-27",
+   "checked": "2026-10-28",
    "posted": "2026-10-26"
   },
   "noelreports": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   },
   "sentdefender": {
-   "checked": "2026-10-27",
-   "posted": "2026-10-27"
+   "checked": "2026-10-28",
+   "posted": "2026-10-28"
   },
   "wartranslated": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-28"
   }
  },
- "updated": "2026-10-27T18:01:46Z"
+ "updated": "2026-10-28T18:21:18Z"
 }
