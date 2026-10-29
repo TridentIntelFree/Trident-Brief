@@ -97,13 +97,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: geo imagery"
   },
-  "HibaNasr": {
-   "days": [
-    "2026-10-07"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: credited on Syria-Saudi meeting"
-  },
   "InsiderGeo": {
    "days": [
     "2026-10-18"
@@ -208,13 +201,6 @@
    ],
    "url": "https://x.com/PopularFront_/status/2111764989727961099",
    "why": "Sourced reporting with MoD footage on Romanian F-16 Geran drone shootdowns."
-  },
-  "SecArmy": {
-   "days": [
-    "2026-10-07"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted on Hasan execution order"
   },
   "SecRubio": {
    "days": [
@@ -412,82 +398,82 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-29"
   },
   "AuroraIntel": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "BarakRavid": {
-   "checked": "2026-10-28",
+   "checked": "2026-10-29",
    "posted": "2026-10-28"
   },
   "CalibreObscura": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-29"
   },
   "CovertShores": {
    "checked": "2026-10-28"
   },
   "ELINTNews": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "Faytuks": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "IntelCrab": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "JominiW": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-29"
   },
   "KofmanMichael": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "Osinttechnical": {
-   "checked": "2026-10-28",
+   "checked": "2026-10-29",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "Tendar": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "TheStudyofWar": {
    "checked": "2026-10-28"
   },
   "UK_MTO": {
-   "checked": "2026-10-28",
+   "checked": "2026-10-29",
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
-   "checked": "2026-10-27"
+   "checked": "2026-10-29"
   },
   "detresfa_": {
    "checked": "2026-10-28"
   },
   "hey_itsmyturn": {
-   "checked": "2026-10-28",
+   "checked": "2026-10-29",
    "posted": "2026-10-26"
   },
   "noelreports": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   },
   "oryxspioenkop": {
    "checked": "2026-10-28"
   },
   "sentdefender": {
-   "checked": "2026-10-28",
+   "checked": "2026-10-29",
    "posted": "2026-10-28"
   },
   "wartranslated": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-29"
   }
  },
- "updated": "2026-10-28T18:21:18Z"
+ "updated": "2026-10-29T18:28:54Z"
 }
