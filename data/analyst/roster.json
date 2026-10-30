@@ -26,6 +26,13 @@
   "hey_itsmyturn"
  ],
  "found": {
+  "Avivector": {
+   "days": [
+    "2026-10-30"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: satellite imagery of Marinovka"
+  },
   "BarakRavid": {
    "days": [
     "2026-10-11",
@@ -48,6 +55,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Zelenskyy Starlink claims"
   },
+  "CyberBoroshno": {
+   "days": [
+    "2026-10-30"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: higher-res Marinovka image"
+  },
   "DefenceGeek": {
    "days": [
     "2026-10-25"
@@ -68,13 +82,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: Starlink restrictions"
-  },
-  "FactCheckerMoIB": {
-   "days": [
-    "2026-10-08"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted in Pakistan denial"
   },
   "GarbuzYe": {
    "days": [
@@ -401,79 +408,83 @@
    "checked": "2026-10-29"
   },
   "AuroraIntel": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30"
   },
   "BarakRavid": {
-   "checked": "2026-10-29",
+   "checked": "2026-10-30",
    "posted": "2026-10-28"
   },
   "CalibreObscura": {
    "checked": "2026-10-29"
   },
   "CovertShores": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-30"
   },
   "ELINTNews": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30"
   },
   "Faytuks": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30"
   },
   "IntelCrab": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30"
   },
   "JominiW": {
    "checked": "2026-10-29"
   },
   "KofmanMichael": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30"
   },
   "Osinttechnical": {
-   "checked": "2026-10-29",
+   "checked": "2026-10-30",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30"
   },
   "Tendar": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30",
+   "posted": "2026-10-30"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-30",
+   "posted": "2026-10-30"
   },
   "UK_MTO": {
-   "checked": "2026-10-29",
+   "checked": "2026-10-30",
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
    "checked": "2026-10-29"
   },
   "detresfa_": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-30"
   },
   "hey_itsmyturn": {
-   "checked": "2026-10-29",
-   "posted": "2026-10-26"
+   "checked": "2026-10-30",
+   "posted": "2026-10-30"
   },
   "noelreports": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30",
+   "posted": "2026-10-30"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-28"
+   "checked": "2026-10-30"
   },
   "sentdefender": {
-   "checked": "2026-10-29",
+   "checked": "2026-10-30",
    "posted": "2026-10-28"
   },
   "wartranslated": {
-   "checked": "2026-10-29"
+   "checked": "2026-10-30",
+   "posted": "2026-10-30"
   }
  },
- "updated": "2026-10-29T18:28:54Z"
+ "updated": "2026-10-30T18:00:30Z"
 }
