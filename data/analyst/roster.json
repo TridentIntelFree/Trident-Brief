@@ -55,6 +55,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Zelenskyy Starlink claims"
   },
+  "ConflictRadarME": {
+   "days": [
+    "2026-11-01"
+   ],
+   "url": "https://x.com/ConflictRadarME/status/2116951989678387370",
+   "why": "Amateur security analyst citing Kuwaiti defense officials and posting media to clarify explosions as scheduled exercises."
+  },
   "CyberBoroshno": {
    "days": [
     "2026-10-30"
@@ -103,6 +110,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: geo imagery"
+  },
+  "HeimsdallsBrief": {
+   "days": [
+    "2026-11-01"
+   ],
+   "url": "https://x.com/HeimsdallsBrief/status/2116951595678081503",
+   "why": "OSINT account on global conflicts providing sourced update confirming Kuwait explosions as military exercises."
   },
   "InsiderGeo": {
    "days": [
@@ -216,6 +230,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: Bath Iron Works certification quote"
   },
+  "Tasnimnews": {
+   "days": [
+    "2026-11-01"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted by hey_itsmyturn on Kuwait explosions"
+  },
   "UK_MTO": {
    "days": [
     "2026-10-08",
@@ -223,13 +244,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: UKMTO warnings on Hormuz incidents"
-  },
-  "USAinKSA": {
-   "days": [
-    "2026-10-10"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted for Riyadh security alert"
   },
   "USEmbassyWarsaw": {
    "days": [
@@ -394,83 +408,83 @@
    "checked": "2026-10-31"
   },
   "AuroraIntel": {
-   "checked": "2026-10-31"
+   "checked": "2026-11-01"
   },
   "BarakRavid": {
-   "checked": "2026-10-31",
+   "checked": "2026-11-01",
    "posted": "2026-10-28"
   },
   "CalibreObscura": {
    "checked": "2026-10-31"
   },
   "CovertShores": {
-   "checked": "2026-10-30"
+   "checked": "2026-11-01"
   },
   "ELINTNews": {
-   "checked": "2026-10-31"
+   "checked": "2026-11-01"
   },
   "Faytuks": {
-   "checked": "2026-10-31"
+   "checked": "2026-11-01"
   },
   "GeoConfirmed": {
-   "checked": "2026-10-30"
+   "checked": "2026-11-01"
   },
   "Global_Mil_Info": {
-   "checked": "2026-10-31"
+   "checked": "2026-11-01"
   },
   "IntelCrab": {
-   "checked": "2026-10-31"
+   "checked": "2026-11-01"
   },
   "JominiW": {
    "checked": "2026-10-31"
   },
   "KofmanMichael": {
-   "checked": "2026-10-31"
+   "checked": "2026-11-01"
   },
   "Osinttechnical": {
-   "checked": "2026-10-31",
+   "checked": "2026-11-01",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-10-31"
+   "checked": "2026-11-01"
   },
   "Tendar": {
-   "checked": "2026-10-31",
+   "checked": "2026-11-01",
    "posted": "2026-10-30"
   },
   "TheStudyofWar": {
-   "checked": "2026-10-31",
+   "checked": "2026-11-01",
    "posted": "2026-10-30"
   },
   "UK_MTO": {
-   "checked": "2026-10-31",
+   "checked": "2026-11-01",
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
    "checked": "2026-10-31"
   },
   "detresfa_": {
-   "checked": "2026-10-30"
+   "checked": "2026-11-01"
   },
   "hey_itsmyturn": {
-   "checked": "2026-10-31",
-   "posted": "2026-10-30"
+   "checked": "2026-11-01",
+   "posted": "2026-11-01"
   },
   "noelreports": {
-   "checked": "2026-10-31",
-   "posted": "2026-10-31"
+   "checked": "2026-11-01",
+   "posted": "2026-11-01"
   },
   "oryxspioenkop": {
-   "checked": "2026-10-30"
+   "checked": "2026-11-01"
   },
   "sentdefender": {
-   "checked": "2026-10-31",
+   "checked": "2026-11-01",
    "posted": "2026-10-31"
   },
   "wartranslated": {
-   "checked": "2026-10-31",
+   "checked": "2026-11-01",
    "posted": "2026-10-31"
   }
  },
- "updated": "2026-10-31T17:15:00Z"
+ "updated": "2026-11-01T17:56:05Z"
 }
