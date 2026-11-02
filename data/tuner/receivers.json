@@ -1,5 +1,5 @@
 {
- "checked": "2026-10-26T10:21:21Z",
+ "checked": "2026-11-02T12:42:37Z",
  "receivers": [
   {
    "host": "iz6byy.k1fm.us",
@@ -14,7 +14,7 @@
    "host": "kiwi-dg0jbd.stbach.de",
    "name": "DG0JBD Marienberg Germany",
    "loc": "Marienberg, Germany",
-   "lat": 50.67,
+   "lat": 50.68,
    "lon": 13.26,
    "antenna": "Magnetische Loop",
    "slots": 8
@@ -47,13 +47,13 @@
    "slots": 8
   },
   {
-   "host": "kiwi.maidgina.cafe",
-   "name": "0-30 MHz SDR | New Haven County, Connecticut, USA",
-   "loc": "New Haven County, Connecticut, USA",
-   "lat": 41.49,
-   "lon": -73.07,
-   "antenna": "Cross Country Wireless HF Active Loop v4",
-   "slots": 2
+   "host": "kiwi.k8bmz.net",
+   "name": "0-30 MHz SDR | K8BMZ | Traverse City, MI",
+   "loc": "Traverse City, MI",
+   "lat": 44.73,
+   "lon": -85.51,
+   "antenna": "DAMAGED IN WIND! ZS6BKW Inverted V - 45' AGL Apex - AM broadcast notch (ANT-> IC-7300 -> P",
+   "slots": 8
   },
   {
    "host": "kiwi.pt2fhc.org",
@@ -63,6 +63,15 @@
    "lon": -47.82,
    "antenna": "Yaesu YA-30 (T2FD)",
    "slots": 60
+  },
+  {
+   "host": "kiwi.x26.de",
+   "name": "Kiwi 2 DB0SLF (www.x26.de) | Saalfeld/Saale",
+   "loc": "Saalfeld/Saale",
+   "lat": 50.65,
+   "lon": 11.31,
+   "antenna": "LMK Vertikal from HM Funkbau",
+   "slots": 4
   },
   {
    "host": "kiwisdr.dl0hgn.ipv64.net",
@@ -92,6 +101,15 @@
    "slots": 8
   },
   {
+   "host": "radio.satelliteboy.com",
+   "name": "0-30 MHz SDR, M7GMG | Manchester, UK",
+   "loc": "Manchester, UK",
+   "lat": 53.43,
+   "lon": -2.18,
+   "antenna": "Wellbrook Loop",
+   "slots": 2
+  },
+  {
    "host": "sdr.shortwave.am",
    "name": "0-30 MHz SDR | Southport, UK",
    "loc": "Southport, UK",
@@ -114,7 +132,7 @@
    "name": "Lippis-KiWi-SDR-1 | Freital, Germany",
    "loc": "Freital, Germany",
    "lat": 51.0,
-   "lon": 13.65,
+   "lon": 13.68,
    "antenna": "Longwire",
    "slots": 8
   },
