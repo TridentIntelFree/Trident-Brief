@@ -5982,7 +5982,10 @@
   "id": "2026-10-20T1732-16",
   "made": "2026-10-20T17:32:05Z",
   "term": "very unlikely",
-  "deadline": "2026-10-22T23:59:59Z"
+  "deadline": "2026-10-22T23:59:59Z",
+  "outcome": "unclear",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "not settled within the grace period"
  },
  {
   "source": "engine",
@@ -7781,7 +7784,11 @@
   ],
   "watch_for": "first named defection in The Sudan Times or equivalent",
   "wrong_if": "zero new named senior defections by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "happened",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "Saudi media (Ajel English/Al Arabiya) reported Oct 30 that Maj Gen Siddig Abdelrahman Ander, RSF Group 15 commander, defected.",
+  "url": "https://english.ajel.sa/world/20mq288ne"
  },
  {
   "id": "2026-10-26T1852-4",
@@ -7802,7 +7809,11 @@
   ],
   "watch_for": "first aid-org or volunteer post showing convoy departure",
   "wrong_if": "no convoy or expansion confirmed and truce collapses",
-  "fly": null
+  "fly": null,
+  "outcome": "happened",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "Reuters/BBC/Al Jazeera confirmed Oct 30 aid convoy entered Oleshky and bus evacuations occurred under the truce.",
+  "url": "https://www.reuters.com/world/europe/aid-convoy-sets-off-russian-held-town-oleshky-ukraine-izvestia-says-2026-10-30/"
  },
  {
   "id": "2026-10-26T1852-5",
@@ -8016,7 +8027,10 @@
    "p_market": 8,
    "url": "https://kalshi.com/markets/kxncaafgame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-26T1852-13",
@@ -9282,7 +9296,11 @@
   ],
   "watch_for": "local X footage of resumed shelling near evacuation corridors",
   "wrong_if": "no official statements or footage of heavy fighting by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "No Ukrainian Gen Staff or Russian MoD statement confirmed heavy artillery/ground assaults inside Oleshky zone before Nov 1 18:00 UTC; ceasefire held until expiry.",
+  "url": "http://reuters.com/world/europe/ukraine-says-russia-used-oleshky-ceasefire-reinforce-positions-2026-11-02/"
  },
  {
   "id": "2026-10-30T1813-2",
@@ -9310,7 +9328,11 @@
     "UKMTO issues advisory on tanker incident in Strait of Hormuz",
     "UKMTO or gCaptain reports at least one new tanker strike or boarding attempt in Strait of Hormuz"
    ]
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "UKMTO reported one tanker incident (Louise 1, limpet mines) ~Oct 29-30; no advisory for a second distinct vessel before Nov 1 18:00 UTC.",
+  "url": "https://www.ukmto.org/-/media/ukmto/products/20261029-ukmto_warning-187-26-update-001.pdf"
  },
  {
   "id": "2026-10-30T1813-3",
@@ -9338,7 +9360,11 @@
     "Taiwan MND reports >40 PLA aircraft or live-fire median-line crossing in 48h",
     "Taiwan MND reports single-day PLA total exceeding 25 aircraft sorties"
    ]
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "Taiwan MND reported 32 PLA aircraft sorties (26 median-line crossings) for Oct 31-Nov 1 period; no daily total of 40+.",
+  "url": "https://x.com/MoNDefense/status/2116728455387558107"
  },
  {
   "id": "2026-10-30T1813-4",
@@ -9439,7 +9465,10 @@
   "id": "2026-10-30T1813-7",
   "made": "2026-10-30T18:13:25Z",
   "term": "unlikely",
-  "deadline": "2026-11-01T23:59:59Z"
+  "deadline": "2026-11-01T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "measured 270 against > 353"
  },
  {
   "source": "engine",
@@ -9465,7 +9494,10 @@
   "id": "2026-10-30T1813-8",
   "made": "2026-10-30T18:13:25Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-01T23:59:59Z"
+  "deadline": "2026-11-01T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "measured 3,770 against > 3,502"
  },
  {
   "source": "engine",
@@ -9491,7 +9523,10 @@
   "id": "2026-10-30T1813-9",
   "made": "2026-10-30T18:13:25Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-01T23:59:59Z"
+  "deadline": "2026-11-01T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "measured 2,607 against > 3,260"
  },
  {
   "source": "engine",
@@ -9543,7 +9578,10 @@
   "id": "2026-10-30T1813-11",
   "made": "2026-10-30T18:13:25Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-01T23:59:59Z"
+  "deadline": "2026-11-01T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "measured 2 against >= 1"
  },
  {
   "id": "2026-10-31T1722-1",
@@ -9572,7 +9610,11 @@
     "UKMTO or Saudi GACA reports at least one new projectile strike on a commercial tanker in or near the Strait of Hormuz be",
     "Independent confirmation (UKMTO, JMIC or AIS anomaly with footage) of at least one tanker disabled by mine or projectile"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "UKMTO reported projectile attack(s) on additional tanker(s) in Strait of Hormuz on Nov 1 (after Louise 1).",
+  "url": "https://warbrief.live/intel/hormuz-tanker-campaign-november-2026-assessment/"
  },
  {
   "id": "2026-10-31T1722-2",
@@ -9593,7 +9635,11 @@
   ],
   "watch_for": "local footage or Ukrainian/Russian MOD statement citing resumed shelling",
   "wrong_if": "No official statements or verified footage of breach appear by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "No Ukrainian/Russian official statement or geolocated video showed heavy weapons use or halted evacuations inside Oleshky zone before Nov 2 17:22 UTC.",
+  "url": "http://reuters.com/world/europe/ukraine-says-russia-used-oleshky-ceasefire-reinforce-positions-2026-11-02/"
  },
  {
   "id": "2026-10-31T1722-3",
@@ -9663,7 +9709,10 @@
    "p_market": 3,
    "url": "https://kalshi.com/markets/kxncaafgame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-31T1722-6",
@@ -9693,7 +9742,10 @@
    "p_market": 4,
    "url": "https://kalshi.com/markets/kxncaafspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-10-31T1722-7",
@@ -9715,7 +9767,10 @@
    "p_market": 12,
    "url": "https://kalshi.com/markets/kxncaafgame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-02T21:56:47Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "source": "engine",
@@ -10417,5 +10472,290 @@
   "made": "2026-11-01T18:07:36Z",
   "term": "unlikely",
   "deadline": "2026-11-08T23:59:59Z"
+ },
+ {
+  "id": "2026-11-02T2156-1",
+  "source": "oracle",
+  "made": "2026-11-02T21:56:47Z",
+  "horizon": "48h",
+  "deadline": "2026-11-04T21:56:47Z",
+  "region": "Europe",
+  "event": "Ukrainian drone or missile strike on a Russian oil refinery or fuel depot",
+  "criterion": "Kyiv Post, UNN, or Ukrainian General Staff reports a new strike with confirmed fire or operational impact before 2026-11-04T21:56 UTC",
+  "probability": 62,
+  "term": "likely",
+  "base_rate": 35,
+  "basis": [
+   "Kstovo strike pattern and Zelenskyy statements on targeting fuel supply; 433 drones launched overnight into 2 Nov"
+  ],
+  "watch_for": "New Fire Point or OSINT geolocation of fires at a second facility",
+  "wrong_if": "No new refinery strikes reported by any major Ukrainian or Western outlet by deadline",
+  "fly": {
+   "p": 80,
+   "n": 8,
+   "hits": 7,
+   "like": [
+    "Ukrainian General Staff or Kyiv Independent reports at least one new long-range drone or missile strike on a Russian air",
+    "Ukraine MoD reports at least 6 new Russian missile or drone strikes on energy infrastructure"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-02T2156-2",
+  "source": "oracle",
+  "made": "2026-11-02T21:56:47Z",
+  "horizon": "48h",
+  "deadline": "2026-11-04T21:56:47Z",
+  "region": "Middle East",
+  "event": "Additional limpet-mine or missile attack on a tanker in the Strait of Hormuz or Persian Gulf",
+  "criterion": "UKMTO or CENTCOM advisory reports a new confirmed incident before 2026-11-04T21:56 UTC",
+  "probability": 48,
+  "term": "roughly even chance",
+  "base_rate": 25,
+  "basis": [
+   "Louise 1 confirmed hit plus multiple unverified IRGC claims and nav warnings; deliberate escalation pattern"
+  ],
+  "watch_for": "New NAVAREA warning or gCaptain/Reuters report of fire or evacuation",
+  "wrong_if": "No new advisory or verified incident by deadline",
+  "fly": {
+   "p": 60,
+   "n": 8,
+   "hits": 5,
+   "like": [
+    "Independent confirmation of Hormuz tanker damage or minefield expansion",
+    "UKMTO reports second tanker incident in Strait of Hormuz"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-02T2156-3",
+  "source": "oracle",
+  "made": "2026-11-02T21:56:47Z",
+  "horizon": "48h",
+  "deadline": "2026-11-04T21:56:47Z",
+  "region": "Indo-Pacific",
+  "event": "PLA aircraft sorties around Taiwan exceed 40 on a single day",
+  "criterion": "Taiwan MND daily report shows 40 or more sorties with median-line crossings before 2026-11-04T21:56 UTC",
+  "probability": 22,
+  "term": "unlikely",
+  "base_rate": 15,
+  "basis": [
+   "Recent daily totals of 19-32 sorties remain within routine patterns; no escalation signals in MND or nav warnings"
+  ],
+  "watch_for": "Taiwan MND or MoNDefense-linked accounts reporting surge above 35",
+  "wrong_if": "MND reports stay below 40 sorties through the window",
+  "fly": {
+   "p": 10,
+   "n": 8,
+   "hits": 0,
+   "like": [
+    "Taiwan MND reports single-day PLA total exceeding 25 aircraft sorties",
+    "Elevated PLA aircraft activity around Taiwan"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-02T2156-4",
+  "source": "oracle",
+  "made": "2026-11-02T21:56:47Z",
+  "horizon": "48h",
+  "deadline": "2026-11-04T20:15:00Z",
+  "region": "Market",
+  "event": "SL Benfica wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 78,
+  "term": "likely",
+  "basis": [
+   "Benfica is the clear home favorite in Liga Portugal against a lower-table side"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXLIGAPORTUGALGAME-26NOV02BENALV-BEN",
+   "p_market": 92,
+   "url": "https://kalshi.com/markets/kxligaportugalgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-02T2156-5",
+  "source": "oracle",
+  "made": "2026-11-02T21:56:47Z",
+  "horizon": "48h",
+  "deadline": "2026-11-04T21:00:00Z",
+  "region": "Market",
+  "event": "UMBC wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 28,
+  "term": "unlikely",
+  "basis": [
+   "UMBC is a significant underdog on the road against George Mason"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXNCAAMBGAME-26NOV02UMBCGMU-UMBC",
+   "p_market": 4,
+   "url": "https://kalshi.com/markets/kxncaambgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-02T2156-6",
+  "source": "oracle",
+  "made": "2026-11-02T21:56:47Z",
+  "horizon": "48h",
+  "deadline": "2026-11-04T20:00:00Z",
+  "region": "Market",
+  "event": "San Jose St. wins by over 7.5 points",
+  "criterion": "as Kalshi settles it",
+  "probability": 41,
+  "term": "unlikely",
+  "basis": [
+   "San Jose State favored but covering 7.5 on the road is only slightly better than even"
+  ],
+  "fly": {
+   "p": 22,
+   "n": 7,
+   "hits": 1,
+   "like": [
+    "Atlanta wins the game by over 6.5 points (Atlanta wins by over 6.5 points)",
+    "Michigan wins by over 14.5 points"
+   ]
+  },
+  "market": {
+   "id": "KXNCAAMBSPREAD-26NOV02UTSASJSU-SJSU8",
+   "p_market": 96,
+   "url": "https://kalshi.com/markets/kxncaambspread",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 350 air-raid alarms on 3 Nov 2026 and 4 Nov 2026, a faster pace than the past 30 days",
+  "probability": 53,
+  "base_rate": 50,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 32 were followed by this",
+   "base rate 50% over the whole record",
+   "closest: 4 Oct 2026, 22 Jul 2024, 16 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-11-03",
+   "end": "2026-11-04",
+   "op": ">",
+   "threshold": 350,
+   "unit_days": false
+  },
+  "criterion": "More than 350 air-raid alarms on 3 Nov 2026 and 4 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-02T2156-7",
+  "made": "2026-11-02T21:56:47Z",
+  "term": "roughly even chance",
+  "deadline": "2026-11-04T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,588 Russian personnel losses claimed by Ukraine's MoD on 3 Nov 2026 and 4 Nov 2026, a faster pace than the past 30 days",
+  "probability": 78,
+  "base_rate": 53,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 49 were followed by this",
+   "base rate 53% over the whole record",
+   "closest: 21 Sep 2024, 28 Feb 2025, 31 Aug 2024"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-11-03",
+   "end": "2026-11-04",
+   "op": ">",
+   "threshold": 3588,
+   "unit_days": false
+  },
+  "criterion": "More than 3,588 Russian personnel losses claimed by Ukraine's MoD on 3 Nov 2026 and 4 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-02T2156-8",
+  "made": "2026-11-02T21:56:47Z",
+  "term": "likely",
+  "deadline": "2026-11-04T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,203 Russian drones claimed destroyed by Ukraine's MoD on 3 Nov 2026 and 4 Nov 2026, a faster pace than the past 30 days",
+  "probability": 37,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 21 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 18 Sep 2026, 28 May 2026, 16 Oct 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-11-03",
+   "end": "2026-11-04",
+   "op": ">",
+   "threshold": 3203,
+   "unit_days": false
+  },
+  "criterion": "More than 3,203 Russian drones claimed destroyed by Ukraine's MoD on 3 Nov 2026 and 4 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-02T2156-9",
+  "made": "2026-11-02T21:56:47Z",
+  "term": "unlikely",
+  "deadline": "2026-11-04T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 3 Nov 2026 and 4 Nov 2026 (Home Front Command)",
+  "probability": 11,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 5 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 5 Nov 2015, 20 Oct 2016, 21 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-11-03",
+   "end": "2026-11-04",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 3 Nov 2026 and 4 Nov 2026 (Home Front Command)",
+  "id": "2026-11-02T2156-10",
+  "made": "2026-11-02T21:56:47Z",
+  "term": "very unlikely",
+  "deadline": "2026-11-04T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 3 Nov 2026 and 4 Nov 2026 (USGS)",
+  "probability": 55,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 33 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 2 Aug 2011, 6 Aug 2021, 26 Sep 2022"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-11-03",
+   "end": "2026-11-04",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 3 Nov 2026 and 4 Nov 2026 (USGS)",
+  "id": "2026-11-02T2156-11",
+  "made": "2026-11-02T21:56:47Z",
+  "term": "roughly even chance",
+  "deadline": "2026-11-04T23:59:59Z"
  }
 ]
