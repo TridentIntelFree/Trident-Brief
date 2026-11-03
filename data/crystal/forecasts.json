@@ -6440,7 +6440,10 @@
   "id": "2026-10-21T1740-10",
   "made": "2026-10-21T17:40:11Z",
   "term": "very unlikely",
-  "deadline": "2026-10-23T23:59:59Z"
+  "deadline": "2026-10-23T23:59:59Z",
+  "outcome": "unclear",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "not settled within the grace period"
  },
  {
   "source": "engine",
@@ -8248,7 +8251,10 @@
   "id": "2026-10-26T1852-20",
   "made": "2026-10-26T18:52:03Z",
   "term": "unlikely",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "measured 1,005 against > 1,217"
  },
  {
   "source": "engine",
@@ -8274,7 +8280,10 @@
   "id": "2026-10-26T1852-21",
   "made": "2026-10-26T18:52:03Z",
   "term": "likely",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "measured 12,330 against > 12,404"
  },
  {
   "source": "engine",
@@ -8300,7 +8309,10 @@
   "id": "2026-10-26T1852-22",
   "made": "2026-10-26T18:52:03Z",
   "term": "likely",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "measured 10,083 against > 11,302"
  },
  {
   "source": "engine",
@@ -8352,7 +8364,10 @@
   "id": "2026-10-26T1852-24",
   "made": "2026-10-26T18:52:03Z",
   "term": "unlikely",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "measured 5 against >= 4"
  },
  {
   "id": "2026-10-27T1816-1",
@@ -9796,7 +9811,10 @@
   "id": "2026-10-31T1722-8",
   "made": "2026-10-31T17:22:00Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "measured 342 against > 351"
  },
  {
   "source": "engine",
@@ -9822,7 +9840,10 @@
   "id": "2026-10-31T1722-9",
   "made": "2026-10-31T17:22:00Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "measured 4,600 against > 3,487"
  },
  {
   "source": "engine",
@@ -9848,7 +9869,10 @@
   "id": "2026-10-31T1722-10",
   "made": "2026-10-31T17:22:00Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "measured 1,880 against > 3,285"
  },
  {
   "source": "engine",
@@ -9900,7 +9924,10 @@
   "id": "2026-10-31T1722-12",
   "made": "2026-10-31T17:22:00Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "measured 1 against >= 1"
  },
  {
   "id": "2026-11-01T1807-1",
@@ -9929,7 +9956,11 @@
     "Additional confirmed tanker strike or closure in Hormuz within 24h",
     "Additional confirmed tanker strike or closure in Hormuz within 24h"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "UKMTO reported projectile strikes on tankers in the Strait of Hormuz on 1 Nov and 2 Nov 2026.",
+  "url": "https://warbrief.live/intel/hormuz-tanker-campaign-november-2026-assessment/"
  },
  {
   "id": "2026-11-01T1807-2",
@@ -9958,7 +9989,11 @@
     "Ukrainian drone strike on additional Russian refinery or port",
     "Russian MoD or verified milblogger posts footage of successful intercept of Ukrainian drone or missile on energy infrast"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "Ukrainian reports confirm Russian strikes on energy infrastructure overnight 2-3 Nov 2026 caused blackouts affecting >180k households in Zaporizhzhia Oblast alone plus Kyiv and six regions.",
+  "url": "https://english.nv.ua/nation/russian-forces-target-ukrainian-energy-grid-in-overnight-strikes-50655856.html"
  },
  {
   "id": "2026-11-01T1807-3",
@@ -10050,7 +10085,10 @@
    "id": "6361051",
    "p_market": 4,
    "url": "https://polymarket.com/market/us-announces-end-of-iranian-blockade-by-november-2-2026"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "settled on Polymarket"
  },
  {
   "id": "2026-11-01T1807-7",
@@ -10101,7 +10139,10 @@
    "p_market": 12,
    "url": "https://kalshi.com/markets/kxnfltd",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-01T1807-9",
@@ -10123,7 +10164,10 @@
    "p_market": 7,
    "url": "https://kalshi.com/markets/kxnfltd",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-01T1807-10",
@@ -10145,7 +10189,10 @@
    "p_market": 7,
    "url": "https://kalshi.com/markets/kxnfltd",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-03T19:49:27Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-01T1807-11",
@@ -10757,5 +10804,278 @@
   "made": "2026-11-02T21:56:47Z",
   "term": "roughly even chance",
   "deadline": "2026-11-04T23:59:59Z"
+ },
+ {
+  "id": "2026-11-03T1949-1",
+  "source": "oracle",
+  "made": "2026-11-03T19:49:27Z",
+  "horizon": "48h",
+  "deadline": "2026-11-05T19:49:27Z",
+  "region": "short",
+  "event": "Additional verified tanker strike or mine incident in Strait of Hormuz",
+  "criterion": "UKMTO or CENTCOM issues an advisory confirming at least one additional tanker strike or mine incident in the Strait of Hormuz or Gulf of Oman before 05 November 2026 19:49 UTC",
+  "probability": 45,
+  "term": "unlikely",
+  "base_rate": 25,
+  "basis": [
+   "Louise 1 confirmed hit plus multiple unverified additional incidents in recent reporting",
+   "22x GDELT spike at Qeshm"
+  ],
+  "watch_for": "New UKMTO or CENTCOM advisory",
+  "wrong_if": "No new maritime advisories or confirmed incidents reported by Reuters/gCaptain by deadline",
+  "fly": {
+   "p": 30,
+   "n": 8,
+   "hits": 2,
+   "like": [
+    "Additional verified Hormuz tanker incident or mine claim with AIS data",
+    "UKMTO issues advisory on tanker incident in Strait of Hormuz"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-03T1949-2",
+  "source": "oracle",
+  "made": "2026-11-03T19:49:27Z",
+  "horizon": "48h",
+  "deadline": "2026-11-05T19:49:27Z",
+  "region": "short",
+  "event": "Ukrainian drone strike reported on additional Russian oil refinery",
+  "criterion": "Kyiv Post or Ukrainska Pravda reports a confirmed Ukrainian drone strike on a Russian oil refinery causing visible fires before 05 November 2026 19:49 UTC",
+  "probability": 55,
+  "term": "roughly even chance",
+  "base_rate": 30,
+  "basis": [
+   "Kstovo, Yaroslavl and Ufa strikes in prior 72 hours with FIRMS fire data",
+   "Ongoing Ukrainian deep-strike campaign degrading refining capacity"
+  ],
+  "watch_for": "New Kyiv Post or Fire Point reporting of refinery fires",
+  "wrong_if": "No new refinery strikes confirmed by deadline in Kyiv Post, Ukrainska Pravda or FIRMS data",
+  "fly": {
+   "p": 90,
+   "n": 8,
+   "hits": 8,
+   "like": [
+    "Ukrainian drone strike on additional Russian refinery or port",
+    "Russian drone or missile strike on additional Ukrainian energy node"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-03T1949-3",
+  "source": "oracle",
+  "made": "2026-11-03T19:49:27Z",
+  "horizon": "48h",
+  "deadline": "2026-11-05T17:30:00Z",
+  "region": "Market",
+  "event": "Will Al Qadisiyah Saudi Club vs. Al Fayha Saudi Club end in a draw?",
+  "criterion": "as Polymarket settles it",
+  "probability": 28,
+  "term": "unlikely",
+  "basis": [
+   "Typical draw rate in Saudi Professional League matches around 28-32 percent with no contrary signals"
+  ],
+  "fly": null,
+  "market": {
+   "id": "6490417",
+   "p_market": 96,
+   "url": "https://polymarket.com/market/spl-qad-fay-2026-11-05-draw"
+  }
+ },
+ {
+  "id": "2026-11-03T1949-4",
+  "source": "oracle",
+  "made": "2026-11-03T19:49:27Z",
+  "horizon": "48h",
+  "deadline": "2026-11-05T13:29:00Z",
+  "region": "Market",
+  "event": "Will the Czech National Bank cut more than 25bps at the November Bank Board monetary policy meeting?",
+  "criterion": "as Kalshi settles it",
+  "probability": 12,
+  "term": "very unlikely",
+  "basis": [
+   "Czech National Bank meetings rarely cut more than 25 bps in a single step absent acute crisis"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXCBDCZECH-26NOV05-C25P",
+   "p_market": 5,
+   "url": "https://kalshi.com/markets/kxcbdczech",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-03T1949-5",
+  "source": "oracle",
+  "made": "2026-11-03T19:49:27Z",
+  "horizon": "48h",
+  "deadline": "2026-11-04T07:00:00Z",
+  "region": "Market",
+  "event": "Will the maximum temperature be 63-64\u00b0 on Nov 3, 2026? (63\u00b0 to 64\u00b0)",
+  "criterion": "as Kalshi settles it",
+  "probability": 18,
+  "term": "very unlikely",
+  "basis": [
+   "November Minneapolis temperatures cluster below 60 F; 63-64 F band is narrow"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXHIGHTMIN-26NOV03-B63.5",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxhightmin",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-03T1949-6",
+  "source": "oracle",
+  "made": "2026-11-03T19:49:27Z",
+  "horizon": "48h",
+  "deadline": "2026-11-04T04:59:00Z",
+  "region": "Market",
+  "event": "Will average **gas prices** be above $4.1300? (Above 4.1300)",
+  "criterion": "as Kalshi settles it",
+  "probability": 8,
+  "term": "very unlikely",
+  "basis": [
+   "Current US average regular gas prices sit near 3.10-3.30; sustained move above 4.13 in 48 hours is rare"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXAAAGASD-26NOV04-4.1300",
+   "p_market": 4,
+   "url": "https://kalshi.com/markets/kxaaagasd",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 353 air-raid alarms on 4 Nov 2026 and 5 Nov 2026, a faster pace than the past 30 days",
+  "probability": 49,
+  "base_rate": 50,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 29 were followed by this",
+   "base rate 50% over the whole record",
+   "closest: 23 Sep 2025, 12 Jun 2026, 19 Sep 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-11-04",
+   "end": "2026-11-05",
+   "op": ">",
+   "threshold": 353,
+   "unit_days": false
+  },
+  "criterion": "More than 353 air-raid alarms on 4 Nov 2026 and 5 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-03T1949-7",
+  "made": "2026-11-03T19:49:27Z",
+  "term": "roughly even chance",
+  "deadline": "2026-11-05T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,609 Russian personnel losses claimed by Ukraine's MoD on 4 Nov 2026 and 5 Nov 2026, a faster pace than the past 30 days",
+  "probability": 83,
+  "base_rate": 53,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 52 were followed by this",
+   "base rate 53% over the whole record",
+   "closest: 23 Sep 2024, 18 Oct 2026, 11 Oct 2025"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-11-04",
+   "end": "2026-11-05",
+   "op": ">",
+   "threshold": 3609,
+   "unit_days": false
+  },
+  "criterion": "More than 3,609 Russian personnel losses claimed by Ukraine's MoD on 4 Nov 2026 and 5 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-03T1949-8",
+  "made": "2026-11-03T19:49:27Z",
+  "term": "very likely",
+  "deadline": "2026-11-05T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,181 Russian drones claimed destroyed by Ukraine's MoD on 4 Nov 2026 and 5 Nov 2026, a faster pace than the past 30 days",
+  "probability": 37,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 21 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 24 Jun 2026, 25 Jun 2026, 26 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-11-04",
+   "end": "2026-11-05",
+   "op": ">",
+   "threshold": 3181,
+   "unit_days": false
+  },
+  "criterion": "More than 3,181 Russian drones claimed destroyed by Ukraine's MoD on 4 Nov 2026 and 5 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-03T1949-9",
+  "made": "2026-11-03T19:49:27Z",
+  "term": "unlikely",
+  "deadline": "2026-11-05T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 4 Nov 2026 and 5 Nov 2026 (Home Front Command)",
+  "probability": 11,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 5 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 5 Nov 2015, 20 Oct 2016, 21 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-11-04",
+   "end": "2026-11-05",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 4 Nov 2026 and 5 Nov 2026 (Home Front Command)",
+  "id": "2026-11-03T1949-10",
+  "made": "2026-11-03T19:49:27Z",
+  "term": "very unlikely",
+  "deadline": "2026-11-05T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 4 Nov 2026 and 5 Nov 2026 (USGS)",
+  "probability": 57,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 35 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 26 Sep 2022, 11 Aug 2007, 3 Aug 2011"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-11-04",
+   "end": "2026-11-05",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 4 Nov 2026 and 5 Nov 2026 (USGS)",
+  "id": "2026-11-03T1949-11",
+  "made": "2026-11-03T19:49:27Z",
+  "term": "likely",
+  "deadline": "2026-11-05T23:59:59Z"
  }
 ]
