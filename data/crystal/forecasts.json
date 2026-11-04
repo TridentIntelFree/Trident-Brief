@@ -6748,7 +6748,10 @@
   "id": "2026-10-22T1738-10",
   "made": "2026-10-22T17:38:29Z",
   "term": "very unlikely",
-  "deadline": "2026-10-24T23:59:59Z"
+  "deadline": "2026-10-24T23:59:59Z",
+  "outcome": "unclear",
+  "resolved": "2026-11-04T20:02:32Z",
+  "evidence": "not settled within the grace period"
  },
  {
   "source": "engine",
@@ -10284,7 +10287,10 @@
   "id": "2026-11-01T1807-14",
   "made": "2026-11-01T18:07:36Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-03T23:59:59Z"
+  "deadline": "2026-11-03T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-04T20:02:32Z",
+  "evidence": "measured 374 against > 349"
  },
  {
   "source": "engine",
@@ -10310,7 +10316,10 @@
   "id": "2026-11-01T1807-15",
   "made": "2026-11-01T18:07:36Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-03T23:59:59Z"
+  "deadline": "2026-11-03T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-04T20:02:32Z",
+  "evidence": "measured 4,560 against > 3,487"
  },
  {
   "source": "engine",
@@ -10336,7 +10345,10 @@
   "id": "2026-11-01T1807-16",
   "made": "2026-11-01T18:07:36Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-03T23:59:59Z"
+  "deadline": "2026-11-03T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-04T20:02:32Z",
+  "evidence": "measured 2,349 against > 3,285"
  },
  {
   "source": "engine",
@@ -10388,7 +10400,10 @@
   "id": "2026-11-01T1807-18",
   "made": "2026-11-01T18:07:36Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-03T23:59:59Z"
+  "deadline": "2026-11-03T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-04T20:02:32Z",
+  "evidence": "measured 0 against >= 1"
  },
  {
   "source": "engine",
@@ -10673,7 +10688,10 @@
    "p_market": 96,
    "url": "https://kalshi.com/markets/kxncaambspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-04T20:02:32Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "source": "engine",
@@ -10924,7 +10942,10 @@
    "p_market": 6,
    "url": "https://kalshi.com/markets/kxhightmin",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-04T20:02:32Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-03T1949-6",
@@ -10946,7 +10967,10 @@
    "p_market": 4,
    "url": "https://kalshi.com/markets/kxaaagasd",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-04T20:02:32Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "source": "engine",
@@ -11077,5 +11101,255 @@
   "made": "2026-11-03T19:49:27Z",
   "term": "likely",
   "deadline": "2026-11-05T23:59:59Z"
+ },
+ {
+  "id": "2026-11-04T2002-1",
+  "source": "oracle",
+  "made": "2026-11-04T20:02:32Z",
+  "horizon": "48h",
+  "deadline": "2026-11-06T20:02:32Z",
+  "region": "short",
+  "event": "Ukrainian drone strike on additional major Russian refinery",
+  "criterion": "Kyiv Post or Ukrainska Pravda reports fires or confirmed damage at a Russian oil refinery of 10 Mt/year capacity or larger before 2026-11-06T20:00 UTC",
+  "probability": 58,
+  "term": "likely",
+  "base_rate": 45,
+  "basis": [
+   "Kstovo and Yaroslavl strikes already confirmed in current window",
+   "multi-day campaign pattern in Russian milblogger and Ukrainian reporting"
+  ],
+  "watch_for": "Russian milblogger footage of new fires within 24 hours",
+  "wrong_if": "No refinery incident reported by any major Ukrainian outlet by deadline",
+  "fly": {
+   "p": 80,
+   "n": 8,
+   "hits": 7,
+   "like": [
+    "Ukrainian drone strike on major Russian refinery or port infrastructure",
+    "Ukrainian strike on major Russian refinery or port facility"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-04T2002-2",
+  "source": "oracle",
+  "made": "2026-11-04T20:02:32Z",
+  "horizon": "48h",
+  "deadline": "2026-11-06T20:02:32Z",
+  "region": "short",
+  "event": "New verified Hormuz tanker incident",
+  "criterion": "UKMTO or gCaptain reports a new tanker struck by mine, projectile or explosion inside the Strait of Hormuz before 2026-11-06T20:00 UTC",
+  "probability": 31,
+  "term": "unlikely",
+  "base_rate": 22,
+  "basis": [
+   "Louise 1 already confirmed; unverified Iranian claims circulating",
+   "post-midterm political pressure but no operational change yet"
+  ],
+  "watch_for": "UKMTO alert or fresh insurance-rate movement within 24 hours",
+  "wrong_if": "No new UKMTO or gCaptain-confirmed Hormuz incident by deadline",
+  "fly": {
+   "p": 40,
+   "n": 8,
+   "hits": 3,
+   "like": [
+    "New Hormuz tanker incident reported",
+    "Independent verification of new Hormuz tanker incident"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-04T2002-3",
+  "source": "oracle",
+  "made": "2026-11-04T20:02:32Z",
+  "horizon": "48h",
+  "deadline": "2026-11-06T20:02:32Z",
+  "region": "short",
+  "event": "North Korea projectile launch",
+  "criterion": "NK News or Taipei Times reports a North Korean projectile or missile fired eastward before 2026-11-06T20:00 UTC",
+  "probability": 37,
+  "term": "unlikely",
+  "base_rate": 28,
+  "basis": [
+   "04 Nov launch already occurred; routine testing tempo unchanged",
+   "loudspeakers installed but no broadcasts observed"
+  ],
+  "watch_for": "South Korean military statement or NK News bulletin within 24 hours",
+  "wrong_if": "No new launch reported by NK News or equivalent by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-11-04T2002-4",
+  "source": "oracle",
+  "made": "2026-11-04T20:02:32Z",
+  "horizon": "48h",
+  "deadline": "2026-11-06T00:00:00Z",
+  "region": "Market",
+  "event": "Sacramento St. wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 22,
+  "term": "unlikely",
+  "basis": [
+   "Sacramento State is a heavy underdog on the road against a MAC team; historical results for similar mismatches favor the favorite by wide margins"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXNCAAFGAME-26NOV03TOLSAC-SAC",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxncaafgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-04T2002-5",
+  "source": "oracle",
+  "made": "2026-11-04T20:02:32Z",
+  "horizon": "48h",
+  "deadline": "2026-11-06T20:00:00Z",
+  "region": "Market",
+  "event": "Slavia Prague wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 14,
+  "term": "very unlikely",
+  "basis": [
+   "Arsenal is the clear favorite in a Champions League away fixture; Slavia Prague rarely wins against top European sides"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUCLGAME-26NOV04SLAARS-SLA",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxuclgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 357 air-raid alarms on 5 Nov 2026 and 6 Nov 2026, a faster pace than the past 30 days",
+  "probability": 43,
+  "base_rate": 50,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 25 were followed by this",
+   "base rate 50% over the whole record",
+   "closest: 12 Jun 2026, 13 Sep 2026, 19 Sep 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-11-05",
+   "end": "2026-11-06",
+   "op": ">",
+   "threshold": 357,
+   "unit_days": false
+  },
+  "criterion": "More than 357 air-raid alarms on 5 Nov 2026 and 6 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-04T2002-6",
+  "made": "2026-11-04T20:02:32Z",
+  "term": "unlikely",
+  "deadline": "2026-11-06T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,619 Russian personnel losses claimed by Ukraine's MoD on 5 Nov 2026 and 6 Nov 2026, a faster pace than the past 30 days",
+  "probability": 80,
+  "base_rate": 54,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 50 were followed by this",
+   "base rate 54% over the whole record",
+   "closest: 14 Nov 2024, 2 Sep 2024, 12 Jul 2026"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-11-05",
+   "end": "2026-11-06",
+   "op": ">",
+   "threshold": 3619,
+   "unit_days": false
+  },
+  "criterion": "More than 3,619 Russian personnel losses claimed by Ukraine's MoD on 5 Nov 2026 and 6 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-04T2002-7",
+  "made": "2026-11-04T20:02:32Z",
+  "term": "likely",
+  "deadline": "2026-11-06T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,131 Russian drones claimed destroyed by Ukraine's MoD on 5 Nov 2026 and 6 Nov 2026, a faster pace than the past 30 days",
+  "probability": 37,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 21 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 27 May 2026, 28 May 2026, 29 May 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-11-05",
+   "end": "2026-11-06",
+   "op": ">",
+   "threshold": 3131,
+   "unit_days": false
+  },
+  "criterion": "More than 3,131 Russian drones claimed destroyed by Ukraine's MoD on 5 Nov 2026 and 6 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-04T2002-8",
+  "made": "2026-11-04T20:02:32Z",
+  "term": "unlikely",
+  "deadline": "2026-11-06T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 5 Nov 2026 and 6 Nov 2026 (Home Front Command)",
+  "probability": 11,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 5 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 5 Nov 2015, 20 Oct 2016, 21 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-11-05",
+   "end": "2026-11-06",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 5 Nov 2026 and 6 Nov 2026 (Home Front Command)",
+  "id": "2026-11-04T2002-9",
+  "made": "2026-11-04T20:02:32Z",
+  "term": "very unlikely",
+  "deadline": "2026-11-06T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 5 Nov 2026 and 6 Nov 2026 (USGS)",
+  "probability": 50,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 30 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 28 Oct 2006, 27 Oct 2006, 29 Oct 2006"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-11-05",
+   "end": "2026-11-06",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 5 Nov 2026 and 6 Nov 2026 (USGS)",
+  "id": "2026-11-04T2002-10",
+  "made": "2026-11-04T20:02:32Z",
+  "term": "roughly even chance",
+  "deadline": "2026-11-06T23:59:59Z"
  }
 ]
