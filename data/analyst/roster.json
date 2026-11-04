@@ -75,13 +75,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: KC-46 flight sighting"
   },
-  "EtatMajorFR": {
-   "days": [
-    "2026-10-13"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted by Osinttechnical on French naval op"
-  },
   "FT": {
    "days": [
     "2026-10-25"
@@ -123,6 +116,13 @@
    ],
    "url": "https://x.com/InsiderGeo/status/2111816080255594682",
    "why": "Sourced morning watch summary citing Reuters on St. Petersburg oil terminal strikes."
+  },
+  "JDVance": {
+   "days": [
+    "2026-11-04"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on election analysis"
   },
   "JayinKyiv": {
    "days": [
@@ -258,13 +258,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Basra tanker fire"
   },
-  "ariel_oseran": {
-   "days": [
-    "2026-10-13"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted by sentdefender on Houthi warnings"
-  },
   "avishaigrinzaig": {
    "days": [
     "2026-11-03"
@@ -301,13 +294,6 @@
    "url": "https://x.com/kakkamax/status/2114348828124217586",
    "why": "Analyst citing Radio Liberty, ASTRA and governor statements on Ukrainian Storm Shadow strike on Russian military plant in Yelets."
   },
-  "kimguilfoyle": {
-   "days": [
-    "2026-10-13"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted by sentdefender on ambassador resignation"
-  },
   "militaryhistori": {
    "days": [
     "2026-10-25"
@@ -328,6 +314,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: Mecca pact text"
+  },
+  "realDonaldTrump": {
+   "days": [
+    "2026-11-04"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: cited on Iran war and midterms"
   }
  },
  "starter": [
@@ -354,86 +347,87 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-02"
+   "checked": "2026-11-04"
   },
   "AuroraIntel": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-04",
+   "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-03",
+   "checked": "2026-11-04",
    "posted": "2026-11-03"
   },
   "CalibreObscura": {
-   "checked": "2026-11-02"
+   "checked": "2026-11-04"
   },
   "CovertShores": {
    "checked": "2026-11-03"
   },
   "ELINTNews": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-04"
   },
   "Faytuks": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-04"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-04"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-04"
   },
   "IntelCrab": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-04"
   },
   "JominiW": {
-   "checked": "2026-11-02"
+   "checked": "2026-11-04"
   },
   "KofmanMichael": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-04"
   },
   "Osinttechnical": {
-   "checked": "2026-11-03",
+   "checked": "2026-11-04",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-04"
   },
   "Tendar": {
-   "checked": "2026-11-03",
+   "checked": "2026-11-04",
    "posted": "2026-10-30"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-03",
-   "posted": "2026-11-03"
+   "checked": "2026-11-04",
+   "posted": "2026-11-04"
   },
   "UK_MTO": {
    "checked": "2026-11-03",
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
-   "checked": "2026-11-02"
+   "checked": "2026-11-04"
   },
   "detresfa_": {
    "checked": "2026-11-03"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-03",
+   "checked": "2026-11-04",
    "posted": "2026-11-03"
   },
   "noelreports": {
-   "checked": "2026-11-03",
-   "posted": "2026-11-01"
+   "checked": "2026-11-04",
+   "posted": "2026-11-04"
   },
   "oryxspioenkop": {
    "checked": "2026-11-03"
   },
   "sentdefender": {
-   "checked": "2026-11-03",
-   "posted": "2026-11-02"
+   "checked": "2026-11-04",
+   "posted": "2026-11-04"
   },
   "wartranslated": {
-   "checked": "2026-11-03",
+   "checked": "2026-11-04",
    "posted": "2026-11-02"
   }
  },
- "updated": "2026-11-03T19:29:28Z"
+ "updated": "2026-11-04T19:45:59Z"
 }
