@@ -272,6 +272,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: footage source for Wainwright fire"
   },
+  "fromiran": {
+   "days": [
+    "2026-11-05"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: source for Iran UAV post"
+  },
   "hey_itsmyturn": {
    "days": [
     "2026-10-23",
@@ -301,13 +308,6 @@
    "url": "https://x.com/militaryhistori/status/2114380598122778808",
    "why": "Defence journalist and analyst citing France 24 on US NATO commander warning Russia against attacks on allies."
   },
-  "no_itsmyturn": {
-   "days": [
-    "2026-10-14"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted on ship sinkings"
-  },
   "ragipsoylu": {
    "days": [
     "2026-10-22"
@@ -321,6 +321,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: cited on Iran war and midterms"
+  },
+  "yaronavraham": {
+   "days": [
+    "2026-11-05"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted by BarakRavid on Shin Bet"
   }
  },
  "starter": [
@@ -350,54 +357,54 @@
    "checked": "2026-11-04"
   },
   "AuroraIntel": {
-   "checked": "2026-11-04",
+   "checked": "2026-11-05",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-04",
-   "posted": "2026-11-03"
+   "checked": "2026-11-05",
+   "posted": "2026-11-05"
   },
   "CalibreObscura": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-05"
   },
   "CovertShores": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-05"
   },
   "ELINTNews": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-05"
   },
   "Faytuks": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-05"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-05"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-05"
   },
   "IntelCrab": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-05"
   },
   "JominiW": {
    "checked": "2026-11-04"
   },
   "KofmanMichael": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-05"
   },
   "Osinttechnical": {
-   "checked": "2026-11-04",
+   "checked": "2026-11-05",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-05"
   },
   "Tendar": {
-   "checked": "2026-11-04",
+   "checked": "2026-11-05",
    "posted": "2026-10-30"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-04",
-   "posted": "2026-11-04"
+   "checked": "2026-11-05",
+   "posted": "2026-11-05"
   },
   "UK_MTO": {
    "checked": "2026-11-03",
@@ -407,27 +414,27 @@
    "checked": "2026-11-04"
   },
   "detresfa_": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-05"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-04",
-   "posted": "2026-11-03"
+   "checked": "2026-11-05",
+   "posted": "2026-11-05"
   },
   "noelreports": {
-   "checked": "2026-11-04",
+   "checked": "2026-11-05",
    "posted": "2026-11-04"
   },
   "oryxspioenkop": {
-   "checked": "2026-11-03"
+   "checked": "2026-11-05"
   },
   "sentdefender": {
-   "checked": "2026-11-04",
-   "posted": "2026-11-04"
+   "checked": "2026-11-05",
+   "posted": "2026-11-05"
   },
   "wartranslated": {
-   "checked": "2026-11-04",
-   "posted": "2026-11-02"
+   "checked": "2026-11-05",
+   "posted": "2026-11-05"
   }
  },
- "updated": "2026-11-04T19:45:59Z"
+ "updated": "2026-11-05T19:57:22Z"
 }
