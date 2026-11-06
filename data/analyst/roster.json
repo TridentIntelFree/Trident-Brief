@@ -32,6 +32,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: satellite imagery of Marinovka"
   },
+  "Axios_ar": {
+   "days": [
+    "2026-11-06"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: flagged as fake account"
+  },
   "BarakRavid": {
    "days": [
     "2026-10-11",
@@ -137,6 +144,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on carrier deployment"
+  },
+  "JenniferJJacobs": {
+   "days": [
+    "2026-11-06"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: CBS source on Wiles resignation"
   },
   "Kpler": {
    "days": [
@@ -272,6 +286,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: footage source for Wainwright fire"
   },
+  "flightradar24": {
+   "days": [
+    "2026-11-06"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: flight tracking image"
+  },
   "fromiran": {
    "days": [
     "2026-11-05"
@@ -354,15 +375,15 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-06"
   },
   "AuroraIntel": {
-   "checked": "2026-11-05",
+   "checked": "2026-11-06",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-05",
-   "posted": "2026-11-05"
+   "checked": "2026-11-06",
+   "posted": "2026-11-06"
   },
   "CalibreObscura": {
    "checked": "2026-11-05"
@@ -371,39 +392,39 @@
    "checked": "2026-11-05"
   },
   "ELINTNews": {
-   "checked": "2026-11-05"
+   "checked": "2026-11-06"
   },
   "Faytuks": {
-   "checked": "2026-11-05"
+   "checked": "2026-11-06"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-05"
+   "checked": "2026-11-06"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-05"
+   "checked": "2026-11-06"
   },
   "IntelCrab": {
-   "checked": "2026-11-05"
+   "checked": "2026-11-06"
   },
   "JominiW": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-06"
   },
   "KofmanMichael": {
-   "checked": "2026-11-05"
+   "checked": "2026-11-06"
   },
   "Osinttechnical": {
-   "checked": "2026-11-05",
+   "checked": "2026-11-06",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-11-05"
+   "checked": "2026-11-06"
   },
   "Tendar": {
-   "checked": "2026-11-05",
+   "checked": "2026-11-06",
    "posted": "2026-10-30"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-05",
+   "checked": "2026-11-06",
    "posted": "2026-11-05"
   },
   "UK_MTO": {
@@ -411,30 +432,30 @@
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
-   "checked": "2026-11-04"
+   "checked": "2026-11-06"
   },
   "detresfa_": {
    "checked": "2026-11-05"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-05",
-   "posted": "2026-11-05"
+   "checked": "2026-11-06",
+   "posted": "2026-11-06"
   },
   "noelreports": {
-   "checked": "2026-11-05",
-   "posted": "2026-11-04"
+   "checked": "2026-11-06",
+   "posted": "2026-11-06"
   },
   "oryxspioenkop": {
-   "checked": "2026-11-05"
+   "checked": "2026-11-06"
   },
   "sentdefender": {
-   "checked": "2026-11-05",
-   "posted": "2026-11-05"
+   "checked": "2026-11-06",
+   "posted": "2026-11-06"
   },
   "wartranslated": {
-   "checked": "2026-11-05",
+   "checked": "2026-11-06",
    "posted": "2026-11-05"
   }
  },
- "updated": "2026-11-05T19:57:22Z"
+ "updated": "2026-11-06T19:25:08Z"
 }
