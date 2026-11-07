@@ -1,6 +1,13 @@
 {
- "updated": "2026-11-06T17:53:32.787489+00:00",
+ "updated": "2026-11-07T02:41:05.204665+00:00",
  "briefs": [
+  {
+   "at": "2026-11-07T02:41:05.204665+00:00",
+   "path": "archive/2026-11-07-0241.md",
+   "bluf": "BLUF: Ukrainian deep strikes continued against Russian oil refineries (Ryazan and others confirmed burning), with the Komyshuvakha aid-site death toll rising to 53; US conducted limited defensive strikes on Qeshm Island amid ongoing Hormuz ",
+   "events": 0,
+   "headlines": []
+  },
   {
    "at": "2026-11-06T17:53:32.787489+00:00",
    "path": "archive/2026-11-06-1753.md",
@@ -753,19 +760,6 @@
     "Multiple tanker strikes by unknown projectiles",
     "Saudi-backed forces advance, secure Dhubab",
     "Federal forces consolidate control after TPLF withdrawal"
-   ]
-  },
-  {
-   "at": "2026-10-05T19:25:12.329425+00:00",
-   "path": "archive/2026-10-05-1925.md",
-   "bluf": "BLUF: Russian glide-bomb and drone strikes killed at least six and injured dozens in Kharkiv on 5 October while Ukrainian SBU drones struck two advanced fighters at Khanskaya air base deep inside Russia; Saudi-backed Yemeni forces advanced ",
-   "events": 5,
-   "headlines": [
-    "Russian glide bombs kill 6, injure 59 in Slobidskyi district",
-    "SBU drones strike Su-35 and Su-34 fighters",
-    "Additional tanker strikes by unknown projectiles",
-    "Saudi-backed forces advance, claim control of key positions",
-    "Federal forces consolidate after TPLF withdrawal; follow-on strikes reported"
    ]
   }
  ],
