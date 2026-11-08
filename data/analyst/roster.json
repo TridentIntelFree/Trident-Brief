@@ -25,6 +25,13 @@
   "hey_itsmyturn"
  ],
  "found": {
+  "Abom1nabl3": {
+   "days": [
+    "2026-11-08"
+   ],
+   "url": "https://x.com/Abom1nabl3/status/2119000391622783349",
+   "why": "Sourced monitoring of strikes on Saratov refinery, Oryol Proton plant, and Rostov Almaz warehouse with context."
+  },
   "Avivector": {
    "days": [
     "2026-10-30"
@@ -60,13 +67,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: drone intercept statement"
-  },
-  "ChristopherJM": {
-   "days": [
-    "2026-10-17"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted on Zelenskyy Starlink claims"
   },
   "ConflictRadarME": {
    "days": [
@@ -187,6 +187,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: source for US officials on deployments"
   },
+  "Maks_NAFO_FELLA": {
+   "days": [
+    "2026-11-08"
+   ],
+   "url": "https://x.com/Maks_NAFO_FELLA/status/2119475993274380475",
+   "why": "Geolocated video footage and analysis of FP-2 drone strike on Rostov Mius River bridge and substation debris."
+  },
   "Megatron_ron": {
    "days": [
     "2026-10-18"
@@ -243,6 +250,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: Cuba statement quoted"
   },
+  "SkyFall": {
+   "days": [
+    "2026-11-08"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: CASEVAC claim"
+  },
   "Tasnimnews": {
    "days": [
     "2026-11-01"
@@ -286,6 +300,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Basra tanker fire"
   },
+  "anno1540": {
+   "days": [
+    "2026-11-08"
+   ],
+   "url": "https://x.com/anno1540/status/2118945341131153509",
+   "why": "Detailed sourced post with images on Russian EW jamming and Saratov refinery drone strike impacts."
+  },
   "avishaigrinzaig": {
    "days": [
     "2026-11-03"
@@ -299,6 +320,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: footage source for Wainwright fire"
+  },
+  "delfoo": {
+   "days": [
+    "2026-11-08"
+   ],
+   "url": "https://x.com/delfoo/status/2118964521423306982",
+   "why": "Sourced report on Samara oil pipeline halt from Ukrainian drone strikes on pumping station, citing Kommersant."
   },
   "flightradar24": {
    "days": [
@@ -335,6 +363,20 @@
    ],
    "url": "https://x.com/kakkamax/status/2114348828124217586",
    "why": "Analyst citing Radio Liberty, ASTRA and governor statements on Ukrainian Storm Shadow strike on Russian military plant in Yelets."
+  },
+  "kromark": {
+   "days": [
+    "2026-11-08"
+   ],
+   "url": "https://x.com/kromark/status/2119480534581539125",
+   "why": "Geolocated Planet satellite imagery analysis of Samara oil pumping station damage from multiple Ukrainian strikes."
+  },
+  "militarnyi": {
+   "days": [
+    "2026-11-08"
+   ],
+   "url": "https://x.com/militarnyi/status/2119488372494499894",
+   "why": "Sourced reporting on Ukrainian drone damage to Rostov bridge on R-280 highway supplying occupied Crimea."
   },
   "militaryhistori": {
    "days": [
@@ -389,14 +431,14 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-06"
+   "checked": "2026-11-08"
   },
   "AuroraIntel": {
-   "checked": "2026-11-07",
+   "checked": "2026-11-08",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-07",
+   "checked": "2026-11-08",
    "posted": "2026-11-06"
   },
   "CalibreObscura": {
@@ -406,70 +448,70 @@
    "checked": "2026-11-07"
   },
   "ELINTNews": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-08"
   },
   "Faytuks": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-08"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-08"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-08"
   },
   "IntelCrab": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-08"
   },
   "JominiW": {
-   "checked": "2026-11-06"
+   "checked": "2026-11-08"
   },
   "KofmanMichael": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-08"
   },
   "Osinttechnical": {
-   "checked": "2026-11-07",
+   "checked": "2026-11-08",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-08"
   },
   "Tendar": {
-   "checked": "2026-11-07",
+   "checked": "2026-11-08",
    "posted": "2026-10-30"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-07",
-   "posted": "2026-11-05"
+   "checked": "2026-11-08",
+   "posted": "2026-11-08"
   },
   "UK_MTO": {
    "checked": "2026-11-03",
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
-   "checked": "2026-11-06"
+   "checked": "2026-11-08"
   },
   "detresfa_": {
    "checked": "2026-11-07"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-07",
-   "posted": "2026-11-07"
+   "checked": "2026-11-08",
+   "posted": "2026-11-08"
   },
   "noelreports": {
-   "checked": "2026-11-07",
-   "posted": "2026-11-07"
+   "checked": "2026-11-08",
+   "posted": "2026-11-08"
   },
   "oryxspioenkop": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-08"
   },
   "sentdefender": {
-   "checked": "2026-11-07",
+   "checked": "2026-11-08",
    "posted": "2026-11-07"
   },
   "wartranslated": {
-   "checked": "2026-11-07",
-   "posted": "2026-11-07"
+   "checked": "2026-11-08",
+   "posted": "2026-11-08"
   }
  },
- "updated": "2026-11-07T17:44:45Z"
+ "updated": "2026-11-08T17:56:00Z"
 }
