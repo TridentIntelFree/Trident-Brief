@@ -1,5 +1,5 @@
 {
- "checked": "2026-11-02T12:42:37Z",
+ "checked": "2026-11-09T13:08:18Z",
  "receivers": [
   {
    "host": "iz6byy.k1fm.us",
@@ -14,7 +14,7 @@
    "host": "kiwi-dg0jbd.stbach.de",
    "name": "DG0JBD Marienberg Germany",
    "loc": "Marienberg, Germany",
-   "lat": 50.68,
+   "lat": 50.67,
    "lon": 13.26,
    "antenna": "Magnetische Loop",
    "slots": 8
@@ -45,24 +45,6 @@
    "lon": 9.32,
    "antenna": "long wire",
    "slots": 8
-  },
-  {
-   "host": "kiwi.k8bmz.net",
-   "name": "0-30 MHz SDR | K8BMZ | Traverse City, MI",
-   "loc": "Traverse City, MI",
-   "lat": 44.73,
-   "lon": -85.51,
-   "antenna": "DAMAGED IN WIND! ZS6BKW Inverted V - 45' AGL Apex - AM broadcast notch (ANT-> IC-7300 -> P",
-   "slots": 8
-  },
-  {
-   "host": "kiwi.pt2fhc.org",
-   "name": "0-30 MHz SDR, PT2FHC, Brasilia, DF, Brazil",
-   "loc": "Brasilia, DF, Brazil",
-   "lat": -15.71,
-   "lon": -47.82,
-   "antenna": "Yaesu YA-30 (T2FD)",
-   "slots": 60
   },
   {
    "host": "kiwi.x26.de",
@@ -110,6 +92,15 @@
    "slots": 2
   },
   {
+   "host": "sdr.n6ij.com",
+   "name": "Monterey Bay Amateur Radio Association | Marina, California",
+   "loc": "Marina, California",
+   "lat": 36.66,
+   "lon": -121.8,
+   "antenna": "Mini-Whip by pa0rdt",
+   "slots": 8
+  },
+  {
    "host": "sdr.shortwave.am",
    "name": "0-30 MHz SDR | Southport, UK",
    "loc": "Southport, UK",
@@ -126,6 +117,15 @@
    "lon": 8.83,
    "antenna": "Indoor Active Loops",
    "slots": 8
+  },
+  {
+   "host": "sdrccp.bloap.cl",
+   "name": "KiwiSDR Curacautín, Chile",
+   "loc": "Curacautín, Araucanía, Chile",
+   "lat": -38.43,
+   "lon": -71.88,
+   "antenna": "YAESU YA-30",
+   "slots": 3
   },
   {
    "host": "swl-lippi-1.stbach.de",
