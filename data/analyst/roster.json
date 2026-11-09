@@ -21,6 +21,7 @@
   "Archer83Able",
   "CovertShores",
   "BarakRavid",
+  "JenniferJJacobs",
   "_MartinKelly_",
   "hey_itsmyturn"
  ],
@@ -103,13 +104,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: geolocation of Omsk strike"
   },
-  "GlushkoDenys": {
-   "days": [
-    "2026-10-18"
-   ],
-   "url": "https://x.com/GlushkoDenys/status/2111791057784692779",
-   "why": "MoD-cited reporting with images on Romanian F-16 intercepts of Russian drones."
-  },
   "Grimm_Intel": {
    "days": [
     "2026-10-22"
@@ -124,26 +118,12 @@
    "url": "https://x.com/HeimsdallsBrief/status/2116951595678081503",
    "why": "OSINT account on global conflicts providing sourced update confirming Kuwait explosions as military exercises."
   },
-  "InsiderGeo": {
-   "days": [
-    "2026-10-18"
-   ],
-   "url": "https://x.com/InsiderGeo/status/2111816080255594682",
-   "why": "Sourced morning watch summary citing Reuters on St. Petersburg oil terminal strikes."
-  },
   "JDVance": {
    "days": [
     "2026-11-04"
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on election analysis"
-  },
-  "JayinKyiv": {
-   "days": [
-    "2026-10-18"
-   ],
-   "url": "https://x.com/JayinKyiv/status/2111823881342161343",
-   "why": "Eyewitness video and local reaction reporting from Ukrainian drone barrage on St. Petersburg."
   },
   "JenGriffinFNC": {
    "days": [
@@ -154,10 +134,11 @@
   },
   "JenniferJJacobs": {
    "days": [
-    "2026-11-06"
+    "2026-11-06",
+    "2026-11-09"
    ],
    "url": "",
-   "why": "quoted or credited by followed accounts: CBS source on Wiles resignation"
+   "why": "quoted or credited by followed accounts: quoted on Dana White presence"
   },
   "Kpler": {
    "days": [
@@ -165,13 +146,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: oil flow data via WSJ"
-  },
-  "LetsArmUKR": {
-   "days": [
-    "2026-10-18"
-   ],
-   "url": "https://x.com/LetsArmUKR/status/2111833972627947679",
-   "why": "Detailed sourced timeline and cockpit footage analysis of Romanian F-16 drone intercepts."
   },
   "LibbeyDean_": {
    "days": [
@@ -193,13 +167,6 @@
    ],
    "url": "https://x.com/Maks_NAFO_FELLA/status/2119475993274380475",
    "why": "Geolocated video footage and analysis of FP-2 drone strike on Rostov Mius River bridge and substation debris."
-  },
-  "Megatron_ron": {
-   "days": [
-    "2026-10-18"
-   ],
-   "url": "https://x.com/Megatron_ron/status/2111837780389114124",
-   "why": "Sourced analysis linking Ukrainian St. Petersburg drone strikes to recent Trump energy ceasefire."
   },
   "MilitarySummary": {
    "days": [
@@ -228,13 +195,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: election odds"
-  },
-  "PopularFront_": {
-   "days": [
-    "2026-10-18"
-   ],
-   "url": "https://x.com/PopularFront_/status/2111764989727961099",
-   "why": "Sourced reporting with MoD footage on Romanian F-16 Geran drone shootdowns."
   },
   "Roi_Yanovsky": {
    "days": [
@@ -314,12 +274,12 @@
    "url": "",
    "why": "quoted or credited by followed accounts: cited on investigation details"
   },
-  "bkbrey": {
+  "dannyctkemp": {
    "days": [
-    "2026-10-18"
+    "2026-11-09"
    ],
    "url": "",
-   "why": "quoted or credited by followed accounts: footage source for Wainwright fire"
+   "why": "quoted or credited by followed accounts: quoted on Trump briefing"
   },
   "delfoo": {
    "days": [
@@ -434,53 +394,53 @@
    "checked": "2026-11-08"
   },
   "AuroraIntel": {
-   "checked": "2026-11-08",
+   "checked": "2026-11-09",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-08",
-   "posted": "2026-11-06"
+   "checked": "2026-11-09",
+   "posted": "2026-11-09"
   },
   "CalibreObscura": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-09"
   },
   "CovertShores": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-09"
   },
   "ELINTNews": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-09"
   },
   "Faytuks": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-09"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-09"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-09"
   },
   "IntelCrab": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-09"
   },
   "JominiW": {
    "checked": "2026-11-08"
   },
   "KofmanMichael": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-09"
   },
   "Osinttechnical": {
-   "checked": "2026-11-08",
+   "checked": "2026-11-09",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-09"
   },
   "Tendar": {
-   "checked": "2026-11-08",
+   "checked": "2026-11-09",
    "posted": "2026-10-30"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-08",
+   "checked": "2026-11-09",
    "posted": "2026-11-08"
   },
   "UK_MTO": {
@@ -491,27 +451,27 @@
    "checked": "2026-11-08"
   },
   "detresfa_": {
-   "checked": "2026-11-07"
+   "checked": "2026-11-09"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-08",
+   "checked": "2026-11-09",
    "posted": "2026-11-08"
   },
   "noelreports": {
-   "checked": "2026-11-08",
-   "posted": "2026-11-08"
+   "checked": "2026-11-09",
+   "posted": "2026-11-09"
   },
   "oryxspioenkop": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-09"
   },
   "sentdefender": {
-   "checked": "2026-11-08",
-   "posted": "2026-11-07"
+   "checked": "2026-11-09",
+   "posted": "2026-11-09"
   },
   "wartranslated": {
-   "checked": "2026-11-08",
+   "checked": "2026-11-09",
    "posted": "2026-11-08"
   }
  },
- "updated": "2026-11-08T17:56:00Z"
+ "updated": "2026-11-09T22:22:30Z"
 }
