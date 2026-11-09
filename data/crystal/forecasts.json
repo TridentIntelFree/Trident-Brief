@@ -8698,7 +8698,10 @@
   "id": "2026-10-27T1816-10",
   "made": "2026-10-27T18:16:50Z",
   "term": "very unlikely",
-  "deadline": "2026-10-29T23:59:59Z"
+  "deadline": "2026-10-29T23:59:59Z",
+  "outcome": "unclear",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "not settled within the grace period"
  },
  {
   "source": "engine",
@@ -10069,7 +10072,11 @@
     "Taiwan MND reports single-day PLA total exceeding 25 aircraft sorties",
     "Taiwan MND reports >40 PLA aircraft or live-fire median-line crossing in 48h"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "Taiwan MND reported 49 PLA aircraft sorties with 31 median-line crossings on November 3, 2026.",
+  "url": "https://geopolitiki.com/military/taiwan-11-sorties-chinese-aircraft-10-warships-around-island-nine-crossed-median-line-november-7/"
  },
  {
   "id": "2026-11-01T1807-4",
@@ -10090,7 +10097,11 @@
   ],
   "watch_for": "MSF or Reuters follow-up with verified total exceeding 50",
   "wrong_if": "no independent source reaches the 50-death threshold by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "Reports of 15-25 civilian deaths from Ethiopian drone strikes in late October 2026; no AU, UN, or MSF verification of 50+ deaths.",
+  "url": "https://www.reuters.com/world/africa/strikes-camp-ethiopia-kill-least-15-sources-say-2026-10-30/"
  },
  {
   "id": "2026-11-01T1807-5",
@@ -10111,7 +10122,11 @@
   ],
   "watch_for": "first post-pause strike report from Kherson oblast",
   "wrong_if": "no strikes reported in the zone by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "No Ukrinform or Kyiv Independent reports of Russian strikes inside Oleshky evacuation zone after ceasefire ended by November 8 18:00 UTC.",
+  "url": "https://kyivindependent.com/oleshky-residents-reach-ukrainian-controlled-territory-after-escaping-russian-occupation/"
  },
  {
   "id": "2026-11-01T1807-6",
@@ -10511,7 +10526,10 @@
   "id": "2026-11-01T1807-20",
   "made": "2026-11-01T18:07:36Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-08T23:59:59Z"
+  "deadline": "2026-11-08T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "measured 16,130 against > 12,203"
  },
  {
   "source": "engine",
@@ -10537,7 +10555,10 @@
   "id": "2026-11-01T1807-21",
   "made": "2026-11-01T18:07:36Z",
   "term": "likely",
-  "deadline": "2026-11-08T23:59:59Z"
+  "deadline": "2026-11-08T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "measured 8,572 against > 11,498"
  },
  {
   "source": "engine",
@@ -10589,7 +10610,10 @@
   "id": "2026-11-01T1807-23",
   "made": "2026-11-01T18:07:36Z",
   "term": "unlikely",
-  "deadline": "2026-11-08T23:59:59Z"
+  "deadline": "2026-11-08T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "measured 2 against >= 4"
  },
  {
   "id": "2026-11-02T2156-1",
@@ -12070,7 +12094,11 @@
     "Sustained Ukrainian refinery strikes causing measurable throughput drop \u2192 Russian fuel-export curbs or import deals \u2192 IE",
     "Ukrainian deep strike on additional major Russian refinery or energy node with measurable fuel shortage signals within 4"
    ]
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "No official Russian energy ministry or government statement on new fuel export restrictions or emergency import deals reported by TASS or Reuters November 6-8 2026.",
+  "url": "https://www.reuters.com/business/energy/fuel-shortages-return-russian-regions-after-ukrainian-refinery-attacks-2026-11-09/"
  },
  {
   "id": "2026-11-06T1941-2",
@@ -12090,7 +12118,11 @@
   ],
   "watch_for": "KCNA amplification on Telegram channels",
   "wrong_if": "No new KCNA claim or South Korean detection by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "KCNA reported North Korean missile tests on November 4-5 2026; no new launch or test detected or reported November 6-8 2026.",
+  "url": "https://www.nknews.org/?p=981760"
  },
  {
   "id": "2026-11-06T1941-3",
@@ -12174,7 +12206,10 @@
    "p_market": 10,
    "url": "https://kalshi.com/markets/kxligue2game",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-06T1941-6",
@@ -12259,7 +12294,10 @@
   "id": "2026-11-06T1941-8",
   "made": "2026-11-06T19:41:46Z",
   "term": "very likely",
-  "deadline": "2026-11-08T23:59:59Z"
+  "deadline": "2026-11-08T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "measured 4,570 against > 3,725"
  },
  {
   "source": "engine",
@@ -12285,7 +12323,10 @@
   "id": "2026-11-06T1941-9",
   "made": "2026-11-06T19:41:46Z",
   "term": "unlikely",
-  "deadline": "2026-11-08T23:59:59Z"
+  "deadline": "2026-11-08T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "measured 2,561 against > 3,049"
  },
  {
   "source": "engine",
@@ -12337,7 +12378,10 @@
   "id": "2026-11-06T1941-11",
   "made": "2026-11-06T19:41:46Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-08T23:59:59Z"
+  "deadline": "2026-11-08T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "measured 0 against >= 1"
  },
  {
   "id": "2026-11-07T1751-1",
@@ -12365,7 +12409,11 @@
     "UKMTO or gCaptain reports at least one new tanker strike or boarding attempt in Strait of Hormuz",
     "UKMTO reports at least one additional projectile incident on an outbound tanker in the Strait of Hormuz"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "UKMTO reported at least three new tanker attacks or incidents in Strait of Hormuz over the weekend of November 8-9 2026.",
+  "url": "https://splash247.com/hormuz-suffers-weekend-of-fire/"
  },
  {
   "id": "2026-11-07T1751-2",
@@ -12393,7 +12441,11 @@
     "Taiwan MND reports a single-day total of 9 or more PLA aircraft crossing the median line",
     "Taiwan MND reports 40+ PLA aircraft or first live-fire median-line crossing"
    ]
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "Taiwan MND reported 9 PLA aircraft median-line crossings on November 6-7 2026; no day with 20+ crossings in window.",
+  "url": "https://x.com/MoNDefense/status/2118871054919643527"
  },
  {
   "id": "2026-11-07T1751-3",
@@ -12413,7 +12465,11 @@
   ],
   "watch_for": "Polish media or official statement",
   "wrong_if": "No motive or charges announced by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "Polish prosecutors stated on November 9 2026 that motive remains unclear with insufficient evidence for specific ideology or charges named.",
+  "url": "https://en.wikipedia.org/wiki/2026_Krak%C3%B3w_shooting"
  },
  {
   "id": "2026-11-07T1751-4",
@@ -12503,7 +12559,10 @@
    "p_market": 6,
    "url": "https://kalshi.com/markets/kxserieagame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-07T1751-8",
@@ -12533,7 +12592,10 @@
    "p_market": 8,
    "url": "https://kalshi.com/markets/kxeplspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-07T1751-9",
@@ -12563,7 +12625,10 @@
    "p_market": 88,
    "url": "https://kalshi.com/markets/kxncaaf1hspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-09T22:42:35Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-07T1751-10",
@@ -13175,5 +13240,296 @@
   "made": "2026-11-08T18:05:29Z",
   "term": "roughly even chance",
   "deadline": "2026-11-10T23:59:59Z"
+ },
+ {
+  "id": "2026-11-09T2242-1",
+  "source": "oracle",
+  "made": "2026-11-09T22:42:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-11T22:42:35Z",
+  "region": "short",
+  "event": "US military strike on Iranian target near Qeshm or Hormuz",
+  "criterion": "UKMTO or Reuters reports confirmed US strike on Iranian assets in the region before 12 Nov 2026 00:00 UTC",
+  "probability": 15,
+  "term": "very unlikely",
+  "base_rate": 10,
+  "basis": [
+   "limited X chatter on Qeshm action",
+   "Trump public strike option signal",
+   "active but positive US-Qatar talks"
+  ],
+  "watch_for": "UKMTO advisory or freight rate spike",
+  "wrong_if": "No strike reports by deadline and chatter remains unverified",
+  "fly": {
+   "p": 70,
+   "n": 8,
+   "hits": 6,
+   "like": [
+    "New confirmed US strike on Iranian Qeshm/Hormuz targets \u2192 Iranian retaliation against shipping or proxies \u2192 UKMTO/shippi",
+    "Additional confirmed Houthi strike on major Saudi energy or airport target within 48h"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-09T2242-2",
+  "source": "oracle",
+  "made": "2026-11-09T22:42:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-11T22:42:35Z",
+  "region": "short",
+  "event": "CISA confirms infrastructure breach from SonicWall CVE-2026-19868",
+  "criterion": "CISA issues public alert or statement naming at least one victim organization impacted by the exploit before 12 Nov 2026 00:00 UTC",
+  "probability": 40,
+  "term": "unlikely",
+  "base_rate": 20,
+  "basis": [
+   "KEV listing and confirmed in-wild exploitation",
+   "pattern of VPN targeting",
+   "no victims named yet"
+  ],
+  "watch_for": "CISA KEV update or vendor incident notice",
+  "wrong_if": "No CISA victim confirmation by deadline",
+  "fly": {
+   "p": 71,
+   "n": 5,
+   "hits": 4,
+   "like": [
+    "CISA or equivalent adds at least one new critical infrastructure victim of SharePoint CVE-2026-65660 exploitation",
+    "Further CISA KEV additions or confirmed Ivanti exploitation against critical infrastructure"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-09T2242-3",
+  "source": "oracle",
+  "made": "2026-11-09T22:42:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-11T22:42:35Z",
+  "region": "short",
+  "event": "Taiwan MND reports surge in PLA aircraft crossing median line",
+  "criterion": "Taiwan Ministry of National Defense daily report shows 20 or more aircraft crossing the median line in any 24h period before 12 Nov 2026 00:00 UTC",
+  "probability": 10,
+  "term": "very unlikely",
+  "base_rate": 5,
+  "basis": [
+   "routine activity only in latest report",
+   "no surge signals",
+   "historical low frequency of such spikes"
+  ],
+  "watch_for": "Taiwan MND daily update exceeding 10 crossings",
+  "wrong_if": "No report meets threshold by deadline",
+  "fly": {
+   "p": 30,
+   "n": 8,
+   "hits": 2,
+   "like": [
+    "PLA aircraft crossing Taiwan median line or surge in vessels",
+    ">20 additional PLA aircraft or live-fire median-line crossing in Taiwan MND tally"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-09T2242-4",
+  "source": "oracle",
+  "made": "2026-11-09T22:42:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-11T21:00:00Z",
+  "region": "Market",
+  "event": "Full Game: Over 135.5 points scored",
+  "criterion": "as Kalshi settles it",
+  "probability": 58,
+  "term": "likely",
+  "basis": [
+   "Typical women's college basketball totals center near 140 points, giving slight edge to over 135.5"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXNCAAWBTOTAL-26NOV09DELTOWS-136",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxncaawbtotal",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-09T2242-5",
+  "source": "oracle",
+  "made": "2026-11-09T22:42:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-11T22:30:00Z",
+  "region": "Market",
+  "event": "Will over 0.5 goals be scored? (Over 0.5 goals scored)",
+  "criterion": "as Kalshi settles it",
+  "probability": 78,
+  "term": "likely",
+  "basis": [
+   "Most professional soccer matches produce at least one goal in 90 minutes plus stoppage"
+  ],
+  "fly": {
+   "p": 62,
+   "n": 6,
+   "hits": 4,
+   "like": [
+    "Will over 2.5 goals be scored? (Over 2.5 goals scored)",
+    "Will over 4.5 goals be scored? (Over 4.5 goals scored)"
+   ]
+  },
+  "market": {
+   "id": "KXAPFDDHTOTAL-26NOV09LUQMAY-1",
+   "p_market": 90,
+   "url": "https://kalshi.com/markets/kxapfddhtotal",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-09T2242-6",
+  "source": "oracle",
+  "made": "2026-11-09T22:42:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-11T04:59:00Z",
+  "region": "Market",
+  "event": "Will Harry Shum Jr. and their partner be eliminated from Dancing with the Stars Season 35 before Nov 11, 2026?",
+  "criterion": "as Kalshi settles it",
+  "probability": 22,
+  "term": "unlikely",
+  "basis": [
+   "Elimination timing for specific contestant is low-probability event absent strong performance signals"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXDWTSELIMINATION-26NOV11-HSHU",
+   "p_market": 4,
+   "url": "https://kalshi.com/markets/kxdwtselimination",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 360 air-raid alarms on 10 Nov 2026 and 11 Nov 2026, a faster pace than the past 30 days",
+  "probability": 60,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 37 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 12 Jun 2026, 19 Sep 2026, 13 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-11-10",
+   "end": "2026-11-11",
+   "op": ">",
+   "threshold": 360,
+   "unit_days": false
+  },
+  "criterion": "More than 360 air-raid alarms on 10 Nov 2026 and 11 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-09T2242-7",
+  "made": "2026-11-09T22:42:35Z",
+  "term": "likely",
+  "deadline": "2026-11-11T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,898 Russian personnel losses claimed by Ukraine's MoD on 10 Nov 2026 and 11 Nov 2026, a faster pace than the past 30 days",
+  "probability": 80,
+  "base_rate": 54,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 50 were followed by this",
+   "base rate 54% over the whole record",
+   "closest: 3 Sep 2024, 4 Sep 2024, 21 Oct 2024"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-11-10",
+   "end": "2026-11-11",
+   "op": ">",
+   "threshold": 3898,
+   "unit_days": false
+  },
+  "criterion": "More than 3,898 Russian personnel losses claimed by Ukraine's MoD on 10 Nov 2026 and 11 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-09T2242-8",
+  "made": "2026-11-09T22:42:35Z",
+  "term": "likely",
+  "deadline": "2026-11-11T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 3,006 Russian drones claimed destroyed by Ukraine's MoD on 10 Nov 2026 and 11 Nov 2026, a faster pace than the past 30 days",
+  "probability": 50,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 30 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 4 Oct 2026, 21 Oct 2026, 1 May 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-11-10",
+   "end": "2026-11-11",
+   "op": ">",
+   "threshold": 3006,
+   "unit_days": false
+  },
+  "criterion": "More than 3,006 Russian drones claimed destroyed by Ukraine's MoD on 10 Nov 2026 and 11 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-09T2242-9",
+  "made": "2026-11-09T22:42:35Z",
+  "term": "roughly even chance",
+  "deadline": "2026-11-11T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 10 Nov 2026 and 11 Nov 2026 (Home Front Command)",
+  "probability": 12,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 6 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 5 Nov 2015, 20 Oct 2016, 21 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-11-10",
+   "end": "2026-11-11",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 10 Nov 2026 and 11 Nov 2026 (Home Front Command)",
+  "id": "2026-11-09T2242-10",
+  "made": "2026-11-09T22:42:35Z",
+  "term": "very unlikely",
+  "deadline": "2026-11-11T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 10 Nov 2026 and 11 Nov 2026 (USGS)",
+  "probability": 55,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 33 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 26 Aug 2021, 12 Aug 2025, 20 Oct 2003"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-11-10",
+   "end": "2026-11-11",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 10 Nov 2026 and 11 Nov 2026 (USGS)",
+  "id": "2026-11-09T2242-11",
+  "made": "2026-11-09T22:42:35Z",
+  "term": "roughly even chance",
+  "deadline": "2026-11-11T23:59:59Z"
  }
 ]
