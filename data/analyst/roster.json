@@ -182,13 +182,6 @@
    "url": "https://x.com/Osint613/status/2114358510930522273",
    "why": "OSINT account with sourced reporting citing Joint Maritime Information Center on severe threat and low traffic in Strait of Hormuz."
   },
-  "PenguinSix": {
-   "days": [
-    "2026-10-19"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted on DC shooting"
-  },
   "Polymarket": {
    "days": [
     "2026-10-27"
@@ -244,13 +237,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: hybrid attacks and oil reporting"
-  },
-  "ZelenskyyUa": {
-   "days": [
-    "2026-10-19"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted on Russian strikes"
   },
   "_MartinKelly_": {
    "days": [
@@ -391,14 +377,14 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-10"
   },
   "AuroraIntel": {
-   "checked": "2026-11-09",
+   "checked": "2026-11-10",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-09",
+   "checked": "2026-11-10",
    "posted": "2026-11-09"
   },
   "CalibreObscura": {
@@ -408,39 +394,42 @@
    "checked": "2026-11-09"
   },
   "ELINTNews": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-10"
   },
   "Faytuks": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-10"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-10"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-10"
   },
   "IntelCrab": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-10"
+  },
+  "JenniferJJacobs": {
+   "checked": "2026-11-10"
   },
   "JominiW": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-10"
   },
   "KofmanMichael": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-10"
   },
   "Osinttechnical": {
-   "checked": "2026-11-09",
+   "checked": "2026-11-10",
    "posted": "2026-10-28"
   },
   "RALee85": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-10"
   },
   "Tendar": {
-   "checked": "2026-11-09",
-   "posted": "2026-10-30"
+   "checked": "2026-11-10",
+   "posted": "2026-11-10"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-09",
+   "checked": "2026-11-10",
    "posted": "2026-11-08"
   },
   "UK_MTO": {
@@ -448,30 +437,30 @@
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
-   "checked": "2026-11-08"
+   "checked": "2026-11-10"
   },
   "detresfa_": {
    "checked": "2026-11-09"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-09",
-   "posted": "2026-11-08"
+   "checked": "2026-11-10",
+   "posted": "2026-11-10"
   },
   "noelreports": {
-   "checked": "2026-11-09",
-   "posted": "2026-11-09"
+   "checked": "2026-11-10",
+   "posted": "2026-11-10"
   },
   "oryxspioenkop": {
    "checked": "2026-11-09"
   },
   "sentdefender": {
-   "checked": "2026-11-09",
-   "posted": "2026-11-09"
+   "checked": "2026-11-10",
+   "posted": "2026-11-10"
   },
   "wartranslated": {
-   "checked": "2026-11-09",
+   "checked": "2026-11-10",
    "posted": "2026-11-08"
   }
  },
- "updated": "2026-11-09T22:22:30Z"
+ "updated": "2026-11-10T19:44:09Z"
 }
