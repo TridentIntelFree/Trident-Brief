@@ -21,6 +21,7 @@
   "Archer83Able",
   "CovertShores",
   "BarakRavid",
+  "CENTCOM",
   "JenniferJJacobs",
   "_MartinKelly_",
   "hey_itsmyturn"
@@ -57,10 +58,11 @@
   },
   "CENTCOM": {
    "days": [
-    "2026-11-07"
+    "2026-11-07",
+    "2026-11-11"
    ],
    "url": "",
-   "why": "quoted or credited by followed accounts: source on Task Force Iron Gate"
+   "why": "quoted or credited by followed accounts: quoted by sentdefender on Iran ops"
   },
   "CJFCSpox": {
    "days": [
@@ -125,13 +127,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on election analysis"
   },
-  "JenGriffinFNC": {
-   "days": [
-    "2026-10-20"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: quoted on carrier deployment"
-  },
   "JenniferJJacobs": {
    "days": [
     "2026-11-06",
@@ -153,13 +148,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: Trump quote"
-  },
-  "Liz_Friden": {
-   "days": [
-    "2026-10-20"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: source for US officials on deployments"
   },
   "Maks_NAFO_FELLA": {
    "days": [
@@ -380,33 +368,34 @@
    "checked": "2026-11-10"
   },
   "AuroraIntel": {
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-10",
-   "posted": "2026-11-09"
+   "checked": "2026-11-11",
+   "posted": "2026-11-11"
   },
   "CalibreObscura": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-11",
+   "posted": "2026-11-11"
   },
   "CovertShores": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-11"
   },
   "ELINTNews": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-11"
   },
   "Faytuks": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-11"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-11"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-11"
   },
   "IntelCrab": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-11"
   },
   "JenniferJJacobs": {
    "checked": "2026-11-10"
@@ -415,21 +404,21 @@
    "checked": "2026-11-10"
   },
   "KofmanMichael": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-11"
   },
   "Osinttechnical": {
-   "checked": "2026-11-10",
-   "posted": "2026-10-28"
+   "checked": "2026-11-11",
+   "posted": "2026-11-11"
   },
   "RALee85": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-11"
   },
   "Tendar": {
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "posted": "2026-11-10"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "posted": "2026-11-08"
   },
   "UK_MTO": {
@@ -440,27 +429,27 @@
    "checked": "2026-11-10"
   },
   "detresfa_": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-11"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-10",
+   "checked": "2026-11-11",
    "posted": "2026-11-10"
   },
   "noelreports": {
-   "checked": "2026-11-10",
-   "posted": "2026-11-10"
+   "checked": "2026-11-11",
+   "posted": "2026-11-11"
   },
   "oryxspioenkop": {
-   "checked": "2026-11-09"
+   "checked": "2026-11-11"
   },
   "sentdefender": {
-   "checked": "2026-11-10",
-   "posted": "2026-11-10"
+   "checked": "2026-11-11",
+   "posted": "2026-11-11"
   },
   "wartranslated": {
-   "checked": "2026-11-10",
-   "posted": "2026-11-08"
+   "checked": "2026-11-11",
+   "posted": "2026-11-11"
   }
  },
- "updated": "2026-11-10T19:44:09Z"
+ "updated": "2026-11-11T19:36:30Z"
 }
