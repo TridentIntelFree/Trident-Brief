@@ -135,13 +135,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Dana White presence"
   },
-  "Kpler": {
-   "days": [
-    "2026-10-21"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: oil flow data via WSJ"
-  },
   "LibbeyDean_": {
    "days": [
     "2026-10-22"
@@ -218,13 +211,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: PAC-3 announcement"
-  },
-  "WSJ": {
-   "days": [
-    "2026-10-21"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: hybrid attacks and oil reporting"
   },
   "_MartinKelly_": {
    "days": [
@@ -365,60 +351,63 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-12"
   },
   "AuroraIntel": {
-   "checked": "2026-11-11",
+   "checked": "2026-11-12",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-11",
+   "checked": "2026-11-12",
    "posted": "2026-11-11"
   },
+  "CENTCOM": {
+   "checked": "2026-11-12"
+  },
   "CalibreObscura": {
-   "checked": "2026-11-11",
+   "checked": "2026-11-12",
    "posted": "2026-11-11"
   },
   "CovertShores": {
    "checked": "2026-11-11"
   },
   "ELINTNews": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-12"
   },
   "Faytuks": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-12"
   },
   "GeoConfirmed": {
    "checked": "2026-11-11"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-12"
   },
   "IntelCrab": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-12"
   },
   "JenniferJJacobs": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-12"
   },
   "JominiW": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-12"
   },
   "KofmanMichael": {
    "checked": "2026-11-11"
   },
   "Osinttechnical": {
-   "checked": "2026-11-11",
+   "checked": "2026-11-12",
    "posted": "2026-11-11"
   },
   "RALee85": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-12"
   },
   "Tendar": {
-   "checked": "2026-11-11",
+   "checked": "2026-11-12",
    "posted": "2026-11-10"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-11",
+   "checked": "2026-11-12",
    "posted": "2026-11-08"
   },
   "UK_MTO": {
@@ -426,30 +415,30 @@
    "posted": "2026-10-25"
   },
   "_MartinKelly_": {
-   "checked": "2026-11-10"
+   "checked": "2026-11-12"
   },
   "detresfa_": {
    "checked": "2026-11-11"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-11",
-   "posted": "2026-11-10"
+   "checked": "2026-11-12",
+   "posted": "2026-11-12"
   },
   "noelreports": {
-   "checked": "2026-11-11",
-   "posted": "2026-11-11"
+   "checked": "2026-11-12",
+   "posted": "2026-11-12"
   },
   "oryxspioenkop": {
    "checked": "2026-11-11"
   },
   "sentdefender": {
-   "checked": "2026-11-11",
-   "posted": "2026-11-11"
+   "checked": "2026-11-12",
+   "posted": "2026-11-12"
   },
   "wartranslated": {
-   "checked": "2026-11-11",
-   "posted": "2026-11-11"
+   "checked": "2026-11-12",
+   "posted": "2026-11-12"
   }
  },
- "updated": "2026-11-11T19:36:30Z"
+ "updated": "2026-11-12T19:54:40Z"
 }
