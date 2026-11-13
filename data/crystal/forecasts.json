@@ -8385,7 +8385,10 @@
   "id": "2026-10-26T1852-23",
   "made": "2026-10-26T18:52:03Z",
   "term": "unlikely",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "unclear",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "not settled within the grace period"
  },
  {
   "source": "engine",
@@ -9957,7 +9960,10 @@
   "id": "2026-10-31T1722-11",
   "made": "2026-10-31T17:22:00Z",
   "term": "very unlikely",
-  "deadline": "2026-11-02T23:59:59Z"
+  "deadline": "2026-11-02T23:59:59Z",
+  "outcome": "unclear",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "not settled within the grace period"
  },
  {
   "source": "engine",
@@ -13826,7 +13832,10 @@
   "id": "2026-11-10T2000-8",
   "made": "2026-11-10T20:00:22Z",
   "term": "likely",
-  "deadline": "2026-11-12T23:59:59Z"
+  "deadline": "2026-11-12T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "measured 5,170 against > 3,917"
  },
  {
   "source": "engine",
@@ -13852,7 +13861,10 @@
   "id": "2026-11-10T2000-9",
   "made": "2026-11-10T20:00:22Z",
   "term": "unlikely",
-  "deadline": "2026-11-12T23:59:59Z"
+  "deadline": "2026-11-12T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "measured 2,719 against > 2,993"
  },
  {
   "source": "engine",
@@ -13904,7 +13916,10 @@
   "id": "2026-11-10T2000-11",
   "made": "2026-11-10T20:00:22Z",
   "term": "roughly even chance",
-  "deadline": "2026-11-12T23:59:59Z"
+  "deadline": "2026-11-12T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "measured 0 against >= 1"
  },
  {
   "id": "2026-11-11T1952-1",
@@ -13932,7 +13947,11 @@
     "Ukrainian drone strike on major Russian refinery or port infrastructure",
     "Ukrainian drone strike on additional Russian refinery or port"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "SBU and Ukrainian General Staff publicly confirmed drone strike on Ust-Luga port infrastructure on Nov 11.",
+  "url": "https://www.kyivpost.com/post/89842"
  },
  {
   "id": "2026-11-11T1952-2",
@@ -13960,7 +13979,11 @@
     ">20 PLA aircraft crossing Taiwan median line in single day",
     ">15 PLA aircraft crossing Taiwan median line in 24 h or new live-fire nav warning near median line"
    ]
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "Taiwan MND reported 23 PLA aircraft median-line crossings on Nov 13 (also 22 on Nov 12).",
+  "url": "https://x.com/MoNDefense/status/2121045382964838592"
  },
  {
   "id": "2026-11-11T1952-3",
@@ -13980,7 +14003,11 @@
   ],
   "watch_for": "Shipping market reaction or Hormuz-related navigational warnings",
   "wrong_if": "No public statements meeting the threshold by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "No US or Iranian official statement announced framework agreement or explicit rejection during Nov 11-13 window.",
+  "url": "https://www.reuters.com/world/middle-east/trump-meet-iran-war-mediator-qatar-no-imminent-deal-seen-end-war-2026-11-09/"
  },
  {
   "id": "2026-11-11T1952-4",
@@ -14002,7 +14029,10 @@
    "p_market": 8,
    "url": "https://kalshi.com/markets/kxncaambgame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-11T1952-5",
@@ -14024,7 +14054,10 @@
    "p_market": 4,
    "url": "https://kalshi.com/markets/kxefltrophygame",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-11T1952-6",
@@ -14054,7 +14087,10 @@
    "p_market": 5,
    "url": "https://kalshi.com/markets/kxncaambspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-13T20:03:35Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "source": "engine",
@@ -14462,5 +14498,547 @@
   "made": "2026-11-12T20:27:33Z",
   "term": "roughly even chance",
   "deadline": "2026-11-14T23:59:59Z"
+ },
+ {
+  "id": "2026-11-13T2003-1",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-15T20:03:35Z",
+  "region": "Europe",
+  "event": "Ukrainian strike on Russian Baltic naval asset confirmed",
+  "criterion": "Finland Defence Forces or Estonian officials report via Reuters or Al Jazeera a new strike or explosion on a Russian warship in the Gulf of Finland before 15 Nov 2026 20:00 UTC",
+  "probability": 31,
+  "term": "unlikely",
+  "base_rate": 12,
+  "basis": [
+   "Recent Naro-Fominsk hit confirmed by multiple sensors",
+   "Ukrainian deep-strike tempo elevated",
+   "Russian Baltic rerouting noted in chatter"
+  ],
+  "watch_for": "New Finnish sensor detections or SBU claim on X",
+  "wrong_if": "No new naval strike reports by deadline and Russian MOD denies activity",
+  "fly": {
+   "p": 80,
+   "n": 8,
+   "hits": 7,
+   "like": [
+    "Additional Ukrainian strikes on Russian Baltic energy ports within 48h \u2192 further export disruption and possible Russian ",
+    "Ukrainian long-range strike confirmed on Russian energy infrastructure"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-13T2003-2",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-15T20:03:35Z",
+  "region": "Indo-Pacific",
+  "event": "Taiwan MND reports elevated PLA activity",
+  "criterion": "Taiwan MND reports 25 or more PLA aircraft crossing the median line on a single day before 15 Nov 2026 20:00 UTC",
+  "probability": 27,
+  "term": "unlikely",
+  "base_rate": 18,
+  "basis": [
+   "Current activity at 22-23 crossings",
+   "Ongoing Bohai and Taiwan drills",
+   "APEC timing noted in OSINT"
+  ],
+  "watch_for": "Taiwan MoD daily report update",
+  "wrong_if": "No day reaches 25 crossings by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-11-13T2003-3",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-15T20:03:35Z",
+  "region": "Middle East",
+  "event": "New Hormuz tanker incident reported",
+  "criterion": "gCaptain or Reuters reports a new projectile hit or explosion on a tanker in the Strait of Hormuz before 15 Nov 2026 20:00 UTC",
+  "probability": 22,
+  "term": "unlikely",
+  "base_rate": 9,
+  "basis": [
+   "Recent tanker ablaze off UAE",
+   "IRGC Bahrain claim and Hormuz jitter",
+   "Multiple unconfirmed tanker claims in partner OSINT"
+  ],
+  "watch_for": "Maritime traffic alerts or insurance rate spikes",
+  "wrong_if": "No new tanker incidents confirmed by deadline",
+  "fly": {
+   "p": 40,
+   "n": 8,
+   "hits": 3,
+   "like": [
+    "New Hormuz tanker incident reported",
+    "New verified Hormuz tanker incident"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-13T2003-4",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "7d",
+  "deadline": "2026-11-20T20:03:35Z",
+  "region": "Europe",
+  "event": "Independent verification of Volgograd refinery production loss",
+  "criterion": "Kyiv Independent or Russian regional governor confirms sustained shutdown or >20% production loss at Lukoil-Volgograd refinery before 20 Nov 2026 20:00 UTC",
+  "probability": 48,
+  "term": "roughly even chance",
+  "base_rate": 24,
+  "basis": [
+   "Fires confirmed with geolocated footage",
+   "UK sanctions on Russian oil producers",
+   "Resident petrol queue reports"
+  ],
+  "watch_for": "Regional governor statement or satellite imagery analysis",
+  "wrong_if": "Refinery returns to normal operations without confirmed loss figure",
+  "fly": null
+ },
+ {
+  "id": "2026-11-13T2003-5",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "7d",
+  "deadline": "2026-11-20T20:03:35Z",
+  "region": "Indo-Pacific",
+  "event": "PLA carrier group transit near Taiwan",
+  "criterion": "Taiwan MND or Taipei Times reports a PLA carrier group transit within 200 nm of Taiwan before 20 Nov 2026 20:00 UTC",
+  "probability": 19,
+  "term": "very unlikely",
+  "base_rate": 11,
+  "basis": [
+   "Elevated but sub-record aircraft activity",
+   "Bohai exercise ongoing",
+   "Grey-zone pressure framing in OSINT"
+  ],
+  "watch_for": "New naval activity notice from China MSA",
+  "wrong_if": "No carrier group transit reported by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-11-13T2003-6",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-15T19:45:00Z",
+  "region": "Market",
+  "event": "Netherlands wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 78,
+  "term": "likely",
+  "basis": [
+   "Netherlands is heavy favorite in UEFA Nations League match"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUEFANLGAME-26NOV13NEDGRE-NED",
+   "p_market": 94,
+   "url": "https://kalshi.com/markets/kxuefanlgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-13T2003-7",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-15T19:00:00Z",
+  "region": "Market",
+  "event": "Rwanda wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 34,
+  "term": "unlikely",
+  "basis": [
+   "Rwanda underdog in AFCON qualifier with Mali"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXAFCONGAME-26NOV13MLIRWA-RWA",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxafcongame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-13T2003-8",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "48h",
+  "deadline": "2026-11-15T19:30:00Z",
+  "region": "Market",
+  "event": "Leganes wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 41,
+  "term": "unlikely",
+  "basis": [
+   "Leganes slight favorite at home but close match"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXLALIGA2GAME-26NOV13LEGBUR-LEG",
+   "p_market": 96,
+   "url": "https://kalshi.com/markets/kxlaliga2game",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-13T2003-9",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "7d",
+  "deadline": "2026-11-16T04:59:00Z",
+  "region": "Market",
+  "event": "Israel x Iran ceasefire continues through November 15?",
+  "criterion": "as Polymarket settles it",
+  "probability": 67,
+  "term": "likely",
+  "basis": [
+   "No confirmed major breach of Israel-Iran ceasefire in recent days"
+  ],
+  "fly": {
+   "p": 90,
+   "n": 8,
+   "hits": 8,
+   "like": [
+    "Israel x Iran ceasefire continues through November 7?",
+    "US x Iran ceasefire continues through November 2?"
+   ]
+  },
+  "market": {
+   "id": "5339986",
+   "p_market": 96,
+   "url": "https://polymarket.com/market/israel-x-iran-ceasefire-continues-through-november-15"
+  }
+ },
+ {
+  "id": "2026-11-13T2003-10",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "7d",
+  "deadline": "2026-11-20T04:59:00Z",
+  "region": "Market",
+  "event": "Will NVIDIA announce its next permanent CEO before Nov 20, 2026?",
+  "criterion": "as Kalshi settles it",
+  "probability": 9,
+  "term": "very unlikely",
+  "basis": [
+   "NVIDIA CEO transition unlikely to conclude in one week"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXNVDACEODATE-27-26NOV20",
+   "p_market": 4,
+   "url": "https://kalshi.com/markets/kxnvdaceodate",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-13T2003-11",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "7d",
+  "deadline": "2026-11-18T04:59:00Z",
+  "region": "Market",
+  "event": "Will NVIDIA announce Q3 FY2027 earnings call is postponed past November 17, 2026 before Nov 18, 2026? (Yes)",
+  "criterion": "as Kalshi settles it",
+  "probability": 6,
+  "term": "very unlikely",
+  "basis": [
+   "No signals of earnings delay from NVIDIA"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXNVDADELAY-26-26NOV18",
+   "p_market": 4,
+   "url": "https://kalshi.com/markets/kxnvdadelay",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-13T2003-12",
+  "source": "oracle",
+  "made": "2026-11-13T20:03:35Z",
+  "horizon": "7d",
+  "deadline": "2026-11-19T15:00:00Z",
+  "region": "Market",
+  "event": "Will the realized auction sale price of Babouin (1984; lot 11) by Fran\u00e7ois-Xavier Lalanne, as reported by Artnet, be above $500000 during Phillips New York's November 2026 Modern & Contemporary Art Evening Sale (sale NY010726)? (Above $500K)",
+  "criterion": "as Kalshi settles it",
+  "probability": 29,
+  "term": "unlikely",
+  "basis": [
+   "Lalanne Babouin lot has moderate chance of clearing $500k"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXART-PHI11NOV26-500000",
+   "p_market": 96,
+   "url": "https://kalshi.com/markets/kxart",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 360 air-raid alarms on 14 Nov 2026 and 15 Nov 2026, a faster pace than the past 30 days",
+  "probability": 61,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 37 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 12 Jun 2026, 19 Sep 2026, 13 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-11-14",
+   "end": "2026-11-15",
+   "op": ">",
+   "threshold": 360,
+   "unit_days": false
+  },
+  "criterion": "More than 360 air-raid alarms on 14 Nov 2026 and 15 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-13T2003-13",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "likely",
+  "deadline": "2026-11-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 4,071 Russian personnel losses claimed by Ukraine's MoD on 14 Nov 2026 and 15 Nov 2026, a faster pace than the past 30 days",
+  "probability": 71,
+  "base_rate": 54,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 44 were followed by this",
+   "base rate 54% over the whole record",
+   "closest: 19 Jul 2026, 26 Oct 2026, 29 Oct 2024"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-11-14",
+   "end": "2026-11-15",
+   "op": ">",
+   "threshold": 4071,
+   "unit_days": false
+  },
+  "criterion": "More than 4,071 Russian personnel losses claimed by Ukraine's MoD on 14 Nov 2026 and 15 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-13T2003-14",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "likely",
+  "deadline": "2026-11-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 2,954 Russian drones claimed destroyed by Ukraine's MoD on 14 Nov 2026 and 15 Nov 2026, a faster pace than the past 30 days",
+  "probability": 41,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 24 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 3 Jun 2026, 8 Aug 2026, 18 May 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-11-14",
+   "end": "2026-11-15",
+   "op": ">",
+   "threshold": 2954,
+   "unit_days": false
+  },
+  "criterion": "More than 2,954 Russian drones claimed destroyed by Ukraine's MoD on 14 Nov 2026 and 15 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-13T2003-15",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "unlikely",
+  "deadline": "2026-11-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 14 Nov 2026 and 15 Nov 2026 (Home Front Command)",
+  "probability": 21,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 12 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 5 Nov 2015, 20 Oct 2016, 21 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-11-14",
+   "end": "2026-11-15",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 14 Nov 2026 and 15 Nov 2026 (Home Front Command)",
+  "id": "2026-11-13T2003-16",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "unlikely",
+  "deadline": "2026-11-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 14 Nov 2026 and 15 Nov 2026 (USGS)",
+  "probability": 63,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 39 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 1 Nov 2006, 4 Dec 2004, 2 Dec 2000"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-11-14",
+   "end": "2026-11-15",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 14 Nov 2026 and 15 Nov 2026 (USGS)",
+  "id": "2026-11-13T2003-17",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "likely",
+  "deadline": "2026-11-15T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "7d",
+  "region": "Ukraine",
+  "event": "More than 1,261 air-raid alarms from 14 Nov 2026 to 20 Nov 2026, a faster pace than the past 30 days",
+  "probability": 62,
+  "base_rate": 55,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 38 were followed by this",
+   "base rate 55% over the whole record",
+   "closest: 12 Jun 2026, 19 Sep 2026, 13 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-11-14",
+   "end": "2026-11-20",
+   "op": ">",
+   "threshold": 1261,
+   "unit_days": false
+  },
+  "criterion": "More than 1,261 air-raid alarms from 14 Nov 2026 to 20 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-13T2003-18",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "likely",
+  "deadline": "2026-11-20T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "7d",
+  "region": "Ukraine",
+  "event": "More than 14,250 Russian personnel losses claimed by Ukraine's MoD from 14 Nov 2026 to 20 Nov 2026, a faster pace than the past 30 days",
+  "probability": 70,
+  "base_rate": 56,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 43 were followed by this",
+   "base rate 56% over the whole record",
+   "closest: 19 Jul 2026, 26 Oct 2026, 29 Oct 2024"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-11-14",
+   "end": "2026-11-20",
+   "op": ">",
+   "threshold": 14250,
+   "unit_days": false
+  },
+  "criterion": "More than 14,250 Russian personnel losses claimed by Ukraine's MoD from 14 Nov 2026 to 20 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-13T2003-19",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "likely",
+  "deadline": "2026-11-20T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "7d",
+  "region": "Ukraine",
+  "event": "More than 10,339 Russian drones claimed destroyed by Ukraine's MoD from 14 Nov 2026 to 20 Nov 2026, a faster pace than the past 30 days",
+  "probability": 45,
+  "base_rate": 58,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 26 were followed by this",
+   "base rate 58% over the whole record",
+   "closest: 3 Jun 2026, 8 Aug 2026, 18 May 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-11-14",
+   "end": "2026-11-20",
+   "op": ">",
+   "threshold": 10339,
+   "unit_days": false
+  },
+  "criterion": "More than 10,339 Russian drones claimed destroyed by Ukraine's MoD from 14 Nov 2026 to 20 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-13T2003-20",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "unlikely",
+  "deadline": "2026-11-20T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "7d",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on at least 1 day from 14 Nov 2026 to 20 Nov 2026, as often as in the past 30 days",
+  "probability": 29,
+  "base_rate": 42,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 16 were followed by this",
+   "base rate 42% over the whole record",
+   "closest: 5 Nov 2015, 20 Oct 2016, 21 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-11-14",
+   "end": "2026-11-20",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on at least 1 day from 14 Nov 2026 to 20 Nov 2026, as often as in the past 30 days",
+  "id": "2026-11-13T2003-21",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "unlikely",
+  "deadline": "2026-11-20T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "7d",
+  "region": "World",
+  "event": "At least 4 magnitude 6+ earthquakes worldwide from 14 Nov 2026 to 20 Nov 2026 (USGS)",
+  "probability": 23,
+  "base_rate": 30,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 13 were followed by this",
+   "base rate 30% over the whole record",
+   "closest: 1 Nov 2006, 4 Dec 2004, 2 Dec 2000"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-11-14",
+   "end": "2026-11-20",
+   "op": ">=",
+   "threshold": 4,
+   "unit_days": false
+  },
+  "criterion": "At least 4 magnitude 6+ earthquakes worldwide from 14 Nov 2026 to 20 Nov 2026 (USGS)",
+  "id": "2026-11-13T2003-22",
+  "made": "2026-11-13T20:03:35Z",
+  "term": "unlikely",
+  "deadline": "2026-11-20T23:59:59Z"
  }
 ]
