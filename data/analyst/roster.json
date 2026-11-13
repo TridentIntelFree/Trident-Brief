@@ -64,13 +64,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted by sentdefender on Iran ops"
   },
-  "CJFCSpox": {
-   "days": [
-    "2026-10-22"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: drone intercept statement"
-  },
   "ConflictRadarME": {
    "days": [
     "2026-11-01"
@@ -106,13 +99,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: geolocation of Omsk strike"
   },
-  "Grimm_Intel": {
-   "days": [
-    "2026-10-22"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: geo imagery"
-  },
   "HeimsdallsBrief": {
    "days": [
     "2026-11-01"
@@ -134,13 +120,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Dana White presence"
-  },
-  "LibbeyDean_": {
-   "days": [
-    "2026-10-22"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: Trump quote"
   },
   "Maks_NAFO_FELLA": {
    "days": [
@@ -305,12 +284,12 @@
    "url": "https://x.com/militaryhistori/status/2114380598122778808",
    "why": "Defence journalist and analyst citing France 24 on US NATO commander warning Russia against attacks on allies."
   },
-  "ragipsoylu": {
+  "moklasen": {
    "days": [
-    "2026-10-22"
+    "2026-11-13"
    ],
    "url": "",
-   "why": "quoted or credited by followed accounts: Mecca pact text"
+   "why": "quoted or credited by followed accounts: quoted by RALee85 on urban control"
   },
   "realDonaldTrump": {
    "days": [
@@ -354,37 +333,37 @@
    "checked": "2026-11-12"
   },
   "AuroraIntel": {
-   "checked": "2026-11-12",
+   "checked": "2026-11-13",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-12",
+   "checked": "2026-11-13",
    "posted": "2026-11-11"
   },
   "CENTCOM": {
    "checked": "2026-11-12"
   },
   "CalibreObscura": {
-   "checked": "2026-11-12",
+   "checked": "2026-11-13",
    "posted": "2026-11-11"
   },
   "CovertShores": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-13"
   },
   "ELINTNews": {
-   "checked": "2026-11-12"
+   "checked": "2026-11-13"
   },
   "Faytuks": {
-   "checked": "2026-11-12"
+   "checked": "2026-11-13"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-13"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-12"
+   "checked": "2026-11-13"
   },
   "IntelCrab": {
-   "checked": "2026-11-12"
+   "checked": "2026-11-13"
   },
   "JenniferJJacobs": {
    "checked": "2026-11-12"
@@ -393,22 +372,23 @@
    "checked": "2026-11-12"
   },
   "KofmanMichael": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-13"
   },
   "Osinttechnical": {
-   "checked": "2026-11-12",
+   "checked": "2026-11-13",
    "posted": "2026-11-11"
   },
   "RALee85": {
-   "checked": "2026-11-12"
+   "checked": "2026-11-13",
+   "posted": "2026-11-13"
   },
   "Tendar": {
-   "checked": "2026-11-12",
+   "checked": "2026-11-13",
    "posted": "2026-11-10"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-12",
-   "posted": "2026-11-08"
+   "checked": "2026-11-13",
+   "posted": "2026-11-13"
   },
   "UK_MTO": {
    "checked": "2026-11-03",
@@ -418,27 +398,27 @@
    "checked": "2026-11-12"
   },
   "detresfa_": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-13"
   },
   "hey_itsmyturn": {
-   "checked": "2026-11-12",
-   "posted": "2026-11-12"
+   "checked": "2026-11-13",
+   "posted": "2026-11-13"
   },
   "noelreports": {
-   "checked": "2026-11-12",
-   "posted": "2026-11-12"
+   "checked": "2026-11-13",
+   "posted": "2026-11-13"
   },
   "oryxspioenkop": {
-   "checked": "2026-11-11"
+   "checked": "2026-11-13"
   },
   "sentdefender": {
-   "checked": "2026-11-12",
+   "checked": "2026-11-13",
    "posted": "2026-11-12"
   },
   "wartranslated": {
-   "checked": "2026-11-12",
+   "checked": "2026-11-13",
    "posted": "2026-11-12"
   }
  },
- "updated": "2026-11-12T19:54:40Z"
+ "updated": "2026-11-13T19:42:52Z"
 }
