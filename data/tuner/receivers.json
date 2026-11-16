@@ -1,15 +1,6 @@
 {
- "checked": "2026-11-09T13:08:18Z",
+ "checked": "2026-11-16T12:59:34Z",
  "receivers": [
-  {
-   "host": "iz6byy.k1fm.us",
-   "name": "0-30 MHZ-KiwiSDR, IZ6BYY - 🇮🇹 Magnetic Loop Antenna in Central Italy 📶",
-   "loc": "Martinsicuro, Italy",
-   "lat": 42.88,
-   "lon": 13.89,
-   "antenna": "LZ1AQ Magnetic Loop",
-   "slots": 8
-  },
   {
    "host": "kiwi-dg0jbd.stbach.de",
    "name": "DG0JBD Marienberg Germany",
@@ -29,15 +20,6 @@
    "slots": 8
   },
   {
-   "host": "kiwi.apps.exdsl.nl",
-   "name": "0-30 MHz SDR | Korschenbroich, Germany",
-   "loc": "Korschenbroich, Germany",
-   "lat": 51.2,
-   "lon": 6.51,
-   "antenna": "LZ1AQ Antenna, \\\"Lazy Loop\\\"",
-   "slots": 8
-  },
-  {
    "host": "kiwi.dg3sdk.de",
    "name": "DG3SDK | 0-30 MHz SDR | Esslingen, Germany",
    "loc": "Esslingen, Germany",
@@ -45,6 +27,15 @@
    "lon": 9.32,
    "antenna": "long wire",
    "slots": 8
+  },
+  {
+   "host": "kiwi.pt2fhc.org",
+   "name": "0-30 MHz SDR, PT2FHC, Brasilia, DF, Brazil",
+   "loc": "Brasilia, DF, Brazil",
+   "lat": -15.71,
+   "lon": -47.82,
+   "antenna": "Yaesu YA-30 (T2FD)",
+   "slots": 60
   },
   {
    "host": "kiwi.x26.de",
@@ -68,8 +59,8 @@
    "host": "kiwisdr.rigiremote.ch",
    "name": "0-30 MHz SDR, HB9RYZ-1, JN47GA - Rigi Scheidegg",
    "loc": "JN47GA - Rigi Scheidegg",
-   "lat": 47.02,
-   "lon": 8.59,
+   "lat": 47.17,
+   "lon": 8.43,
    "antenna": "Wellbrook Loop",
    "slots": 50
   },
@@ -119,12 +110,12 @@
    "slots": 8
   },
   {
-   "host": "sdrccp.bloap.cl",
-   "name": "KiwiSDR Curacautín, Chile",
-   "loc": "Curacautín, Araucanía, Chile",
-   "lat": -38.43,
-   "lon": -71.88,
-   "antenna": "YAESU YA-30",
+   "host": "sdr1.iw3hbx.uk",
+   "name": "0-30 MHz FlyDog-SDR, IW3HBX - Noale 🇮🇹 Italy 🇮🇹",
+   "loc": "Noale, Italy",
+   "lat": 45.55,
+   "lon": 12.06,
+   "antenna": "Home built active loop (ALA1530 style, east/west)",
    "slots": 3
   },
   {
