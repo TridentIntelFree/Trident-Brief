@@ -11424,7 +11424,10 @@
   "id": "2026-11-04T2002-6",
   "made": "2026-11-04T20:02:32Z",
   "term": "unlikely",
-  "deadline": "2026-11-06T23:59:59Z"
+  "deadline": "2026-11-06T23:59:59Z",
+  "outcome": "unclear",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "not settled within the grace period"
  },
  {
   "source": "engine",
@@ -11508,7 +11511,10 @@
   "id": "2026-11-04T2002-9",
   "made": "2026-11-04T20:02:32Z",
   "term": "very unlikely",
-  "deadline": "2026-11-06T23:59:59Z"
+  "deadline": "2026-11-06T23:59:59Z",
+  "outcome": "unclear",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "not settled within the grace period"
  },
  {
   "source": "engine",
@@ -15394,7 +15400,10 @@
   "id": "2026-11-14T1829-8",
   "made": "2026-11-14T18:29:41Z",
   "term": "likely",
-  "deadline": "2026-11-16T23:59:59Z"
+  "deadline": "2026-11-16T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "measured 4,790 against > 4,071"
  },
  {
   "source": "engine",
@@ -15420,7 +15429,10 @@
   "id": "2026-11-14T1829-9",
   "made": "2026-11-14T18:29:41Z",
   "term": "unlikely",
-  "deadline": "2026-11-16T23:59:59Z"
+  "deadline": "2026-11-16T23:59:59Z",
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "measured 2,845 against > 2,954"
  },
  {
   "source": "engine",
@@ -15472,7 +15484,10 @@
   "id": "2026-11-14T1829-11",
   "made": "2026-11-14T18:29:41Z",
   "term": "likely",
-  "deadline": "2026-11-16T23:59:59Z"
+  "deadline": "2026-11-16T23:59:59Z",
+  "outcome": "happened",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "measured 1 against >= 1"
  },
  {
   "id": "2026-11-15T1907-1",
@@ -15501,7 +15516,11 @@
     "Independent confirmation of Iranian tanker strike in Hormuz with debris/geolocation",
     "Independent confirmation of oil tanker damage from mines in Strait of Hormuz"
    ]
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "UKMTO reported attacks disabling tankers and causing engine fires in the Strait of Hormuz but did not identify or name any supertanker (>2 million barrels) or confirm it was sunk/damaged by mine or at",
+  "url": "https://www.reuters.com/world/middle-east/crew-tanker-unaccounted-after-second-attack-north-omans-khasab-ukmto-says-2026-11-17/"
  },
  {
   "id": "2026-11-15T1907-2",
@@ -15530,7 +15549,11 @@
     "Houthi missile/drone deployment or shipping attack in Bab al-Mandeb \u2192 insurance spikes and naval response \u2192 first in Llo",
     "Verified >50 civilian deaths from Ethiopian drone strikes with independent confirmation \u2192 international pressure or sanc"
    ]
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "CENTCOM and Bahraini authorities stated Iranian drones targeting Al-Riffa/Riffa radar sites were intercepted with no damage to equipment or casualties reported.",
+  "url": "https://www.aljazeera.com/news/2026/11/17/bahrain-thwarts-drone-attack-iran-claims-targeting-us-military-radar"
  },
  {
   "id": "2026-11-15T1907-3",
@@ -15551,7 +15574,11 @@
   ],
   "watch_for": "Estonian government or NATO statement on border or Article 4",
   "wrong_if": "No new Estonian or NATO statement on border measures by deadline",
-  "fly": null
+  "fly": null,
+  "outcome": "happened",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "Estonian government announced on 15-16 Nov it would close its three land border crossings with Russia from 1 December in response to alleged Russian sabotage.",
+  "url": "https://www.reuters.com/world/estonias-plan-shut-russian-border-disrupts-families-both-sides-2026-11-17/"
  },
  {
   "id": "2026-11-15T1907-4",
@@ -15581,7 +15608,10 @@
    "p_market": 10,
    "url": "https://kalshi.com/markets/kxnflspread",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-15T1907-5",
@@ -15611,7 +15641,10 @@
    "p_market": 90,
    "url": "https://kalshi.com/markets/kxnfltotal",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "happened",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "id": "2026-11-15T1907-6",
@@ -15633,7 +15666,10 @@
    "p_market": 6,
    "url": "https://kalshi.com/markets/kxnfltd",
    "venue": "kalshi"
-  }
+  },
+  "outcome": "did_not_happen",
+  "resolved": "2026-11-17T21:20:26Z",
+  "evidence": "settled on Kalshi"
  },
  {
   "source": "engine",
@@ -16041,5 +16077,288 @@
   "made": "2026-11-16T22:30:53Z",
   "term": "roughly even chance",
   "deadline": "2026-11-18T23:59:59Z"
+ },
+ {
+  "id": "2026-11-17T2120-1",
+  "source": "oracle",
+  "made": "2026-11-17T21:20:26Z",
+  "horizon": "48h",
+  "deadline": "2026-11-19T21:20:26Z",
+  "region": "short",
+  "event": "Fifth Hormuz tanker incident with confirmed sinking or major spill",
+  "criterion": "UKMTO or Reuters reports a fifth distinct tanker incident in the Strait of Hormuz involving sinking or spill exceeding 1000 barrels before 19 Nov 2026 21:20 UTC",
+  "probability": 42,
+  "term": "unlikely",
+  "base_rate": 25,
+  "basis": [
+   "Four incidents already reported in the current wave",
+   "IRGC mine claims and follow-on US strike on Qeshm show active targeting",
+   "Base rate for any single 48h window is low but signals are clustered"
+  ],
+  "watch_for": "UKMTO advisory or Lloyd's rate spike on a new vessel",
+  "wrong_if": "No new UKMTO-confirmed incident by deadline despite continued IRGC claims",
+  "fly": {
+   "p": 50,
+   "n": 8,
+   "hits": 4,
+   "like": [
+    "Additional confirmed Hormuz tanker incident with visible fire/insurance impact",
+    "Iranian naval activity or vessel incident in Hormuz"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-17T2120-2",
+  "source": "oracle",
+  "made": "2026-11-17T21:20:26Z",
+  "horizon": "48h",
+  "deadline": "2026-11-19T21:20:26Z",
+  "region": "short",
+  "event": "Russian hybrid response to Estonian border closure",
+  "criterion": "Estonian government or NATO issues statement confirming cyber attack, arson or airspace violation linked to GRU within 48 hours of 17 Nov 2026 21:20 UTC",
+  "probability": 55,
+  "term": "roughly even chance",
+  "base_rate": 30,
+  "basis": [
+   "Estonia closing crossings from 1 Dec after confirmed GRU sabotage attempt",
+   "Pattern of Russian hybrid activity against Baltic states in prior closures",
+   "Telegram channels already amplifying rejection of the measure"
+  ],
+  "watch_for": "Estonian Police and Border Guard or NATO statement naming incident",
+  "wrong_if": "No official attribution of hybrid activity by deadline",
+  "fly": null
+ },
+ {
+  "id": "2026-11-17T2120-3",
+  "source": "oracle",
+  "made": "2026-11-17T21:20:26Z",
+  "horizon": "48h",
+  "deadline": "2026-11-19T21:20:26Z",
+  "region": "short",
+  "event": "Additional Ukrainian long-range strike on Russian rear-area target",
+  "criterion": "Ukrainian General Staff or Reuters reports successful strike on Russian refinery, rail bridge or airfield east of the Dnipro before 19 Nov 2026 21:20 UTC",
+  "probability": 62,
+  "term": "likely",
+  "base_rate": 35,
+  "basis": [
+   "Multi-stage Crimean Bridge operation already executed with Palianytsia and Neptune systems",
+   "Ukrainian tempo on Akhtubinsk and other deep targets confirmed in last 24h",
+   "Russian retaliation on Kyiv bridges signals ongoing exchange"
+  ],
+  "watch_for": "Ukrainian General Staff claim or Russian MoD confirmation of new strike",
+  "wrong_if": "No new deep-strike claim corroborated by Reuters or Ukrainian General Staff by deadline",
+  "fly": {
+   "p": 80,
+   "n": 8,
+   "hits": 7,
+   "like": [
+    "Ukrainian General Staff confirms long-range strike on Russian energy target beyond Samara",
+    "Ukrainian long-range strike on Russian energy or airbase infrastructure with independent confirmation"
+   ]
+  }
+ },
+ {
+  "id": "2026-11-17T2120-4",
+  "source": "oracle",
+  "made": "2026-11-17T21:20:26Z",
+  "horizon": "48h",
+  "deadline": "2026-11-19T19:45:00Z",
+  "region": "Market",
+  "event": "Norway wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 48,
+  "term": "roughly even chance",
+  "basis": [
+   "No team-specific signals in collection; base rate for away win in Nations League fixture slightly below 50"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUEFANLGAME-26NOV17DENNOR-NOR",
+   "p_market": 8,
+   "url": "https://kalshi.com/markets/kxuefanlgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-17T2120-5",
+  "source": "oracle",
+  "made": "2026-11-17T21:20:26Z",
+  "horizon": "48h",
+  "deadline": "2026-11-19T19:45:00Z",
+  "region": "Market",
+  "event": "Wales wins",
+  "criterion": "as Kalshi settles it",
+  "probability": 22,
+  "term": "unlikely",
+  "basis": [
+   "No team-specific signals in collection; base rate for Wales win against Portugal is low"
+  ],
+  "fly": null,
+  "market": {
+   "id": "KXUEFANLGAME-26NOV17WALPOR-WAL",
+   "p_market": 6,
+   "url": "https://kalshi.com/markets/kxuefanlgame",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "id": "2026-11-17T2120-6",
+  "source": "oracle",
+  "made": "2026-11-17T21:20:26Z",
+  "horizon": "48h",
+  "deadline": "2026-11-19T19:00:00Z",
+  "region": "Market",
+  "event": "Houston wins by over 17.5 points",
+  "criterion": "as Kalshi settles it",
+  "probability": 41,
+  "term": "unlikely",
+  "basis": [
+   "No team-specific signals in collection; base rate for double-digit margin in college basketball is moderate"
+  ],
+  "fly": {
+   "p": 30,
+   "n": 8,
+   "hits": 2,
+   "like": [
+    "UCLA wins 1H by over 2.5 points (UCLA wins by over 2.5 points)",
+    "Michigan wins by over 14.5 points"
+   ]
+  },
+  "market": {
+   "id": "KXNCAAMBSPREAD-26NOV17HOURUTG-HOU18",
+   "p_market": 12,
+   "url": "https://kalshi.com/markets/kxncaambspread",
+   "venue": "kalshi"
+  }
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 360 air-raid alarms on 18 Nov 2026 and 19 Nov 2026, a faster pace than the past 30 days",
+  "probability": 53,
+  "base_rate": 53,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 32 were followed by this",
+   "base rate 53% over the whole record",
+   "closest: 12 Jun 2026, 19 Sep 2026, 13 Jun 2026"
+  ],
+  "resolve": {
+   "series": "ua_alarms",
+   "start": "2026-11-18",
+   "end": "2026-11-19",
+   "op": ">",
+   "threshold": 360,
+   "unit_days": false
+  },
+  "criterion": "More than 360 air-raid alarms on 18 Nov 2026 and 19 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-17T2120-7",
+  "made": "2026-11-17T21:20:26Z",
+  "term": "roughly even chance",
+  "deadline": "2026-11-19T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 4,132 Russian personnel losses claimed by Ukraine's MoD on 18 Nov 2026 and 19 Nov 2026, a faster pace than the past 30 days",
+  "probability": 64,
+  "base_rate": 54,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 39 were followed by this",
+   "base rate 54% over the whole record",
+   "closest: 27 Oct 2026, 14 Nov 2026, 2 Oct 2024"
+  ],
+  "resolve": {
+   "series": "ru_losses",
+   "start": "2026-11-18",
+   "end": "2026-11-19",
+   "op": ">",
+   "threshold": 4132,
+   "unit_days": false
+  },
+  "criterion": "More than 4,132 Russian personnel losses claimed by Ukraine's MoD on 18 Nov 2026 and 19 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-17T2120-8",
+  "made": "2026-11-17T21:20:26Z",
+  "term": "likely",
+  "deadline": "2026-11-19T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Ukraine",
+  "event": "More than 2,901 Russian drones claimed destroyed by Ukraine's MoD on 18 Nov 2026 and 19 Nov 2026, a faster pace than the past 30 days",
+  "probability": 53,
+  "base_rate": 52,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 32 were followed by this",
+   "base rate 52% over the whole record",
+   "closest: 15 May 2026, 31 May 2026, 10 Sep 2026"
+  ],
+  "resolve": {
+   "series": "ru_drones",
+   "start": "2026-11-18",
+   "end": "2026-11-19",
+   "op": ">",
+   "threshold": 2901,
+   "unit_days": false
+  },
+  "criterion": "More than 2,901 Russian drones claimed destroyed by Ukraine's MoD on 18 Nov 2026 and 19 Nov 2026, a faster pace than the past 30 days",
+  "id": "2026-11-17T2120-9",
+  "made": "2026-11-17T21:20:26Z",
+  "term": "roughly even chance",
+  "deadline": "2026-11-19T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "Israel",
+  "event": "Israel has rocket or missile alerts on 18 Nov 2026 and 19 Nov 2026 (Home Front Command)",
+  "probability": 14,
+  "base_rate": 29,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 7 were followed by this",
+   "base rate 29% over the whole record",
+   "closest: 5 Nov 2015, 20 Oct 2016, 21 Oct 2016"
+  ],
+  "resolve": {
+   "series": "il_rockets",
+   "start": "2026-11-18",
+   "end": "2026-11-19",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": true
+  },
+  "criterion": "Israel has rocket or missile alerts on 18 Nov 2026 and 19 Nov 2026 (Home Front Command)",
+  "id": "2026-11-17T2120-10",
+  "made": "2026-11-17T21:20:26Z",
+  "term": "very unlikely",
+  "deadline": "2026-11-19T23:59:59Z"
+ },
+ {
+  "source": "engine",
+  "horizon": "48h",
+  "region": "World",
+  "event": "At least 1 magnitude 6+ earthquake worldwide on 18 Nov 2026 and 19 Nov 2026 (USGS)",
+  "probability": 44,
+  "base_rate": 51,
+  "basis": [
+   "the 60 past days most like today (fly-brain match): 26 were followed by this",
+   "base rate 51% over the whole record",
+   "closest: 6 Nov 2006, 25 Jan 2004, 31 Oct 2001"
+  ],
+  "resolve": {
+   "series": "quakes",
+   "start": "2026-11-18",
+   "end": "2026-11-19",
+   "op": ">=",
+   "threshold": 1,
+   "unit_days": false
+  },
+  "criterion": "At least 1 magnitude 6+ earthquake worldwide on 18 Nov 2026 and 19 Nov 2026 (USGS)",
+  "id": "2026-11-17T2120-11",
+  "made": "2026-11-17T21:20:26Z",
+  "term": "unlikely",
+  "deadline": "2026-11-19T23:59:59Z"
  }
 ]
