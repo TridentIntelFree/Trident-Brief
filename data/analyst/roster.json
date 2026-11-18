@@ -20,9 +20,9 @@
   "JominiW",
   "Archer83Able",
   "CovertShores",
-  "BarakRavid",
   "CENTCOM",
-  "JenniferJJacobs"
+  "JenniferJJacobs",
+  "yaronavraham"
  ],
  "found": {
   "Abom1nabl3": {
@@ -46,14 +46,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: flagged as fake account"
   },
-  "BarakRavid": {
-   "days": [
-    "2026-10-11",
-    "2026-10-27"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: turnout figure"
-  },
   "CENTCOM": {
    "days": [
     "2026-11-07",
@@ -75,6 +67,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: higher-res Marinovka image"
+  },
+  "DaphnaLiel": {
+   "days": [
+    "2026-11-18"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted by BarakRavid on politics"
   },
   "HeimsdallsBrief": {
    "days": [
@@ -104,13 +103,6 @@
    ],
    "url": "https://x.com/Maks_NAFO_FELLA/status/2119475993274380475",
    "why": "Geolocated video footage and analysis of FP-2 drone strike on Rostov Mius River bridge and substation debris."
-  },
-  "Polymarket": {
-   "days": [
-    "2026-10-27"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: election odds"
   },
   "Roi_Yanovsky": {
    "days": [
@@ -153,13 +145,6 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Krak\u00f3w shooting"
-  },
-  "USEmbassyWarsaw": {
-   "days": [
-    "2026-10-27"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: PAC-3 announcement"
   },
   "Uvda_tweet": {
    "days": [
@@ -217,13 +202,6 @@
    "url": "",
    "why": "quoted or credited by followed accounts: source for Iran UAV post"
   },
-  "i24NEWS_EN": {
-   "days": [
-    "2026-10-27"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: turnout figure"
-  },
   "kromark": {
    "days": [
     "2026-11-08"
@@ -254,10 +232,11 @@
   },
   "yaronavraham": {
    "days": [
-    "2026-11-05"
+    "2026-11-05",
+    "2026-11-18"
    ],
    "url": "",
-   "why": "quoted or credited by followed accounts: quoted by BarakRavid on Shin Bet"
+   "why": "quoted or credited by followed accounts: quoted by BarakRavid on Bennett"
   }
  },
  "starter": [
@@ -284,66 +263,66 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-17",
-   "posted": "2026-11-17"
+   "checked": "2026-11-18",
+   "posted": "2026-11-18"
   },
   "AuroraIntel": {
-   "checked": "2026-11-17",
+   "checked": "2026-11-18",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
-   "checked": "2026-11-17",
-   "posted": "2026-11-15"
+   "checked": "2026-11-18",
+   "posted": "2026-11-18"
   },
   "CENTCOM": {
-   "checked": "2026-11-17",
+   "checked": "2026-11-18",
    "posted": "2026-11-14"
   },
   "CalibreObscura": {
-   "checked": "2026-11-17",
+   "checked": "2026-11-18",
    "posted": "2026-11-11"
   },
   "CovertShores": {
    "checked": "2026-11-17"
   },
   "ELINTNews": {
-   "checked": "2026-11-17"
+   "checked": "2026-11-18"
   },
   "Faytuks": {
-   "checked": "2026-11-17"
+   "checked": "2026-11-18"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-17"
+   "checked": "2026-11-18"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-16"
+   "checked": "2026-11-18"
   },
   "IntelCrab": {
-   "checked": "2026-11-17"
+   "checked": "2026-11-18"
   },
   "JenniferJJacobs": {
-   "checked": "2026-11-16"
+   "checked": "2026-11-18"
   },
   "JominiW": {
-   "checked": "2026-11-16"
+   "checked": "2026-11-18"
   },
   "KofmanMichael": {
-   "checked": "2026-11-17"
+   "checked": "2026-11-18"
   },
   "Osinttechnical": {
-   "checked": "2026-11-17",
+   "checked": "2026-11-18",
    "posted": "2026-11-11"
   },
   "RALee85": {
-   "checked": "2026-11-17",
+   "checked": "2026-11-18",
    "posted": "2026-11-13"
   },
   "Tendar": {
-   "checked": "2026-11-17",
+   "checked": "2026-11-18",
    "posted": "2026-11-10"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-17",
+   "checked": "2026-11-18",
    "posted": "2026-11-17"
   },
   "UK_MTO": {
@@ -361,20 +340,20 @@
    "posted": "2026-11-15"
   },
   "noelreports": {
-   "checked": "2026-11-17",
-   "posted": "2026-11-17"
+   "checked": "2026-11-18",
+   "posted": "2026-11-18"
   },
   "oryxspioenkop": {
    "checked": "2026-11-17"
   },
   "sentdefender": {
-   "checked": "2026-11-17",
-   "posted": "2026-11-17"
+   "checked": "2026-11-18",
+   "posted": "2026-11-18"
   },
   "wartranslated": {
-   "checked": "2026-11-17",
-   "posted": "2026-11-15"
+   "checked": "2026-11-18",
+   "posted": "2026-11-18"
   }
  },
- "updated": "2026-11-17T20:56:00Z"
+ "updated": "2026-11-18T20:31:19Z"
 }
