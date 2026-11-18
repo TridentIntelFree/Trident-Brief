@@ -1,5 +1,5 @@
 {
- "at": "2026-11-11T19:53:10Z",
+ "at": "2026-11-18T20:54:47Z",
  "results": [
   {
    "claim": "Mars afflicted brings war",
@@ -33,29 +33,29 @@
    "claim": "Mars afflicted brings war",
    "metric": "Russian personnel losses a day (Ukraine MoD's claim)",
    "condition": "mars_afflicted",
-   "days": 1690,
+   "days": 1697,
    "days_on": 506,
    "from": "2022-03-13",
-   "to": "2026-10-27",
-   "ratio": 0.996,
-   "p": 0.755,
+   "to": "2026-11-03",
+   "ratio": 0.997,
+   "p": 0.823,
    "direction_as_claimed": false,
    "p_adjusted": 1.0,
-   "verdict": "no better than chance (+0%, p = 0.76, 1.00 corrected)"
+   "verdict": "no better than chance (+0%, p = 0.82, 1.00 corrected)"
   },
   {
    "claim": "Mars retrograde stalls offensives",
    "metric": "Russian personnel losses a day (Ukraine MoD's claim)",
    "condition": "mars_retro",
-   "days": 1690,
+   "days": 1697,
    "days_on": 154,
    "from": "2022-03-13",
-   "to": "2026-10-27",
+   "to": "2026-11-03",
    "ratio": 1.009,
-   "p": 0.268,
+   "p": 0.262,
    "direction_as_claimed": false,
    "p_adjusted": 1.0,
-   "verdict": "no better than chance (+1%, p = 0.27, 1.00 corrected)"
+   "verdict": "no better than chance (+1%, p = 0.26, 1.00 corrected)"
   },
   {
    "claim": "The full moon brings trouble",
@@ -89,29 +89,29 @@
    "claim": "Eclipses bring earthquakes",
    "metric": "magnitude 6+ earthquakes a day, worldwide",
    "condition": "eclipse_week",
-   "days": 9778,
+   "days": 9785,
    "days_on": 1691,
    "from": "2000-01-16",
-   "to": "2026-10-26",
+   "to": "2026-11-02",
    "ratio": 1.015,
-   "p": 0.645,
+   "p": 0.672,
    "direction_as_claimed": true,
    "p_adjusted": 1.0,
-   "verdict": "no better than chance (+1%, p = 0.65, 1.00 corrected)"
+   "verdict": "no better than chance (+1%, p = 0.67, 1.00 corrected)"
   },
   {
    "claim": "New and full moons bring earthquakes",
    "metric": "magnitude 6+ earthquakes a day, worldwide",
    "condition": "new_or_full",
-   "days": 9778,
+   "days": 9785,
    "days_on": 1289,
    "from": "2000-01-16",
-   "to": "2026-10-26",
-   "ratio": 0.948,
-   "p": 0.252,
+   "to": "2026-11-02",
+   "ratio": 0.947,
+   "p": 0.186,
    "direction_as_claimed": false,
    "p_adjusted": 1.0,
-   "verdict": "no better than chance (-5%, p = 0.25, 1.00 corrected)"
+   "verdict": "no better than chance (-5%, p = 0.19, 1.00 corrected)"
   }
  ],
  "notes": [
