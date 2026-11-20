@@ -25,6 +25,13 @@
   "yaronavraham"
  ],
  "found": {
+  "99Dominik_": {
+   "days": [
+    "2026-11-20"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: geolocation source for Uragan strike"
+  },
   "Abom1nabl3": {
    "days": [
     "2026-11-08"
@@ -263,11 +270,11 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-18"
   },
   "AuroraIntel": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
@@ -275,54 +282,56 @@
    "posted": "2026-11-18"
   },
   "CENTCOM": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-14"
   },
   "CalibreObscura": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-11"
   },
   "CovertShores": {
    "checked": "2026-11-19"
   },
   "ELINTNews": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-20"
   },
   "Faytuks": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-20"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-18"
+   "checked": "2026-11-20",
+   "posted": "2026-11-20"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-20"
   },
   "IntelCrab": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-20"
   },
   "JenniferJJacobs": {
-   "checked": "2026-11-18"
+   "checked": "2026-11-20",
+   "posted": "2026-11-20"
   },
   "JominiW": {
-   "checked": "2026-11-18"
+   "checked": "2026-11-20"
   },
   "KofmanMichael": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-20"
   },
   "Osinttechnical": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-19"
   },
   "RALee85": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-13"
   },
   "Tendar": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-10"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-17"
   },
   "UK_MTO": {
@@ -340,23 +349,23 @@
    "posted": "2026-11-15"
   },
   "noelreports": {
-   "checked": "2026-11-19",
+   "checked": "2026-11-20",
    "posted": "2026-11-19"
   },
   "oryxspioenkop": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-20"
   },
   "sentdefender": {
-   "checked": "2026-11-19",
-   "posted": "2026-11-19"
+   "checked": "2026-11-20",
+   "posted": "2026-11-20"
   },
   "wartranslated": {
-   "checked": "2026-11-19",
-   "posted": "2026-11-19"
+   "checked": "2026-11-20",
+   "posted": "2026-11-20"
   },
   "yaronavraham": {
    "checked": "2026-11-19"
   }
  },
- "updated": "2026-11-19T20:38:07Z"
+ "updated": "2026-11-20T20:21:14Z"
 }
