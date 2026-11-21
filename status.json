@@ -1,0 +1,92 @@
+{
+  "version": "1.41.1",
+  "fetched_at": "2026-11-21T13:02:44.416996+00:00",
+  "collected": {
+    "quakes": 255,
+    "launches": 10,
+    "alerts": 31,
+    "disasters": 100,
+    "vessels": 797,
+    "navwarn": 15,
+    "gdelt": 0,
+    "gdelt_detail": {
+      "slices": 4,
+      "asked": 8,
+      "rows": 2968,
+      "conflict_rows": 82,
+      "hotspots": 0,
+      "latest": "2026-11-21 13:00 UTC"
+    },
+    "wire": 81,
+    "wire_detail": {
+      "BBC": 8,
+      "Al Jazeera": 8,
+      "Guardian": 8,
+      "DW": 3,
+      "France 24": 8,
+      "NPR": 3,
+      "Kyiv Independent": 4,
+      "Ukrainska Pravda": 8,
+      "Middle East Eye": 8,
+      "Jerusalem Post": 8,
+      "The Diplomat": 0,
+      "NK News": 0,
+      "Taipei Times": 0,
+      "Africanews": 7,
+      "USNI News": 0,
+      "The War Zone": 0,
+      "Breaking Defense": 0,
+      "Defense News": 0,
+      "gCaptain": 0,
+      "SpaceNews": 0,
+      "BleepingComputer": 0,
+      "The Record": 0,
+      "Krebs": 0,
+      "CISA advisories": 0,
+      "NPR US": 3,
+      "Numbers Stations": 0,
+      "CISA KEV": 8,
+      "signals kept": 0
+    },
+    "aircraft": 4203,
+    "appalachia": {
+      "built_at": "2026-10-26T13:10:36Z",
+      "complete": true,
+      "sections": {
+        "total": 14,
+        "lines": 14,
+        "points": 14,
+        "with_ways": 14
+      },
+      "ways": 2116,
+      "pois": 2534,
+      "path_mi": 2107.5,
+      "kb": 670
+    },
+    "xai_browser": {
+      "ok": true,
+      "status": 200,
+      "allow_origin": "*",
+      "allow_headers": "*"
+    },
+    "gpsjam": {
+      "runs": 1,
+      "checked": 3064,
+      "cells_seen": 744,
+      "flagged": 41
+    },
+    "satellites": {
+      "P": 19752,
+      "R": 2222,
+      "D": 10399,
+      "U": 576
+    }
+  },
+  "assets_kb": {
+    "earth_day.jpg": 1427,
+    "earth_night.png": 717,
+    "three.module.js": 1243
+  },
+  "collection": null,
+  "errors": {}
+}
