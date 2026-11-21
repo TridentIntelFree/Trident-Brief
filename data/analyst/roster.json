@@ -39,13 +39,6 @@
    "url": "https://x.com/Abom1nabl3/status/2119000391622783349",
    "why": "Sourced monitoring of strikes on Saratov refinery, Oryol Proton plant, and Rostov Almaz warehouse with context."
   },
-  "Avivector": {
-   "days": [
-    "2026-10-30"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: satellite imagery of Marinovka"
-  },
   "Axios_ar": {
    "days": [
     "2026-11-06"
@@ -67,13 +60,6 @@
    ],
    "url": "https://x.com/ConflictRadarME/status/2116951989678387370",
    "why": "Amateur security analyst citing Kuwaiti defense officials and posting media to clarify explosions as scheduled exercises."
-  },
-  "CyberBoroshno": {
-   "days": [
-    "2026-10-30"
-   ],
-   "url": "",
-   "why": "quoted or credited by followed accounts: higher-res Marinovka image"
   },
   "DaphnaLiel": {
    "days": [
@@ -223,6 +209,13 @@
    "url": "https://x.com/militarnyi/status/2119488372494499894",
    "why": "Sourced reporting on Ukrainian drone damage to Rostov bridge on R-280 highway supplying occupied Crimea."
   },
+  "moi_bahrain": {
+   "days": [
+    "2026-11-21"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: quoted on Bahrain alert"
+  },
   "moklasen": {
    "days": [
     "2026-11-13"
@@ -270,11 +263,11 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-18"
   },
   "AuroraIntel": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
@@ -282,34 +275,34 @@
    "posted": "2026-11-18"
   },
   "CENTCOM": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-14"
   },
   "CalibreObscura": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-11"
   },
   "CovertShores": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-21"
   },
   "ELINTNews": {
-   "checked": "2026-11-20"
+   "checked": "2026-11-21"
   },
   "Faytuks": {
-   "checked": "2026-11-20"
+   "checked": "2026-11-21"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-20"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-20"
+   "checked": "2026-11-21"
   },
   "IntelCrab": {
-   "checked": "2026-11-20"
+   "checked": "2026-11-21"
   },
   "JenniferJJacobs": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-20"
   },
   "JominiW": {
@@ -319,19 +312,19 @@
    "checked": "2026-11-20"
   },
   "Osinttechnical": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-19"
   },
   "RALee85": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-13"
   },
   "Tendar": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-10"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-20",
+   "checked": "2026-11-21",
    "posted": "2026-11-17"
   },
   "UK_MTO": {
@@ -342,30 +335,30 @@
    "checked": "2026-11-16"
   },
   "detresfa_": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-21"
   },
   "hey_itsmyturn": {
    "checked": "2026-11-16",
    "posted": "2026-11-15"
   },
   "noelreports": {
-   "checked": "2026-11-20",
-   "posted": "2026-11-19"
+   "checked": "2026-11-21",
+   "posted": "2026-11-21"
   },
   "oryxspioenkop": {
    "checked": "2026-11-20"
   },
   "sentdefender": {
-   "checked": "2026-11-20",
-   "posted": "2026-11-20"
+   "checked": "2026-11-21",
+   "posted": "2026-11-21"
   },
   "wartranslated": {
-   "checked": "2026-11-20",
-   "posted": "2026-11-20"
+   "checked": "2026-11-21",
+   "posted": "2026-11-21"
   },
   "yaronavraham": {
-   "checked": "2026-11-19"
+   "checked": "2026-11-21"
   }
  },
- "updated": "2026-11-20T20:21:14Z"
+ "updated": "2026-11-21T19:16:13Z"
 }
