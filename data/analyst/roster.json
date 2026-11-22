@@ -68,12 +68,26 @@
    "url": "",
    "why": "quoted or credited by followed accounts: quoted by BarakRavid on politics"
   },
+  "DefenceGeek": {
+   "days": [
+    "2026-11-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: ARTEMIS II tasking"
+  },
   "HeimsdallsBrief": {
    "days": [
     "2026-11-01"
    ],
    "url": "https://x.com/HeimsdallsBrief/status/2116951595678081503",
    "why": "OSINT account on global conflicts providing sourced update confirming Kuwait explosions as military exercises."
+  },
+  "InsiderGeo": {
+   "days": [
+    "2026-11-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: earlier Kaliningrad loading op"
   },
   "JDVance": {
    "days": [
@@ -89,6 +103,13 @@
    ],
    "url": "",
    "why": "quoted or credited by followed accounts: quoted on Dana White presence"
+  },
+  "MATA_osint": {
+   "days": [
+    "2026-11-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: ARTEMIS II tasking"
   },
   "Maks_NAFO_FELLA": {
    "days": [
@@ -167,6 +188,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: cited on investigation details"
   },
+  "byjepstein": {
+   "days": [
+    "2026-11-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: satellite imagery of sunk corvette"
+  },
   "dannyctkemp": {
    "days": [
     "2026-11-09"
@@ -230,6 +258,13 @@
    "url": "",
    "why": "quoted or credited by followed accounts: cited on Iran war and midterms"
   },
+  "vantortech": {
+   "days": [
+    "2026-11-22"
+   ],
+   "url": "",
+   "why": "quoted or credited by followed accounts: imagery credit"
+  },
   "yaronavraham": {
    "days": [
     "2026-11-05",
@@ -263,11 +298,11 @@
  ],
  "stats": {
   "Archer83Able": {
-   "checked": "2026-11-21",
-   "posted": "2026-11-18"
+   "checked": "2026-11-22",
+   "posted": "2026-11-22"
   },
   "AuroraIntel": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-04"
   },
   "BarakRavid": {
@@ -275,56 +310,56 @@
    "posted": "2026-11-18"
   },
   "CENTCOM": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-14"
   },
   "CalibreObscura": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-11"
   },
   "CovertShores": {
    "checked": "2026-11-21"
   },
   "ELINTNews": {
-   "checked": "2026-11-21"
+   "checked": "2026-11-22"
   },
   "Faytuks": {
-   "checked": "2026-11-21"
+   "checked": "2026-11-22"
   },
   "GeoConfirmed": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-20"
   },
   "Global_Mil_Info": {
-   "checked": "2026-11-21"
+   "checked": "2026-11-22"
   },
   "IntelCrab": {
-   "checked": "2026-11-21"
+   "checked": "2026-11-22"
   },
   "JenniferJJacobs": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-20"
   },
   "JominiW": {
-   "checked": "2026-11-20"
+   "checked": "2026-11-22"
   },
   "KofmanMichael": {
-   "checked": "2026-11-20"
+   "checked": "2026-11-22"
   },
   "Osinttechnical": {
-   "checked": "2026-11-21",
-   "posted": "2026-11-19"
+   "checked": "2026-11-22",
+   "posted": "2026-11-22"
   },
   "RALee85": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-13"
   },
   "Tendar": {
-   "checked": "2026-11-21",
-   "posted": "2026-11-10"
+   "checked": "2026-11-22",
+   "posted": "2026-11-22"
   },
   "TheStudyofWar": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-17"
   },
   "UK_MTO": {
@@ -342,23 +377,23 @@
    "posted": "2026-11-15"
   },
   "noelreports": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-21"
   },
   "oryxspioenkop": {
-   "checked": "2026-11-20"
+   "checked": "2026-11-22"
   },
   "sentdefender": {
-   "checked": "2026-11-21",
-   "posted": "2026-11-21"
+   "checked": "2026-11-22",
+   "posted": "2026-11-22"
   },
   "wartranslated": {
-   "checked": "2026-11-21",
+   "checked": "2026-11-22",
    "posted": "2026-11-21"
   },
   "yaronavraham": {
    "checked": "2026-11-21"
   }
  },
- "updated": "2026-11-21T19:16:13Z"
+ "updated": "2026-11-22T19:41:06Z"
 }
