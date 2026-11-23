@@ -1,33 +1,6 @@
 {
- "checked": "2026-11-16T12:59:34Z",
+ "checked": "2026-11-23T15:01:39Z",
  "receivers": [
-  {
-   "host": "kiwi-dg0jbd.stbach.de",
-   "name": "DG0JBD Marienberg Germany",
-   "loc": "Marienberg, Germany",
-   "lat": 50.67,
-   "lon": 13.26,
-   "antenna": "Magnetische Loop",
-   "slots": 8
-  },
-  {
-   "host": "kiwi.770net.de:8073",
-   "name": "0-30 MHz SDR Clubstation DL0HC | Hattingen NRW, Germany",
-   "loc": "Hattingen NRW, Germany",
-   "lat": 51.38,
-   "lon": 7.22,
-   "antenna": "PA0RDT MiniWhip (Sorry, high QRM on Low Bands!)",
-   "slots": 8
-  },
-  {
-   "host": "kiwi.dg3sdk.de",
-   "name": "DG3SDK | 0-30 MHz SDR | Esslingen, Germany",
-   "loc": "Esslingen, Germany",
-   "lat": 48.75,
-   "lon": 9.32,
-   "antenna": "long wire",
-   "slots": 8
-  },
   {
    "host": "kiwi.pt2fhc.org",
    "name": "0-30 MHz SDR, PT2FHC, Brasilia, DF, Brazil",
@@ -38,24 +11,6 @@
    "slots": 60
   },
   {
-   "host": "kiwi.x26.de",
-   "name": "Kiwi 2 DB0SLF (www.x26.de) | Saalfeld/Saale",
-   "loc": "Saalfeld/Saale",
-   "lat": 50.65,
-   "lon": 11.31,
-   "antenna": "LMK Vertikal from HM Funkbau",
-   "slots": 4
-  },
-  {
-   "host": "kiwisdr.dl0hgn.ipv64.net",
-   "name": "0-30 MHz KIWI SDR form DL0HGN/DQ1V | Germany, Hagenow",
-   "loc": "Germany, Hagenow",
-   "lat": 53.4,
-   "lon": 11.22,
-   "antenna": "Dipol for 160 meters",
-   "slots": 3
-  },
-  {
    "host": "kiwisdr.rigiremote.ch",
    "name": "0-30 MHz SDR, HB9RYZ-1, JN47GA - Rigi Scheidegg",
    "loc": "JN47GA - Rigi Scheidegg",
@@ -63,87 +18,6 @@
    "lon": 8.43,
    "antenna": "Wellbrook Loop",
    "slots": 50
-  },
-  {
-   "host": "kwsdr.db0nas.de",
-   "name": "0-30 MHz SDR | Niendorf a.d.St.",
-   "loc": "Niendorf a.d.St.",
-   "lat": 53.59,
-   "lon": 10.6,
-   "antenna": "Mini-Whip",
-   "slots": 8
-  },
-  {
-   "host": "radio.satelliteboy.com",
-   "name": "0-30 MHz SDR, M7GMG | Manchester, UK",
-   "loc": "Manchester, UK",
-   "lat": 53.43,
-   "lon": -2.18,
-   "antenna": "Wellbrook Loop",
-   "slots": 2
-  },
-  {
-   "host": "sdr.n6ij.com",
-   "name": "Monterey Bay Amateur Radio Association | Marina, California",
-   "loc": "Marina, California",
-   "lat": 36.66,
-   "lon": -121.8,
-   "antenna": "Mini-Whip by pa0rdt",
-   "slots": 8
-  },
-  {
-   "host": "sdr.shortwave.am",
-   "name": "0-30 MHz SDR | Southport, UK",
-   "loc": "Southport, UK",
-   "lat": 53.65,
-   "lon": -2.99,
-   "antenna": "Wellbrook ALA1530 HF Loop Antenna",
-   "slots": 7
-  },
-  {
-   "host": "sdr.sixvpn.net",
-   "name": "0-30 MHz SDR, Balingen, Germany",
-   "loc": "Balingen, Germany",
-   "lat": 48.26,
-   "lon": 8.83,
-   "antenna": "Indoor Active Loops",
-   "slots": 8
-  },
-  {
-   "host": "sdr1.iw3hbx.uk",
-   "name": "0-30 MHz FlyDog-SDR, IW3HBX - Noale 🇮🇹 Italy 🇮🇹",
-   "loc": "Noale, Italy",
-   "lat": 45.55,
-   "lon": 12.06,
-   "antenna": "Home built active loop (ALA1530 style, east/west)",
-   "slots": 3
-  },
-  {
-   "host": "swl-lippi-1.stbach.de",
-   "name": "Lippis-KiWi-SDR-1 | Freital, Germany",
-   "loc": "Freital, Germany",
-   "lat": 51.0,
-   "lon": 13.68,
-   "antenna": "Longwire",
-   "slots": 8
-  },
-  {
-   "host": "swl-lippi-2.stbach.de",
-   "name": "Lippis-KiWi-SDR-2 | FREITAL, GERMANY",
-   "loc": "FREITAL, GERMANY",
-   "lat": 51.0,
-   "lon": 13.65,
-   "antenna": "LZ1AQ West/East/Loop",
-   "slots": 8
-  },
-  {
-   "host": "websdr.sm7iun.se",
-   "name": "SM7IUN 0-30 MHz SDR | Bjärred, Sweden",
-   "loc": "Bjärred, Sweden",
-   "lat": 55.72,
-   "lon": 13.01,
-   "antenna": "FD4 OCF dipole 10m over ground. Poor below 2MHz.",
-   "slots": 8
   }
  ]
 }
